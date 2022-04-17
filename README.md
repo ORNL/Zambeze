@@ -1,6 +1,6 @@
 [![Build][build-badge]][build-link]
 
-# zambeze
+# Zambeze
 
 ## Get in Touch
 
