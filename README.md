@@ -1,4 +1,5 @@
 [![Build][build-badge]][build-link]
+[![License: MIT][license-badge]](LICENSE)
 
 # Zambeze
 
@@ -12,3 +13,4 @@ Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
 
 [build-badge]:         https://github.com/ORNL/zambeze/workflows/Build/badge.svg
 [build-link]:          https://github.com/ORNL/zambeze/actions
+[license-badge]:       https://img.shields.io/github/license/ORNL/zambeze
