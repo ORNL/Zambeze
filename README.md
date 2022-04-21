@@ -1,3 +1,4 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6a820c5946384c3e98889e7f09a4218e)](https://www.codacy.com/gh/ORNL/zambeze/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ORNL/zambeze&amp;utm_campaign=Badge_Grade)
 [![Build][build-badge]][build-link]
 [![License: MIT][license-badge]](LICENSE)
 
