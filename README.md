@@ -3,6 +3,8 @@
 
 # Zambeze
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/75c54c8736ee4989b40292724a8e3be5)](https://app.codacy.com/gh/ORNL/zambeze?utm_source=github.com&utm_medium=referral&utm_content=ORNL/zambeze&utm_campaign=Badge_Grade_Settings)
+
 ## Get in Touch
 
 The main channel to reach the Zambeze team is via the support email: 
