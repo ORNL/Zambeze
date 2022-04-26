@@ -50,33 +50,3 @@ class Task:
 
     def __len__(self):
         return len(self._payload)
-
-if __name__ == "__main__":
-
-    payload = {
-            "client_id": uuid.uuid1(),
-            "task_id": uuid.uuid1(),
-            "credentials": {},
-            "action": { "type": "Data", "source": "/home/file1.txt", "destination": "/home/file2.txt" }
-            }
-    task = Task(payload)
-    task.display()
-
-    payload = {
-            "client_id": uuid.uuid1(),
-            "task_id": uuid.uuid1(),
-            "credentials": {},
-            "action": { "type": "Compute", "workflow_id": uuid.uuid1(), "parameters": {"compute_workflow": "run simulation" }}
-            }
-    task = Task(payload)
-    task.display()
-
-    payload = {
-            "client_id": uuid.uuid1(),
-            "task_id": uuid.uuid1(),
-            "credentials": {},
-            "action": { "type": "Control", "target_id": uuid.uuid1(), "task_id": uuid.uuid1(), "body": {"content": "Status update" }}
-            }
-    task = Task(payload)
-    task.display()
-

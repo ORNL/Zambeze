@@ -114,30 +114,3 @@ def Factory(payload):
 
     return actions[payload.get("type")](payload)
 
-if __name__ == "__main__":
-
-    payload = {
-            "type": "Control",
-            "target_id": uuid.uuid1(),
-            "task_id": uuid.uuid1(),
-            "body": "This is the body"
-            }
-    con = Factory(payload)
-    con.display()
-
-    payload = {
-            "type": "Data",
-            "source": "/home/source/file1.txt",
-            "destination": "home/dest/file1.txt"
-            }
-    dat = Factory(payload)
-    dat.display()
-
-    payload = {
-            "type": "Compute",
-            "workflow_id": uuid.uuid1(),
-            "parameters": { "compute": "this is a workflow param"} 
-            }
-    com = Factory(payload)
-    com.display()
-
