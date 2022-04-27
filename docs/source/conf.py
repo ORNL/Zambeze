@@ -16,16 +16,16 @@ import sphinx_rtd_theme
 import sys
 
 # Fetch the version
-exec(open('../../zambeze/version.py').read())
+exec(open("../../zambeze/version.py").read())
 
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath("../.."))
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
 
-project = 'Zambeze'
-copyright = '2022, Oak Ridge National Laboratory'
-author = 'Oak Ridge National Laboratory'
+project = "Zambeze"
+copyright = "2022, Oak Ridge National Laboratory"
+author = "Oak Ridge National Laboratory"
 
 # The short X.Y version
 version = str(__version__)
@@ -38,13 +38,13 @@ release = str(__version__)
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'recommonmark',
-    'sphinx_rtd_theme',
-    'sphinx.ext.autodoc',
+    "recommonmark",
+    "sphinx_rtd_theme",
+    "sphinx.ext.autodoc",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -63,10 +63,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "_*.rst"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
-html_favicon = 'favicon.png'
+html_theme = "sphinx_rtd_theme"
+html_favicon = "favicon.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]

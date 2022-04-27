@@ -8,9 +8,9 @@
 
 from .version import __version__
 
-__author__ = 'https://zambeze.org'
-__credits__ = 'Oak Ridge National Laboratory'
+__author__ = "https://zambeze.org"
+__credits__ = "Oak Ridge National Laboratory"
 
 import logging
 
-logging.getLogger('zambeze').addHandler(logging.NullHandler())
+logging.getLogger("zambeze").addHandler(logging.NullHandler())
