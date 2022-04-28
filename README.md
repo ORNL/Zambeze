@@ -1,6 +1,7 @@
 [![Build][build-badge]][build-link]
 [![License: MIT][license-badge]](LICENSE)
 [![Codacy Badge][codacy-badge]][codacy-link]
+[![Docs][docs-badge]][docs-link]
 
 # Zambeze
 
@@ -11,11 +12,6 @@ The main channel to reach the Zambeze team is via the support email:
 
 **Bug Report / Feature Request:** our preferred channel to report a bug or request a feature is via  
 Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
-
-
-## Documentation
-
-Documentation is available on [Read the Docs](https://zambeze.readthedocs.io/en/latest/).
 
 
 ## Running Tests
@@ -36,3 +32,5 @@ pytest -s -v
 [license-badge]:       https://img.shields.io/github/license/ORNL/zambeze
 [codacy-badge]:        https://app.codacy.com/project/badge/Grade/6a820c5946384c3e98889e7f09a4218e
 [codacy-link]:         https://www.codacy.com/gh/ORNL/zambeze/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ORNL/zambeze&amp;utm_campaign=Badge_Grade
+[docs-badge]:          https://readthedocs.org/projects/zambeze/badge/?version=latest
+[docs-link]:           https://zambeze.readthedocs.io/en/latest/
