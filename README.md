@@ -1,9 +1,10 @@
 [![Build][build-badge]][build-link]
 [![PyPI][pypi-badge]][pypi-link]
 [![License: MIT][license-badge]](LICENSE)
-[![Codacy Badge][codacy-badge]][codacy-link]
 [![Docs][docs-badge]][docs-link]
 [![codecov][codecov-badge]][codecov-link]
+[![Codacy Badge][codacy-badge]][codacy-link]
+[![CodeFactor][codefactor-badge]][codefactor-link]
 
 # Zambeze
 
@@ -39,3 +40,5 @@ pytest -sv
 [pypi-link]:           https://pypi.org/project/zambeze/
 [codecov-badge]:       https://codecov.io/gh/ORNL/zambeze/branch/main/graph/badge.svg?token=H5VS82WTRZ
 [codecov-link]:        https://codecov.io/gh/ORNL/zambeze
+[codefactor-badge]:    https://www.codefactor.io/repository/github/ornl/zambeze/badge
+[codefactor-link]:     https://www.codefactor.io/repository/github/ornl/zambeze
