@@ -26,11 +26,7 @@ setup(
     url="https://github.com/zambeze/zambeze",
     packages=find_packages(),
     include_package_data=True,
-    install_requires=[
-        "nats-py",
-        "pytest",
-        "setuptools"
-    ],
+    install_requires=["nats-py", "pytest", "setuptools"],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
