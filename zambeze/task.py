@@ -36,13 +36,13 @@ class Task:
         if not payload.__contains__("action"):
             raise TaskExcept("Task missing action key")
 
-        if type(payload.get("client_id")) is not uuid.UUID:
+        if not isinstance(payload.get("client_id"), uuid.UUID):
             raise TaskExcept("client_id must be of uuid.UUID type.")
-        if type(payload.get("task_id")) is not uuid.UUID:
+        if not isinstance(payload.get("task_id"), uuid.UUID):
             raise TaskExcept("task_id must be of uuid.UUID type.")
-        if type(payload.get("credentials")) is not dict:
+        if not isinstance(payload.get("credentials"), dict):
             raise TaskExcept("credentials must be of dict type.")
-        if type(payload.get("action")) is not dict:
+        if not isinstance(payload.get("action"), dict):
             raise TaskExcept("action must be of dict type.")
 
     def display(self):

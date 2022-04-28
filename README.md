@@ -15,7 +15,6 @@ The main channel to reach the Zambeze team is via the support email:
 **Bug Report / Feature Request:** our preferred channel to report a bug or request a feature is via  
 Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
 
-
 ## Running Tests
 
 There are a few dependencies that need to be installed to run the pytest:
