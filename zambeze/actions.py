@@ -38,7 +38,7 @@ class ControlAction(Action):
 
     def __init__(self, payload):
         super().__init__()
-        if type(payload) is not dict:
+        if not isinstance(payload, dict):
             raise ActionExcept("Payload must be dict")
         self.__validatePayload(payload)
         self._payload = {
@@ -49,18 +49,18 @@ class ControlAction(Action):
         }
 
     def __validatePayload(self, payload):
-        if payload.__contains__("type") == False:
+        if not payload.__contains__("type"):
             raise ControlActionExcept("Control action missing type key")
-        if payload.__contains__("target_id") == False:
+        if not payload.__contains__("target_id"):
             raise ControlActionExcept("Control action missing target_id key")
-        if payload.__contains__("task_id") == False:
+        if not payload.__contains__("task_id"):
             raise ControlActionExcept("Control action missing task_id key")
-        if payload.__contains__("body") == False:
+        if not payload.__contains__("body"):
             raise ControlActionExcept("Control action missing body key")
 
-        if type(payload.get("target_id")) is not uuid.UUID:
+        if not isinstance(payload.get("target_id"), uuid.UUID):
             raise ControlActionExcept("target_id must be of uuid.UUID type.")
-        if type(payload.get("task_id")) is not uuid.UUID:
+        if not isinstance(payload.get("task_id"), uuid.UUID):
             raise ControlActionExcept("task_id must be of uuid.UUID type.")
 
 
@@ -69,24 +69,24 @@ class DataAction(Action):
 
     def __init__(self, payload):
         super().__init__()
-        if type(payload) is not dict:
+        if not isinstance(payload, dict):
             raise ActionExcept("Payload must be dict")
         self.__validatePayload(payload)
         self._payload = payload
 
     def __validatePayload(self, payload):
-        if payload.__contains__("type") == False:
+        if not payload.__contains__("type"):
             raise DataActionExcept("Data action missing type key")
-        if payload.__contains__("source") == False:
+        if not payload.__contains__("source"):
             raise DataActionExcept("Data action missing source key")
-        if payload.__contains__("destination") == False:
+        if not payload.__contains__("destination"):
             raise DataActionExcept("Data action missing destination key")
 
 
 class ComputeAction(Action):
     def __init__(self, payload):
         super().__init__()
-        if type(payload) is not dict:
+        if not isinstance(payload, dict):
             raise ActionExcept("Payload must be dict")
         self.__validatePayload(payload)
 
@@ -97,21 +97,20 @@ class ComputeAction(Action):
         }
 
     def __validatePayload(self, payload):
-        if payload.__contains__("type") == False:
+        if not payload.__contains__("type"):
             raise DataActionExcept("Compute action missing type key")
-        if payload.__contains__("workflow_id") == False:
+        if not payload.__contains__("workflow_id"):
             raise DataActionExcept("Compute action missing workflow_id key")
-        if payload.__contains__("parameters") == False:
+        if not payload.__contains__("parameters"):
             raise DataActionExcept("Compute action missing parameters key")
 
-        if type(payload.get("workflow_id")) is not uuid.UUID:
+        if not isinstance(payload.get("workflow_id"), uuid.UUID):
             raise ComputeActionExcept("workflow_id must be of UUID type.")
-        if type(payload.get("parameters")) is not dict:
+        if not isinstance(payload.get("parameters"), dict):
             raise ComputeActionExcept("parameters must be of dict type.")
 
 
 def Factory(payload):
-
     """Factory Method"""
     actions = {
         "Control": ControlAction,

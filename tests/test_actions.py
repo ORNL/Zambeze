@@ -3,6 +3,7 @@ import uuid
 
 from zambeze.actions import Factory
 
+
 ###############################################################################
 # Testing Action: Control
 ###############################################################################
@@ -16,8 +17,10 @@ def test_action_control():
     control_action = Factory(payload)
     print(str(control_action))
     assert (
-        str(control_action)
-        == "{'type': 'Control', 'target_id': '69bb52ce-c59c-11ec-abff-00155d8c61bb', 'task_id': '4c963e70-c59c-11ec-bb5f-00155d8c61bb', 'body': 'This is the body'}"
+        str(control_action) == "{'type': 'Control', "
+        "'target_id': '69bb52ce-c59c-11ec-abff-00155d8c61bb', "
+        "'task_id': '4c963e70-c59c-11ec-bb5f-00155d8c61bb', "
+        "'body': 'This is the body'}"
     )
 
 
@@ -58,8 +61,9 @@ def test_action_data():
     data_action = Factory(payload)
     print(str(data_action))
     assert (
-        str(data_action)
-        == "{'type': 'Data', 'source': '/home/source/file1.txt', 'destination': 'home/dest/file1.txt'}"
+        str(data_action) == "{'type': 'Data', "
+        "'source': '/home/source/file1.txt', "
+        "'destination': 'home/dest/file1.txt'}"
     )
 
 
@@ -100,6 +104,7 @@ def test_action_compute():
     }
     com = Factory(payload)
     assert (
-        str(com)
-        == "{'type': 'Compute', 'workflow_id': '8353332c-c59d-11ec-9b3a-00155d8c61bb', 'parameters': {'compute': 'this is a workflow param'}}"
+        str(com) == "{'type': 'Compute', "
+        "'workflow_id': '8353332c-c59d-11ec-9b3a-00155d8c61bb', "
+        "'parameters': {'compute': 'this is a workflow param'}}"
     )
