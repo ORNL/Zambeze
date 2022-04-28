@@ -17,7 +17,7 @@ class Task:
 
     def __init__(self, payload):
         if type(payload) is not dict:
-            raise ActionExcept("Payload must be dict")
+            raise actions.ActionExcept("Payload must be dict")
         self.__validatePayload(payload)
         self._payload = {
             "client_id": str(payload.get("client_id")),
@@ -27,13 +27,13 @@ class Task:
         }
 
     def __validatePayload(self, payload):
-        if payload.__contains__("client_id") == False:
+        if not payload.__contains__("client_id"):
             raise TaskExcept("Task missing client_id key")
-        if payload.__contains__("task_id") == False:
+        if not payload.__contains__("task_id"):
             raise TaskExcept("Task missing task_id key")
-        if payload.__contains__("credentials") == False:
+        if not payload.__contains__("credentials"):
             raise TaskExcept("Task missing credentials key")
-        if payload.__contains__("action") == False:
+        if not payload.__contains__("action"):
             raise TaskExcept("Task missing action key")
 
         if type(payload.get("client_id")) is not uuid.UUID:

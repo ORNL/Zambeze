@@ -25,7 +25,7 @@ pip install pytest
 From the root directory using pytest we can run:
 
 ```bash
-pytest -s -v
+pytest -sv
 ```
 
 [build-badge]:         https://github.com/ORNL/zambeze/workflows/Build/badge.svg
