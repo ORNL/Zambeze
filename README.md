@@ -2,6 +2,7 @@
 [![License: MIT][license-badge]](LICENSE)
 [![Codacy Badge][codacy-badge]][codacy-link]
 [![Docs][docs-badge]][docs-link]
+[![PyPI][pypi-badge]][pypi-link]
 
 # Zambeze
 
@@ -34,3 +35,5 @@ pytest -s -v
 [codacy-link]:         https://www.codacy.com/gh/ORNL/zambeze/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ORNL/zambeze&amp;utm_campaign=Badge_Grade
 [docs-badge]:          https://readthedocs.org/projects/zambeze/badge/?version=latest
 [docs-link]:           https://zambeze.readthedocs.io/en/latest/
+[pypi-badge]:          https://badge.fury.io/py/zambeze.svg
+[pypi-link]:           https://pypi.org/project/zambeze/
