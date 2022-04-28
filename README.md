@@ -12,21 +12,21 @@ The main channel to reach the Zambeze team is via the support email:
 **Bug Report / Feature Request:** our preferred channel to report a bug or request a feature is via  
 Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
 
-[build-badge]:         https://github.com/ORNL/zambeze/workflows/Build/badge.svg
-[build-link]:          https://github.com/ORNL/zambeze/actions
-[license-badge]:       https://img.shields.io/github/license/ORNL/zambeze
-[codacy-badge]:        https://app.codacy.com/project/badge/Grade/6a820c5946384c3e98889e7f09a4218e
-[codacy-link]:         https://www.codacy.com/gh/ORNL/zambeze/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ORNL/zambeze&amp;utm_campaign=Badge_Grade
-
 ## Running Tests
 
 There are a few dependencies that need to be installed to run the pytest:
 ```bash
-$ pip install pytest
+pip install pytest
 ```
 
 From the root directory using pytest we can run:
 
 ```bash
-$ pytest -s -v
+pytest -s -v
 ```
+
+[build-badge]:         https://github.com/ORNL/zambeze/workflows/Build/badge.svg
+[build-link]:          https://github.com/ORNL/zambeze/actions
+[license-badge]:       https://img.shields.io/github/license/ORNL/zambeze
+[codacy-badge]:        https://app.codacy.com/project/badge/Grade/6a820c5946384c3e98889e7f09a4218e
+[codacy-link]:         https://www.codacy.com/gh/ORNL/zambeze/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ORNL/zambeze&amp;utm_campaign=Badge_Grade
