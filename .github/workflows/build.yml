@@ -30,7 +30,9 @@ jobs:
           pip install .
       - name: Run tests
         run: |
-          pytest -sv
+          pytest -sv --cov=zambeze tests/
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v2
       - name: Build documentation
         run: |
           cd docs
