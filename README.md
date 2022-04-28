@@ -1,8 +1,9 @@
 [![Build][build-badge]][build-link]
+[![PyPI][pypi-badge]][pypi-link]
 [![License: MIT][license-badge]](LICENSE)
 [![Codacy Badge][codacy-badge]][codacy-link]
 [![Docs][docs-badge]][docs-link]
-[![PyPI][pypi-badge]][pypi-link]
+[![codecov][codecov-badge]][codecov-link]
 
 # Zambeze
 
@@ -37,3 +38,5 @@ pytest -sv
 [docs-link]:           https://zambeze.readthedocs.io/en/latest/
 [pypi-badge]:          https://badge.fury.io/py/zambeze.svg
 [pypi-link]:           https://pypi.org/project/zambeze/
+[codecov-badge]:       https://codecov.io/gh/ORNL/zambeze/branch/main/graph/badge.svg?token=H5VS82WTRZ
+[codecov-link]:        https://codecov.io/gh/ORNL/zambeze
