@@ -8,6 +8,8 @@
 
 from .version import __version__
 
+from .campaign import Activity, Campaign, Dataset
+
 __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"
 
