@@ -1,13 +1,22 @@
 name: Build
 
-on:
-  push:
-    branches:
-      - main
+on: push
 
 jobs:
+  check-formatting:
+    name: Code Formatting
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: JoshuaSBrown/cpp-py-formatter/check@v0.2.3
+      with:
+        clangFormatVersion: 8
+        token: ${{ secrets.GITHUB_TOKEN }}
+
   build:
     runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: check-formatting
     strategy:
       matrix:
         python-version: [ "3.7", "3.8", "3.9", "3.10" ]
@@ -29,9 +38,11 @@ jobs:
         run: |
           pip install .
       - name: Run tests
+        if: github.ref == 'refs/heads/main'
         run: |
           pytest -sv --cov=zambeze tests/
       - name: Upload Coverage to Codecov
+        if: github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v2
       - name: Build documentation
         run: |
