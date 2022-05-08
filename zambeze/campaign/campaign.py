@@ -8,6 +8,7 @@
 
 import logging
 
+from .activity import Activity
 from typing import Optional
 
 
@@ -26,3 +27,13 @@ class Campaign:
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name = name
+        self.activities = []
+
+    def add_activity(self, activity: Activity) -> None:
+        """Add an activity to the campaign.
+
+        :param activity: An activity object.
+        :type activity: Activity
+        """
+        self.debug(f"Adding activity: {activity.name}")
+        self.activities.append(activity)
