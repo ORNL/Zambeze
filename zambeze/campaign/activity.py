@@ -33,7 +33,7 @@ class Activity:
         """Add a dataset to the activity."""
         pass
 
-    def depends(self, activity: 'Activity') -> None:
+    def depends(self, activity: "Activity") -> None:
         """Add dependency between activities.
 
         :param activity: A parent activity.
