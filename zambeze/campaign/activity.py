@@ -40,7 +40,7 @@ class Activity:
         self.name = name
         self.datasets = []
         self.actions = []
-        self.parents = []
+        self.status = ActivityStatus.CREATED
 
     def add_dataset(self, dataset: Dataset) -> None:
         """Add a dataset to the activity.
@@ -57,11 +57,3 @@ class Activity:
         :type action: Action
         """
         self.actions.append(action)
-
-    def depends(self, activity: "Activity") -> None:
-        """Add dependency between activities.
-
-        :param activity: A parent activity.
-        :type activity: Activity
-        """
-        self.parents.append(activity)
