@@ -9,25 +9,32 @@
 import logging
 
 from .activity import Activity
-from typing import Optional
+from typing import List, Optional
 
 
 class Campaign:
     """A Science Campaign
 
-    :param name: Science campaign name.
+    :param name: The campaign name.
     :type name: str
+    :param activities: List of activities.
+    :type activities: Optional[List[Activity]]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        activities: Optional[List[Activity]] = None,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
         """Create an object that represents a science campaign."""
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.name = name
-        self.activities = []
+        self.name: str = name
+        self.activities: List[Activity] = []
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.

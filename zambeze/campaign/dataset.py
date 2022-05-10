@@ -8,7 +8,7 @@
 
 import logging
 
-from typing import Optional
+from typing import List, Optional
 
 
 class Dataset:
@@ -16,13 +16,37 @@ class Dataset:
 
     :param name: A dataset name.
     :type name: str
+    :param files: List of file URIs.
+    :type files: List[str]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        files: Optional[List[str]] = None,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
         """Create an object that represents a dataset for a science campaign."""
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.name = name
+        self.name: str = name
+        self.files: List[str] = files
+
+    def add_files(self, files: List[str]) -> None:
+        """Add a list of files to the dataset.
+
+        :param files: List of file URIs.
+        :type files: List[str]
+        """
+        self.files.extend(files)
+
+    def add_file(self, file: str) -> None:
+        """Add a file to the dataset.
+
+        :param file: A URI to a single file.
+        :type file: str
+        """
+        self.files.append(file)

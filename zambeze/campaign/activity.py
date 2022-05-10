@@ -12,7 +12,7 @@ from .action import Action
 from .dataset import Dataset
 
 from enum import Enum, auto
-from typing import Optional
+from typing import List, Optional
 
 
 class ActivityStatus(Enum):
@@ -24,23 +24,33 @@ class ActivityStatus(Enum):
 
 
 class Activity:
-    """A Science Campaign Activity
+    """A Campaign Activity
 
-    :param name: Science campaign activity name.
+    :param name: Campaign activity name.
     :type name: str
+    :param datasets: List of datasets.
+    :type datasets: Optional[List[Dataset]]
+    :param actions: List of actions.
+    :type actions: Optional[List[Action]]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        datasets: Optional[List[Dataset]] = None,
+        actions: Optional[List[Action]] = None,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
         """Create an object that represents a science campaign activity."""
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.name = name
-        self.datasets = []
-        self.actions = []
-        self.status = ActivityStatus.CREATED
+        self.name: str = name
+        self.datasets: List[Dataset] = []
+        self.actions: List[Action] = []
+        self.status: ActivityStatus = ActivityStatus.CREATED
 
     def add_dataset(self, dataset: Dataset) -> None:
         """Add a dataset to the activity.

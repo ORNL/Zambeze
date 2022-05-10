@@ -25,4 +25,4 @@ class Action:
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.name = name
+        self.name: str = name
