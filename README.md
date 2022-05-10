@@ -35,7 +35,7 @@ black .
 flake8 .
 ```
 
-If any errors are reported by flake8, please fix them before commiting the code.
+If errors are reported by `flake8`, please fix them before commiting the code.
 
 ### Running Tests
 
