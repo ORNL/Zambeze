@@ -10,7 +10,17 @@ import logging
 
 from .action import Action
 from .dataset import Dataset
+
+from enum import Enum, auto
 from typing import Optional
+
+
+class ActivityStatus(Enum):
+    CREATED = auto()
+    QUEUED = auto()
+    RUNNING = auto()
+    COMPLETED = auto()
+    FAILED = auto()
 
 
 class Activity:
