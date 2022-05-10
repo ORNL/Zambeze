@@ -16,7 +16,28 @@ The main channel to reach the Zambeze team is via the support email:
 **Bug Report / Feature Request:** our preferred channel to report a bug or request a feature is via  
 Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
 
-## Running Tests
+## Development Environment
+
+### Code Formatting
+
+Zambeze's code uses [Black](https://github.com/psf/black), a PEP 8 compliant code formatter, and 
+[Flake8](https://github.com/pycqa/flake8), a code style guide enforcement tool. To install the
+these tools you simply need to run the following:
+
+```bash
+pip install flake8 black
+```
+
+Before _every commit_, you should run the following:
+
+```bash
+black .
+flake8 .
+```
+
+If any errors are reported by flake8, please fix them before commiting the code.
+
+### Running Tests
 
 There are a few dependencies that need to be installed to run the pytest:
 ```bash
