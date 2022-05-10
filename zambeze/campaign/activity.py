@@ -8,6 +8,7 @@
 
 import logging
 
+from .action import Action
 from .dataset import Dataset
 from typing import Optional
 
@@ -27,11 +28,25 @@ class Activity:
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name = name
+        self.datasets = []
+        self.actions = []
         self.parents = []
 
     def add_dataset(self, dataset: Dataset) -> None:
-        """Add a dataset to the activity."""
-        pass
+        """Add a dataset to the activity.
+
+        :param dataset: a Dataset object.
+        :type dataset: Dataset
+        """
+        self.datasets.append(dataset)
+
+    def add_action(self, action: Action) -> None:
+        """Add an action to the activity.
+
+        :param action: an Action object.
+        :type action: Action
+        """
+        self.actions.append(action)
 
     def depends(self, activity: "Activity") -> None:
         """Add dependency between activities.
