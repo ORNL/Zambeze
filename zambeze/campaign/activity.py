@@ -67,3 +67,11 @@ class Activity:
         :type action: Action
         """
         self.actions.append(action)
+
+    def get_status(self) -> ActivityStatus:
+        """Get current activity status.
+        
+        :return: Current activity status
+        :rtype: ActivityStatus
+        """
+        return self.status

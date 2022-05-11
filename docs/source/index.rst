@@ -8,3 +8,10 @@ Github `Issues Track <https://github.com/ORNL/zambeze/issues>`_.
 
 You can also reach the Zambeze team via our support email:
 support@zambeze.org.
+
+.. toctree::
+    :caption: API Reference
+    :maxdepth: 1
+    :hidden:
+
+    user_api_reference.rst
