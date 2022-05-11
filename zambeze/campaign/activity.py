@@ -70,7 +70,7 @@ class Activity:
 
     def get_status(self) -> ActivityStatus:
         """Get current activity status.
-        
+
         :return: Current activity status
         :rtype: ActivityStatus
         """
