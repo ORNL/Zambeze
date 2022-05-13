@@ -1,0 +1,11 @@
+Testbed VMs (username: cades) :
+
+172.22.1.{66,67,68,69}
+
+NATS server:
+[cades@work-2 ~]$ nats-server
+[cades@work-2 ~]$ sudo nats-server -p 80
+
+SSH Tunnelling to make the nats-server accessible from Summit (and elsewhere) 
+[ketan2@login1.summit ~]$ ssh -L 4222:localhost:4222 cades@172.22.1.67
+
