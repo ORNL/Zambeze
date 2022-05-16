@@ -31,7 +31,7 @@ class Action(ABC):
         params: Optional[List[str]] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
-        """Create an object of the logs parser."""
+        """Create an object of an abstract action."""
         self.logger: Optional[logging.Logger] = (
             logger if logger else logging.getLogger(__name__)
         )
