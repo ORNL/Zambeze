@@ -9,11 +9,12 @@
 import logging
 
 from .activity import Activity
+
 from typing import List, Optional
 
 
 class Campaign:
-    """A Science Campaign
+    """A Scientific Campaign.
 
     :param name: The campaign name.
     :type name: str
@@ -26,7 +27,7 @@ class Campaign:
     def __init__(
         self,
         name: str,
-        activities: Optional[List[Activity]] = None,
+        activities: Optional[List[Activity]] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign."""
@@ -34,7 +35,7 @@ class Campaign:
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name: str = name
-        self.activities: List[Activity] = []
+        self.activities: List[Activity] = activities
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
@@ -42,5 +43,9 @@ class Campaign:
         :param activity: An activity object.
         :type activity: Activity
         """
-        self.debug(f"Adding activity: {activity.name}")
+        self.logger.debug(f"Adding activity: {activity.name}")
         self.activities.append(activity)
+
+    def run(self) -> None:
+        """Run the set of current activities in the campaign."""
+        print("CAMPAIGN WILL RUN FROM HERE")

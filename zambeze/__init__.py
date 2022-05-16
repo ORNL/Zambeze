@@ -8,7 +8,8 @@
 
 from .version import __version__
 
-from .campaign import Activity, Campaign, Dataset
+from .campaign import Action, Activity, Campaign
+from .campaign.actions import ShellAction
 
 __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"
