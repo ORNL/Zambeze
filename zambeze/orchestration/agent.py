@@ -14,7 +14,7 @@ async def handle(msg):
 
     knownmsg=["execapp","datatransfer"]
     
-    if msg in knownmsg:
+    if msg.subject in knownmsg:
         print(msg)
     else:
         print("Unknown message")
