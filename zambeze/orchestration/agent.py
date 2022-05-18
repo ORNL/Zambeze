@@ -11,7 +11,14 @@ async def main():
         else:
             print("Unknown message")
     sub = await nc.subscribe("execapp", cb=handle)
-    msg = await sub.next_msg(timeout=100)
+
+    sub2 = await nc.subscribe("execapp")
+    while True:
+        try:
+            msg = await sub2.next_msg()
+            print('Message received', msg)
+        except:
+            pass
 
 if __name__=="__main__":
    asyncio.run(main())
