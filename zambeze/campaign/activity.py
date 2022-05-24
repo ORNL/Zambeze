@@ -8,8 +8,7 @@
 
 import logging
 
-from .action import Action
-from .dataset import Dataset
+from .actions import Action
 
 from enum import Enum, auto
 from typing import List, Optional
@@ -24,14 +23,12 @@ class ActivityStatus(Enum):
 
 
 class Activity:
-    """A Campaign Activity
+    """A Scientific Campaign Activity.
 
     :param name: Campaign activity name.
     :type name: str
-    :param datasets: List of datasets.
-    :type datasets: Optional[List[Dataset]]
-    :param actions: List of actions.
-    :type actions: Optional[List[Action]]
+    :param files: List of file URIs.
+    :type files: List[str]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
@@ -39,8 +36,7 @@ class Activity:
     def __init__(
         self,
         name: str,
-        datasets: Optional[List[Dataset]] = None,
-        actions: Optional[List[Action]] = None,
+        files: Optional[List[str]] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign activity."""
@@ -48,25 +44,33 @@ class Activity:
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name: str = name
-        self.datasets: List[Dataset] = []
-        self.actions: List[Action] = []
+        self.files: List[str] = files
+        self.action: Action = None
         self.status: ActivityStatus = ActivityStatus.CREATED
 
-    def add_dataset(self, dataset: Dataset) -> None:
-        """Add a dataset to the activity.
+    def add_files(self, files: List[str]) -> None:
+        """Add a list of files to the dataset.
 
-        :param dataset: a Dataset object.
-        :type dataset: Dataset
+        :param files: List of file URIs.
+        :type files: List[str]
         """
-        self.datasets.append(dataset)
+        self.files.extend(files)
 
-    def add_action(self, action: Action) -> None:
-        """Add an action to the activity.
+    def add_file(self, file: str) -> None:
+        """Add a file to the dataset.
+
+        :param file: A URI to a single file.
+        :type file: str
+        """
+        self.files.append(file)
+
+    def set_action(self, action: Action) -> None:
+        """Set an action to the activity.
 
         :param action: an Action object.
         :type action: Action
         """
-        self.actions.append(action)
+        self.action = action
 
     def get_status(self) -> ActivityStatus:
         """Get current activity status.

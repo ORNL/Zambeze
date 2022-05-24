@@ -18,52 +18,82 @@ class Globus(Service):
     def __init__(self):
         # Client id is specific to Zambeze project it was created by registering
         # at developers.globus.org
-        self.__client_id = "4055a8ec-d386-4584-9b4c-00fb39030e7c"
         self.__access_to_globus_cloud = False
-        self.__config = {}
+        self.__client_id = "435d07fa-8b10-4e04-b005-054c68be3f14"
+        self.__collections = {}
+        self.__configured = False
+        self.__flow = "client credential"
         self.__hostname = None
         self.__name = "globus"
-        self.__flow = "client credential"
+        self.__supported_actions = {
+            "transfer": False,
+            "move_to_globus_collection": False,
+            "move_from_globus_collection": False,
+        }
         pass
+
+    ###################################################################################
+    # Private Methods
+    ###################################################################################
+    # Validation Methods
+    # ------------------
 
     def __validConfig(self, config: dict):
         """Purpose of this method is to determine if the coniguration is correct"""
 
+        print(config)
         # Check that the authentication flow is supported
-        if "native" == config["authentication flow"]:
+        if "native" == config["authentication flow"]["type"]:
             self.__flow = "native"
-        elif "client credential" == config["authentication flow"]:
+        elif "client credential" == config["authentication flow"]["type"]:
             self.__flow = "client credential"
         else: 
-            raise Exception(f"authentication flow chosen {config["authentication flow"]}")
+            raise Exception(f"authentication flow chosen {config['authentication flow']['type']}")
 
         # Check that the UUIDs are correct
-        for local_collection in config["collections"]:
-            print(local_collection)
-            if not validUUID(local_collection["UUID"]):
-                raise Exception("Invalid UUID detected in plugin.")
-            if not exists(local_collection["path"]):
-                # Check that the collection path is correct and exists on the local
-                # POSIX filesystem
-                raise Exception(f"Invalid path detected in plugin: {local_collection["path"]}")
+        if "collections" in config:
+            for local_collection in config["collections"]:
+                print(local_collection)
+                if not validUUID(local_collection["UUID"]):
+                    raise Exception("Invalid UUID detected in plugin.")
+                if not exists(local_collection["path"]):
+                    # Check that the collection path is correct and exists on the local
+                    # POSIX filesystem
+                    raise Exception(f"Invalid path detected in plugin: {local_collection['path']}")
+
+
 
     def __validEndPoint(self, config: dict):
         """This method can only be run after the authentication flow has been run"""
-        # Check that the endpoints actually exist in Globus and are not just made up 
-        for local_collection in config["collections"]:
-            # Check that the collection id is recognized by Globus and is a 
-            # valid globus collection UUID
-            try:
-                self.__tc.get_endpoint(local_collection["UUID"])
-            except globus_sdk.GlobusAPIError as e:
-                if e.http_status == 404:
-                    #data = e.raw_json
-                    raise Exception("Invalid collection id. Collection is unknown.")
-                else:
-                    raise
 
- 
-    def _nativeAuthFlow(self, config: dict):
+        # Check that the endpoints actually exist in Globus and are not just made up 
+        if "collections" in config:
+            for local_collection in config["collections"]:
+                # Check that the collection id is recognized by Globus and is a 
+                # valid globus collection UUID
+                try:
+                    self.__tc.get_endpoint(local_collection["UUID"])
+                except globus_sdk.GlobusAPIError as e:
+                    if e.http_status == 404:
+                        #data = e.raw_json
+                        raise Exception("Invalid collection id. Collection is unknown.")
+                    else:
+                        raise
+
+
+    def __validActions(self):
+        # If we were able to communicate with Globus then the transfer action should be possible
+        if self.__access_to_globus_cloud:
+            self.__supported_actions["transfer"] = True
+        # If we have no errors at this point then and there is at least one collection then 
+        # we can move to and from them
+        if len(self.__collections):
+            self.__supported_actions["move_to_globus_collection"] = True
+            self.__supported_actions["move_from_globus_collection"] = True
+
+    # Authentication methods
+    # ----------------------
+    def __nativeAuthFlow(self):
         # Using Native auth flow 
         client = globus_sdk.NativeAppAuthClient(self.__client_id)
 
@@ -93,206 +123,18 @@ class Globus(Service):
         # work -- for days and days, months and months, even years
         self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
 
-    def _clientCredentialAuthFlow(self, config: dict):
+    def __clientCredentialAuthFlow(self, config: dict):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
-        #client = globus_sdk.ConfidentialAppAuthClient(CLIENT_ID, CLIENT_SECRET)
         confidential_client = globus_sdk.ConfidentialAppAuthClient(
             client_id=self.__client_id, client_secret=config["authentication flow"]["secret"]
         )
-
-        #token_response = client.oauth2_client_credentials_tokens()
-
-        # the useful values that you want at the end of this
-        #globus_auth_data = token_response.by_resource_server["auth.globus.org"]
-        #globus_transfer_data = token_response.by_resource_server["transfer.api.globus.org"]
-        #self.__globus_auth_token = globus_auth_data["access_token"]
-        #self.__globus_transfer_token = globus_transfer_data["access_token"]
-        #self.__authorizer = globus_sdk.AccessTokenAuthorizer(self.__globus_transfer_token)
-        #self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
-
-        
         scopes = "urn:globus:auth:scope:transfer.api.globus.org:all"
         self.__authorizer = globus_sdk.ClientCredentialsAuthorizer(confidential_client, scopes)
         # create a new client
         self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
 
-
-
-    def configure(self, config: dict):
-        # When configuring should provide the endpoint id(s) located on 
-        # the same machine where the Zambeze agent is running along with
-        # their paths on the posix system
-        #
-        # config = {
-        #   "collections": [
-        #       { "UUID": "", "path": ""},
-        #       { "UUID": "", "path": ""}
-        #   ],
-        #   "authentication flow": {
-        #       "type": "'native' or 'client credential'"
-        #       "secret": ""
-        # }
-        #
-        self.__validConfig(config)
-
-        # Detect hostname
-        self.__hostname = gethostname()
-        if externalNetworkConnectionDetected() == False:
-            self.__access_to_globus_cloud = False
-            return
-
-        try:
-
-            if self.__flow == "native":
-                self._nativeAuthFlow(config)            
-            elif self.__flow == "client credential":
-                self._clientCredentialAuthFlow(config)    
-
-            self.__access_to_globus_cloud = True
-        except GlobusError:
-            logging.exeception("Error detected while attempting to authenticate and"
-            "communicate with the Globus API")             
-
-        self.__validEndPoint(config)
-        self.__config["collections"] = deepcopy(config["collections"])
-
-    @property
-    def name(self) -> str:
-        return self.__name
-
-    @property
-    def info(self) -> dict:
-        info["name"] = self.name()
-        info["globus_app_id"] = self.__client_id
-        info["collections"] = self.__config["collections"]
-        info["access_to_globus_cloud"] = self.__access_to_globus_cloud
-        info["authentication flow"] = self.__flow
-        info["hostname"] 
-        return info
-
-    def check(self, package: list[dict]) -> dict:
-        """Cycle through the items in the package and checks if this instance
-        can execute them. This method should be called before process with 
-        the same package."""
-        checks = {}
-
-        # Here we are cycling a list of dicts
-        for index in range(len(package)):
-            for action in package[index]:
-                if action == "transfers":
-                    # Any agent with the globus plugin can submit a job to globus if it has
-                    # access to the globus cloud
-                    checks[action] = True
-                    if not self.__access_to_globus_cloud:
-                        checks[action] = False
-                        continue
-
-                elif action == "move_to_globus_collection":
-                    action_package = package[index][action]
-                    checks[action] = True
-                    if not validUUID(action_package["destination_collection_UUID"]):
-                        checks[action] = False
-                        continue
-
-                    if self.__hostname != action_package["source_host_name"]:
-                        checks[action] = False
-                        continue
-
-                    for item in action_package["items"]:
-                        if not exists(item["source"]):
-                            # Check if the item path is valid for the file
-                            checks[action] = False
-                            break
-                        if not exists(item["destination"]):
-                            # Check if the item path is valid for the file
-                            checks["action"] = False
-                            break
-
-                elif action == "move_from_globus_collection":
-                    action_package = package[index][action]
-                    checks[action] = True
-                    if not validUUID(action_package["source_collection_UUID"]):
-                        checks[action] = False
-                        continue
-
-                    # Check that the UUID is associated with this machine
-                    if not action_package["source_collection_UUID"] in self.__config:
-                        checks[action] = False
-                        continue
-
-                    if self.__hostname != action_package["destination_host_name"]:
-                        checks[action] = False
-                        continue
-
-                    for item in action_package["items"]:
-                        if not exists(item["source"]):
-                            # Check if the item path is valid for the file
-                            checks["action"] = False
-                            break
-                        if not exists(item["destination"]):
-                            # Check if the item path is valid for the file
-                            checks["action"] = False
-                            break
-        return checks
-
-    def process(self, package: list[dict]):
-        print("Running Globus service") 
-        # Specify the path of the file as it appears in the Globus Collection
-        # Specify the source collection UUID
-        # Specify the path of the file as it appears in the final Globus Collection
-        # specify the destination collection UUID
-        #
-        # Example 1
-        #
-        # package = {
-        #   "transfer": [
-        #       {
-        #           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-        #           "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
-        #           "items": [
-        #               {"source": "/file1.txt","destination": "dest/file1.txt"},
-        #               {"source": "/file2.txt","destination": "dest/file2.txt"},
-        #           ]
-        #       }
-        #   ]
-        # }
-        # 
-        # Example 2
-        #
-        # package = {
-        #   "move_to_globus_collection": {
-        #       "source_host_name": "",
-        #       "destination_collection_UUID": "",
-        #       "items": [
-        #           {"source": "/file1.txt","destination": "dest/file1.txt"},
-        #           {"source": "/file2.txt","destination": "dest/file2.txt"},
-        #       ]
-        #   }
-        # }
-        #
-        # Example 3
-        #
-        # package = {
-        #   "move_from_globus_collection": {
-        #       "source_host_name": "",
-        #       "destination_collection_UUID": "",
-        #       "items": [
-        #           {"source": "/file1.txt","destination": "dest/file1.txt"},
-        #           {"source": "/file2.txt","destination": "dest/file2.txt"},
-        #       ]
-        #   }
-        # }
-
-        for action in package:
-            if action == "transfer":
-                self.__runTransfer(package[action])
-            elif action == "move_to_globus_collection"
-                self.__runMoveToGlobusCollection(package[action])
-            elif action == "move_from_globus_collection":
-                self.__runMoveFromGlobusCollection(package[action])
-
-
-
+    # Run methods
+    # -----------
     def __runTransfer(self, transfer: dict):
         # transfer dict must have the following format
         #
@@ -331,3 +173,228 @@ class Globus(Service):
         #         ]
         # }
         # All checks should have already been done at this point with the check method
+
+    ###################################################################################
+    # Public Methods
+    ###################################################################################
+    def configure(self, config: dict):
+        # When configuring should provide the endpoint id(s) located on 
+        # the same machine where the Zambeze agent is running along with
+        # their paths on the posix system
+        #
+        # config = {
+        #   "collections": [
+        #       { "UUID": "", "path": ""},
+        #       { "UUID": "", "path": ""}
+        #   ],
+        #   "authentication flow": {
+        #       "type": "'native' or 'client credential'"
+        #       "secret": ""
+        # }
+        #
+        print(config)
+        self.__validConfig(config)
+
+        # Detect hostname
+        self.__hostname = gethostname()
+        if externalNetworkConnectionDetected() == False:
+            self.__access_to_globus_cloud = False
+            return
+
+        try:
+            if self.__flow == "native":
+                self.__nativeAuthFlow()            
+            elif self.__flow == "client credential":
+                self.__clientCredentialAuthFlow(config)    
+
+            self.__access_to_globus_cloud = True
+        except GlobusError:
+            logging.exeception("Error detected while attempting to authenticate and"
+            "communicate with the Globus API")             
+
+        self.__validEndPoint(config)
+        self.__validActions()
+        if "collections" in config:
+            self.__collections = deepcopy(config["collections"])
+        self.__configured = True
+
+    @property
+    def supportedActions(self) -> list[str]:
+        supported = []
+        for action in self.__supported_actions:
+            if self.__supported_actions[action]:
+                supported.append(action)
+        return supported
+
+    @property
+    def help(self) -> str:
+        message = ("Plugin globus when configured takes the following options\n"
+        "'collections': [\n"
+        "       { 'UUID': '', 'path': ''},\n"
+        "       { 'UUID': '', 'path': ''}\n"
+        "   ],\n"
+        "   'authentication flow': {\n"
+        "       'type': 'native or client credential'\n"
+        "       'secret': ''\n"
+        " ]\n")
+        return message
+
+    @property
+    def name(self) -> str:
+        return self.__name
+
+    @property
+    def configured(self) -> bool:
+        return self.__configured
+
+    @property
+    def info(self) -> dict:
+        information = {}
+        information["globus_app_id"] = self.__client_id
+        information["collections"] = self.__collections
+
+        supported_actions = []
+        for action in self.__supported_actions:
+            if self.__supported_actions[action]:
+                supported_actions.append(action)
+
+        information["actions"] = supported_actions
+        information["authentication flow type"] = self.__flow
+        information["hostname"] = self.__hostname
+        information["configured"] = self.__configured
+        return information
+
+    def check(self, package: list[dict]) -> dict:
+        """Cycle through the items in the package and checks if this instance
+        can execute them. This method should be called before process with 
+        the same package."""
+        checks = {}
+        # Here we are cycling a list of dicts
+        for index in range(len(package)):
+            for action in package[index]:
+
+                # Check if the action is supported
+                if self.__supported_actions[action] == False:
+                    checks[action] = False
+                    continue
+
+                if action == "transfers":
+                    # Any agent with the globus plugin can submit a job to globus if it has
+                    # access to the globus cloud
+                    checks[action] = True
+                    if not self.__access_to_globus_cloud:
+                        checks[action] = False
+                        continue
+
+                elif action == "move_to_globus_collection":
+                    action_package = package[index][action]
+                    checks[action] = True
+                    if not validUUID(action_package["destination_collection_UUID"]):
+                        checks[action] = False
+                        continue
+
+                    if self.__hostname != action_package["source_host_name"]:
+                        checks[action] = False
+                        continue
+
+                    for item in action_package["items"]:
+                        if not exists(item["source"]):
+                            # Check if the item path is valid for the file
+                            checks[action] = False
+                            break
+                        if not exists(item["destination"]):
+                            # Check if the item path is valid for the file
+                            checks["action"] = False
+                            break
+
+                elif action == "move_from_globus_collection":
+                    action_package = package[index][action]
+                    checks[action] = True
+                    if not validUUID(action_package["source_collection_UUID"]):
+                        checks[action] = False
+                        continue
+
+                    # Check that the UUID is associated with this machine
+                    if not action_package["source_collection_UUID"] in self.__collections:
+                        checks[action] = False
+                        continue
+
+                    if self.__hostname != action_package["destination_host_name"]:
+                        checks[action] = False
+                        continue
+
+                    for item in action_package["items"]:
+                        if not exists(item["source"]):
+                            # Check if the item path is valid for the file
+                            checks["action"] = False
+                            break
+                        if not exists(item["destination"]):
+                            # Check if the item path is valid for the file
+                            checks["action"] = False
+                            break
+        return checks
+
+    def process(self, arguments: list[dict]):
+
+        if not self.__configured:
+            raise Exception("Cannot run globus service, must first be configured.")
+
+        print("Running Globus service") 
+        # Specify the path of the file as it appears in the Globus Collection
+        # Specify the source collection UUID
+        # Specify the path of the file as it appears in the final Globus Collection
+        # specify the destination collection UUID
+        #
+        # Example 1
+        #
+        # arguments = {
+        #   "transfer": [
+        #       {
+        #           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+        #           "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+        #           "items": [
+        #               {"source": "/file1.txt","destination": "dest/file1.txt"},
+        #               {"source": "/file2.txt","destination": "dest/file2.txt"},
+        #           ]
+        #       }
+        #   ]
+        # }
+        # 
+        # Example 2
+        #
+        # arguments = {
+        #   "move_to_globus_collection": {
+        #       "source_host_name": "",
+        #       "destination_collection_UUID": "",
+        #       "items": [
+        #           {"source": "/file1.txt","destination": "dest/file1.txt"},
+        #           {"source": "/file2.txt","destination": "dest/file2.txt"},
+        #       ]
+        #   }
+        # }
+        #
+        # Example 3
+        #
+        # arguments = {
+        #   "move_from_globus_collection": {
+        #       "source_host_name": "",
+        #       "destination_collection_UUID": "",
+        #       "items": [
+        #           {"source": "/file1.txt","destination": "dest/file1.txt"},
+        #           {"source": "/file2.txt","destination": "dest/file2.txt"},
+        #       ]
+        #   }
+        # }
+
+        for action in arguments:
+            # Make sure that the action is supported
+            if not self.__supported_actions[action]:
+                raise Exception(f"{action} is not supported.")
+                
+            if action == "transfer":
+                self.__runTransfer(arguments[action])
+            elif action == "move_to_globus_collection":
+                self.__runMoveToGlobusCollection(arguments[action])
+            elif action == "move_from_globus_collection":
+                self.__runMoveFromGlobusCollection(arguments[action])
+
