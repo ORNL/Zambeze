@@ -1,17 +1,27 @@
 from .service import Service
 
+from copy import deepcopy
 # Define our default class 
 class Shell(Service):
 
     def __init__(self):
-       pass 
+        self.__name = "shell" 
+        pass 
         
     def configure(self, config: dict):
-        self.__config = copy.deepcopy(config)
+        self.__config = deepcopy(config)
 
     @property
     def name(self) -> str:
-        return "shell"
+        return self.__name
 
-    def process(self, package: dict):
+    @property
+    def info(self) -> dict:
+        return {}
+
+    def check(self, package: list[dict]) -> dict:
+        print("Checking shell service")
+        return {"run": False}
+
+    def process(self, package: list[dict]):
         print("Running shell service") 
