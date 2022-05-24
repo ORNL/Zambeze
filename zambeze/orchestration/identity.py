@@ -1,19 +1,19 @@
 from uuid import UUID
 
 def validUUID(uuid_to_test: str, version=4) -> bool:
-    """
-    Check if uuid_to_test is a valid UUID.
+    """Check if uuid_to_test is a valid UUID.
     
-     Parameters
-    ----------
+    :param uuid_to_test: The 36 character UUID 
+    :type uuid_to_test: string
+    :param version: version of the uuid to use
+    :type version: integer
+    
+    Example Arguments 
+
     uuid_to_test : str
     version : {1, 2, 3, 4}
     
-     Returns
-    -------
-    `True` if uuid_to_test is a valid UUID, otherwise `False`.
-    
-     Examples
+    Examples
     --------
     >>> is_valid_uuid('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
     True
