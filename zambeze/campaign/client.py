@@ -1,6 +1,7 @@
 import asyncio
 import nats
 
+
 async def main():
     nc = await nats.connect("172.22.1.67")
 
@@ -10,5 +11,4 @@ async def main():
 
 
 if __name__ == "__main__":
-   asyncio.run(main())
-
+    asyncio.run(main())

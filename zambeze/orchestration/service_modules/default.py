@@ -4,13 +4,15 @@ from .service import Service
 # Standard imports
 from copy import deepcopy
 
+
 class Shell(Service):
     """Class serves as an example of a service"""
+
     def __init__(self):
-        self.__name = "shell" 
+        self.__name = "shell"
         self.__configured = False
-        pass 
-        
+        pass
+
     def configure(self, config: dict):
         self.__config = deepcopy(config)
         self.__configured = True
@@ -32,4 +34,4 @@ class Shell(Service):
         return {"run": False}
 
     def process(self, arguments: list[dict]):
-        print("Running shell service") 
+        print("Running shell service")

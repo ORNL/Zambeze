@@ -14,11 +14,13 @@ from pathlib import Path
 
 import pkgutil
 
+
 class Services:
     """Services class takes care of managing all services.
 
     Services can be added as plugins by creating packages in the service_modules
     """
+
     def __init__(self):
         """Constructor"""
         self.__registerServices()
@@ -29,12 +31,16 @@ class Services:
 
         service_path = [str(Path(__file__).resolve().parent) + "/service_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=service_path):
-            module = import_module(f"zambeze.orchestration.service_modules.{module_name}")
+            module = import_module(
+                f"zambeze.orchestration.service_modules.{module_name}"
+            )
             for attribute_name in dir(module):
                 potential_service = getattr(module, attribute_name)
                 if isclass(potential_service):
-                    if issubclass(potential_service, service.Service) and \
-                    attribute_name != "Service":
+                    if (
+                        issubclass(potential_service, service.Service)
+                        and attribute_name != "Service"
+                    ):
                         self._services[attribute_name.lower()] = potential_service()
 
     def registered(self) -> list:
@@ -43,14 +49,14 @@ class Services:
         This method can be called at any time and is meant to simply display which
         packages are supported and present in the service_modules folder. It does
         not mean that these services have been configured. All services must be
-        configured before they can be run.  
-        
+        configured before they can be run.
+
         :return: Returns the names of all the services that have been registered
         :rtype: list[str]
 
         Examples
         Services services
-        
+
         for service in services.registered:
             print(service)
 
@@ -64,21 +70,21 @@ class Services:
 
     def configure(self, config: dict, services: list[str] = ["all"]):
         """Configuration options for each service
-        
-        This method is responsible for initializing all the services that 
-        are supported in the service_modules folder. It should be called before the 
+
+        This method is responsible for initializing all the services that
+        are supported in the service_modules folder. It should be called before the
         services can be run, all services should be configured before they can be
         run.
 
         :param config: This contains relevant configuration information for each service
-        :type config: dict 
+        :type config: dict
         :param services: If provided will only register the services listed
         :type services: list[str]
 
         Example Arguments
 
         The configuration options for each service will appear under their name
-        in the configuration parameter. 
+        in the configuration parameter.
 
         I.e. for services "globus" and "shell"
 
@@ -88,7 +94,7 @@ class Services:
             "shell": {
                 "arguments" : [""]
             }
-        } 
+        }
 
 
         """
@@ -96,12 +102,11 @@ class Services:
             for key in self._services:
                 if key in config.keys():
                     obj = self._services.get(key)
-                    obj.configure(config[key]) 
+                    obj.configure(config[key])
         else:
             for service in services:
                 if key in config.keys():
-                    self._services[service.lower()].configure(config[service.lower()]) 
-
+                    self._services[service.lower()].configure(config[service.lower()])
 
     @property
     def configured(self) -> list[str]:
@@ -121,18 +126,18 @@ class Services:
     @property
     def info(self, services: list[str] = ["all"]) -> dict:
         """Will return the current state of the registered services
-        
+
         :param services: the services to provide information about
         :default services: information about all services
         :type services: list[str]
         :return: The actual information of each service that was specified
         :rtype: dict
-        
+
         Example Arguments
 
         services = ["globus", "shell"]
 
-        Examples 
+        Examples
 
         Services services
         services.configure(configuration_options)

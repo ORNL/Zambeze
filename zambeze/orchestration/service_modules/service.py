@@ -1,11 +1,14 @@
-
-from abc import abstractmethod 
+from abc import abstractmethod
 from abc import ABC
+
 
 class Service(ABC):
     """Abstract base class for ensuring that all registered services have the same interface"""
+
     def __init__(self):
-        raise NotImplementedError("process method of derived service must be implemented.")
+        raise NotImplementedError(
+            "process method of derived service must be implemented."
+        )
 
     @abstractmethod
     def configure(self, config: dict):
@@ -15,7 +18,9 @@ class Service(ABC):
     @property
     @abstractmethod
     def configured(self) -> bool:
-        raise NotImplementedError("Method for indicating if service has been configured has not been instantiated.")
+        raise NotImplementedError(
+            "Method for indicating if service has been configured has not been instantiated."
+        )
 
     @property
     @abstractmethod
@@ -40,18 +45,18 @@ class Service(ABC):
     def check(self, arguments: list[dict]) -> dict:
         """Determine if the proposed arguments can be executed by this instance.
 
-        :param arguments: The arguments are checked to ensure their types and formats are valid 
+        :param arguments: The arguments are checked to ensure their types and formats are valid
         :type arguments: list[dict]
-        :return: Returns the list of actions that are vaid 
+        :return: Returns the list of actions that are vaid
         :rtype: dict with the actions valid actions listed with bool set to True and invalid ones False
 
         Example Arguments
 
-        arguments = 
+        arguments =
         [
             { "action1": { "dothis": ...} },
             { "action2": { "dothat": ...} },
-        ] 
+        ]
 
         Example
 
@@ -67,4 +72,6 @@ class Service(ABC):
     @abstractmethod
     def process(self, arguments: list[dict]):
         """Will run the service with the provided arguments"""
-        raise NotImplementedError("process method of derived service must be implemented.")
+        raise NotImplementedError(
+            "process method of derived service must be implemented."
+        )
