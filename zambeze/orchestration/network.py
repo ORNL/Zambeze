@@ -1,3 +1,4 @@
+# Standard imports
 import http.client as httplib
 
 def externalNetworkConnectionDetected() -> bool:
