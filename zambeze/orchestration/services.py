@@ -1,10 +1,11 @@
+# Required to occur first
+from __future__ import annotations
 
 # Local imports
 from .service_modules import default
 from .service_modules import service
 
 # Standard imports
-from __future__ import annotations
 from copy import deepcopy
 from importlib import import_module
 from inspect import isclass
@@ -28,7 +29,7 @@ class Services:
 
         service_path = [str(Path(__file__).resolve().parent) + "/service_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=service_path):
-            module = import_module(f"zambeze.orchestrator.service_modules.{module_name}")
+            module = import_module(f"zambeze.orchestration.service_modules.{module_name}")
             for attribute_name in dir(module):
                 potential_service = getattr(module, attribute_name)
                 if isclass(potential_service):
@@ -38,6 +39,11 @@ class Services:
 
     def registered(self) -> list:
         """List all services that have been registered.
+
+        This method can be called at any time and is meant to simply display which
+        packages are supported and present in the service_modules folder. It does
+        not mean that these services have been configured. All services must be
+        configured before they can be run.  
         
         :return: Returns the names of all the services that have been registered
         :rtype: list[str]
@@ -60,7 +66,9 @@ class Services:
         """Configuration options for each service
         
         This method is responsible for initializing all the services that 
-        are supported in the service_modules folder. 
+        are supported in the service_modules folder. It should be called before the 
+        services can be run, all services should be configured before they can be
+        run.
 
         :param config: This contains relevant configuration information for each service
         :type config: dict 
@@ -93,6 +101,22 @@ class Services:
             for service in services:
                 if key in config.keys():
                     self._services[service.lower()].configure(config[service.lower()]) 
+
+
+    @property
+    def configured(self) -> list[str]:
+        """Will return a list of all the services that have been configured.
+
+        :return: list of all services that are ready to be run
+        :rtype: list[str]
+        """
+        configured_services = []
+        for key in self._services:
+            obj = self._services.get(key)
+            if obj.configured:
+                configured_services.append(obj.name)
+
+        return configured_services
 
     @property
     def info(self, services: list[str] = ["all"]) -> dict:
