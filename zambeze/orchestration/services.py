@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 # Local imports
-from .service_modules import default
 from .service_modules import service
 
 # Standard imports
@@ -103,10 +102,27 @@ class Services:
                 if key in config.keys():
                     obj = self._services.get(key)
                     obj.configure(config[key])
+                else:
+                    try:
+                        obj = self._services.get(key)
+                        obj.configure({})
+                    except:
+                        print(f"Unable to configure service {key} missing configuration options.")
+                        raise
         else:
             for service in services:
-                if key in config.keys():
+                if service in config.keys():
                     self._services[service.lower()].configure(config[service.lower()])
+                else:
+                    try:
+                        obj = self._services.get(key)
+                        obj.configure({})
+                    except:
+                        print(f"Unable to configure service {key} missing configuration options.")
+                        print("Configuration has the following content")
+                        print(config)
+                        print(f"{key} is not mentioned in the config so cannot associate configuration settings.")
+                        raise
 
     @property
     def configured(self) -> list[str]:
