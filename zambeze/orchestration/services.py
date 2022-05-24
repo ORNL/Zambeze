@@ -140,10 +140,10 @@ class Services:
         if "all" in services:
             for key in self._services:
                 if key in arguments.keys():
-                    "If a package was passed to be processed"
+                    # If a package was passed to be processed"
                     self._services[key].process(arguments[key])
                 else:
-                    "else send an empty package"
+                    # else send an empty package"
                     self._services[key].process({})
         else:
             for service in services:
