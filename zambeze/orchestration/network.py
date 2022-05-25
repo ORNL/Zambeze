@@ -3,6 +3,7 @@ import http.client as httplib
 
 import ipaddress
 
+
 def externalNetworkConnectionDetected() -> bool:
     """Check if we can connect to external network.
 
@@ -19,17 +20,17 @@ def externalNetworkConnectionDetected() -> bool:
     finally:
         connection.close()
 
-def isAddressValid(address: str, version = "IPv4") -> bool:
+
+def isAddressValid(address: str, version="IPv4") -> bool:
     if version == "IPv4":
         try:
             ipaddress.ip_address(address)
             return True
         except ValueError:
-            print('address/netmask is invalid: %s' % address)
+            print("address/netmask is invalid: %s" % address)
             return False
         except:
-            print('Usage : %s  ip' % address)
+            print("Usage : %s  ip" % address)
             return False
     else:
         raise Exception(f"Unsupported IP version {version}")
-

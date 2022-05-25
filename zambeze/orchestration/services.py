@@ -109,7 +109,9 @@ class Services:
                         obj = self._services.get(key)
                         obj.configure({})
                     except:
-                        print(f"Unable to configure service {key} missing configuration options.")
+                        print(
+                            f"Unable to configure service {key} missing configuration options."
+                        )
                         raise
         else:
             for service in services:
@@ -120,10 +122,14 @@ class Services:
                         obj = self._services.get(key)
                         obj.configure({})
                     except:
-                        print(f"Unable to configure service {key} missing configuration options.")
+                        print(
+                            f"Unable to configure service {key} missing configuration options."
+                        )
                         print("Configuration has the following content")
                         print(config)
-                        print(f"{key} is not mentioned in the config so cannot associate configuration settings.")
+                        print(
+                            f"{key} is not mentioned in the config so cannot associate configuration settings."
+                        )
                         raise
 
     @property

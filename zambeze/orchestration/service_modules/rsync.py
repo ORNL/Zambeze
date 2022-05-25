@@ -12,13 +12,14 @@ import os
 import subprocess
 import socket
 
+
 class Rsync(Service):
     """Class serves as an example of a service"""
 
     def __init__(self):
         self.__name = "rsync"
         self.__configured = False
-        self.__supported_actions = { "transfer": False }
+        self.__supported_actions = {"transfer": False}
         self.__hostname = socket.gethostname()
         self.__local_ip = socket.gethostbyname(self.__hostname)
         pass
@@ -28,7 +29,7 @@ class Rsync(Service):
         # Check that rsync is available
         if isExecutable("rsync"):
             self.__configured = True
-            self.__supported_actions["transfer"] = True 
+            self.__supported_actions["transfer"] = True
 
     @property
     def configured(self) -> bool:
@@ -53,11 +54,10 @@ class Rsync(Service):
     @property
     def info(self) -> dict:
         return {
-
             "configured": self.__configured,
             "supported actions": self.__supported_actions,
             "hostname": self.__hostname,
-            "local ip": self.__local_ip
+            "local ip": self.__local_ip,
         }
 
     def check(self, arguments: list[dict]) -> dict:
@@ -115,11 +115,11 @@ class Rsync(Service):
                     continue
 
                 # Now that we know the fields exist ensure that they are valid
-                # Ensure that at either the source or destination ip addresses 
+                # Ensure that at either the source or destination ip addresses
                 # are associated with the local machine
                 match_host = "none"
                 if not isAddressValid(arguments[action]["source"]["ip"]):
-                    supported_actions[action] = False 
+                    supported_actions[action] = False
                     continue
                 else:
                     if arguments[action]["source"] == self.__local_ip:
@@ -157,23 +157,31 @@ class Rsync(Service):
                     command_list = ["rsync"]
                     if "arguments" in arguments[action]:
                         command_list.extend(arguments[action]["arguments"])
-                    command_list.extend(arguments[action]["arguments"]["source"]["path"])
+                    command_list.extend(
+                        arguments[action]["arguments"]["source"]["path"]
+                    )
 
                     dest = arguments[action]["arguments"]["destination"]["user"]
-                    dest = dest + "@" + arguments[action]["arguments"]["destination"]["ip"]
-                    dest = dest + ":" + arguments[action]["arguments"]["destination"]["path"]
+                    dest = (
+                        dest + "@" + arguments[action]["arguments"]["destination"]["ip"]
+                    )
+                    dest = (
+                        dest
+                        + ":"
+                        + arguments[action]["arguments"]["destination"]["path"]
+                    )
                     command_list.extend(dest)
                     subprocess.call(command_list)
                 elif arguments[action]["destination"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]
                     if "arguments" in arguments[action]:
                         command_list.extend(arguments[action]["arguments"])
-                    command_list.extend(arguments[action]["arguments"]["destination"]["path"])
+                    command_list.extend(
+                        arguments[action]["arguments"]["destination"]["path"]
+                    )
 
                     dest = arguments[action]["arguments"]["source"]["user"]
                     dest = dest + "@" + arguments[action]["arguments"]["source"]["ip"]
                     dest = dest + ":" + arguments[action]["arguments"]["source"]["path"]
                     command_list.extend(dest)
                     subprocess.call(command_list)
- 
-
