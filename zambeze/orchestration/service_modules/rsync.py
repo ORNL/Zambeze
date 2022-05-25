@@ -8,6 +8,8 @@ from ..network import isAddressValid
 from copy import deepcopy
 
 import ipaddress
+import os
+import subprocess
 import socket
 
 class Rsync(Service):
