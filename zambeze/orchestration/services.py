@@ -42,6 +42,7 @@ class Services:
                     ):
                         self._services[attribute_name.lower()] = potential_service()
 
+    @property
     def registered(self) -> list:
         """List all services that have been registered.
 
@@ -61,6 +62,7 @@ class Services:
 
         >>> globus
         >>> shell
+        >>> rsync
         """
         services = []
         for key in self._services:
