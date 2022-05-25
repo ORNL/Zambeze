@@ -2,6 +2,7 @@
 from .service import Service
 
 from ..system_utils import isExecutable
+from ..system_utils import userExists
 from ..network import isAddressValid
 
 # Standard imports
@@ -25,6 +26,11 @@ class Rsync(Service):
         pass
 
     def configure(self, config: dict):
+        """Configure rsync
+
+        In this case the configure method doesn't really do much and doesn't
+        actually use the 'config' argument passed in.
+        """
         self.__config = deepcopy(config)
         # Check that rsync is available
         if isExecutable("rsync"):
@@ -53,9 +59,15 @@ class Rsync(Service):
 
     @property
     def info(self) -> dict:
+
+        supported_actions = []
+        for action in self.__supported_actions:
+            if self.__supported_actions[action]:
+                supported_actions.append(action)
+
         return {
             "configured": self.__configured,
-            "supported actions": self.__supported_actions,
+            "supported actions": supported_actions,
             "hostname": self.__hostname,
             "local ip": self.__local_ip,
         }
@@ -66,84 +78,89 @@ class Rsync(Service):
         Rsync must have a source and end destination machine provided.
 
         [
-            "transfer": {
+            { "transfer": {
                 "source" : {
                     "ip": "128.219.183.34",
                     "user: "",
                     "path: "",
-                },
+                    },
                 "destination": {
                     "ip": "172.231.41.3",
                     "user: "",
                     "path: "",
-                }
+                    }
                 "arguments": ["argument1","argument2"]
+                }
             }
         ]
         """
         supported_actions = {}
         for action in arguments:
-            if action == "transfer":
-
+            if "transfer" in action.keys():
+                action_key = "transfer"
                 # Start by checking that all the files have been provided
-                if "source" in arguments[action]:
-                    if "ip" not in arguments[action]["source"]:
-                        supported_actions[action] = False
+                if "source" in action[action_key]:
+                    if "ip" not in action[action_key]["source"]:
+                        supported_actions[action_key] = False
                         continue
-                    if "user" not in arguments[action]["source"]:
-                        supported_actions[action] = False
+                    if "user" not in action[action_key]["source"]:
+                        supported_actions[action_key] = False
                         continue
-                    if "path" not in arguments[action]["source"]:
-                        supported_actions[action] = False
+                    if "path" not in action[action_key]["source"]:
+                        supported_actions[action_key] = False
                         continue
                 else:
-                    supported_actions[action] = False
+                    supported_actions[action_key] = False
                     continue
 
-                if "source" in arguments[action]:
-                    if "ip" not in arguments[action]["source"]:
-                        supported_actions[action] = False
+                if "source" in action[action_key]:
+                    if "ip" not in action[action_key]["source"]:
+                        supported_actions[action_key] = False
                         continue
-                    if "user" not in arguments[action]["source"]:
-                        supported_actions[action] = False
+                    if "user" not in action[action_key]["source"]:
+                        supported_actions[action_key] = False
                         continue
-                    if "path" not in arguments[action]["source"]:
-                        supported_actions[action] = False
+                    if "path" not in action[action_key]["source"]:
+                        supported_actions[action_key] = False
                         continue
                 else:
-                    supported_actions[action] = False
+                    supported_actions[action_key] = False
                     continue
 
                 # Now that we know the fields exist ensure that they are valid
                 # Ensure that at either the source or destination ip addresses
                 # are associated with the local machine
                 match_host = "none"
-                if not isAddressValid(arguments[action]["source"]["ip"]):
-                    supported_actions[action] = False
+                if not isAddressValid(action[action_key]["source"]["ip"]):
+                    supported_actions[action_key] = False
                     continue
                 else:
-                    if arguments[action]["source"] == self.__local_ip:
+                    if action[action_key]["source"]["ip"] == self.__local_ip:
                         match_host = "source"
 
-                if not isAddressValid(arguments[action]["destination"]):
-                    supported_actions[action] = False
+                if not isAddressValid(action[action_key]["destination"]["ip"]):
+                    supported_actions[action_key] = False
                     continue
                 else:
-                    if arguments[action]["destination"] == self.__local_ip:
+                    if action[action_key]["destination"]["ip"] == self.__local_ip:
                         match_host = "destination"
 
                 if match_host == "none":
-                    supported_actions[action] = False
+                    supported_actions[action_key] = False
                     continue
                 # If make sure that paths defined on the host exist
-                elif os.path.exists(arguments["action"][match_host]["path"]) == False:
-                    supported_actions[action] = False
+                if os.path.exists(action[action_key][match_host]["path"]) == False:
+                    supported_actions[action_key] = False
+                    continue
+
+                if not userExists(action[action_key][match_host]["user"]):
+                    supported_actions[action_key] = False
                     continue
             else:
-                supported_actions[action] = False
+                supported_actions[action_key] = False
                 continue
 
-            supported_actions[action] = True
+            supported_actions[action_key] = True
 
         return supported_actions
 
@@ -151,7 +168,7 @@ class Rsync(Service):
         if not self.__configured:
             raise Exception("Cannot rsync service, must first be configured.")
 
-        for action in arguments:
+        for action in arguments.keys():
             if action == "transfer":
                 if arguments[action]["source"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]

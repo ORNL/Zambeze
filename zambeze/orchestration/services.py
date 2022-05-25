@@ -119,16 +119,16 @@ class Services:
                     self._services[service.lower()].configure(config[service.lower()])
                 else:
                     try:
-                        obj = self._services.get(key)
+                        obj = self._services.get(service)
                         obj.configure({})
                     except:
                         print(
-                            f"Unable to configure service {key} missing configuration options."
+                            f"Unable to configure service {service} missing configuration options."
                         )
                         print("Configuration has the following content")
                         print(config)
                         print(
-                            f"{key} is not mentioned in the config so cannot associate configuration settings."
+                            f"{service} is not mentioned in the config so cannot associate configuration settings."
                         )
                         raise
 
@@ -181,6 +181,31 @@ class Services:
             for service in services:
                 info[service] = self._services[service].info
         return info
+
+    def check(self, arguments: dict, services: list[str] = ["all"]):
+        """Run the services specified.
+
+        :param arguments: the arguments to provide to each of the services that are to be run
+        :type arguments: dict
+        :param services: The list of all the services to run
+        :type services: list[str]
+        """
+        check_results = {}
+        if "all" in services:
+            for key in self._services:
+                if key in arguments.keys():
+                    # If a package was passed to be processed"
+                    check_results["key"] = self._services[key].check(arguments[key])
+                else:
+                    # else send an empty package"
+                    check_results["key"] = self._services[key].check({})
+        else:
+            for service in services:
+                if service in arguments.keys():
+                    check_results[service.lower()] = self._services[service.lower()].check(arguments[service])
+                else:
+                    check_results[service.lower()] = self._services[service.lower()].check({})
+        return check_results
 
     def run(self, arguments: dict, services: list[str] = ["all"]):
         """Run the services specified.

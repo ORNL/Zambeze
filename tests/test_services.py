@@ -2,8 +2,10 @@
 from zambeze.orchestration.services import Services
 
 # Standard imports
+import os
+import pwd
+import socket
 import uuid
-
 
 def test_registered_services():
     """Test simply checks that you can get a list of all the registered services"""
@@ -31,3 +33,57 @@ def test_check_configured_services():
     services.configure(configuration)
 
     assert len(services.configured) > 0
+
+def test_rsync_service():
+    services = Services()
+    assert "rsync" not in services.configured
+    # Only rsync should be configured
+    services.configure({},["rsync"])
+    assert "rsync" in services.configured
+    assert len(services.configured) == 1
+
+def test_rsync_service_info():
+    services = Services()
+    # Only rsync should be configured
+    services.configure({},["rsync"])
+
+    info = services.info
+
+    assert info["rsync"]["configured"]
+    assert info["rsync"]["supported actions"][0] == "transfer"
+
+
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    assert info["rsync"]["local ip"] == local_ip
+
+def test_rsync_service():
+    services = Services()
+    services.configure({})
+
+    # Grab valid paths, usernames and ip addresses
+    current_valid_path = os.getcwd()
+    current_user = pwd.getpwuid(os.geteuid())[0]
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+
+    arguments = {
+        "rsync": [
+            {"transfer": {
+                "source": {
+                    "ip": local_ip,
+                    "user": current_user,
+                    "path": current_valid_path
+                    },
+                "destination": {
+                    "ip": "172.22.1.69",
+                    "user": "cades",
+                    "path": "/home/cades/josh-testing"
+                    },
+                "arguments": ["-a"]
+                }
+            }
+        ]
+    }
+
+    services.check(arguments)
