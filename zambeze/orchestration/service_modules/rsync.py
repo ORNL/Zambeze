@@ -169,36 +169,29 @@ class Rsync(Service):
             raise Exception("Cannot rsync service, must first be configured.")
 
         for action in arguments.keys():
-            if action == "transfer":
-                if arguments[action]["source"]["ip"] == self.__local_ip:
+            if "transfer" in action:
+                action_key = "transfer"
+                if action[action_key]["source"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]
-                    if "arguments" in arguments[action]:
-                        command_list.extend(arguments[action]["arguments"])
+                    if "arguments" in action[action_key]:
+                        command_list.extend(action[action_key])
                     command_list.extend(
-                        arguments[action]["arguments"]["source"]["path"]
+                        action[action_key]["source"]["path"]
                     )
-
-                    dest = arguments[action]["arguments"]["destination"]["user"]
-                    dest = (
-                        dest + "@" + arguments[action]["arguments"]["destination"]["ip"]
-                    )
-                    dest = (
-                        dest
-                        + ":"
-                        + arguments[action]["arguments"]["destination"]["path"]
-                    )
+                    dest = action[action_key]["destination"]["user"]
+                    dest = dest + "@" + action[action_key]["destination"]["ip"]
+                    dest = dest + ":" + action[action_key]["destination"]["path"]
                     command_list.extend(dest)
-                    subprocess.call(command_list)
-                elif arguments[action]["destination"]["ip"] == self.__local_ip:
+                elif action[action_key]["destination"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]
-                    if "arguments" in arguments[action]:
-                        command_list.extend(arguments[action]["arguments"])
+                    if "arguments" in action[action_key]:
+                        command_list.extend(action[action_key]["arguments"])
                     command_list.extend(
-                        arguments[action]["arguments"]["destination"]["path"]
+                        action[action_key]["destination"]["path"]
                     )
-
-                    dest = arguments[action]["arguments"]["source"]["user"]
-                    dest = dest + "@" + arguments[action]["arguments"]["source"]["ip"]
-                    dest = dest + ":" + arguments[action]["arguments"]["source"]["path"]
+                    dest = action[action_key]["source"]["user"]
+                    dest = dest + "@" + action[action_key]["source"]["ip"]
+                    dest = dest + ":" + action[action_key]["source"]["path"]
                     command_list.extend(dest)
-                    subprocess.call(command_list)
+
+                subprocess.call(command_list)
