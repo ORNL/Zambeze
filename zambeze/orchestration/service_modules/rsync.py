@@ -23,14 +23,14 @@ class Rsync(Service):
         self.__supported_actions = {"transfer": False}
         self.__hostname = socket.gethostname()
         self.__local_ip = socket.gethostbyname(self.__hostname)
-        self.__ssh_key = os.path.expanduser('~') + "/.ssh/id_rsa"
+        self.__ssh_key = os.path.expanduser("~") + "/.ssh/id_rsa"
         pass
 
     def configure(self, config: dict):
         """Configure rsync
 
-            In this case the configure method doesn't really do much and doesn't
-            actually use the 'config' argument passed in.
+        In this case the configure method doesn't really do much and doesn't
+        actually use the 'config' argument passed in.
         """
 
         # Check that rsync is available
@@ -42,13 +42,17 @@ class Rsync(Service):
                     self.__ssh_key = config["private_ssh_key"]
                 else:
                     key_path = config["private_ssh_key"]
-                    raise Exception(f"Private ssh key does not appear to exist {config[key_path]}")
+                    raise Exception(
+                        f"Private ssh key does not appear to exist {config[key_path]}"
+                    )
 
         for config_argument in config.keys():
             if config_argument == "private_ssh_key":
                 pass
             else:
-                raise Exception(f"Unsupported rsync config option encountered: {config_argument}")
+                raise Exception(
+                    f"Unsupported rsync config option encountered: {config_argument}"
+                )
         self.__config = deepcopy(config)
 
     @property
@@ -180,7 +184,9 @@ class Rsync(Service):
 
     def process(self, arguments: list[dict]):
         if not self.__configured:
-            raise Exception("Cannot process rsync service, rsync service must first be configured.")
+            raise Exception(
+                "Cannot process rsync service, rsync service must first be configured."
+            )
 
         for action in arguments:
             if "transfer" in action.keys():
@@ -188,38 +194,30 @@ class Rsync(Service):
                 command_list = []
                 if action[action_key]["source"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]
-                    ssh_commands = ["-e","ssh -i " + self.__ssh_key]
+                    ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
                     for argument in ssh_commands:
-                        command_list.append(argument) 
+                        command_list.append(argument)
 
                     if "arguments" in action[action_key]:
                         for argument in action[action_key]["arguments"]:
                             command_list.append(argument)
-                    
-                    command_list.append(
-                        action[action_key]["source"]["path"]
-                    )
+
+                    command_list.append(action[action_key]["source"]["path"])
 
                     dest = action[action_key]["destination"]["user"]
-                    dest = (
-                            dest + "@" + action[action_key]["destination"]["ip"]
-                           )
-                    dest = (
-                            dest
-                            + ":"
-                            + action[action_key]["destination"]["path"]
-                           )
+                    dest = dest + "@" + action[action_key]["destination"]["ip"]
+                    dest = dest + ":" + action[action_key]["destination"]["path"]
                     command_list.append(dest)
 
                 elif action[action_key]["destination"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]
-                    ssh_commands = ["-e","ssh -i " + self.__ssh_key]
+                    ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
                     for argument in ssh_commands:
-                        command_list.append(argument) 
+                        command_list.append(argument)
 
                     if "arguments" in action[action_key]:
                         for argument in action[action_key]["arguments"]:
-                            # Cannot use extend because they are strings and will break 
+                            # Cannot use extend because they are strings and will break
                             # each work into separate characters
                             command_list.append(argument)
 
@@ -227,11 +225,9 @@ class Rsync(Service):
                     source = source + "@" + action[action_key]["source"]["ip"]
                     source = source + ":" + action[action_key]["source"]["path"]
                     command_list.append(source)
- 
-                    command_list.append(
-                            action[action_key]["destination"]["path"]
-                    )
-          
+
+                    command_list.append(action[action_key]["destination"]["path"])
+
                 print("rsync command list is")
-                print(command_list) 
+                print(command_list)
                 subprocess.call(command_list)

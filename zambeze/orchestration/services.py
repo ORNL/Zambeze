@@ -202,9 +202,13 @@ class Services:
         else:
             for service in services:
                 if service in arguments.keys():
-                    check_results[service.lower()] = self._services[service.lower()].check(arguments[service])
+                    check_results[service.lower()] = self._services[
+                        service.lower()
+                    ].check(arguments[service])
                 else:
-                    check_results[service.lower()] = self._services[service.lower()].check({})
+                    check_results[service.lower()] = self._services[
+                        service.lower()
+                    ].check({})
         return check_results
 
     def run(self, arguments: dict, services: list[str] = ["all"]):

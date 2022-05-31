@@ -8,6 +8,7 @@ import pwd
 import socket
 import uuid
 
+
 def test_registered_services():
     """Test simply checks that you can get a list of all the registered services"""
     services = Services()
@@ -35,28 +36,30 @@ def test_check_configured_services():
 
     assert len(services.configured) > 0
 
+
 def test_rsync_service():
     services = Services()
     assert "rsync" not in services.configured
     # Only rsync should be configured
-    services.configure({},["rsync"])
+    services.configure({}, ["rsync"])
     assert "rsync" in services.configured
     assert len(services.configured) == 1
+
 
 def test_rsync_service_info():
     services = Services()
     # Only rsync should be configured
-    services.configure({},["rsync"])
+    services.configure({}, ["rsync"])
 
     info = services.info
 
     assert info["rsync"]["configured"]
     assert info["rsync"]["supported actions"][0] == "transfer"
 
-
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
     assert info["rsync"]["local ip"] == local_ip
+
 
 def test_rsync_service_check():
     services = Services()
@@ -70,18 +73,19 @@ def test_rsync_service_check():
 
     arguments = {
         "rsync": [
-            {"transfer": {
-                "source": {
-                    "ip": local_ip,
-                    "user": current_user,
-                    "path": current_valid_path
+            {
+                "transfer": {
+                    "source": {
+                        "ip": local_ip,
+                        "user": current_user,
+                        "path": current_valid_path,
                     },
-                "destination": {
-                    "ip": "172.22.1.69",
-                    "user": "cades",
-                    "path": "/home/cades/josh-testing"
+                    "destination": {
+                        "ip": "172.22.1.69",
+                        "user": "cades",
+                        "path": "/home/cades/josh-testing",
                     },
-                "arguments": ["-a"]
+                    "arguments": ["-a"],
                 }
             }
         ]
@@ -93,15 +97,15 @@ def test_rsync_service_check():
     arguments_faulty_ip["rsync"][0]["transfer"]["destination"]["ip"] = "172.22."
     assert services.check(arguments_faulty_ip)["rsync"]["transfer"] == False
     arguments_faulty_user = copy.deepcopy(arguments)
-    arguments_faulty_user["rsync"][0]["transfer"]["source"]["user"] = "user_that_does_not_exist"
+    arguments_faulty_user["rsync"][0]["transfer"]["source"][
+        "user"
+    ] = "user_that_does_not_exist"
     assert services.check(arguments_faulty_user)["rsync"]["transfer"] == False
+
 
 def test_rsync_service_run():
     services = Services()
-    services.configure({"rsync": {
-        "private_ssh_key": "path_to_private_ssh_key"    
-        }
-    })
+    services.configure({"rsync": {"private_ssh_key": "path_to_private_ssh_key"}})
 
     file_name = "demofile.txt"
     f = open(file_name, "w")
@@ -111,25 +115,22 @@ def test_rsync_service_run():
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
-	
+
     current_user = pwd.getpwuid(os.geteuid())[0]
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
     arguments = {
         "rsync": [
-            {"transfer": {
-                "source": {
-                    "ip": local_ip,
-                    "user": current_user,
-                    "path": file_path
+            {
+                "transfer": {
+                    "source": {"ip": local_ip, "user": current_user, "path": file_path},
+                    "destination": {
+                        "ip": "172.22.1.69",
+                        "user": "cades",
+                        "path": "/home/cades/josh-testing",
                     },
-                "destination": {
-                    "ip": "172.22.1.69",
-                    "user": "cades",
-                    "path": "/home/cades/josh-testing"
-                    },
-                "arguments": ["-a"]
+                    "arguments": ["-a"],
                 }
             }
         ]
@@ -137,26 +138,25 @@ def test_rsync_service_run():
 
     services.run(arguments)
     file_path_return = current_valid_path + "/demofile_return.txt"
- 
+
     arguments_return = {
         "rsync": [
-            {"transfer": {
-                "destination": {
-                    "ip": local_ip,
-                    "user": current_user,
-                    "path": file_path_return
+            {
+                "transfer": {
+                    "destination": {
+                        "ip": local_ip,
+                        "user": current_user,
+                        "path": file_path_return,
                     },
-                "source": {
-                    "ip": "172.22.1.69",
-                    "user": "cades",
-                    "path": "/home/cades/josh-testing" + "/" + file_name
+                    "source": {
+                        "ip": "172.22.1.69",
+                        "user": "cades",
+                        "path": "/home/cades/josh-testing" + "/" + file_name,
                     },
-                "arguments": ["-a"]
+                    "arguments": ["-a"],
                 }
             }
         ]
     }
 
     services.run(arguments_return)
-
-     
