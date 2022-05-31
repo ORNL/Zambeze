@@ -5,9 +5,11 @@ from zambeze.orchestration.services import Services
 import copy
 import os
 import pwd
+import pytest
 import socket
 import uuid
 
+@pytest.mark.unit
 def test_registered_services():
     """Test simply checks that you can get a list of all the registered services"""
     services = Services()
@@ -23,6 +25,7 @@ def test_registered_services():
     assert found_rsync
 
 
+@pytest.mark.unit
 def test_check_configured_services():
 
     services = Services()
@@ -35,6 +38,7 @@ def test_check_configured_services():
 
     assert len(services.configured) > 0
 
+@pytest.mark.unit
 def test_rsync_service():
     services = Services()
     assert "rsync" not in services.configured
@@ -43,6 +47,7 @@ def test_rsync_service():
     assert "rsync" in services.configured
     assert len(services.configured) == 1
 
+@pytest.mark.unit
 def test_rsync_service_info():
     services = Services()
     # Only rsync should be configured
@@ -58,6 +63,7 @@ def test_rsync_service_info():
     local_ip = socket.gethostbyname(hostname)
     assert info["rsync"]["local ip"] == local_ip
 
+@pytest.mark.unit
 def test_rsync_service_check():
     services = Services()
     services.configure({})
@@ -96,10 +102,11 @@ def test_rsync_service_check():
     arguments_faulty_user["rsync"][0]["transfer"]["source"]["user"] = "user_that_does_not_exist"
     assert services.check(arguments_faulty_user)["rsync"]["transfer"] == False
 
+@pytest.mark.gitlab_runner
 def test_rsync_service_run():
     services = Services()
     services.configure({"rsync": {
-        "private_ssh_key": "path_to_private_ssh_key"    
+        "private_ssh_key": os.getenv('ZAMBEZE_CI_TEST_RSYNC_SSH_KEY')
         }
     })
 

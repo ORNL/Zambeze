@@ -47,7 +47,12 @@ pip install pytest
 From the root directory using pytest we can run:
 
 ```bash
-python3 -m pytest -sv
+python3 -m pytest -m unit -sv
+```
+
+Some tests should only be run from the context of the GitLab runner these can be run with:
+```bash
+python3 -m pytest -m gitlab_runner -sv
 ```
 
 [build-badge]:         https://github.com/ORNL/zambeze/workflows/Build/badge.svg
