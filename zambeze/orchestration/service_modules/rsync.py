@@ -43,7 +43,8 @@ class Rsync(Service):
                 else:
                     key_path = config["private_ssh_key"]
                     raise Exception(
-                        f"Private ssh key does not appear to exist {config[key_path]}"
+                        f"Private ssh key does not appear to exist "
+                        "{config[key_path]}"
                     )
 
         for config_argument in config.keys():
@@ -51,7 +52,8 @@ class Rsync(Service):
                 pass
             else:
                 raise Exception(
-                    f"Unsupported rsync config option encountered: {config_argument}"
+                    f"Unsupported rsync config option encountered: "\
+                            "{config_argument}"
                 )
         self.__config = deepcopy(config)
 
@@ -115,30 +117,30 @@ class Rsync(Service):
         supported_actions = {}
         for action in arguments:
             if "transfer" in action.keys():
-                action_key = "transfer"
+                action_inst = action["transfer"]
                 # Start by checking that all the files have been provided
-                if "source" in action[action_key]:
-                    if "ip" not in action[action_key]["source"]:
+                if "source" in action_inst:
+                    if "ip" not in action_inst["source"]:
                         supported_actions[action_key] = False
                         continue
-                    if "user" not in action[action_key]["source"]:
+                    if "user" not in action_inst["source"]:
                         supported_actions[action_key] = False
                         continue
-                    if "path" not in action[action_key]["source"]:
+                    if "path" not in action_inst["source"]:
                         supported_actions[action_key] = False
                         continue
                 else:
                     supported_actions[action_key] = False
                     continue
 
-                if "destination" in action[action_key]:
-                    if "ip" not in action[action_key]["destination"]:
+                if "destination" in action_inst:
+                    if "ip" not in action_inst["destination"]:
                         supported_actions[action_key] = False
                         continue
-                    if "user" not in action[action_key]["destination"]:
+                    if "user" not in action_inst["destination"]:
                         supported_actions[action_key] = False
                         continue
-                    if "path" not in action[action_key]["destination"]:
+                    if "path" not in action_inst["destination"]:
                         supported_actions[action_key] = False
                         continue
                 else:
@@ -149,29 +151,29 @@ class Rsync(Service):
                 # Ensure that at either the source or destination ip addresses
                 # are associated with the local machine
                 match_host = "none"
-                if not isAddressValid(action[action_key]["source"]["ip"]):
+                if not isAddressValid(action_inst["source"]["ip"]):
                     supported_actions[action_key] = False
                     continue
                 else:
-                    if action[action_key]["source"]["ip"] == self.__local_ip:
+                    if action_inst["source"]["ip"] == self.__local_ip:
                         match_host = "source"
 
-                if not isAddressValid(action[action_key]["destination"]["ip"]):
+                if not isAddressValid(action_inst["destination"]["ip"]):
                     supported_actions[action_key] = False
                     continue
                 else:
-                    if action[action_key]["destination"]["ip"] == self.__local_ip:
+                    if action_inst["destination"]["ip"] == self.__local_ip:
                         match_host = "destination"
 
                 if match_host == "none":
                     supported_actions[action_key] = False
                     continue
                 # If make sure that paths defined on the host exist
-                if os.path.exists(action[action_key][match_host]["path"]) == False:
+                if os.path.exists(action_inst[match_host]["path"]) == False:
                     supported_actions[action_key] = False
                     continue
 
-                if not userExists(action[action_key][match_host]["user"]):
+                if not userExists(action_inst[match_host]["user"]):
                     supported_actions[action_key] = False
                     continue
             # If the action is not "transfer"
@@ -185,48 +187,49 @@ class Rsync(Service):
     def process(self, arguments: list[dict]):
         if not self.__configured:
             raise Exception(
-                "Cannot process rsync service, rsync service must first be configured."
+                "Cannot process rsync service, rsync service must first be "
+                "configured."
             )
 
         for action in arguments:
             if "transfer" in action.keys():
-                action_key = "transfer"
+                action_inst = action["transfer"]
                 command_list = []
-                if action[action_key]["source"]["ip"] == self.__local_ip:
+                if action_inst["source"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]
                     ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
                     for argument in ssh_commands:
                         command_list.append(argument)
 
-                    if "arguments" in action[action_key]:
-                        for argument in action[action_key]["arguments"]:
+                    if "arguments" in action_inst:
+                        for argument in action_inst["arguments"]:
                             command_list.append(argument)
 
-                    command_list.append(action[action_key]["source"]["path"])
+                    command_list.append(action_inst["source"]["path"])
 
-                    dest = action[action_key]["destination"]["user"]
-                    dest = dest + "@" + action[action_key]["destination"]["ip"]
-                    dest = dest + ":" + action[action_key]["destination"]["path"]
+                    dest = action_inst["destination"]["user"]
+                    dest = dest + "@" + action_inst["destination"]["ip"]
+                    dest = dest + ":" + action_inst["destination"]["path"]
                     command_list.append(dest)
 
-                elif action[action_key]["destination"]["ip"] == self.__local_ip:
+                elif action_inst["destination"]["ip"] == self.__local_ip:
                     command_list = ["rsync"]
                     ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
                     for argument in ssh_commands:
                         command_list.append(argument)
 
-                    if "arguments" in action[action_key]:
-                        for argument in action[action_key]["arguments"]:
+                    if "arguments" in action_inst:
+                        for argument in action_inst["arguments"]:
                             # Cannot use extend because they are strings and will break
                             # each work into separate characters
                             command_list.append(argument)
 
-                    source = action[action_key]["source"]["user"]
-                    source = source + "@" + action[action_key]["source"]["ip"]
-                    source = source + ":" + action[action_key]["source"]["path"]
+                    source = action_inst["source"]["user"]
+                    source = source + "@" + action_inst["source"]["ip"]
+                    source = source + ":" + action_inst["source"]["path"]
                     command_list.append(source)
 
-                    command_list.append(action[action_key]["destination"]["path"])
+                    command_list.append(action_inst["destination"]["path"])
 
                 print("rsync command list is")
                 print(command_list)

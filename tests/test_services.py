@@ -7,12 +7,12 @@ import os
 import pwd
 import pytest
 import socket
-import uuid
 
 
 @pytest.mark.unit
 def test_registered_services():
-    """Test simply checks that you can get a list of all the registered services"""
+    """Test simply checks that you can get a list of all the registered services
+    """
     services = Services()
     found_shell = False
     found_rsync = False
@@ -97,23 +97,24 @@ def test_rsync_service_check():
         ]
     }
 
-    assert services.check(arguments)["rsync"]["transfer"] == True
+    assert services.check(arguments)["rsync"]["transfer"]
 
     arguments_faulty_ip = copy.deepcopy(arguments)
     arguments_faulty_ip["rsync"][0]["transfer"]["destination"]["ip"] = "172.22."
-    assert services.check(arguments_faulty_ip)["rsync"]["transfer"] == False
+    assert not services.check(arguments_faulty_ip)["rsync"]["transfer"]
     arguments_faulty_user = copy.deepcopy(arguments)
     arguments_faulty_user["rsync"][0]["transfer"]["source"][
         "user"
     ] = "user_that_does_not_exist"
-    assert services.check(arguments_faulty_user)["rsync"]["transfer"] == False
+    assert not services.check(arguments_faulty_user)["rsync"]["transfer"]
 
 
 @pytest.mark.gitlab_runner
 def test_rsync_service_run():
     services = Services()
+    path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
     services.configure(
-        {"rsync": {"private_ssh_key": os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")}}
+        {"rsync": {"private_ssh_key": path_to_ssh_key}}
     )
 
     file_name = "demofile.txt"
