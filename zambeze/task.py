@@ -2,7 +2,7 @@ import json
 import uuid
 
 # Local imports
-import actions
+from . import actions
 
 
 class TaskExcept(Exception):
