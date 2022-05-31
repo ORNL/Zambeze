@@ -1,0 +1,13 @@
+
+stages:
+  - test
+
+test-zambeze:
+  stage: test
+  tags:
+    - cades
+  script:
+    - sudo yum --enablerepo=extras install -y epel-release
+    - sudo yum install -y python3-pip
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pytest -sv

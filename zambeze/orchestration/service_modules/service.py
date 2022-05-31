@@ -24,6 +24,18 @@ class Service(ABC):
 
     @property
     @abstractmethod
+    def supportedActions(self) -> list[str]:
+        raise NotImplementedError(
+            "Method indicating supported actions of the service is not implemented"
+        )
+
+    @property
+    @abstractmethod
+    def help(self) -> str:
+        raise NotImplementedError("Missing help message that explains plugin")
+
+    @property
+    @abstractmethod
     def info(self) -> dict:
         """This method is to be used after configuration step and will return
         information about the service such as configuration settings and defaults."""
