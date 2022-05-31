@@ -2,6 +2,7 @@
 from zambeze.orchestration.services import Services
 
 # Standard imports
+import copy
 import os
 import pwd
 import socket
@@ -57,7 +58,7 @@ def test_rsync_service_info():
     local_ip = socket.gethostbyname(hostname)
     assert info["rsync"]["local ip"] == local_ip
 
-def test_rsync_service():
+def test_rsync_service_check():
     services = Services()
     services.configure({})
 
@@ -86,4 +87,76 @@ def test_rsync_service():
         ]
     }
 
-    services.check(arguments)
+    assert services.check(arguments)["rsync"]["transfer"] == True
+
+    arguments_faulty_ip = copy.deepcopy(arguments)
+    arguments_faulty_ip["rsync"][0]["transfer"]["destination"]["ip"] = "172.22."
+    assert services.check(arguments_faulty_ip)["rsync"]["transfer"] == False
+    arguments_faulty_user = copy.deepcopy(arguments)
+    arguments_faulty_user["rsync"][0]["transfer"]["source"]["user"] = "user_that_does_not_exist"
+    assert services.check(arguments_faulty_user)["rsync"]["transfer"] == False
+
+def test_rsync_service_run():
+    services = Services()
+    services.configure({"rsync": {
+        "private_ssh_key": "path_to_private_ssh_key"    
+        }
+    })
+
+    file_name = "demofile.txt"
+    f = open(file_name, "w")
+    f.write("DemoFile!")
+    f.close()
+
+    # Grab valid paths, usernames and ip addresses
+    current_valid_path = os.getcwd()
+    file_path = current_valid_path + "/" + file_name
+	
+    current_user = pwd.getpwuid(os.geteuid())[0]
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+
+    arguments = {
+        "rsync": [
+            {"transfer": {
+                "source": {
+                    "ip": local_ip,
+                    "user": current_user,
+                    "path": file_path
+                    },
+                "destination": {
+                    "ip": "172.22.1.69",
+                    "user": "cades",
+                    "path": "/home/cades/josh-testing"
+                    },
+                "arguments": ["-a"]
+                }
+            }
+        ]
+    }
+
+    services.run(arguments)
+    file_path_return = current_valid_path + "/demofile_return.txt"
+ 
+    arguments_return = {
+        "rsync": [
+            {"transfer": {
+                "destination": {
+                    "ip": local_ip,
+                    "user": current_user,
+                    "path": file_path_return
+                    },
+                "source": {
+                    "ip": "172.22.1.69",
+                    "user": "cades",
+                    "path": "/home/cades/josh-testing" + "/" + file_name
+                    },
+                "arguments": ["-a"]
+                }
+            }
+        ]
+    }
+
+    services.run(arguments_return)
+
+     

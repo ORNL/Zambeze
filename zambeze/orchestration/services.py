@@ -195,10 +195,10 @@ class Services:
             for key in self._services:
                 if key in arguments.keys():
                     # If a package was passed to be processed"
-                    check_results["key"] = self._services[key].check(arguments[key])
+                    check_results[key] = self._services[key].check(arguments[key])
                 else:
                     # else send an empty package"
-                    check_results["key"] = self._services[key].check({})
+                    check_results[key] = self._services[key].check({})
         else:
             for service in services:
                 if service in arguments.keys():
