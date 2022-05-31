@@ -16,6 +16,13 @@ The main channel to reach the Zambeze team is via the support email:
 **Bug Report / Feature Request:** our preferred channel to report a bug or request a feature is via  
 Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
 
+## Installation
+
+Dependency installation should proceed similar to any python package.
+```bash
+pip install -r requirements.txt
+```
+
 ## Development Environment
 
 ### Code Formatting
@@ -39,7 +46,7 @@ If errors are reported by `flake8`, please fix them before commiting the code.
 
 ### Running Tests
 
-There are a few dependencies that need to be installed to run the pytest:
+There are a few dependencies that need to be installed to run the pytest, if you installed the requirements.txt file then this should be covered as well.
 ```bash
 pip install pytest
 ```

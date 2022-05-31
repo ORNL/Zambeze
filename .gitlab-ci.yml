@@ -7,4 +7,5 @@ test-zambeze:
   tags:
     - cades
   script:
+    - pip install -r requirements.txt
     - python3 -m pytest -sv
