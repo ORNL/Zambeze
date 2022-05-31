@@ -8,7 +8,6 @@ from ..network import isAddressValid
 # Standard imports
 from copy import deepcopy
 
-import ipaddress
 import os
 import subprocess
 import socket
@@ -42,10 +41,9 @@ class Rsync(Service):
                     self.__ssh_key = config["private_ssh_key"]
                 else:
                     key_path = config["private_ssh_key"]
-                    raise Exception(
-                        f"Private ssh key does not appear to exist "
-                        "{config[key_path]}"
-                    )
+                    error_msg = ("Private ssh key does not appear to exist"
+                    "{}".format(config[key_path]))
+                    raise Exception(error_msg)
 
         for config_argument in config.keys():
             if config_argument == "private_ssh_key":
@@ -170,7 +168,7 @@ class Rsync(Service):
                     supported_actions[action_key] = False
                     continue
                 # If make sure that paths defined on the host exist
-                if os.path.exists(action_inst[match_host]["path"]) == False:
+                if not os.path.exists(action_inst[match_host]["path"]):
                     supported_actions[action_key] = False
                     continue
 

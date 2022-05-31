@@ -8,7 +8,6 @@ from .service_modules import service
 from copy import deepcopy
 from importlib import import_module
 from inspect import isclass
-from types import ModuleType
 from pathlib import Path
 
 import pkgutil
@@ -108,21 +107,22 @@ class Services:
                     try:
                         obj = self._services.get(key)
                         obj.configure({})
-                    except:
+                    except Exception:
                         print(
-                            f"Unable to configure service {key} missing configuration options."
+                            f"Unable to configure service {key} missing "
+                            "configuration options."
                         )
                         raise
         else:
             for service_inst in services:
                 if service_inst in config.keys():
-                    self._services[service_inst.lower()].configure(config[\
+                    self._services[service_inst.lower()].configure(config[
                             service_inst.lower()])
                 else:
                     try:
                         obj = self._services.get(service_inst)
                         obj.configure({})
-                    except:
+                    except Exception:
                         print(
                             f"Unable to configure service {service_inst} "
                             "missing configuration options."
@@ -130,7 +130,7 @@ class Services:
                         print("Configuration has the following content")
                         print(config)
                         print(
-                            f"{service_inst} is not mentioned in the config so " 
+                            f"{service_inst} is not mentioned in the config so "
                             "cannot associate configuration settings."
                         )
                         raise
@@ -235,7 +235,7 @@ class Services:
         else:
             for service_inst in services:
                 if service_inst in arguments.keys():
-                    self._services[service_inst.lower()].process(\
+                    self._services[service_inst.lower()].process(
                             arguments[service_inst])
                 else:
                     self._services[service_inst.lower()].process({})
