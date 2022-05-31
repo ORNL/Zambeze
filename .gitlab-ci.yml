@@ -7,6 +7,7 @@ test-zambeze:
   tags:
     - cades
   script:
+    - sudo yum --enablerepo=extras install -y epel-release
     - sudo yum install -y python-pip
     - pip install -r requirements.txt
     - python3 -m pytest -sv
