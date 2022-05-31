@@ -117,7 +117,8 @@ class Rsync(Service):
         supported_actions = {}
         for action in arguments:
             if "transfer" in action.keys():
-                action_inst = action["transfer"]
+                action_key = "transfer"
+                action_inst = action[action_key]
                 # Start by checking that all the files have been provided
                 if "source" in action_inst:
                     if "ip" not in action_inst["source"]:
