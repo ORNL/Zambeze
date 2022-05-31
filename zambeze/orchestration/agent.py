@@ -1,6 +1,6 @@
 import asyncio
 import nats
-#import time
+# import time
 
 
 async def main():
@@ -13,7 +13,7 @@ async def main():
         else:
             print("Unknown message")
 
-    #sub = await nc.subscribe("execapp", cb=handle)
+    # sub = await nc.subscribe("execapp", cb=handle)
 
     sub2 = await nc.subscribe("execapp")
     while True:

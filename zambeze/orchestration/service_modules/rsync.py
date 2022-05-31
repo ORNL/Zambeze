@@ -50,8 +50,8 @@ class Rsync(Service):
                 pass
             else:
                 raise Exception(
-                    f"Unsupported rsync config option encountered: "\
-                            "{config_argument}"
+                    "Unsupported rsync config option encountered: "\
+                            f"{config_argument}"
                 )
         self.__config = deepcopy(config)
 

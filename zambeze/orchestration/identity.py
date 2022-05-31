@@ -22,7 +22,7 @@ def validUUID(uuid_to_test: str, version=4) -> bool:
     >>> is_valid_uuid('c9bf9e58')
     False
 
-    Function was taken from 
+    Function was taken from
     https://stackoverflow.com/questions/19989481/how-to-determine-if-a-string-
     is-a-valid-v4-uuid
     """
