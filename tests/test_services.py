@@ -9,6 +9,7 @@ import pytest
 import socket
 import uuid
 
+
 @pytest.mark.unit
 def test_registered_services():
     """Test simply checks that you can get a list of all the registered services"""
@@ -38,6 +39,7 @@ def test_check_configured_services():
 
     assert len(services.configured) > 0
 
+
 @pytest.mark.unit
 def test_rsync_service():
     services = Services()
@@ -62,6 +64,7 @@ def test_rsync_service_info():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
     assert info["rsync"]["local ip"] == local_ip
+
 
 @pytest.mark.unit
 def test_rsync_service_check():
@@ -105,10 +108,13 @@ def test_rsync_service_check():
     ] = "user_that_does_not_exist"
     assert services.check(arguments_faulty_user)["rsync"]["transfer"] == False
 
+
 @pytest.mark.gitlab_runner
 def test_rsync_service_run():
     services = Services()
-    services.configure({"rsync": {"private_ssh_key": os.getenv('ZAMBEZE_CI_TEST_RSYNC_SSH_KEY')}})
+    services.configure(
+        {"rsync": {"private_ssh_key": os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")}}
+    )
 
     file_name = "demofile.txt"
     f = open(file_name, "w")
