@@ -8,7 +8,6 @@ from .service_modules import service
 from copy import deepcopy
 from importlib import import_module
 from inspect import isclass
-from types import ModuleType
 from pathlib import Path
 
 import pkgutil
@@ -57,7 +56,7 @@ class Services:
         Examples
         Services services
 
-        for service in services.registered:
+        for service_inst in services.registered:
             print(service)
 
         >>> globus
@@ -108,27 +107,31 @@ class Services:
                     try:
                         obj = self._services.get(key)
                         obj.configure({})
-                    except:
+                    except Exception:
                         print(
-                            f"Unable to configure service {key} missing configuration options."
+                            f"Unable to configure service {key} missing "
+                            "configuration options."
                         )
                         raise
         else:
-            for service in services:
-                if service in config.keys():
-                    self._services[service.lower()].configure(config[service.lower()])
+            for service_inst in services:
+                if service_inst in config.keys():
+                    self._services[service_inst.lower()].configure(config[
+                            service_inst.lower()])
                 else:
                     try:
-                        obj = self._services.get(service)
+                        obj = self._services.get(service_inst)
                         obj.configure({})
-                    except:
+                    except Exception:
                         print(
-                            f"Unable to configure service {service} missing configuration options."
+                            f"Unable to configure service {service_inst} "
+                            "missing configuration options."
                         )
                         print("Configuration has the following content")
                         print(config)
                         print(
-                            f"{service} is not mentioned in the config so cannot associate configuration settings."
+                            f"{service_inst} is not mentioned in the config so "
+                            "cannot associate configuration settings."
                         )
                         raise
 
@@ -175,17 +178,18 @@ class Services:
         """
         info = {}
         if "all" in services:
-            for service in self._services.keys():
-                info[service] = self._services[service].info
+            for service_inst in self._services.keys():
+                info[service_inst] = self._services[service_inst].info
         else:
-            for service in services:
-                info[service] = self._services[service].info
+            for service_inst in services:
+                info[service_inst] = self._services[service_inst].info
         return info
 
     def check(self, arguments: dict, services: list[str] = ["all"]):
         """Run the services specified.
 
-        :param arguments: the arguments to provide to each of the services that are to be run
+        :param arguments: the arguments to provide to each of the services that
+        are to be run
         :type arguments: dict
         :param services: The list of all the services to run
         :type services: list[str]
@@ -200,21 +204,22 @@ class Services:
                     # else send an empty package"
                     check_results[key] = self._services[key].check({})
         else:
-            for service in services:
-                if service in arguments.keys():
-                    check_results[service.lower()] = self._services[
-                        service.lower()
-                    ].check(arguments[service])
+            for service_inst in services:
+                if service_inst in arguments.keys():
+                    check_results[service_inst.lower()] = self._services[
+                        service_inst.lower()
+                    ].check(arguments[service_inst])
                 else:
-                    check_results[service.lower()] = self._services[
-                        service.lower()
+                    check_results[service_inst.lower()] = self._services[
+                        service_inst.lower()
                     ].check({})
         return check_results
 
     def run(self, arguments: dict, services: list[str] = ["all"]):
         """Run the services specified.
 
-        :param arguments: the arguments to provide to each of the services that are to be run
+        :param arguments: the arguments to provide to each of the services that
+        are to be run
         :type arguments: dict
         :param services: The list of all the services to run
         :type services: list[str]
@@ -228,8 +233,9 @@ class Services:
                     # else send an empty package"
                     self._services[key].process({})
         else:
-            for service in services:
-                if service in arguments.keys():
-                    self._services[service.lower()].process(arguments[service])
+            for service_inst in services:
+                if service_inst in arguments.keys():
+                    self._services[service_inst.lower()].process(
+                            arguments[service_inst])
                 else:
-                    self._services[service.lower()].process({})
+                    self._services[service_inst.lower()].process({})

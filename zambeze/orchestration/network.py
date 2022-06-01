@@ -29,7 +29,7 @@ def isAddressValid(address: str, version="IPv4") -> bool:
         except ValueError:
             print("address/netmask is invalid: %s" % address)
             return False
-        except:
+        except Exception:
             print("Usage : %s  ip" % address)
             return False
     else:
