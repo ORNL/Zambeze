@@ -12,6 +12,86 @@ import os
 import subprocess
 import socket
 
+def requiredEndpointFieldsExist(
+        action_inst, supported_actions, action_key: str, endpoint: str) -> bool:
+    """Returns true if action_inst contains "ip","user" and "path" keys"""
+    if "ip" not in action_inst[endpoint]:
+        supported_actions[action_key] = False
+        return False
+    if "user" not in action_inst[endpoint]:
+        supported_actions[action_key] = False
+        return False
+    if "path" not in action_inst[endpoint]:
+        supported_actions[action_key] = False
+        return False
+    return True
+
+
+def requiredSourceAndDestinationFieldsExist(
+        action_inst, supported_actions, action_key: str) -> bool:
+    """Returns true if both source and destination endpoints contain the
+    correct fields"""
+
+    if "source" in action_inst:
+        if not requiredEndpointFieldsExist(
+                action_inst,
+                supported_actions,
+                action_key,
+                "source"):
+            return False
+    else:
+        supported_actions[action_key] = False
+        return False
+
+    if "destination" in action_inst:
+        if not requiredEndpointFieldsExist(
+                action_inst,
+                supported_actions,
+                action_key,
+                "destination"):
+            return False
+    else:
+        supported_actions[action_key] = False
+        return False
+
+    return True
+
+
+def requiredSourceAndDestinationFieldsAreValid(
+        action_inst, supported_actions, match_host, action_key: str) -> bool:
+    if not isAddressValid(action_inst["source"]["ip"]):
+        supported_actions[action_key] = False
+        return False
+    
+    if not isAddressValid(action_inst["destination"]["ip"]):
+        supported_actions[action_key] = False
+        return False
+
+    if match_host == "none":
+        supported_actions[action_key] = False
+        return False
+    # If make sure that paths defined on the host exist
+    if not os.path.exists(action_inst[match_host]["path"]):
+        supported_actions[action_key] = False
+        return False
+
+    if not userExists(action_inst[match_host]["user"]):
+        supported_actions[action_key] = False
+        return False
+
+    return True
+
+def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
+    if isAddressValid(action_inst["source"]["ip"]):
+        if action_inst["source"]["ip"] == host_ip:
+            return "source"
+
+    if isAddressValid(action_inst["destination"]["ip"]):
+        if action_inst["destination"]["ip"] == host_ip:
+            return "destination"
+
+    return None
+    
 
 class Rsync(Service):
     """Class serves as an example of a service"""
@@ -54,6 +134,7 @@ class Rsync(Service):
                             f"{config_argument}"
                 )
         self.__config = deepcopy(config)
+
 
     @property
     def configured(self) -> bool:
@@ -118,63 +199,23 @@ class Rsync(Service):
                 action_key = "transfer"
                 action_inst = action[action_key]
                 # Start by checking that all the files have been provided
-                if "source" in action_inst:
-                    if "ip" not in action_inst["source"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "user" not in action_inst["source"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "path" not in action_inst["source"]:
-                        supported_actions[action_key] = False
-                        continue
-                else:
-                    supported_actions[action_key] = False
-                    continue
 
-                if "destination" in action_inst:
-                    if "ip" not in action_inst["destination"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "user" not in action_inst["destination"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "path" not in action_inst["destination"]:
-                        supported_actions[action_key] = False
-                        continue
-                else:
-                    supported_actions[action_key] = False
+
+                if not requiredSourceAndDestinationFieldsExist(
+                        action_inst, supported_actions, action_key)
                     continue
 
                 # Now that we know the fields exist ensure that they are valid
                 # Ensure that at either the source or destination ip addresses
                 # are associated with the local machine
-                match_host = "none"
-                if not isAddressValid(action_inst["source"]["ip"]):
-                    supported_actions[action_key] = False
-                    continue
-                else:
-                    if action_inst["source"]["ip"] == self.__local_ip:
-                        match_host = "source"
 
-                if not isAddressValid(action_inst["destination"]["ip"]):
-                    supported_actions[action_key] = False
-                    continue
-                else:
-                    if action_inst["destination"]["ip"] == self.__local_ip:
-                        match_host = "destination"
-
-                if match_host == "none":
-                    supported_actions[action_key] = False
-                    continue
-                # If make sure that paths defined on the host exist
-                if not os.path.exists(action_inst[match_host]["path"]):
-                    supported_actions[action_key] = False
+                if not requiredSourceAndDestinationFieldsValid(
+                        action_inst, supported_actions, action_key)
                     continue
 
-                if not userExists(action_inst[match_host]["user"]):
-                    supported_actions[action_key] = False
-                    continue
+                match_host = isTheHostTheSourceOrDestination(
+                        action_inst, self.__local_ip)
+
             # If the action is not "transfer"
             else:
                 supported_actions[action_key] = False
