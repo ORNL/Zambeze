@@ -148,6 +148,8 @@ def test_rsync_service_run():
         ]
     }
 
+    print("Arguments: Initial transfer to remote machine")
+    print(arguments)
     services.run(arguments)
     file_path_return = current_valid_path + "/demofile_return.txt"
 
@@ -175,6 +177,8 @@ def test_rsync_service_run():
         ]
     }
 
+    print("Arguments: Second transfer back to host machine")
+    print(arguments)
     services.run(arguments_return)
     # This will verify that copying from a remote machine to the local
     # machine was a success
