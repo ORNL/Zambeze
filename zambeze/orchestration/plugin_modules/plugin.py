@@ -2,25 +2,25 @@ from abc import abstractmethod
 from abc import ABC
 
 
-class Service(ABC):
-    """Abstract base class for ensuring that all registered services have the
+class Plugin(ABC):
+    """Abstract base class for ensuring that all registered plugins have the
     same interface"""
 
     def __init__(self):
         raise NotImplementedError(
-            "process method of derived service must be implemented."
+            "process method of derived plugin must be implemented."
         )
 
     @abstractmethod
     def configure(self, config: dict):
-        """Configure this set up the service."""
-        raise NotImplementedError("for configuring service.")
+        """Configure this set up the plugin."""
+        raise NotImplementedError("for configuring plugin.")
 
     @property
     @abstractmethod
     def configured(self) -> bool:
         raise NotImplementedError(
-            "Method for indicating if service has been configured has not been "
+            "Method for indicating if plugin has been configured has not been "
             "instantiated."
         )
 
@@ -28,7 +28,7 @@ class Service(ABC):
     @abstractmethod
     def supportedActions(self) -> list[str]:
         raise NotImplementedError(
-            "Method indicating supported actions of the service is not " "implemented"
+            "Method indicating supported actions of the plugin is not " "implemented"
         )
 
     @property
@@ -40,22 +40,22 @@ class Service(ABC):
     @abstractmethod
     def info(self) -> dict:
         """This method is to be used after configuration step and will return
-        information about the service such as configuration settings and
+        information about the plugin such as configuration settings and
         defaults."""
-        raise NotImplementedError("returns information about the service.")
+        raise NotImplementedError("returns information about the plugin.")
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """Returns the name of the service.
+        """Returns the name of the plugin.
 
-        The name of the service, should be lower case
+        The name of the plugin, should be lower case
 
-        :return: name of the service
+        :return: name of the plugin
         :rtype: string
         """
         raise NotImplementedError(
-            "name method of derived service must be " "implemented."
+            "name method of derived plugin must be " "implemented."
         )
 
     @abstractmethod
@@ -79,7 +79,7 @@ class Service(ABC):
 
         Example
 
-        checked_actions = service.check(arguments)
+        checked_actions = plugin.check(arguments)
 
         for action in checked_actions:
             print(f"{action}: {checked_actions[action]}")
@@ -90,7 +90,7 @@ class Service(ABC):
 
     @abstractmethod
     def process(self, arguments: list[dict]):
-        """Will run the service with the provided arguments"""
+        """Will run the plugin with the provided arguments"""
         raise NotImplementedError(
-            "process method of derived service must be implemented."
+            "process method of derived plugin must be implemented."
         )
