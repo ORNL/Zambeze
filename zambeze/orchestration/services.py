@@ -117,7 +117,7 @@ class Services:
             for service_inst in services:
                 if service_inst in config.keys():
                     self._services[service_inst.lower()].configure(config[
-                            service_inst.lower()])
+                        service_inst.lower()])
                 else:
                     try:
                         obj = self._services.get(service_inst)
@@ -236,6 +236,6 @@ class Services:
             for service_inst in services:
                 if service_inst in arguments.keys():
                     self._services[service_inst.lower()].process(
-                            arguments[service_inst])
+                        arguments[service_inst])
                 else:
                     self._services[service_inst.lower()].process({})

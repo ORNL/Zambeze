@@ -12,7 +12,152 @@ import os
 import subprocess
 import socket
 
+#############################################################
+# Assistant Functions
+#############################################################
 
+
+def requiredEndpointKeysExist(action_endpoint: dict) -> bool:
+    """Returns true if action_endpoint contains "ip","user" and "path" keys
+
+    param action_endpoint: the object that is being checked
+    type action_endpoint: dict
+
+    Examples:
+
+    action_endpoint = {
+        "ip": "138.131.32.5",
+        "user": "cades",
+        "path": "/home/cades/folder1/out.txt"
+    }
+
+    fields_exist = requiredEndpointKeysExist( action_endpoint)
+    assert fields_exist
+
+    action_endpoint = {
+        "ip": "138.131.32.5",
+        "path": "/home/cades/folder1/out.txt"
+    }
+
+    # Should fail because missing "user"
+    fields_exist = requiredEndpointKeysExist( action_endpoint)
+    assert not fields_exist
+
+    """
+    if "ip" not in action_endpoint:
+        return False
+    if "user" not in action_endpoint:
+        return False
+    if "path" not in action_endpoint:
+        return False
+    return True
+
+
+def requiredSourceAndDestinationKeysExist(
+        action_inst: dict) -> bool:
+    """Returns true if both source and destination endpoints contain the
+    correct fields
+
+
+    Note this function does not check that the fields make since so you could have
+    a completely bogus ip address and this will function will return true.
+
+    Example
+
+    action_inst = {
+        "source": {
+            "ip": "",
+            "user": "",
+            "path": ""
+        },
+        "destination": {
+            "ip": "",
+            "user": "",
+            "path": ""
+        }
+    }
+
+    keys_exist = requiredSourceAndDestinationKeysExist(action_inst)
+    assert keys_exist
+    """
+
+    if "source" in action_inst:
+        if not requiredEndpointKeysExist(action_inst["source"]):
+            return False
+    else:
+        return False
+
+    if "destination" in action_inst:
+        if not requiredEndpointKeysExist(action_inst["destination"]):
+            return False
+    else:
+        return False
+
+    return True
+
+
+def requiredSourceAndDestinationValuesValid(
+        action_inst: dict, match_host) -> bool:
+    """Determines if the values are valid
+
+    Example
+
+    action_inst = {
+        "source": {
+            "ip": "172.198.43.14",
+            "user": "cades",
+            "path": "/home/cades/Folder1/in.txt"
+        },
+        "destination": {
+            "ip": "198.128.243.15",
+            "user": "jeff",
+            "path": "/home/jeff/local/out.txt"
+        }
+    }
+
+    Extra checks are run on the source or destination
+    values if they are located on the host.
+    """
+    if not isAddressValid(action_inst["source"]["ip"]):
+        return False
+
+    if not isAddressValid(action_inst["destination"]["ip"]):
+        return False
+
+    if match_host is None:
+        return False
+    # If make sure that paths defined on the host exist
+    if not os.path.exists(action_inst[match_host]["path"]):
+        return False
+
+    if not userExists(action_inst[match_host]["user"]):
+        return False
+
+    return True
+
+
+def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
+    if isAddressValid(action_inst["source"]["ip"]):
+        if action_inst["source"]["ip"] == host_ip:
+            return "source"
+
+    if isAddressValid(action_inst["destination"]["ip"]):
+        if action_inst["destination"]["ip"] == host_ip:
+            return "destination"
+
+    return None
+
+
+def buildRemotePath(action_endpoint: dict) -> str:
+    """Combines user ip and path to create a remote path"""
+    path = action_endpoint["user"]
+    path = path + "@" + action_endpoint["ip"]
+    return path + ":" + action_endpoint["path"]
+
+
+#############################################################
+# Class
+#############################################################
 class Rsync(Service):
     """Class serves as an example of a service"""
 
@@ -42,7 +187,7 @@ class Rsync(Service):
                 else:
                     key_path = config["private_ssh_key"]
                     error_msg = ("Private ssh key does not appear to exist"
-                    "{}".format(config[key_path]))
+                                 "{}".format(key_path))
                     raise Exception(error_msg)
 
         for config_argument in config.keys():
@@ -50,8 +195,8 @@ class Rsync(Service):
                 pass
             else:
                 raise Exception(
-                    "Unsupported rsync config option encountered: "\
-                            f"{config_argument}"
+                    "Unsupported rsync config option encountered: "
+                    f"{config_argument}"
                 )
         self.__config = deepcopy(config)
 
@@ -118,63 +263,22 @@ class Rsync(Service):
                 action_key = "transfer"
                 action_inst = action[action_key]
                 # Start by checking that all the files have been provided
-                if "source" in action_inst:
-                    if "ip" not in action_inst["source"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "user" not in action_inst["source"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "path" not in action_inst["source"]:
-                        supported_actions[action_key] = False
-                        continue
-                else:
+
+                if not requiredSourceAndDestinationKeysExist(action_inst):
                     supported_actions[action_key] = False
                     continue
 
-                if "destination" in action_inst:
-                    if "ip" not in action_inst["destination"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "user" not in action_inst["destination"]:
-                        supported_actions[action_key] = False
-                        continue
-                    if "path" not in action_inst["destination"]:
-                        supported_actions[action_key] = False
-                        continue
-                else:
-                    supported_actions[action_key] = False
-                    continue
+                match_host = isTheHostTheSourceOrDestination(
+                    action_inst, self.__local_ip)
 
                 # Now that we know the fields exist ensure that they are valid
                 # Ensure that at either the source or destination ip addresses
                 # are associated with the local machine
-                match_host = "none"
-                if not isAddressValid(action_inst["source"]["ip"]):
-                    supported_actions[action_key] = False
-                    continue
-                else:
-                    if action_inst["source"]["ip"] == self.__local_ip:
-                        match_host = "source"
 
-                if not isAddressValid(action_inst["destination"]["ip"]):
-                    supported_actions[action_key] = False
-                    continue
-                else:
-                    if action_inst["destination"]["ip"] == self.__local_ip:
-                        match_host = "destination"
-
-                if match_host == "none":
-                    supported_actions[action_key] = False
-                    continue
-                # If make sure that paths defined on the host exist
-                if not os.path.exists(action_inst[match_host]["path"]):
+                if not requiredSourceAndDestinationValuesValid(action_inst, match_host):
                     supported_actions[action_key] = False
                     continue
 
-                if not userExists(action_inst[match_host]["user"]):
-                    supported_actions[action_key] = False
-                    continue
             # If the action is not "transfer"
             else:
                 supported_actions[action_key] = False
@@ -193,41 +297,22 @@ class Rsync(Service):
         for action in arguments:
             if "transfer" in action.keys():
                 action_inst = action["transfer"]
-                command_list = []
-                if action_inst["source"]["ip"] == self.__local_ip:
-                    command_list = ["rsync"]
-                    ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
-                    for argument in ssh_commands:
+
+                command_list = ["rsync"]
+                ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
+                for argument in ssh_commands:
+                    command_list.append(argument)
+
+                if "arguments" in action_inst:
+                    for argument in action_inst["arguments"]:
                         command_list.append(argument)
 
-                    if "arguments" in action_inst:
-                        for argument in action_inst["arguments"]:
-                            command_list.append(argument)
-
+                if action_inst["source"]["ip"] == self.__local_ip:
                     command_list.append(action_inst["source"]["path"])
-
-                    dest = action_inst["destination"]["user"]
-                    dest = dest + "@" + action_inst["destination"]["ip"]
-                    dest = dest + ":" + action_inst["destination"]["path"]
-                    command_list.append(dest)
+                    command_list.append(buildRemotePath(action_inst["destination"]))
 
                 elif action_inst["destination"]["ip"] == self.__local_ip:
-                    command_list = ["rsync"]
-                    ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
-                    for argument in ssh_commands:
-                        command_list.append(argument)
-
-                    if "arguments" in action_inst:
-                        for argument in action_inst["arguments"]:
-                            # Cannot use extend because they are strings and will break
-                            # each work into separate characters
-                            command_list.append(argument)
-
-                    source = action_inst["source"]["user"]
-                    source = source + "@" + action_inst["source"]["ip"]
-                    source = source + ":" + action_inst["source"]["path"]
-                    command_list.append(source)
-
+                    command_list.append(buildRemotePath(action_inst["source"]))
                     command_list.append(action_inst["destination"]["path"])
 
                 print("rsync command list is")

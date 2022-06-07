@@ -6,6 +6,7 @@ import copy
 import os
 import pwd
 import pytest
+import random
 import socket
 
 
@@ -119,7 +120,8 @@ def test_rsync_service_run():
 
     file_name = "demofile.txt"
     f = open(file_name, "w")
-    f.write("DemoFile!")
+    original_number = random.randint(0, 100000000000)
+    f.write(str(original_number))
     f.close()
 
     # Grab valid paths, usernames and ip addresses
@@ -146,8 +148,14 @@ def test_rsync_service_run():
         ]
     }
 
+    print("Arguments: Initial transfer to remote machine")
+    print(arguments)
     services.run(arguments)
     file_path_return = current_valid_path + "/demofile_return.txt"
+
+    # Remove local copy of file if it already exists
+    if os.path.exists(file_path_return):
+        os.remove(file_path_return)
 
     arguments_return = {
         "rsync": [
@@ -169,4 +177,16 @@ def test_rsync_service_run():
         ]
     }
 
+    print("Arguments: Second transfer back to host machine")
+    print(arguments_return)
     services.run(arguments_return)
+    # This will verify that copying from a remote machine to the local
+    # machine was a success
+    assert os.path.exists(file_path_return)
+
+    with open(file_path_return) as f:
+        # Now we will verify that it is the same file that was sent
+        lines = f.readlines()
+        # Should be a single line
+        random_int = int(lines[0])
+        assert random_int == original_number

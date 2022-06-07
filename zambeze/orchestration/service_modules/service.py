@@ -56,7 +56,7 @@ class Service(ABC):
         :rtype: string
         """
         raise NotImplementedError("name method of derived service must be "
-        "implemented.")
+                                  "implemented.")
 
     @abstractmethod
     def check(self, arguments: list[dict]) -> dict:
