@@ -187,7 +187,7 @@ class Rsync(Service):
                 else:
                     key_path = config["private_ssh_key"]
                     error_msg = ("Private ssh key does not appear to exist"
-                                 "{}".format(config[key_path]))
+                                 "{}".format(key_path))
                     raise Exception(error_msg)
 
         for config_argument in config.keys():
