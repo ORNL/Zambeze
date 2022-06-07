@@ -90,10 +90,7 @@ def test_action_data_missing_source():
 
 @pytest.mark.unit
 def test_action_data_missing_destination():
-    payload = {
-        "type": "Data",
-        "source": "/home/source/file1.txt",
-    }
+    payload = {"type": "Data", "source": "/home/source/file1.txt"}
 
     with pytest.raises(Exception):
         assert Factory(payload)
