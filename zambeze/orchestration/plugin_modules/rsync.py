@@ -1,5 +1,5 @@
 # Local imports
-from .service import Service
+from .plugin import Plugin
 
 from ..system_utils import isExecutable
 from ..system_utils import userExists
@@ -156,8 +156,8 @@ def buildRemotePath(action_endpoint: dict) -> str:
 #############################################################
 # Class
 #############################################################
-class Rsync(Service):
-    """Class serves as an example of a service"""
+class Rsync(Plugin):
+    """Class serves as an example of a plugin"""
 
     def __init__(self):
         self.__name = "rsync"
@@ -289,7 +289,7 @@ class Rsync(Service):
     def process(self, arguments: list[dict]):
         if not self.__configured:
             raise Exception(
-                "Cannot process rsync service, rsync service must first be "
+                "Cannot process rsync plugin, rsync plugin must first be "
                 "configured."
             )
 

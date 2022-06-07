@@ -1,5 +1,5 @@
 # Local imports
-import zambeze.orchestration.service_modules.rsync as rsync
+import zambeze.orchestration.plugin_modules.rsync as rsync
 
 # Standard imports
 import os

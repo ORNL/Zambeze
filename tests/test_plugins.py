@@ -1,5 +1,5 @@
 # Local imports
-from zambeze.orchestration.services import Services
+from zambeze.orchestration.plugins import Plugins
 
 # Standard imports
 import copy
@@ -11,12 +11,12 @@ import socket
 
 
 @pytest.mark.unit
-def test_registered_services():
-    """Test checks that you can get a list of all the registered services"""
-    services = Services()
+def test_registered_plugins():
+    """Test checks that you can get a list of all the registered plugins"""
+    plugins = Plugins()
     found_shell = False
     found_rsync = False
-    for service in services.registered:
+    for service in plugins.registered:
         if service == "shell":
             found_shell = True
         elif service == "rsync":
@@ -27,36 +27,36 @@ def test_registered_services():
 
 
 @pytest.mark.unit
-def test_check_configured_services():
+def test_check_configured_plugins():
 
-    services = Services()
+    plugins = Plugins()
 
-    assert len(services.configured) == 0
+    assert len(plugins.configured) == 0
 
     configuration = {"shell": {}}
 
-    services.configure(configuration)
+    plugins.configure(configuration)
 
-    assert len(services.configured) > 0
+    assert len(plugins.configured) > 0
 
 
 @pytest.mark.unit
 def test_rsync_service():
-    services = Services()
-    assert "rsync" not in services.configured
+    plugins = Plugins()
+    assert "rsync" not in plugins.configured
     # Only rsync should be configured
-    services.configure({}, ["rsync"])
-    assert "rsync" in services.configured
-    assert len(services.configured) == 1
+    plugins.configure({}, ["rsync"])
+    assert "rsync" in plugins.configured
+    assert len(plugins.configured) == 1
 
 
 @pytest.mark.unit
 def test_rsync_service_info():
-    services = Services()
+    plugins = Plugins()
     # Only rsync should be configured
-    services.configure({}, ["rsync"])
+    plugins.configure({}, ["rsync"])
 
-    info = services.info
+    info = plugins.info
 
     assert info["rsync"]["configured"]
     assert info["rsync"]["supported actions"][0] == "transfer"
@@ -68,8 +68,8 @@ def test_rsync_service_info():
 
 @pytest.mark.unit
 def test_rsync_service_check():
-    services = Services()
-    services.configure({})
+    plugins = Plugins()
+    plugins.configure({})
 
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
@@ -97,23 +97,23 @@ def test_rsync_service_check():
         ]
     }
 
-    assert services.check(arguments)["rsync"]["transfer"]
+    assert plugins.check(arguments)["rsync"]["transfer"]
 
     arguments_faulty_ip = copy.deepcopy(arguments)
     arguments_faulty_ip["rsync"][0]["transfer"]["destination"]["ip"] = "172.22."
-    assert not services.check(arguments_faulty_ip)["rsync"]["transfer"]
+    assert not plugins.check(arguments_faulty_ip)["rsync"]["transfer"]
     arguments_faulty_user = copy.deepcopy(arguments)
     arguments_faulty_user["rsync"][0]["transfer"]["source"][
         "user"
     ] = "user_that_does_not_exist"
-    assert not services.check(arguments_faulty_user)["rsync"]["transfer"]
+    assert not plugins.check(arguments_faulty_user)["rsync"]["transfer"]
 
 
 @pytest.mark.gitlab_runner
 def test_rsync_service_run():
-    services = Services()
+    plugins = Plugins()
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
-    services.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
+    plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
     file_name = "demofile.txt"
     f = open(file_name, "w")
@@ -147,7 +147,7 @@ def test_rsync_service_run():
 
     print("Arguments: Initial transfer to remote machine")
     print(arguments)
-    services.run(arguments)
+    plugins.run(arguments)
     file_path_return = current_valid_path + "/demofile_return.txt"
 
     # Remove local copy of file if it already exists
@@ -176,7 +176,7 @@ def test_rsync_service_run():
 
     print("Arguments: Second transfer back to host machine")
     print(arguments_return)
-    services.run(arguments_return)
+    plugins.run(arguments_return)
     # This will verify that copying from a remote machine to the local
     # machine was a success
     assert os.path.exists(file_path_return)

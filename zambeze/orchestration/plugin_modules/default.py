@@ -1,12 +1,12 @@
 # Local imports
-from .service import Service
+from .plugin import Plugin
 
 # Standard imports
 from copy import deepcopy
 
 
-class Shell(Service):
-    """Class serves as an example of a service"""
+class Shell(Plugin):
+    """Class serves as an example of a plugin"""
 
     def __init__(self):
         self.__name = "shell"
@@ -39,10 +39,10 @@ class Shell(Service):
         return {}
 
     def check(self, arguments: list[dict]) -> dict:
-        print("Checking shell service")
+        print("Checking shell plugin")
         return {"run": False}
 
     def process(self, arguments: list[dict]):
         if not self.__configured:
-            raise Exception("Cannot run shell service, must first be configured.")
-        print("Running shell service")
+            raise Exception("Cannot run shell plugin, must first be configured.")
+        print("Running shell plugin")
