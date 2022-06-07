@@ -28,8 +28,7 @@ class Service(ABC):
     @abstractmethod
     def supportedActions(self) -> list[str]:
         raise NotImplementedError(
-            "Method indicating supported actions of the service is not "
-            "implemented"
+            "Method indicating supported actions of the service is not " "implemented"
         )
 
     @property
@@ -55,8 +54,9 @@ class Service(ABC):
         :return: name of the service
         :rtype: string
         """
-        raise NotImplementedError("name method of derived service must be "
-                                  "implemented.")
+        raise NotImplementedError(
+            "name method of derived service must be " "implemented."
+        )
 
     @abstractmethod
     def check(self, arguments: list[dict]) -> dict:

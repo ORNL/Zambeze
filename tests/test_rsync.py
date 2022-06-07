@@ -17,38 +17,22 @@ def test_rsync_requiredEndpointKeysExist():
     If they are present the function should return True if one of
     them is absent then should return False.
     """
-    package = {
-        "ip": "something",
-        "user": "a user",
-        "path": "a path to a file"
-    }
+    package = {"ip": "something", "user": "a user", "path": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package)
     assert fields_exist
 
-    package2 = {
-        "ip2": "something",
-        "user": "a user",
-        "path": "a path to a file"
-    }
+    package2 = {"ip2": "something", "user": "a user", "path": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package2)
     assert fields_exist is False
 
-    package3 = {
-        "ip": "something",
-        "user_s": "a user",
-        "path": "a path to a file"
-    }
+    package3 = {"ip": "something", "user_s": "a user", "path": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package3)
     assert fields_exist is False
 
-    package4 = {
-        "ip": "something",
-        "user": "a user",
-        "pat": "a path to a file"
-    }
+    package4 = {"ip": "something", "user": "a user", "pat": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package4)
     assert fields_exist is False
@@ -62,38 +46,26 @@ def test_rsync_requiredSourceAndDestinationKeysExist():
     returns True if they aren't it returns False
     """
     package = {
-        "source": {
-            "ip": "something",
-            "user": "a user",
-            "path": "a path to a file"
-        },
+        "source": {"ip": "something", "user": "a user", "path": "a path to a file"},
         "destination": {
             "ip": "something",
             "user": "a user",
-            "path": "a path to a file"
-        }
+            "path": "a path to a file",
+        },
     }
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
     assert fields_exist
 
     package = {
-        "destination": {
-            "ip": "something",
-            "user": "a user",
-            "path": "a path to a file"
-        }
+        "destination": {"ip": "something", "user": "a user", "path": "a path to a file"}
     }
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
     assert fields_exist is False
 
     package = {
-        "source": {
-            "ip": "something",
-            "user": "a user",
-            "path": "a path to a file"
-        }
+        "source": {"ip": "something", "user": "a user", "path": "a path to a file"}
     }
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
@@ -115,16 +87,12 @@ def test_rsync_requiredSourceAndDestinationValuesValid():
     current_valid_path = os.getcwd()
     current_user = pwd.getpwuid(os.geteuid())[0]
     package = {
-        "source": {
-            "ip": "127.0.0.1",
-            "user": "john",
-            "path": "/home/john/folder1"
-        },
+        "source": {"ip": "127.0.0.1", "user": "john", "path": "/home/john/folder1"},
         "destination": {
             "ip": local_ip,
             "user": current_user,
-            "path": current_valid_path
-        }
+            "path": current_valid_path,
+        },
     }
 
     host = "destination"
@@ -134,16 +102,12 @@ def test_rsync_requiredSourceAndDestinationValuesValid():
 
     # Lets pass in an invalid ip address
     package = {
-        "source": {
-            "ip": "127.0..1",
-            "user": "john",
-            "path": "/home/john/folder1"
-        },
+        "source": {"ip": "127.0..1", "user": "john", "path": "/home/john/folder1"},
         "destination": {
             "ip": local_ip,
             "user": current_user,
-            "path": current_valid_path
-        }
+            "path": current_valid_path,
+        },
     }
     fields_valid = rsync.requiredSourceAndDestinationValuesValid(package, host)
     assert fields_valid is False

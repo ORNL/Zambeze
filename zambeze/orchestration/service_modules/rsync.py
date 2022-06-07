@@ -53,8 +53,7 @@ def requiredEndpointKeysExist(action_endpoint: dict) -> bool:
     return True
 
 
-def requiredSourceAndDestinationKeysExist(
-        action_inst: dict) -> bool:
+def requiredSourceAndDestinationKeysExist(action_inst: dict) -> bool:
     """Returns true if both source and destination endpoints contain the
     correct fields
 
@@ -96,8 +95,7 @@ def requiredSourceAndDestinationKeysExist(
     return True
 
 
-def requiredSourceAndDestinationValuesValid(
-        action_inst: dict, match_host) -> bool:
+def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bool:
     """Determines if the values are valid
 
     Example
@@ -186,8 +184,9 @@ class Rsync(Service):
                     self.__ssh_key = config["private_ssh_key"]
                 else:
                     key_path = config["private_ssh_key"]
-                    error_msg = ("Private ssh key does not appear to exist"
-                                 "{}".format(key_path))
+                    error_msg = "Private ssh key does not appear to exist" "{}".format(
+                        key_path
+                    )
                     raise Exception(error_msg)
 
         for config_argument in config.keys():
@@ -195,8 +194,7 @@ class Rsync(Service):
                 pass
             else:
                 raise Exception(
-                    "Unsupported rsync config option encountered: "
-                    f"{config_argument}"
+                    "Unsupported rsync config option encountered: " f"{config_argument}"
                 )
         self.__config = deepcopy(config)
 
@@ -269,7 +267,8 @@ class Rsync(Service):
                     continue
 
                 match_host = isTheHostTheSourceOrDestination(
-                    action_inst, self.__local_ip)
+                    action_inst, self.__local_ip
+                )
 
                 # Now that we know the fields exist ensure that they are valid
                 # Ensure that at either the source or destination ip addresses

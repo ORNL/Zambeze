@@ -114,9 +114,7 @@ def test_rsync_service_check():
 def test_rsync_service_run():
     services = Services()
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
-    services.configure(
-        {"rsync": {"private_ssh_key": path_to_ssh_key}}
-    )
+    services.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
     file_name = "demofile.txt"
     f = open(file_name, "w")
