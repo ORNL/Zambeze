@@ -12,8 +12,7 @@ import socket
 
 @pytest.mark.unit
 def test_registered_services():
-    """Test simply checks that you can get a list of all the registered services
-    """
+    """Test checks that you can get a list of all the registered services"""
     services = Services()
     found_shell = False
     found_rsync = False
