@@ -120,7 +120,7 @@ def test_rsync_service_run():
 
     file_name = "demofile.txt"
     f = open(file_name, "w")
-    original_number = random.randint(0,100000000000)
+    original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
 
@@ -186,4 +186,3 @@ def test_rsync_service_run():
         # Should be a single line
         random_int = int(lines[0])
         assert random_int == original_number
-

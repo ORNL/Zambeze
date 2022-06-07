@@ -2,11 +2,11 @@
 import zambeze.orchestration.service_modules.rsync as rsync
 
 # Standard imports
-import copy
 import os
 import pwd
 import pytest
 import socket
+
 
 @pytest.mark.unit
 def test_rsync_requiredEndpointKeysExist():
@@ -25,13 +25,13 @@ def test_rsync_requiredEndpointKeysExist():
 
     fields_exist = rsync.requiredEndpointKeysExist(package)
     assert fields_exist
-    
+
     package2 = {
         "ip2": "something",
         "user": "a user",
         "path": "a path to a file"
     }
-    
+
     fields_exist = rsync.requiredEndpointKeysExist(package2)
     assert fields_exist is False
 
@@ -40,7 +40,7 @@ def test_rsync_requiredEndpointKeysExist():
         "user_s": "a user",
         "path": "a path to a file"
     }
-    
+
     fields_exist = rsync.requiredEndpointKeysExist(package3)
     assert fields_exist is False
 
@@ -49,9 +49,10 @@ def test_rsync_requiredEndpointKeysExist():
         "user": "a user",
         "pat": "a path to a file"
     }
-    
+
     fields_exist = rsync.requiredEndpointKeysExist(package4)
     assert fields_exist is False
+
 
 @pytest.mark.unit
 def test_rsync_requiredSourceAndDestinationKeysExist():
@@ -75,7 +76,7 @@ def test_rsync_requiredSourceAndDestinationKeysExist():
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
     assert fields_exist
- 
+
     package = {
         "destination": {
             "ip": "something",
@@ -86,7 +87,7 @@ def test_rsync_requiredSourceAndDestinationKeysExist():
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
     assert fields_exist is False
- 
+
     package = {
         "source": {
             "ip": "something",
@@ -98,13 +99,14 @@ def test_rsync_requiredSourceAndDestinationKeysExist():
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
     assert fields_exist is False
 
+
 @pytest.mark.unit
 def test_rsync_requiredSourceAndDestinationValuesValid():
     """Tests one of the assistant functions
 
     The test ensures that the values passed in are valid. If they are present
     returns True if they aren't it returns False. Either the "source" or
-    "destination" endpoint must refer to the host machine. 
+    "destination" endpoint must refer to the host machine.
     """
 
     hostname = socket.gethostname()
@@ -127,7 +129,7 @@ def test_rsync_requiredSourceAndDestinationValuesValid():
 
     host = "destination"
 
-    fields_valid = rsync.requiredSourceAndDestinationValuesValid(package,host)
+    fields_valid = rsync.requiredSourceAndDestinationValuesValid(package, host)
     assert fields_valid
 
     # Lets pass in an invalid ip address
@@ -143,7 +145,5 @@ def test_rsync_requiredSourceAndDestinationValuesValid():
             "path": current_valid_path
         }
     }
-    fields_valid = rsync.requiredSourceAndDestinationValuesValid(package,host)
-    assert fields_valid == False
-
-
+    fields_valid = rsync.requiredSourceAndDestinationValuesValid(package, host)
+    assert fields_valid is False
