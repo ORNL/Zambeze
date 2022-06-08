@@ -133,9 +133,7 @@ def test_rsync():
 
     assert len(instance.supportedActions) == 0
 
-    config = { 
-        "private_ssh_key": file_path
-    }
+    config = {"private_ssh_key": file_path}
 
     instance.configure(config)
     assert instance.configured

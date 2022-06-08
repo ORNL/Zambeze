@@ -251,7 +251,7 @@ class Rsync(Plugin):
             "supported actions": supported_actions,
             "hostname": self.__hostname,
             "local ip": self.__local_ip,
-            "ssh key": self.__ssh_key
+            "ssh key": self.__ssh_key,
         }
 
     def check(self, arguments: list[dict]) -> dict:

@@ -236,8 +236,6 @@ class Plugins:
         else:
             for plugin_inst in plugins:
                 if plugin_inst in arguments.keys():
-                    self._plugins[plugin_inst.lower()].process(
-                        arguments[plugin_inst]
-                    )
+                    self._plugins[plugin_inst.lower()].process(arguments[plugin_inst])
                 else:
                     self._plugins[plugin_inst.lower()].process({})
