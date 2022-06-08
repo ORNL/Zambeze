@@ -113,8 +113,11 @@ def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bo
         }
     }
 
+    values_valid = requiredSourceAndDestinationValuesValid(action_inst, "source")
+    assert values_valid
+
     Extra checks are run on the source or destination
-    values if they are located on the host.
+    values depending on which machine this code is running on.
     """
     if not isAddressValid(action_inst["source"]["ip"]):
         return False
@@ -135,6 +138,12 @@ def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bo
 
 
 def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
+    """Determine which machine the code is running on
+
+    If source ip address matches this machine then returns "source" 
+    if the "destination" ip address matches returns "destination", and
+    if neither is a match returns None
+    """
     if isAddressValid(action_inst["source"]["ip"]):
         if action_inst["source"]["ip"] == host_ip:
             return "source"
@@ -171,8 +180,19 @@ class Rsync(Plugin):
     def configure(self, config: dict):
         """Configure rsync
 
-        In this case the configure method doesn't really do much and doesn't
-        actually use the 'config' argument passed in.
+        param config: configuration options
+        type config: dict
+
+        In this case the configure method checks to make sure that the rsync binary is 
+        available. If an ssh key file path is provided it also checks to make sure it
+        is a valid path.
+
+        config = {
+            "private_ssh_key": "path to ssh key"
+        }
+
+        instance = Rsync()
+        instance.configure(config)
         """
 
         # Check that rsync is available
@@ -220,7 +240,7 @@ class Rsync(Plugin):
 
     @property
     def info(self) -> dict:
-
+        """Provides information about the instance of the plugin"""
         supported_actions = []
         for action in self.__supported_actions:
             if self.__supported_actions[action]:
@@ -231,29 +251,41 @@ class Rsync(Plugin):
             "supported actions": supported_actions,
             "hostname": self.__hostname,
             "local ip": self.__local_ip,
+            "ssh key": self.__ssh_key
         }
 
     def check(self, arguments: list[dict]) -> dict:
         """Check the arguments are supported.
 
+        param arguments: arguments needed to run the rsync plugin
+        type arguments: list[dict]
+
         Rsync must have a source and end destination machine provided.
 
-        [
-        { "transfer": {
-            "source" : {
-                "ip": "128.219.183.34",
-                    "user: "",
-                    "path: "",
-            },
-                "destination": {
-                    "ip": "172.231.41.3",
-                    "user: "",
-                    "path: "",
-                }
-            "arguments": ["argument1","argument2"]
-                      }
+        config = {
+            "private_ssh_key": "path to ssh key"
         }
+
+        arguments = [
+            { "transfer": {
+                "source" : {
+                    "ip": "128.219.183.34",
+                        "user: "",
+                        "path: "",
+                },
+                    "destination": {
+                        "ip": "172.231.41.3",
+                        "user: "",
+                        "path: "",
+                    }
+                "arguments": ["argument1","argument2"]
+                        }
+            }
         ]
+
+        instance = Rsync()
+        instance.configure(config)
+        assert instance.check(arguments)
         """
         supported_actions = {}
         for action in arguments:
@@ -287,9 +319,43 @@ class Rsync(Plugin):
         return supported_actions
 
     def process(self, arguments: list[dict]):
+        """Equivalent to running the plugin after it has been set up
+
+        param arguments: arguments needed to run the rsync plugin
+        type arguments: list[dict]
+
+        Example 
+
+        config = {
+            "private_ssh_key": "path to ssh key"
+        }
+
+        arguments = [
+            {
+                "transfer": {
+                    "source": {
+                        "ip": "valid ip address",
+                        "path": "path to items that will be transferred",
+                        "user": "user name"
+                    },
+                    "destination": {
+                        "ip": "valid ip address",
+                        "path": "path to items that will be transferred",
+                        "user": "user name"
+                    }
+                }
+            }
+        ]
+
+        instance = Rsync()
+        instance.configure(config)
+        if instance.check(arguments):
+            instance.process(arguments)
+        """
+
         if not self.__configured:
             raise Exception(
-                "Cannot process rsync plugin, rsync plugin must first be "
+                f"Cannot process {self.__name} plugin, {self.__name} plugin must first be "
                 "configured."
             )
 
@@ -314,6 +380,4 @@ class Rsync(Plugin):
                     command_list.append(buildRemotePath(action_inst["source"]))
                     command_list.append(action_inst["destination"]["path"])
 
-                print("rsync command list is")
-                print(command_list)
                 subprocess.call(command_list)
