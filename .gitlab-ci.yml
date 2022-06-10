@@ -1,0 +1,12 @@
+
+stages:
+  - test
+
+test-zambeze:
+  stage: test
+  tags:
+    - cades
+  script:
+    - /opt/anaconda3/bin/python3 -m pip install -r requirements.txt
+    - chmod 600 $ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
+    - /opt/anaconda3/bin/python3 -m pytest -sv

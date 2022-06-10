@@ -19,7 +19,7 @@ jobs:
     needs: check-formatting
     strategy:
       matrix:
-        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
+        python-version: [ "3.9", "3.10" ]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -40,7 +40,7 @@ jobs:
       - name: Run tests
         if: github.ref == 'refs/heads/main'
         run: |
-          pytest -sv --cov=zambeze tests/
+          pytest -m unit -sv --cov=zambeze tests/
       - name: Upload Coverage to Codecov
         if: github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v2

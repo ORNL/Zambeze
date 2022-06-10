@@ -37,7 +37,8 @@ async def main():
     try:
         async for msg in sub.messages:
             print(
-                f"Received a message on '{msg.subject} {msg.reply}': {msg.data.decode()}"
+                f"Received a message on '{msg.subject} {msg.reply}': "
+                "{msg.data.decode()}"
             )
             await sub.unsubscribe()
     except Exception:

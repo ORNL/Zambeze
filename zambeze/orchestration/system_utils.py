@@ -1,6 +1,7 @@
 from shutil import which
 import pwd
 
+
 def isExecutable(name: str) -> bool:
     """Check whether an executable is findable is on PATH and marked as executable.
 
@@ -10,6 +11,7 @@ def isExecutable(name: str) -> bool:
     :rtype: bool
     """
     return which(name) is not None
+
 
 def userExists(username: str) -> bool:
     """Check whether a user exists on the host.
