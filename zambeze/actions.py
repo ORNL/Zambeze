@@ -112,10 +112,6 @@ class ComputeAction(Action):
 
 def Factory(payload):
     """Factory Method"""
-    actions = {
-        "Control": ControlAction,
-        "Data": DataAction,
-        "Compute": ComputeAction,
-    }
+    actions = {"Control": ControlAction, "Data": DataAction, "Compute": ComputeAction}
 
     return actions[payload.get("type")](payload)

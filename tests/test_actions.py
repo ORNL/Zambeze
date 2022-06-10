@@ -7,6 +7,7 @@ from zambeze.actions import Factory
 ###############################################################################
 # Testing Action: Control
 ###############################################################################
+@pytest.mark.unit
 def test_action_control():
     payload = {
         "type": "Control",
@@ -24,6 +25,7 @@ def test_action_control():
     )
 
 
+@pytest.mark.unit
 def test_action_control_missing_target_id():
     payload = {"type": "Control", "task_id": uuid.uuid1(), "body": "This is the body"}
 
@@ -31,6 +33,7 @@ def test_action_control_missing_target_id():
         assert Factory(payload)
 
 
+@pytest.mark.unit
 def test_action_control_missing_task_id():
     payload = {"type": "Control", "target_id": uuid.uuid1(), "body": "This is the body"}
 
@@ -38,6 +41,7 @@ def test_action_control_missing_task_id():
         assert Factory(payload)
 
 
+@pytest.mark.unit
 def test_action_control_missing_type():
     payload = {
         "task_id": uuid.uuid1(),
@@ -52,6 +56,7 @@ def test_action_control_missing_type():
 ###############################################################################
 # Testing Action: Data
 ###############################################################################
+@pytest.mark.unit
 def test_action_data():
     payload = {
         "type": "Data",
@@ -67,6 +72,7 @@ def test_action_data():
     )
 
 
+@pytest.mark.unit
 def test_action_data_missing_type():
     payload = {"source": "/home/source/file1.txt", "destination": "home/dest/file1.txt"}
 
@@ -74,6 +80,7 @@ def test_action_data_missing_type():
         assert Factory(payload)
 
 
+@pytest.mark.unit
 def test_action_data_missing_source():
     payload = {"type": "Data", "destination": "home/dest/file1.txt"}
 
@@ -81,11 +88,9 @@ def test_action_data_missing_source():
         assert Factory(payload)
 
 
+@pytest.mark.unit
 def test_action_data_missing_destination():
-    payload = {
-        "type": "Data",
-        "source": "/home/source/file1.txt",
-    }
+    payload = {"type": "Data", "source": "/home/source/file1.txt"}
 
     with pytest.raises(Exception):
         assert Factory(payload)
@@ -96,6 +101,7 @@ def test_action_data_missing_destination():
 ###############################################################################
 
 
+@pytest.mark.unit
 def test_action_compute():
     payload = {
         "type": "Compute",

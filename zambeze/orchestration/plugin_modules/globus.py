@@ -1,5 +1,5 @@
 # Local imports
-from .service import Service
+from .plugin import Plugin
 from ..identity import validUUID
 from ..network import  externalNetworkConnectionDetected
 
@@ -13,12 +13,13 @@ from os.path import exists
 from socket import gethostname
 import logging
 
-class Globus(Service):
+class Globus(Plugin):
 
     def __init__(self):
         # Client id is specific to Zambeze project it was created by registering
         # at developers.globus.org
         self.__access_to_globus_cloud = False
+        # This is the default for Zambeze
         self.__client_id = "435d07fa-8b10-4e04-b005-054c68be3f14"
         self.__collections = {}
         self.__configured = False
@@ -195,6 +196,9 @@ class Globus(Service):
         print(config)
         self.__validConfig(config)
 
+        if "client id" in config:
+            self.__client_id = config["client id"]
+
         # Detect hostname
         self.__hostname = gethostname()
         if externalNetworkConnectionDetected() == False:
@@ -234,9 +238,10 @@ class Globus(Service):
         "       { 'UUID': '', 'path': ''}\n"
         "   ],\n"
         "   'authentication flow': {\n"
-        "       'type': 'native or client credential'\n"
+        "       'type': 'native or client credential',\n"
+        "       'client id': '',\n"
         "       'secret': ''\n"
-        " ]\n")
+        " }\n")
         return message
 
     @property
@@ -337,9 +342,9 @@ class Globus(Service):
     def process(self, arguments: list[dict]):
 
         if not self.__configured:
-            raise Exception("Cannot run globus service, must first be configured.")
+            raise Exception("Cannot run globus plugin, must first be configured.")
 
-        print("Running Globus service") 
+        print("Running Globus plugin") 
         # Specify the path of the file as it appears in the Globus Collection
         # Specify the source collection UUID
         # Specify the path of the file as it appears in the final Globus Collection
