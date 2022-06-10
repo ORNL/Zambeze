@@ -140,7 +140,7 @@ def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bo
 def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
     """Determine which machine the code is running on
 
-    If source ip address matches this machine then returns "source" 
+    If source ip address matches this machine then returns "source"
     if the "destination" ip address matches returns "destination", and
     if neither is a match returns None
     """
@@ -183,7 +183,7 @@ class Rsync(Plugin):
         param config: configuration options
         type config: dict
 
-        In this case the configure method checks to make sure that the rsync binary is 
+        In this case the configure method checks to make sure that the rsync binary is
         available. If an ssh key file path is provided it also checks to make sure it
         is a valid path.
 
@@ -324,7 +324,7 @@ class Rsync(Plugin):
         param arguments: arguments needed to run the rsync plugin
         type arguments: list[dict]
 
-        Example 
+        Example
 
         config = {
             "private_ssh_key": "path to ssh key"
@@ -355,8 +355,8 @@ class Rsync(Plugin):
 
         if not self.__configured:
             raise Exception(
-                f"Cannot process {self.__name} plugin, {self.__name} plugin must first be "
-                "configured."
+                f"Cannot process {self.__name} plugin, {self.__name} "
+                "plugin must first be configured."
             )
 
         for action in arguments:
