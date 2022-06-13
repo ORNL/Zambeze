@@ -9,6 +9,7 @@
 import logging
 
 from .activity import Activity
+from ..orchestration.agent import Agent
 
 from typing import List, Optional
 
@@ -36,6 +37,7 @@ class Campaign:
         )
         self.name: str = name
         self.activities: List[Activity] = activities
+        self.agent = Agent(logger=self.logger)
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
@@ -48,4 +50,6 @@ class Campaign:
 
     def run(self) -> None:
         """Run the set of current activities in the campaign."""
-        print("CAMPAIGN WILL RUN FROM HERE")
+        for activity in self.activities:
+            self.logger.debug(f"Running activity: {activity.name}")
+            self.agent.run_activity(activity)

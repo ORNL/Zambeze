@@ -7,7 +7,7 @@
 
 import logging
 
-from .abstract_action import Action
+from .abstract_action import Action, ActionType
 
 from typing import List, Optional
 
@@ -33,7 +33,7 @@ class ShellAction(Action):
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object of a unix shell action."""
-        super().__init__(name, command, params, logger)
+        super().__init__(name, ActionType.COMPUTE, command, params, logger)
         self.logger: Optional[logging.Logger] = (
             logger if logger else logging.getLogger(__name__)
         )

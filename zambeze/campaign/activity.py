@@ -28,7 +28,9 @@ class Activity:
     :param name: Campaign activity name.
     :type name: str
     :param files: List of file URIs.
-    :type files: List[str]
+    :type files: Optional[List[str]]
+    :param action: An action.
+    :type action: Optional[Action]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
@@ -37,6 +39,7 @@ class Activity:
         self,
         name: str,
         files: Optional[List[str]] = [],
+        action: Optional[Action] = None,
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign activity."""
@@ -45,7 +48,7 @@ class Activity:
         )
         self.name: str = name
         self.files: List[str] = files
-        self.action: Action = None
+        self.action: Action = action
         self.status: ActivityStatus = ActivityStatus.CREATED
 
     def add_files(self, files: List[str]) -> None:

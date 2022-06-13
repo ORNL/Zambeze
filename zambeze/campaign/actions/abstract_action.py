@@ -5,10 +5,18 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+
 import logging
 
 from abc import ABC
+from enum import Enum
 from typing import List, Optional
+
+
+class ActionType(Enum):
+    COMPUTE = "z_compute"
+    DATA = "z_data"
+    STATUS = "z_status"
 
 
 class Action(ABC):
@@ -16,6 +24,8 @@ class Action(ABC):
 
     :param name: Action name.
     :type name: str
+    :param type: Type of action.
+    :type type: ActionType
     :param command: Action's command.
     :type command: Optional[str]
     :param params: List of parameters.
@@ -27,6 +37,7 @@ class Action(ABC):
     def __init__(
         self,
         name: str,
+        type: ActionType,
         command: Optional[str] = None,
         params: Optional[List[str]] = [],
         logger: Optional[logging.Logger] = None,
@@ -36,6 +47,7 @@ class Action(ABC):
             logger if logger else logging.getLogger(__name__)
         )
         self.name: str = name
+        self.type: ActionType = type
         self.params: List[str] = params
         self.command: str = command
 

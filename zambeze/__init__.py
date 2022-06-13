@@ -16,4 +16,4 @@ __credits__ = "Oak Ridge National Laboratory"
 
 import logging
 
-logging.getLogger("zambeze").addHandler(logging.NullHandler())
+logging.getLogger("zambeze").addHandler(logging.StreamHandler())
