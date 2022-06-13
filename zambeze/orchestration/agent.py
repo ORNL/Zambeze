@@ -37,12 +37,16 @@ class Agent:
     def run_activity(self, activity: Activity) -> None:
         """
         Run an activity.
+
+        :param activity: An activity object.
+        :type activity: Activity
         """
         asyncio.run(self.__send(activity.action.type))
         activity.status = ActivityStatus.QUEUED
 
     async def __send(self, action_type: ActionType) -> None:
         """
+        Publish an activity message to the queue.
 
         :param action_type: Action type.
         :type action_type: ActionType
@@ -52,7 +56,6 @@ class Agent:
         )
         self.logger.debug(f"Sending a '{action_type.value}' message")
         nc = await nats.connect(self.settings.get_nats_connection_uri())
-        await nc.publish(action_type.value, b"/bin/echo hello world.")
         await nc.publish(
             action_type.value,
             json.dumps(
