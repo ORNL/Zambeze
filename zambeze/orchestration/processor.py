@@ -14,18 +14,24 @@ import threading
 from nats.errors import TimeoutError
 from typing import Optional
 from ..campaign.actions.abstract_action import ActionType
+from ..settings import ZambezeSettings
 
 
 class Processor(threading.Thread):
     """An Agent processor.
 
+    :param settings: Zambeze settings
+    :type settings: ZambezeSettings
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(
+        self, settings: ZambezeSettings, logger: Optional[logging.Logger] = None
+    ) -> None:
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
+        self.settings = settings
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
@@ -38,7 +44,7 @@ class Processor(threading.Thread):
     async def __process(self):
         """ """
         self.logger.debug("Waiting for messages")
-        nc = await nats.connect("nats://localhost:4222")
+        nc = await nats.connect(self.settings.get_nats_connection_uri())
         sub = await nc.subscribe(ActionType.COMPUTE.value)
         self.logger.debug("Waiting for messages")
 

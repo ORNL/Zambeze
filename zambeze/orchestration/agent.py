@@ -15,6 +15,7 @@ from typing import Optional
 from .processor import Processor
 from ..campaign.activity import Activity, ActivityStatus
 from ..campaign.actions.abstract_action import ActionType
+from ..settings import ZambezeSettings
 
 
 class Agent:
@@ -29,7 +30,8 @@ class Agent:
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.processor = Processor(logger=self.logger)
+        self.settings = ZambezeSettings()
+        self.processor = Processor(settings=self.settings, logger=self.logger)
         self.processor.start()
 
     def run_activity(self, activity: Activity) -> None:
@@ -45,9 +47,11 @@ class Agent:
         :param action_type: Action type.
         :type action_type: ActionType
         """
-        self.logger.debug("Connecting to NATS server")
+        self.logger.debug(
+            f"Connecting to NATS server: {self.settings.get_nats_connection_uri()}"
+        )
         self.logger.debug(f"Sending a '{action_type.value}' message")
-        nc = await nats.connect("nats://localhost:4222")
+        nc = await nats.connect(self.settings.get_nats_connection_uri())
         await nc.publish(action_type.value, b"/bin/echo hello world.")
         await nc.publish(
             action_type.value,
