@@ -6,6 +6,5 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-from .actions.abstract_action import Action
-from .activity import Activity
+from .activities.abstract_activity import Activity
 from .campaign import Campaign
