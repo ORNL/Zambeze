@@ -11,10 +11,16 @@ import logging
 import nats
 import threading
 
+from enum import Enum
 from nats.errors import TimeoutError
 from typing import Optional
-from ..campaign.actions.abstract_action import ActionType
 from ..settings import ZambezeSettings
+
+
+class MessageType(Enum):
+    COMPUTE = "z_compute"
+    DATA = "z_data"
+    STATUS = "z_status"
 
 
 class Processor(threading.Thread):
@@ -45,7 +51,7 @@ class Processor(threading.Thread):
         """ """
         self.logger.debug("Waiting for messages")
         nc = await nats.connect(self.settings.get_nats_connection_uri())
-        sub = await nc.subscribe(ActionType.COMPUTE.value)
+        sub = await nc.subscribe(MessageType.COMPUTE.value)
         self.logger.debug("Waiting for messages")
 
         while True:

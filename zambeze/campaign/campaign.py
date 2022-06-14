@@ -8,7 +8,7 @@
 
 import logging
 
-from .activity import Activity
+from .activities.abstract_activity import Activity
 from ..orchestration.agent import Agent
 
 from typing import List, Optional

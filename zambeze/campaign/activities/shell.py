@@ -7,20 +7,21 @@
 
 import logging
 
-from .abstract_action import Action, ActionType
-
 from typing import List, Optional
+from .abstract_activity import Activity
 
 
-class ShellAction(Action):
-    """A Unix Shell script action.
+class ShellActivity(Activity):
+    """A Unix Shell script activity.
 
-    :param name: Action name.
+    :param name: Campaign activity name.
     :type name: str
+    :param files: List of file URIs.
+    :type files: Optional[List[str]]
     :param command: Action's command.
     :type command: Optional[str]
-    :param params: List of parameters.
-    :type params: Optional[List[str]]
+    :param arguments: List of arguments.
+    :type arguments: Optional[List[str]]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
@@ -28,12 +29,16 @@ class ShellAction(Action):
     def __init__(
         self,
         name: str,
+        files: Optional[List[str]] = [],
         command: Optional[str] = None,
-        params: Optional[List[str]] = [],
+        arguments: Optional[List[str]] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
-        """Create an object of a unix shell action."""
-        super().__init__(name, ActionType.COMPUTE, command, params, logger)
+        """Create an object of a unix shell activity."""
+        super().__init__(name, files, command, arguments, logger)
         self.logger: Optional[logging.Logger] = (
             logger if logger else logging.getLogger(__name__)
         )
+
+    def generate_message(self) -> dict:
+        return {"command": self.command, "arguments": ",".join(self.arguments)}

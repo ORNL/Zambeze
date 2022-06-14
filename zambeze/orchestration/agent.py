@@ -12,9 +12,8 @@ import logging
 import nats
 
 from typing import Optional
-from .processor import Processor
-from ..campaign.activity import Activity, ActivityStatus
-from ..campaign.actions.abstract_action import ActionType
+from .processor import Processor, MessageType
+from ..campaign.activities.abstract_activity import Activity, ActivityStatus
 from ..settings import ZambezeSettings
 
 
@@ -41,26 +40,28 @@ class Agent:
         :param activity: An activity object.
         :type activity: Activity
         """
-        asyncio.run(self.__send(activity.action.type))
+        # TODO: evaluate activity and generate messages
+        asyncio.run(self.__send(MessageType.COMPUTE.value, activity.generate_message()))
+
         activity.status = ActivityStatus.QUEUED
 
-    async def __send(self, action_type: ActionType) -> None:
+    async def __send(self, type: MessageType, body: dict) -> None:
         """
         Publish an activity message to the queue.
 
-        :param action_type: Action type.
-        :type action_type: ActionType
+        :param type: Message type
+        :type type: MessageType
+        :param body: Message body
+        :type body: dict
         """
         self.logger.debug(
             f"Connecting to NATS server: {self.settings.get_nats_connection_uri()}"
         )
-        self.logger.debug(f"Sending a '{action_type.value}' message")
+        self.logger.debug(f"Sending a '{type}' message")
         nc = await nats.connect(self.settings.get_nats_connection_uri())
         await nc.publish(
-            action_type.value,
-            json.dumps(
-                {"task": "hello", "cmd": "/bin/echo", "args": "Hello World!"}
-            ).encode(),
+            type,
+            json.dumps(body).encode(),
         )
         await nc.drain()
 
