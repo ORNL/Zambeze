@@ -104,39 +104,40 @@ class Plugins:
             if key in config.keys():
                 obj = self._plugins.get(key)
                 obj.configure(config[key])
-#                else:
-#                    try:
-#                        obj = self._plugins.get(key)
-#                        obj.configure({})
-#                    except Exception:
-#                        print(
-#                            f"Unable to configure plugin {key} missing "
-#                            "configuration options."
-#                        )
-#                        raise
-#       else:
-#           for plugin_inst in plugins:
-#               if plugin_inst in config.keys():
-#                   self._plugins[plugin_inst.lower()].configure(
-#                       config[plugin_inst.lower()]
-#                   )
-#                else:
-#                    try:
-#                        obj = self._plugins.get(plugin_inst)
-#                        obj.configure({})
-#                    except Exception:
-#                        print(
-#                            f"Unable to configure plugin {plugin_inst} "
-#                            "missing configuration options."
-#                        )
-#                        print("Configuration has the following content")
-#                        print(config)
-#                        print(
-#                            f"{plugin_inst} is not mentioned in the config so "
-#                            "cannot associate configuration settings."
-#                        )
-#                        raise
-#
+
+    #                else:
+    #                    try:
+    #                        obj = self._plugins.get(key)
+    #                        obj.configure({})
+    #                    except Exception:
+    #                        print(
+    #                            f"Unable to configure plugin {key} missing "
+    #                            "configuration options."
+    #                        )
+    #                        raise
+    #       else:
+    #           for plugin_inst in plugins:
+    #               if plugin_inst in config.keys():
+    #                   self._plugins[plugin_inst.lower()].configure(
+    #                       config[plugin_inst.lower()]
+    #                   )
+    #                else:
+    #                    try:
+    #                        obj = self._plugins.get(plugin_inst)
+    #                        obj.configure({})
+    #                    except Exception:
+    #                        print(
+    #                            f"Unable to configure plugin {plugin_inst} "
+    #                            "missing configuration options."
+    #                        )
+    #                        print("Configuration has the following content")
+    #                        print(config)
+    #                        print(
+    #                            f"{plugin_inst} is not mentioned in the config so "
+    #                            "cannot associate configuration settings."
+    #                        )
+    #                        raise
+    #
     @property
     def configured(self) -> list[str]:
         """Will return a list of all the plugins that have been configured.

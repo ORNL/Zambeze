@@ -59,10 +59,7 @@ class Agent:
         )
         self.logger.debug(f"Sending a '{type}' message")
         nc = await nats.connect(self.settings.get_nats_connection_uri())
-        await nc.publish(
-            type,
-            json.dumps(body).encode(),
-        )
+        await nc.publish(type, json.dumps(body).encode())
         await nc.drain()
 
 

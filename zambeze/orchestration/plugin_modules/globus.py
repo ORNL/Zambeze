@@ -1,7 +1,7 @@
 # Local imports
 from .plugin import Plugin
 from ..identity import validUUID
-from ..network import  externalNetworkConnectionDetected
+from ..network import externalNetworkConnectionDetected
 
 # Third party imports
 from globus_sdk import GlobusError
@@ -13,8 +13,8 @@ from os.path import exists
 from socket import gethostname
 import logging
 
-class Globus(Plugin):
 
+class Globus(Plugin):
     def __init__(self):
         # Client id is specific to Zambeze project it was created by registering
         # at developers.globus.org
@@ -43,17 +43,21 @@ class Globus(Plugin):
         """Purpose of this method is to determine if the coniguration is correct"""
 
         if "authentication flow" not in config:
-            raise Exception(f"'authentication flow' key value missing from config"
-                    "config must have 'authentication flow' specified")
+            raise Exception(
+                f"'authentication flow' key value missing from config"
+                "config must have 'authentication flow' specified"
+            )
 
         # Check that the authentication flow is supported
         if "native" == config["authentication flow"]["type"]:
             self.__flow = "native"
         elif "client credential" == config["authentication flow"]["type"]:
             self.__flow = "client credential"
-        else: 
-            raise Exception(f"Unsupported authentication flow detected "
-            "{config['authentication flow']['type']}")
+        else:
+            raise Exception(
+                f"Unsupported authentication flow detected "
+                "{config['authentication flow']['type']}"
+            )
 
         # Check that the UUIDs are correct
         if "collections" in config:
@@ -64,36 +68,36 @@ class Globus(Plugin):
                 if not exists(local_collection["path"]):
                     # Check that the collection path is correct and exists on the local
                     # POSIX filesystem
-                    raise Exception(f"Invalid path detected in plugin: {local_collection['path']}")
-
-
+                    raise Exception(
+                        f"Invalid path detected in plugin: {local_collection['path']}"
+                    )
 
     def __validEndPoint(self, config: dict):
         """This method can only be run after the authentication flow has been run"""
 
-        # Check that the endpoints actually exist in Globus and are not just made up 
+        # Check that the endpoints actually exist in Globus and are not just made up
         if "collections" in config:
             for local_collection in config["collections"]:
-                # Check that the collection id is recognized by Globus and is a 
+                # Check that the collection id is recognized by Globus and is a
                 # valid globus collection UUID
                 try:
                     self.__tc.get_endpoint(local_collection["UUID"])
                 except globus_sdk.GlobusAPIError as e:
                     if e.http_status == 404:
-                        #data = e.raw_json
-                        raise Exception("Invalid collection id. Collection is unknown.")
+                        # data = e.raw_json
+                        raise Exception(
+                            "Invalid collection id. Collection is unknown.")
                     else:
                         raise
             # If there are collections listed in the config and
             # they are all valid save them
             self.__collections = config["collections"]
 
-
     def __validActions(self):
         # If we were able to communicate with Globus then the transfer action should be possible
         if self.__access_to_globus_cloud:
             self.__supported_actions["transfer"] = True
-        # If we have no errors at this point then and there is at least one collection then 
+        # If we have no errors at this point then and there is at least one collection then
         # we can move to and from them
         if len(self.__collections):
             self.__supported_actions["move_to_globus_collection"] = True
@@ -102,7 +106,7 @@ class Globus(Plugin):
     # Authentication methods
     # ----------------------
     def __nativeAuthFlow(self):
-        # Using Native auth flow 
+        # Using Native auth flow
         client = globus_sdk.NativeAppAuthClient(self.__client_id)
 
         client.oauth2_start_flow(refresh_tokens=True)
@@ -113,10 +117,12 @@ class Globus(Plugin):
         token_response = client.oauth2_exchange_code_for_tokens(auth_code)
 
         globus_auth_data = token_response.by_resource_server["auth.globus.org"]
-        globus_transfer_data = token_response.by_resource_server["transfer.api.globus.org"]
+        globus_transfer_data = token_response.by_resource_server[
+            "transfer.api.globus.org"
+        ]
 
         # most specifically, you want these tokens as strings
-        AUTH_TOKEN = globus_auth_data["access_token"]
+        # AUTH_TOKEN = globus_auth_data["access_token"]
         transfer_rt = globus_transfer_data["refresh_token"]
         transfer_at = globus_transfer_data["access_token"]
         expires_at_s = globus_transfer_data["expires_at_seconds"]
@@ -134,10 +140,13 @@ class Globus(Plugin):
     def __clientCredentialAuthFlow(self, config: dict):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
         confidential_client = globus_sdk.ConfidentialAppAuthClient(
-            client_id=self.__client_id, client_secret=config["authentication flow"]["secret"]
+            client_id=self.__client_id,
+            client_secret=config["authentication flow"]["secret"],
         )
         scopes = "urn:globus:auth:scope:transfer.api.globus.org:all"
-        self.__authorizer = globus_sdk.ClientCredentialsAuthorizer(confidential_client, scopes)
+        self.__authorizer = globus_sdk.ClientCredentialsAuthorizer(
+            confidential_client, scopes
+        )
         # create a new client
         self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
 
@@ -150,24 +159,38 @@ class Globus(Plugin):
         #     "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
         #     "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
         #     "items": [
-        #         {"source": "/file1.txt","destination": "dest/file1.txt"},
-        #         {"source": "/file2.txt","destination": "dest/file2.txt"},
+        #         { "source": {
+        #               "type": "globus relative",
+        #               "path": "/file1.txt"
+        #               },
+        #           "destination": {
+        #               "type": "globus relative",
+        #               "path": "dest/file1.txt"
+        #               }
+        #         },
+        #         { "source": {
+        #               "type": "globus relative",
+        #               "path": "/file2.txt"
+        #               },
+        #           "destination": {
+        #               "type": "globus relative",
+        #               "path": "dest/file2.txt"
+        #               }
+        #         }
         #     ]
         # }
         tdata = globus_sdk.TransferData(
-            self.__tc, 
+            self.__tc,
             transfer["source_collection_UUID"],
             transfer["destination_collection_UUID"],
             label="Zambeze Workflow",
-            sync_level="checksum")
+            sync_level="checksum",
+        )
 
-        for item in items:
-            tdata.add_item(
-                item["source"]["path"],
-                item["destination"]["path"])
-        
-        transfer_result = tc.submit_transfer(tdata)
+        for item in transfer["items"]:
+            tdata.add_item(item["source"]["path"], item["destination"]["path"])
 
+        transfer_result = self.__tc.submit_transfer(tdata)
 
     def __runMoveToGlobusCollection(self, move: dict):
         """Method is designed to move a local file to a Globus collection"""
@@ -186,7 +209,7 @@ class Globus(Plugin):
     # Public Methods
     ###################################################################################
     def configure(self, config: dict):
-        # When configuring should provide the endpoint id(s) located on 
+        # When configuring should provide the endpoint id(s) located on
         # the same machine where the Zambeze agent is running along with
         # their paths on the posix system
         #
@@ -213,20 +236,22 @@ class Globus(Plugin):
 
         # Detect hostname
         self.__hostname = gethostname()
-        if externalNetworkConnectionDetected() == False:
+        if externalNetworkConnectionDetected() is False:
             self.__access_to_globus_cloud = False
             return
 
         try:
             if self.__flow == "native":
-                self.__nativeAuthFlow()            
+                self.__nativeAuthFlow()
             elif self.__flow == "client credential":
-                self.__clientCredentialAuthFlow(config)    
+                self.__clientCredentialAuthFlow(config)
 
             self.__access_to_globus_cloud = True
         except GlobusError:
-            logging.exeception("Error detected while attempting to authenticate and"
-            "communicate with the Globus API")             
+            logging.exeception(
+                "Error detected while attempting to authenticate and"
+                "communicate with the Globus API"
+            )
 
         self.__validEndPoint(config)
         self.__validActions()
@@ -244,16 +269,18 @@ class Globus(Plugin):
 
     @property
     def help(self) -> str:
-        message = ("Plugin globus when configured takes the following options\n"
-        "'collections': [\n"
-        "       { 'UUID': '', 'path': ''},\n"
-        "       { 'UUID': '', 'path': ''}\n"
-        "   ],\n"
-        "   'authentication flow': {\n"
-        "       'type': 'native or client credential',\n"
-        "       'client id': '',\n"
-        "       'secret': ''\n"
-        " }\n")
+        message = (
+            "Plugin globus when configured takes the following options\n"
+            "'collections': [\n"
+            "       { 'UUID': '', 'path': ''},\n"
+            "       { 'UUID': '', 'path': ''}\n"
+            "   ],\n"
+            "   'authentication flow': {\n"
+            "       'type': 'native or client credential',\n"
+            "       'client id': '',\n"
+            "       'secret': ''\n"
+            " }\n"
+        )
         return message
 
     @property
@@ -283,7 +310,7 @@ class Globus(Plugin):
 
     def check(self, package: list[dict]) -> dict:
         """Cycle through the items in the package and checks if this instance
-        can execute them. This method should be called before process with 
+        can execute them. This method should be called before process with
         the same package.
 
         arguments = {
@@ -292,19 +319,31 @@ class Globus(Plugin):
                   "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
                   "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
                   "items": [
-                        { 
-                            "source": { "type": "globus relative", "path": "/file1.txt"},
-                            "destination": { "type": globus relative", "path": "dest/file1.txt"}
+                        {
+                            "source": {
+                                "type": "globus relative",
+                                "path": "/file1.txt"
+                                },
+                            "destination": {
+                                "type": globus relative",
+                                "path": "dest/file1.txt"
+                                }
                         },
                         {
-                            "source": { "type": "globus relative", "path": "/file2.txt"},
-                            "destination": { "type": "globus relative", "path": "dest/file2.txt"}
+                            "source": {
+                                "type": "globus relative",
+                                "path": "/file2.txt"
+                                },
+                            "destination": {
+                                "type": "globus relative",
+                                "path": "dest/file2.txt"
+                                }
                         }
                   ]
               }
           ]
         }
-        
+
 
         """
         checks = {}
@@ -313,13 +352,13 @@ class Globus(Plugin):
             for action in package[index]:
 
                 # Check if the action is supported
-                if self.__supported_actions[action] == False:
+                if self.__supported_actions[action] is False:
                     checks[action] = False
                     continue
 
                 if action == "transfers":
-                    # Any agent with the globus plugin can submit a job to globus if it has
-                    # access to the globus cloud
+                    # Any agent with the globus plugin can submit a job to globus if it
+                    # has access to the globus cloud
                     checks[action] = True
                     if not self.__access_to_globus_cloud:
                         checks[action] = False
@@ -332,26 +371,26 @@ class Globus(Plugin):
                     if "destination_collection_UUID" not in action_package:
                         checks[action] = False
                         continue
-                    
+
                     if "items" not in action_package:
                         checks[action] = False
                         continue
                     else:
-                        for item in action_package[items]:
+                        for item in action_package["items"]:
                             if "source" not in item:
                                 checks[action] = False
                                 continue
                             else:
-                                if "type" not in items["source"]:
+                                if "type" not in item["source"]:
                                     checks[action] = False
                                     continue
-                                else: 
+                                else:
                                     # Only "globus relative" path type supported
-                                    if "globus relative" != items["source"]["type"]:
+                                    if "globus relative" != item["source"]["type"]:
                                         checks[action] = False
                                         continue
 
-                                if "path" not in items["source"]:
+                                if "path" not in item["source"]:
                                     checks[action] = False
                                     continue
 
@@ -359,16 +398,16 @@ class Globus(Plugin):
                                 checks[action] = False
                                 continue
                             else:
-                                if "type" not in items["destination"]:
+                                if "type" not in item["destination"]:
                                     checks[action] = False
                                     continue
-                                else: 
+                                else:
                                     # Only "globus relative" path type supported
-                                    if "globus relative" != items["destination"]["type"]:
+                                    if "globus relative" != item["destination"]["type"]:
                                         checks[action] = False
                                         continue
 
-                                if "path" not in items["destination"]:
+                                if "path" not in item["destination"]:
                                     checks[action] = False
                                     continue
 
@@ -377,13 +416,15 @@ class Globus(Plugin):
                     supported_destination_path_types = ["globus relative"]
                     action_package = package[index][action]
                     checks[action] = True
-                    # This is needed in case there is more than a single collection on the machine
+                    # This is needed in case there is more than a single collection on
+                    # the machine
                     if not validUUID(action_package["destination_collection_UUID"]):
                         checks[action] = False
                         continue
 
                     # This is needed so the correct orchestrator picks executes the task
-                    # a bit redundant though becuase the globus collection UUID should be unique
+                    # a bit redundant though becuase the globus collection UUID should
+                    # be unique
                     if self.__hostname != action_package["source_host_name"]:
                         checks[action] = False
                         continue
@@ -398,7 +439,10 @@ class Globus(Plugin):
                                 checks[action] = False
                                 break
                             else:
-                                if item["source"]["type"] not in supported_source_path_types:
+                                if (
+                                    item["source"]["type"]
+                                    not in supported_source_path_types
+                                ):
                                     checks[action] = False
                                     break
 
@@ -411,13 +455,19 @@ class Globus(Plugin):
                                 checks[action] = False
                                 break
                             else:
-                                if item["destination"]["type"] not in supported_destination_path_types:
+                                if (
+                                    item["destination"]["type"]
+                                    not in supported_destination_path_types
+                                ):
                                     checks[action] = False
                                     break
 
                 elif action == "move_from_globus_collection":
                     supported_source_path_types = ["globus relative"]
-                    supported_destination_path_types = ["posix absolute", "posix user home"]
+                    supported_destination_path_types = [
+                        "posix absolute",
+                        "posix user home",
+                    ]
                     action_package = package[index][action]
                     checks[action] = True
                     if not validUUID(action_package["source_collection_UUID"]):
@@ -425,7 +475,10 @@ class Globus(Plugin):
                         continue
 
                     # Check that the UUID is associated with this machine
-                    if not action_package["source_collection_UUID"] in self.__collections:
+                    if (
+                        not action_package["source_collection_UUID"]
+                        in self.__collections
+                    ):
                         checks[action] = False
                         continue
 
@@ -443,7 +496,10 @@ class Globus(Plugin):
                                 checks[action] = False
                                 break
                             else:
-                                if item["source"]["type"] not in supported_source_path_types:
+                                if (
+                                    item["source"]["type"]
+                                    not in supported_source_path_types
+                                ):
                                     checks[action] = False
                                     break
 
@@ -456,7 +512,10 @@ class Globus(Plugin):
                                 checks[action] = False
                                 break
                             else:
-                                if item["destination"]["type"] not in supported_source_path_types:
+                                if (
+                                    item["destination"]["type"]
+                                    not in supported_source_path_types
+                                ):
                                     checks[action] = False
                                     break
         return checks
@@ -466,7 +525,7 @@ class Globus(Plugin):
         if not self.__configured:
             raise Exception("Cannot run globus plugin, must first be configured.")
 
-        print("Running Globus plugin") 
+        print("Running Globus plugin")
         # Specify the path of the file as it appears in the Globus Collection
         # Specify the source collection UUID
         # Specify the path of the file as it appears in the final Globus Collection
@@ -480,19 +539,31 @@ class Globus(Plugin):
         #           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
         #           "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
         #           "items": [
-        #                 { 
-        #                     "source": { "type": "globus relative", "path": "/file1.txt"},
-        #                     "destination": { "type": globus relative", "path": "dest/file1.txt"}
+        #                 {
+        #                     "source": {
+        #                           "type": "globus relative",
+        #                           "path": "/file1.txt"
+        #                           },
+        #                     "destination": {
+        #                           "type": globus relative",
+        #                           "path": "dest/file1.txt"
+        #                           }
         #                 },
         #                 {
-        #                     "source": { "type": "globus relative", "path": "/file2.txt"},
-        #                     "destination": { "type": "globus relative", "path": "dest/file2.txt"}
+        #                     "source": {
+        #                           "type": "globus relative",
+        #                           "path": "/file2.txt"
+        #                           },
+        #                     "destination": {
+        #                           "type": "globus relative",
+        #                           "path": "dest/file2.txt"
+        #                           }
         #                 }
         #           ]
         #       }
         #   ]
         # }
-        # 
+        #
         # Example 2
         #
         # arguments = {
@@ -501,12 +572,24 @@ class Globus(Plugin):
         #       "destination_collection_UUID": "",
         #       "items": [
         #           {
-        #               "source": { "type": "posix user home", "path": "/file1.txt" },
-        #               "destination": { "type": "globus relative", "path": "dest/file1.txt" }
+        #               "source": {
+        #                   "type": "posix user home",
+        #                   "path": "/file1.txt"
+        #                   },
+        #               "destination": {
+        #                   "type": "globus relative",
+        #                   "path": "dest/file1.txt"
+        #                   }
         #           },
         #           {
-        #               "source": { "type": "posix absolute", "path": "/home/cades/file2.txt" },
-        #               "destination": { "type": "globus relative", "path": "dest/file2.txt"}
+        #               "source": {
+        #                   "type": "posix absolute",
+        #                   "path": "/home/cades/file2.txt"
+        #                   },
+        #               "destination": {
+        #                   "type": "globus relative",
+        #                   "path": "dest/file2.txt"
+        #                   }
         #           }
         #       ]
         #   }
@@ -520,12 +603,24 @@ class Globus(Plugin):
         #       "destination_collection_UUID": "",
         #       "items": [
         #           {
-        #               "source": { "type": "globus relative", "path": "dest/file1.txt" }
-        #               "destination": { "type": "posix user home", "path": "/file1.txt" },
+        #               "source": {
+        #                   "type": "globus relative",
+        #                   "path": "dest/file1.txt"
+        #                   },
+        #               "destination": {
+        #                   "type": "posix user home",
+        #                   "path": "/file1.txt"
+        #                   }
         #           },
         #           {
-        #               "source": { "type": "globus relative", "path": "dest/file2.txt"}
-        #               "destination": { "type": "posix user home", "path": "/file2.txt" },
+        #               "source": {
+        #                   "type": "globus relative",
+        #                   "path": "dest/file2.txt"
+        #                   },
+        #               "destination": {
+        #                   "type": "posix user home",
+        #                   "path": "/file2.txt"
+        #                   }
         #           }
         #       ]
         #   }
@@ -535,11 +630,10 @@ class Globus(Plugin):
             # Make sure that the action is supported
             if not self.__supported_actions[action]:
                 raise Exception(f"{action} is not supported.")
-                
+
             if action == "transfer":
                 self.__runTransfer(arguments[action])
             elif action == "move_to_globus_collection":
                 self.__runMoveToGlobusCollection(arguments[action])
             elif action == "move_from_globus_collection":
                 self.__runMoveFromGlobusCollection(arguments[action])
-
