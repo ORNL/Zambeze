@@ -16,10 +16,10 @@ def test_registered_plugins():
     plugins = Plugins()
     found_shell = False
     found_rsync = False
-    for service in plugins.registered:
-        if service == "shell":
+    for plugin in plugins.registered:
+        if plugin == "shell":
             found_shell = True
-        elif service == "rsync":
+        elif plugin == "rsync":
             found_rsync = True
 
     assert found_shell
@@ -33,28 +33,37 @@ def test_check_configured_plugins():
 
     assert len(plugins.configured) == 0
 
-    configuration = {"shell": {}}
-
+    configuration = {
+            "shell": {}
+            }
+#            "globus": {
+#                "authentication flow": {
+#                    "type": "client credential",
+#                    "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY")
+#                    }
+#                }
+#            }
+#
     plugins.configure(configuration)
 
     assert len(plugins.configured) > 0
 
 
 @pytest.mark.unit
-def test_rsync_service():
+def test_rsync_plugin():
     plugins = Plugins()
     assert "rsync" not in plugins.configured
     # Only rsync should be configured
-    plugins.configure({}, ["rsync"])
+    plugins.configure({"rsync": {}})
     assert "rsync" in plugins.configured
     assert len(plugins.configured) == 1
 
 
 @pytest.mark.unit
-def test_rsync_service_info():
+def test_rsync_plugin_info():
     plugins = Plugins()
     # Only rsync should be configured
-    plugins.configure({}, ["rsync"])
+    plugins.configure({"rsync":{}})
 
     info = plugins.info
 
@@ -67,9 +76,9 @@ def test_rsync_service_info():
 
 
 @pytest.mark.unit
-def test_rsync_service_check():
+def test_rsync_plugin_check():
     plugins = Plugins()
-    plugins.configure({})
+    plugins.configure({"shell":{}})
 
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
@@ -110,7 +119,7 @@ def test_rsync_service_check():
 
 
 @pytest.mark.gitlab_runner
-def test_rsync_service_run():
+def test_rsync_plugin_run():
     plugins = Plugins()
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})

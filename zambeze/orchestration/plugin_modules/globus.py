@@ -42,14 +42,18 @@ class Globus(Plugin):
     def __validConfig(self, config: dict):
         """Purpose of this method is to determine if the coniguration is correct"""
 
-        print(config)
+        if "authentication flow" not in config:
+            raise Exception(f"'authentication flow' key value missing from config"
+                    "config must have 'authentication flow' specified")
+
         # Check that the authentication flow is supported
         if "native" == config["authentication flow"]["type"]:
             self.__flow = "native"
         elif "client credential" == config["authentication flow"]["type"]:
             self.__flow = "client credential"
         else: 
-            raise Exception(f"authentication flow chosen {config['authentication flow']['type']}")
+            raise Exception(f"Unsupported authentication flow detected "
+            "{config['authentication flow']['type']}")
 
         # Check that the UUIDs are correct
         if "collections" in config:
@@ -80,6 +84,9 @@ class Globus(Plugin):
                         raise Exception("Invalid collection id. Collection is unknown.")
                     else:
                         raise
+            # If there are collections listed in the config and
+            # they are all valid save them
+            self.__collections = config["collections"]
 
 
     def __validActions(self):
@@ -156,8 +163,8 @@ class Globus(Plugin):
 
         for item in items:
             tdata.add_item(
-                item["source"],
-                item["destination"])
+                item["source"]["path"],
+                item["destination"]["path"])
         
         transfer_result = tc.submit_transfer(tdata)
 
@@ -183,6 +190,10 @@ class Globus(Plugin):
         # the same machine where the Zambeze agent is running along with
         # their paths on the posix system
         #
+        # One should NOT define collecitons that are not local to where the python
+        # script are running. The colletions posix endpoint must be viewable from
+        # the point of view of this script.
+        #
         # config = {
         #   "collections": [
         #       { "UUID": "", "path": ""},
@@ -190,10 +201,11 @@ class Globus(Plugin):
         #   ],
         #   "authentication flow": {
         #       "type": "'native' or 'client credential'"
-        #       "secret": ""
+        #       "secret": "blahblah"
+        #   },
+        #   "client id": "UUID"
         # }
         #
-        print(config)
         self.__validConfig(config)
 
         if "client id" in config:
@@ -272,7 +284,29 @@ class Globus(Plugin):
     def check(self, package: list[dict]) -> dict:
         """Cycle through the items in the package and checks if this instance
         can execute them. This method should be called before process with 
-        the same package."""
+        the same package.
+
+        arguments = {
+          "transfer": [
+              {
+                  "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+                  "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+                  "items": [
+                        { 
+                            "source": { "type": "globus relative", "path": "/file1.txt"},
+                            "destination": { "type": globus relative", "path": "dest/file1.txt"}
+                        },
+                        {
+                            "source": { "type": "globus relative", "path": "/file2.txt"},
+                            "destination": { "type": "globus relative", "path": "dest/file2.txt"}
+                        }
+                  ]
+              }
+          ]
+        }
+        
+
+        """
         checks = {}
         # Here we are cycling a list of dicts
         for index in range(len(package)):
@@ -291,13 +325,65 @@ class Globus(Plugin):
                         checks[action] = False
                         continue
 
+                    action_package = package[index][action]
+                    if "source_collection_UUID" not in action_package:
+                        checks[action] = False
+                        continue
+                    if "destination_collection_UUID" not in action_package:
+                        checks[action] = False
+                        continue
+                    
+                    if "items" not in action_package:
+                        checks[action] = False
+                        continue
+                    else:
+                        for item in action_package[items]:
+                            if "source" not in item:
+                                checks[action] = False
+                                continue
+                            else:
+                                if "type" not in items["source"]:
+                                    checks[action] = False
+                                    continue
+                                else: 
+                                    # Only "globus relative" path type supported
+                                    if "globus relative" != items["source"]["type"]:
+                                        checks[action] = False
+                                        continue
+
+                                if "path" not in items["source"]:
+                                    checks[action] = False
+                                    continue
+
+                            if "destination" not in item:
+                                checks[action] = False
+                                continue
+                            else:
+                                if "type" not in items["destination"]:
+                                    checks[action] = False
+                                    continue
+                                else: 
+                                    # Only "globus relative" path type supported
+                                    if "globus relative" != items["destination"]["type"]:
+                                        checks[action] = False
+                                        continue
+
+                                if "path" not in items["destination"]:
+                                    checks[action] = False
+                                    continue
+
                 elif action == "move_to_globus_collection":
+                    supported_source_path_types = ["posix absolute", "posix user home"]
+                    supported_destination_path_types = ["globus relative"]
                     action_package = package[index][action]
                     checks[action] = True
+                    # This is needed in case there is more than a single collection on the machine
                     if not validUUID(action_package["destination_collection_UUID"]):
                         checks[action] = False
                         continue
 
+                    # This is needed so the correct orchestrator picks executes the task
+                    # a bit redundant though becuase the globus collection UUID should be unique
                     if self.__hostname != action_package["source_host_name"]:
                         checks[action] = False
                         continue
@@ -305,14 +391,33 @@ class Globus(Plugin):
                     for item in action_package["items"]:
                         if not exists(item["source"]):
                             # Check if the item path is valid for the file
-                            checks[action] = False
-                            break
+                            if "path" not in item["source"]:
+                                checks[action] = False
+                                break
+                            if "type" not in item["source"]:
+                                checks[action] = False
+                                break
+                            else:
+                                if item["source"]["type"] not in supported_source_path_types:
+                                    checks[action] = False
+                                    break
+
                         if not exists(item["destination"]):
                             # Check if the item path is valid for the file
-                            checks["action"] = False
-                            break
+                            if "path" not in item["source"]:
+                                checks[action] = False
+                                break
+                            if "type" not in item["source"]:
+                                checks[action] = False
+                                break
+                            else:
+                                if item["destination"]["type"] not in supported_destination_path_types:
+                                    checks[action] = False
+                                    break
 
                 elif action == "move_from_globus_collection":
+                    supported_source_path_types = ["globus relative"]
+                    supported_destination_path_types = ["posix absolute", "posix user home"]
                     action_package = package[index][action]
                     checks[action] = True
                     if not validUUID(action_package["source_collection_UUID"]):
@@ -331,12 +436,29 @@ class Globus(Plugin):
                     for item in action_package["items"]:
                         if not exists(item["source"]):
                             # Check if the item path is valid for the file
-                            checks["action"] = False
-                            break
+                            if "path" not in item["source"]:
+                                checks[action] = False
+                                break
+                            if "type" not in item["source"]:
+                                checks[action] = False
+                                break
+                            else:
+                                if item["source"]["type"] not in supported_source_path_types:
+                                    checks[action] = False
+                                    break
+
                         if not exists(item["destination"]):
                             # Check if the item path is valid for the file
-                            checks["action"] = False
-                            break
+                            if "path" not in item["destination"]:
+                                checks[action] = False
+                                break
+                            if "type" not in item["destination"]:
+                                checks[action] = False
+                                break
+                            else:
+                                if item["destination"]["type"] not in supported_source_path_types:
+                                    checks[action] = False
+                                    break
         return checks
 
     def process(self, arguments: list[dict]):
@@ -358,8 +480,14 @@ class Globus(Plugin):
         #           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
         #           "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
         #           "items": [
-        #               {"source": "/file1.txt","destination": "dest/file1.txt"},
-        #               {"source": "/file2.txt","destination": "dest/file2.txt"},
+        #                 { 
+        #                     "source": { "type": "globus relative", "path": "/file1.txt"},
+        #                     "destination": { "type": globus relative", "path": "dest/file1.txt"}
+        #                 },
+        #                 {
+        #                     "source": { "type": "globus relative", "path": "/file2.txt"},
+        #                     "destination": { "type": "globus relative", "path": "dest/file2.txt"}
+        #                 }
         #           ]
         #       }
         #   ]
@@ -372,8 +500,14 @@ class Globus(Plugin):
         #       "source_host_name": "",
         #       "destination_collection_UUID": "",
         #       "items": [
-        #           {"source": "/file1.txt","destination": "dest/file1.txt"},
-        #           {"source": "/file2.txt","destination": "dest/file2.txt"},
+        #           {
+        #               "source": { "type": "posix user home", "path": "/file1.txt" },
+        #               "destination": { "type": "globus relative", "path": "dest/file1.txt" }
+        #           },
+        #           {
+        #               "source": { "type": "posix absolute", "path": "/home/cades/file2.txt" },
+        #               "destination": { "type": "globus relative", "path": "dest/file2.txt"}
+        #           }
         #       ]
         #   }
         # }
@@ -385,8 +519,14 @@ class Globus(Plugin):
         #       "source_host_name": "",
         #       "destination_collection_UUID": "",
         #       "items": [
-        #           {"source": "/file1.txt","destination": "dest/file1.txt"},
-        #           {"source": "/file2.txt","destination": "dest/file2.txt"},
+        #           {
+        #               "source": { "type": "globus relative", "path": "dest/file1.txt" }
+        #               "destination": { "type": "posix user home", "path": "/file1.txt" },
+        #           },
+        #           {
+        #               "source": { "type": "globus relative", "path": "dest/file2.txt"}
+        #               "destination": { "type": "posix user home", "path": "/file2.txt" },
+        #           }
         #       ]
         #   }
         # }
