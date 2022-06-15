@@ -37,4 +37,4 @@ campaign.add_activity(activity)
 
 # run the campaign
 time.sleep(1)
-campaign.run()
+campaign.dispatch()
