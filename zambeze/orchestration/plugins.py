@@ -1,15 +1,25 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+
 # Required to occur first
 from __future__ import annotations
 
 # Local imports
-from .plugin_modules import plugin
+from .plugin_modules.abstract_plugin import Plugin
 
 # Standard imports
 from copy import deepcopy
 from importlib import import_module
 from inspect import isclass
 from pathlib import Path
+from typing import Optional
 
+import logging
 import pkgutil
 
 
@@ -17,29 +27,38 @@ class Plugins:
     """Plugins class takes care of managing all plugins.
 
     Plugins can be added as plugins by creating packages in the plugin_modules
+
+    :param logger: The logger where to log information/warning or errors.
+    :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self):
+    def __init__(self, logger: Optional[logging.Logger] = None):
         """Constructor"""
+        self.logger: logging.Logger = (
+            logging.getLogger(__name__) if logger is None else logger
+        )
         self.__registerPlugins()
 
     def __registerPlugins(self):
         """Will register all the plugins provided in the plugin_modules folder"""
         self._plugins = {}
+        module_names = []
 
         plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
             module = import_module(
                 f"zambeze.orchestration.plugin_modules.{module_name}"
             )
+            module_names.append(module_name)
             for attribute_name in dir(module):
                 potential_plugin = getattr(module, attribute_name)
                 if isclass(potential_plugin):
                     if (
-                        issubclass(potential_plugin, plugin.Plugin)
+                        issubclass(potential_plugin, Plugin)
                         and attribute_name != "Plugin"
                     ):
                         self._plugins[attribute_name.lower()] = potential_plugin()
+        self.logger.debug(f"Registered Plugins: {', '.join(module_names)}")
 
     @property
     def registered(self) -> list:

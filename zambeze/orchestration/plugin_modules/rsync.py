@@ -1,5 +1,5 @@
 # Local imports
-from .plugin import Plugin
+from .abstract_plugin import Plugin
 
 from ..system_utils import isExecutable
 from ..system_utils import userExists

@@ -16,6 +16,7 @@ import threading
 from enum import Enum
 from nats.errors import TimeoutError
 from typing import Optional
+from .plugins import Plugins
 from ..settings import ZambezeSettings
 
 
@@ -43,6 +44,7 @@ class Processor(threading.Thread):
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+        self.plugins = Plugins(logger=self.logger)
 
     def run(self):
         """ """

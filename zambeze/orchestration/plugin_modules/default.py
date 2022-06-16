@@ -1,5 +1,5 @@
 # Local imports
-from .plugin import Plugin
+from .abstract_plugin import Plugin
 
 # Standard imports
 from copy import deepcopy
