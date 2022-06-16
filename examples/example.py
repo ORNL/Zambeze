@@ -27,10 +27,11 @@ logger.addHandler(ch)
 campaign = Campaign("My ImageMagick Campaign", logger=logger)
 
 # define an activity
+curr_dir = pathlib.Path().resolve()
 activity = ShellActivity(
     name="ImageMagick",
     files=[
-        f"file://{pathlib.Path().resolve()}/../tests/campaigns/imagesequence/{i:02d}.jpg"
+        f"file://{curr_dir}/../tests/campaigns/imagesequence/{i:02d}.jpg"
         for i in range(1, 11)
     ],
     command="convert",
@@ -39,7 +40,7 @@ activity = ShellActivity(
         "20",
         "-loop",
         "0",
-        f"{pathlib.Path().resolve()}/../tests/campaigns/imagesequence/*.jpg",
+        f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
         "a.gif",
     ],
     logger=logger,
