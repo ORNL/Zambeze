@@ -53,7 +53,9 @@ class Processor(threading.Thread):
         """
         Evaluate messages and process them if requested activity is supported.
         """
-        self.logger.debug(f"Connecting to NATS server: {self.settings.get_nats_connection_uri()}")
+        self.logger.debug(
+            f"Connecting to NATS server: {self.settings.get_nats_connection_uri()}"
+        )
         nc = await nats.connect(self.settings.get_nats_connection_uri())
         sub = await nc.subscribe(MessageType.COMPUTE.value)
         self.logger.debug("Waiting for messages")
