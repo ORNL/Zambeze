@@ -57,7 +57,9 @@ class Plugins:
                         issubclass(potential_plugin, Plugin)
                         and attribute_name != "Plugin"
                     ):
-                        self._plugins[attribute_name.lower()] = potential_plugin()
+                        self._plugins[attribute_name.lower()] = potential_plugin(
+                            logger=self.logger
+                        )
         self.logger.debug(f"Registered Plugins: {', '.join(module_names)}")
 
     @property

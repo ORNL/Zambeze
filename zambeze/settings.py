@@ -26,10 +26,9 @@ class ZambezeSettings:
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.__load_settings()
-        self.plugins = Plugins(logger=self.logger)
+        self.load_settings()
 
-    def __load_settings(self, conf_file: pathlib.Path = None) -> None:
+    def load_settings(self, conf_file: pathlib.Path = None) -> None:
         """
         Load Zambeze's agent settings
 
@@ -43,15 +42,32 @@ class ZambezeSettings:
             self.conf_file.touch()
 
         with open(self.conf_file, "r") as cf:
-            self.settings = yaml.safe_load(cf)
+            self.__settings = yaml.safe_load(cf)
 
         # set default values
-        if not self.settings:
-            self.settings = {"nats": {}, "services": {}}
-        self.__set_default("host", "localhost", self.settings["nats"])
-        self.__set_default("port", 4222, self.settings["nats"])
-        self.__set_default("services", {}, self.settings)
+        if not self.__settings:
+            self.__settings = {"nats": {}, "plugins": {}}
+        self.__set_default("host", "localhost", self.__settings["nats"])
+        self.__set_default("port", 4222, self.__settings["nats"])
+        self.__set_default("plugins", {}, self.__settings)
         self.__save()
+
+        self.__configure_plugins()
+
+    def __configure_plugins(self) -> None:
+        """
+        Load and configure Zambeze plugins.
+        """
+        self.__plugins = Plugins(logger=self.logger)
+        config = {}
+
+        for plugin_name in self.__plugins.registered:
+            if plugin_name in self.__settings["plugins"]:
+                config[plugin_name] = self.__settings["plugins"][plugin_name]["config"]
+
+        self.__plugins.configure(
+            config=config, plugins=list(self.__settings["plugins"].keys())
+        )
 
     def get_nats_connection_uri(self) -> str:
         """
@@ -60,7 +76,9 @@ class ZambezeSettings:
         :return: NATS connection URI
         :rtype: str
         """
-        return f"nats://{self.settings['nats']['host']}:{self.settings['nats']['port']}"
+        host = self.__settings["nats"]["host"]
+        port = self.__settings["nats"]["port"]
+        return f"nats://{host}:{port}"
 
     def get_service_names(self) -> list[str]:
         """
@@ -70,7 +88,7 @@ class ZambezeSettings:
         :rtype: List[str]
         """
         services = []
-        for service in self.settings["services"]:
+        for service in self.__settings["services"]:
             services.append(service["name"].lower())
 
     def get_service_properties(
@@ -85,7 +103,7 @@ class ZambezeSettings:
         :return: List of properties
         :rtype: Dict[str, Union[str, int, float, List]]
         """
-        for service in self.settings["services"]:
+        for service in self.__settings["services"]:
             if service["name"] == service_name:
                 return service["properties"]
         return None
@@ -111,4 +129,4 @@ class ZambezeSettings:
         Save properties file.
         """
         with open(self.conf_file, "w") as file:
-            yaml.dump(self.settings, file)
+            yaml.dump(self.__settings, file)

@@ -6,21 +6,28 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-from abc import abstractmethod
-from abc import ABC
+import logging
+
+from abc import ABC, abstractmethod
+from typing import Optional
 
 
 class Plugin(ABC):
-    """Abstract base class for ensuring that all registered plugins have the
-    same interface"""
+    """
+    Abstract base class for ensuring that all registered plugins have the
+    same interface
 
-    def __init__(self):
-        raise NotImplementedError(
-            "process method of derived plugin must be implemented."
+    :param logger: The logger where to log information/warning or errors.
+    :type logger: Optional[logging.Logger]
+    """
+
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+        self.logger: logging.Logger = (
+            logging.getLogger(__name__) if logger is None else logger
         )
 
     @abstractmethod
-    def configure(self, config: dict):
+    def configure(self, config: dict) -> None:
         """Configure this set up the plugin."""
         raise NotImplementedError("for configuring plugin.")
 

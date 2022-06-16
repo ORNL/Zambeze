@@ -1,21 +1,31 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+
+import logging
+
 # Local imports
 from .abstract_plugin import Plugin
 
 # Standard imports
-from copy import deepcopy
+from typing import Optional
 
 
 class Shell(Plugin):
-    """Class serves as an example of a plugin"""
+    """Implementation of a Shell plugin."""
 
-    def __init__(self):
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+        super().__init__(logger=logger)
         self.__name = "shell"
-        self.__type = "bash"
         self.__configured = False
-        pass
 
-    def configure(self, config: dict):
-        self.__config = deepcopy(config)
+    def configure(self, config: dict) -> None:
+        """Configure shell."""
+        self.logger.debug(f"Configuring {self.__name} plugin.")
         self.__configured = True
 
     @property

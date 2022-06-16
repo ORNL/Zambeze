@@ -7,16 +7,17 @@ from ..network import isAddressValid
 
 # Standard imports
 from copy import deepcopy
+from typing import Optional
 
+import logging
 import os
 import subprocess
 import socket
 
+
 #############################################################
 # Assistant Functions
 #############################################################
-
-
 def requiredEndpointKeysExist(action_endpoint: dict) -> bool:
     """Returns true if action_endpoint contains "ip","user" and "path" keys
 
@@ -168,16 +169,16 @@ def buildRemotePath(action_endpoint: dict) -> str:
 class Rsync(Plugin):
     """Class serves as an example of a plugin"""
 
-    def __init__(self):
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+        super().__init__(logger=logger)
         self.__name = "rsync"
         self.__configured = False
         self.__supported_actions = {"transfer": False}
         self.__hostname = socket.gethostname()
         self.__local_ip = socket.gethostbyname(self.__hostname)
         self.__ssh_key = os.path.expanduser("~") + "/.ssh/id_rsa"
-        pass
 
-    def configure(self, config: dict):
+    def configure(self, config: dict) -> None:
         """Configure rsync
 
         param config: configuration options
