@@ -53,7 +53,7 @@ class Processor(threading.Thread):
         """
         Evaluate messages and process them if requested activity is supported.
         """
-        self.logger.debug("Waiting for messages")
+        self.logger.debug(f"Connecting to NATS server: {self.settings.get_nats_connection_uri()}")
         nc = await nats.connect(self.settings.get_nats_connection_uri())
         sub = await nc.subscribe(MessageType.COMPUTE.value)
         self.logger.debug("Waiting for messages")
@@ -61,10 +61,10 @@ class Processor(threading.Thread):
         while True:
             try:
                 msg = await sub.next_msg()
+                data = json.loads(msg.data)
                 self.logger.debug(f"Message received: {msg.data}")
 
-                data = json.loads(msg.data)
-                if data["category"] == "SHELL":
+                if data["service"].lower() == "shell":
                     cmd = data["arguments"]
                     cmd.insert(0, data["command"])
                     self.logger.debug(f"Running SHELL command: {' '.join(cmd)}")

@@ -42,4 +42,5 @@ setup(
         "Topic :: System :: Distributed Computing",
     ],
     python_requires=">=3.7",
+    scripts=['bin/zambeze-agent'],
 )

@@ -42,7 +42,7 @@ class ShellActivity(Activity):
 
     def generate_message(self) -> dict:
         return {
-            "category": "SHELL",
+            "service": "shell",
             "command": self.command,
             "arguments": self.arguments,
         }

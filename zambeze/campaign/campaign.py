@@ -52,4 +52,4 @@ class Campaign:
         """Dispatch the set of current activities in the campaign."""
         for activity in self.activities:
             self.logger.debug(f"Running activity: {activity.name}")
-            self.agent.run_activity(activity)
+            self.agent.dispatch_activity(activity)
