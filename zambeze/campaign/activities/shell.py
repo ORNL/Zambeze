@@ -45,4 +45,5 @@ class ShellActivity(Activity):
             "service": "shell",
             "command": self.command,
             "arguments": self.arguments,
+            "files": self.files,
         }
