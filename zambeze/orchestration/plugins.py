@@ -32,14 +32,14 @@ class Plugins:
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         """Constructor"""
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
         self.__registerPlugins()
 
-    def __registerPlugins(self):
+    def __registerPlugins(self) -> None:
         """Will register all the plugins provided in the plugin_modules folder"""
         self._plugins = {}
         module_names = []
@@ -61,7 +61,7 @@ class Plugins:
         self.logger.debug(f"Registered Plugins: {', '.join(module_names)}")
 
     @property
-    def registered(self) -> list:
+    def registered(self) -> list[Plugin]:
         """List all plugins that have been registered.
 
         This method can be called at any time and is meant to simply display which
@@ -82,12 +82,12 @@ class Plugins:
         >>> shell
         >>> rsync
         """
-        plugins = []
+        plugins: list[Plugin] = []
         for key in self._plugins:
             plugins.append(deepcopy(key))
         return plugins
 
-    def configure(self, config: dict, plugins: list[str] = ["all"]):
+    def configure(self, config: dict, plugins: list[str] = ["all"]) -> None:
         """Configuration options for each plugin
 
         This method is responsible for initializing all the plugins that
@@ -114,7 +114,6 @@ class Plugins:
                 "arguments" : [""]
             }
         }
-
 
         """
         if "all" in plugins:
@@ -162,7 +161,7 @@ class Plugins:
         :return: list of all plugins that are ready to be run
         :rtype: list[str]
         """
-        configured_plugins = []
+        configured_plugins: list[str] = []
         for key in self._plugins:
             obj = self._plugins.get(key)
             if obj.configured:

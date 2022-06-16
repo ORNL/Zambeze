@@ -20,7 +20,7 @@ Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
 
 Dependency installation should proceed similar to any python package.
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt .
 ```
 
 ## Development Environment

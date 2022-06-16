@@ -29,7 +29,7 @@ class Agent:
         self.logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.settings = ZambezeSettings()
+        self.settings = ZambezeSettings(logger=self.logger)
         self.processor = Processor(settings=self.settings, logger=self.logger)
         self.processor.start()
 

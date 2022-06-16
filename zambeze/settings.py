@@ -6,21 +6,30 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+import logging
 import pathlib
 import yaml
 
-from typing import Dict, List, Union
+from typing import Optional, Union
+from .orchestration.plugins import Plugins
 
 
 class ZambezeSettings:
     """
     Zambeze Settings
+
+    :param logger: The logger where to log information/warning or errors.
+    :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self) -> None:
-        self.load_settings()
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+        self.logger: logging.Logger = (
+            logging.getLogger(__name__) if logger is None else logger
+        )
+        self.__load_settings()
+        self.plugins = Plugins(logger=self.logger)
 
-    def load_settings(self, conf_file: pathlib.Path = None) -> None:
+    def __load_settings(self, conf_file: pathlib.Path = None) -> None:
         """
         Load Zambeze's agent settings
 
@@ -53,7 +62,7 @@ class ZambezeSettings:
         """
         return f"nats://{self.settings['nats']['host']}:{self.settings['nats']['port']}"
 
-    def get_service_names(self) -> List[str]:
+    def get_service_names(self) -> list[str]:
         """
         Get a list of service names.
 
@@ -66,7 +75,7 @@ class ZambezeSettings:
 
     def get_service_properties(
         self, service_name: str
-    ) -> Dict[str, Union[str, int, float, List]]:
+    ) -> dict[str, Union[str, int, float, list]]:
         """
         Get a List of properties from a service.
 
