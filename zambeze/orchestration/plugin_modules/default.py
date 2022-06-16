@@ -42,7 +42,9 @@ class Shell(Plugin):
         print("Checking shell plugin")
         return {"run": False}
 
-    def process(self, arguments: list[dict]):
+    def process(self, arguments: list[dict]) -> dict:
         if not self.__configured:
             raise Exception("Cannot run shell plugin, must first be configured.")
         print("Running shell plugin")
+        raise Exception("Shell plugin is actually not yet implemented.")
+        return {}

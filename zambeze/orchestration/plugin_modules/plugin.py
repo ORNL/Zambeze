@@ -89,7 +89,7 @@ class Plugin(ABC):
         """
 
     @abstractmethod
-    def process(self, arguments: list[dict]):
+    def process(self, arguments: list[dict]) -> dict:
         """Will run the plugin with the provided arguments"""
         raise NotImplementedError(
             "process method of derived plugin must be implemented."

@@ -381,3 +381,4 @@ class Rsync(Plugin):
                     command_list.append(action_inst["destination"]["path"])
 
                 subprocess.call(command_list)
+        return {}
