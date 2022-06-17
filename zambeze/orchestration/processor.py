@@ -50,7 +50,7 @@ class Processor(threading.Thread):
 
     async def __process(self):
         """
-        Evaluate messages and process them if requested activity is supported.
+        Evaluate and process messages if requested activity is supported.
         """
         self.__logger.debug(
             f"Connecting to NATS server: {self.__settings.get_nats_connection_uri()}"
@@ -68,6 +68,7 @@ class Processor(threading.Thread):
                     self.__settings.run_plugin(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
+                self.__logger.debug("Waiting for messages")
 
             except TimeoutError:
                 pass
