@@ -7,6 +7,7 @@
 # it under the terms of the MIT License.
 
 import logging
+import subprocess
 
 # Local imports
 from .abstract_plugin import Plugin
@@ -25,7 +26,7 @@ class Shell(Plugin):
 
     def configure(self, config: dict) -> None:
         """Configure shell."""
-        self.logger.debug(f"Configuring {self.__name} plugin.")
+        self._logger.debug(f"Configuring {self.__name} plugin.")
         self.__configured = True
 
     @property
@@ -53,6 +54,35 @@ class Shell(Plugin):
         return {"run": False}
 
     def process(self, arguments: list[dict]):
+        """
+        Run the shell plugin.
+
+        :param arguments: arguments needed to run the shell plugin
+        :type arguments: list[dict]
+
+        Example
+
+        config = {}
+        arguments = [
+            {
+                "bash": {
+                    "program": "/bin/echo",
+                    "args": ["Hello!"]
+                }
+            }
+        ]
+
+        instance = ShellPlugin()
+        instance.configure(config)
+        if instance.check(arguments):
+            instance.process(arguments)
+        """
         if not self.__configured:
             raise Exception("Cannot run shell plugin, must first be configured.")
-        print("Running shell plugin")
+
+        for data in arguments:
+            cmd = data["bash"]["args"]
+            cmd.insert(0, data["bash"]["program"])
+            self._logger.debug(f"Running SHELL command: {' '.join(cmd)}")
+            shell_exec = subprocess.Popen(cmd)
+            shell_exec.wait()

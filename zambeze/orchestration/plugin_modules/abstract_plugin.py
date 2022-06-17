@@ -22,7 +22,7 @@ class Plugin(ABC):
     """
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self.logger: logging.Logger = (
+        self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
 

@@ -23,7 +23,7 @@ class ZambezeSettings:
     """
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self.logger: logging.Logger = (
+        self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
         self.load_settings()
@@ -58,7 +58,7 @@ class ZambezeSettings:
         """
         Load and configure Zambeze plugins.
         """
-        self.__plugins = Plugins(logger=self.logger)
+        self.__plugins = Plugins(logger=self.__logger)
         config = {}
 
         for plugin_name in self.__plugins.registered:
@@ -79,6 +79,28 @@ class ZambezeSettings:
         host = self.__settings["nats"]["host"]
         port = self.__settings["nats"]["port"]
         return f"nats://{host}:{port}"
+
+    def is_plugin_configured(self, plugin_name: str) -> bool:
+        """
+        Check whether a plugin has been configured.
+
+        :param plugin_name: Plugin name
+        :rtype plugin_name: str
+
+        :return: True if the plugin has been configured.
+        :rtype: bool
+        """
+        return plugin_name in self.__plugins.configured
+
+    def run_plugin(self, plugin_name: str, arguments: dict) -> None:
+        """
+
+        :param plugin_name:
+        :rtype plugin_name: str
+        :param arguments:
+        :type arguments: dict
+        """
+        return self.__plugins.run(plugin_name=plugin_name, arguments=arguments)
 
     def get_service_names(self) -> list[str]:
         """

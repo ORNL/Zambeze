@@ -34,7 +34,7 @@ class Plugins:
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         """Constructor"""
-        self.logger: logging.Logger = (
+        self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
         self.__registerPlugins()
@@ -58,9 +58,9 @@ class Plugins:
                         and attribute_name != "Plugin"
                     ):
                         self._plugins[attribute_name.lower()] = potential_plugin(
-                            logger=self.logger
+                            logger=self.__logger
                         )
-        self.logger.debug(f"Registered Plugins: {', '.join(module_names)}")
+        self.__logger.debug(f"Registered Plugins: {', '.join(module_names)}")
 
     @property
     def registered(self) -> list[Plugin]:
@@ -236,26 +236,36 @@ class Plugins:
                     ].check({})
         return check_results
 
-    def run(self, arguments: dict, plugins: list[str] = ["all"]):
-        """Run the plugins specified.
+    def run(self, plugin_name: str, arguments: dict) -> None:
+        """Run a specific plugins.
 
-        :param arguments: the arguments to provide to each of the plugins that
-        are to be run
+        :param plugin_name: Plugin name
+        :type plugin_name: str
+        :param arguments: Plugin arguments
         :type arguments: dict
-        :param plugins: The list of all the plugins to run
-        :type plugins: list[str]
         """
-        if "all" in plugins:
-            for key in self._plugins:
-                if key in arguments.keys():
-                    # If a package was passed to be processed"
-                    self._plugins[key].process(arguments[key])
-                else:
-                    # else send an empty package"
-                    self._plugins[key].process({})
-        else:
-            for plugin_inst in plugins:
-                if plugin_inst in arguments.keys():
-                    self._plugins[plugin_inst.lower()].process(arguments[plugin_inst])
-                else:
-                    self._plugins[plugin_inst.lower()].process({})
+        self._plugins[plugin_name].process([arguments])
+
+    # def run(self, arguments: dict, plugins: list[str] = ["all"]) -> None:
+    #     """Run the plugins specified.
+
+    #     :param arguments: the arguments to provide to each of the plugins that
+    #     are to be run
+    #     :type arguments: dict
+    #     :param plugins: The list of all the plugins to run
+    #     :type plugins: list[str]
+    #     """
+    #     if "all" in plugins:
+    #         for key in self._plugins:
+    #             if key in arguments.keys():
+    #                 # If a package was passed to be processed"
+    #                 self._plugins[key].process(arguments[key])
+    #             else:
+    #                 # else send an empty package"
+    #                 self._plugins[key].process({})
+    #     else:
+    #         for plugin_inst in plugins:
+    #             if plugin_inst in arguments.keys():
+    #                 self._plugins[plugin_inst.lower()].process(arguments[plugin_inst])
+    #             else:
+    #                 self._plugins[plugin_inst.lower()].process({})

@@ -7,7 +7,7 @@
 
 import logging
 
-from typing import List, Optional
+from typing import Optional
 from .abstract_activity import Activity
 
 
@@ -17,11 +17,11 @@ class ShellActivity(Activity):
     :param name: Campaign activity name.
     :type name: str
     :param files: List of file URIs.
-    :type files: Optional[List[str]]
+    :type files: Optional[list[str]]
     :param command: Action's command.
     :type command: Optional[str]
     :param arguments: List of arguments.
-    :type arguments: Optional[List[str]]
+    :type arguments: Optional[list[str]]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
@@ -29,9 +29,9 @@ class ShellActivity(Activity):
     def __init__(
         self,
         name: str,
-        files: Optional[List[str]] = [],
+        files: Optional[list[str]] = [],
         command: Optional[str] = None,
-        arguments: Optional[List[str]] = [],
+        arguments: Optional[list[str]] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object of a unix shell activity."""
@@ -42,8 +42,12 @@ class ShellActivity(Activity):
 
     def generate_message(self) -> dict:
         return {
-            "service": "shell",
-            "command": self.command,
-            "arguments": self.arguments,
+            "plugin": "shell",
             "files": self.files,
+            "cmd": {
+                "bash": {
+                    "program": self.command,
+                    "args": self.arguments,
+                }
+            },
         }

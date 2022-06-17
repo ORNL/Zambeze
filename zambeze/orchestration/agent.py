@@ -26,12 +26,12 @@ class Agent:
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         """Create an object that represents a distributed agent."""
-        self.logger: logging.Logger = (
+        self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.settings = ZambezeSettings(logger=self.logger)
-        self.processor = Processor(settings=self.settings, logger=self.logger)
-        self.processor.start()
+        self.__settings = ZambezeSettings(logger=self.__logger)
+        self.__processor = Processor(settings=self.__settings, logger=self.__logger)
+        self.__processor.start()
 
     def dispatch_activity(self, activity: Activity) -> None:
         """
@@ -52,11 +52,11 @@ class Agent:
         :param body: Message body
         :type body: dict
         """
-        self.logger.debug(
-            f"Connecting to NATS server: {self.settings.get_nats_connection_uri()}"
+        self.__logger.debug(
+            f"Connecting to NATS server: {self.__settings.get_nats_connection_uri()}"
         )
-        self.logger.debug(f"Sending a '{type}' message")
-        nc = await nats.connect(self.settings.get_nats_connection_uri())
+        self.__logger.debug(f"Sending a '{type}' message")
+        nc = await nats.connect(self.__settings.get_nats_connection_uri())
         await nc.publish(
             type,
             json.dumps(body).encode(),

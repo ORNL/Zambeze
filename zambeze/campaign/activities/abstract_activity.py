@@ -10,7 +10,7 @@ import logging
 
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import List, Optional
+from typing import Optional
 
 
 class ActivityStatus(Enum):
@@ -27,11 +27,11 @@ class Activity(ABC):
     :param name: Campaign activity name.
     :type name: str
     :param files: List of file URIs.
-    :type files: Optional[List[str]]
+    :type files: Optional[list[str]]
     :param command: Action's command.
     :type command: Optional[str]
     :param arguments: List of arguments.
-    :type arguments: Optional[List[str]]
+    :type arguments: Optional[list[str]]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
@@ -39,9 +39,9 @@ class Activity(ABC):
     def __init__(
         self,
         name: str,
-        files: Optional[List[str]] = [],
+        files: Optional[list[str]] = [],
         command: Optional[str] = None,
-        arguments: Optional[List[str]] = [],
+        arguments: Optional[list[str]] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign activity."""
@@ -49,16 +49,16 @@ class Activity(ABC):
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name: str = name
-        self.files: List[str] = files
+        self.files: list[str] = files
         self.command: str = command
-        self.arguments: List[str] = arguments
+        self.arguments: list[str] = arguments
         self.status: ActivityStatus = ActivityStatus.CREATED
 
-    def add_files(self, files: List[str]) -> None:
+    def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.
 
         :param files: List of file URIs.
-        :type files: List[str]
+        :type files: list[str]
         """
         self.files.extend(files)
 
@@ -70,11 +70,11 @@ class Activity(ABC):
         """
         self.files.append(file)
 
-    def add_arguments(self, args: List[str]) -> None:
+    def add_arguments(self, args: list[str]) -> None:
         """Add a list of arguments to the action.
 
         :param args: List of arguments.
-        :type args: List[str]
+        :type args: list[str]
         """
         self.arguments.extend(args)
 

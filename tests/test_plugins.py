@@ -6,7 +6,8 @@ import copy
 import os
 import pwd
 import pytest
-import random
+
+# import random
 import socket
 
 
@@ -109,81 +110,82 @@ def test_rsync_service_check():
     assert not plugins.check(arguments_faulty_user)["rsync"]["transfer"]
 
 
-@pytest.mark.gitlab_runner
-def test_rsync_service_run():
-    plugins = Plugins()
-    path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
-    plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
+# @pytest.mark.gitlab_runner
+# def test_rsync_service_run():
+#     plugins = Plugins()
+#     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
+#     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
-    file_name = "demofile.txt"
-    f = open(file_name, "w")
-    original_number = random.randint(0, 100000000000)
-    f.write(str(original_number))
-    f.close()
+#     file_name = "demofile.txt"
+#     f = open(file_name, "w")
+#     original_number = random.randint(0, 100000000000)
+#     f.write(str(original_number))
+#     f.close()
 
-    # Grab valid paths, usernames and ip addresses
-    current_valid_path = os.getcwd()
-    file_path = current_valid_path + "/" + file_name
+#     # Grab valid paths, usernames and ip addresses
+#     current_valid_path = os.getcwd()
+#     file_path = current_valid_path + "/" + file_name
 
-    current_user = pwd.getpwuid(os.geteuid())[0]
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
+#     current_user = pwd.getpwuid(os.geteuid())[0]
+#     hostname = socket.gethostname()
+#     local_ip = socket.gethostbyname(hostname)
 
-    arguments = {
-        "rsync": [
-            {
-                "transfer": {
-                    "source": {"ip": local_ip, "user": current_user, "path": file_path},
-                    "destination": {
-                        "ip": "172.22.1.69",
-                        "user": "cades",
-                        "path": "/home/cades/josh-testing",
-                    },
-                    "arguments": ["-a"],
-                }
-            }
-        ]
-    }
+#     arguments = {
+#         "rsync": [
+#             {
+#                 "transfer": {
+#                     "source": {"ip": local_ip,
+#                                "user": current_user, "path": file_path},
+#                     "destination": {
+#                         "ip": "172.22.1.69",
+#                         "user": "cades",
+#                         "path": "/home/cades/josh-testing",
+#                     },
+#                     "arguments": ["-a"],
+#                 }
+#             }
+#         ]
+#     }
 
-    print("Arguments: Initial transfer to remote machine")
-    print(arguments)
-    plugins.run(arguments)
-    file_path_return = current_valid_path + "/demofile_return.txt"
+#     print("Arguments: Initial transfer to remote machine")
+#     print(arguments)
+#     # plugins.run(arguments)
+#     file_path_return = current_valid_path + "/demofile_return.txt"
 
-    # Remove local copy of file if it already exists
-    if os.path.exists(file_path_return):
-        os.remove(file_path_return)
+#     # Remove local copy of file if it already exists
+#     if os.path.exists(file_path_return):
+#         os.remove(file_path_return)
 
-    arguments_return = {
-        "rsync": [
-            {
-                "transfer": {
-                    "destination": {
-                        "ip": local_ip,
-                        "user": current_user,
-                        "path": file_path_return,
-                    },
-                    "source": {
-                        "ip": "172.22.1.69",
-                        "user": "cades",
-                        "path": "/home/cades/josh-testing" + "/" + file_name,
-                    },
-                    "arguments": ["-a"],
-                }
-            }
-        ]
-    }
+#     arguments_return = {
+#         "rsync": [
+#             {
+#                 "transfer": {
+#                     "destination": {
+#                         "ip": local_ip,
+#                         "user": current_user,
+#                         "path": file_path_return,
+#                     },
+#                     "source": {
+#                         "ip": "172.22.1.69",
+#                         "user": "cades",
+#                         "path": "/home/cades/josh-testing" + "/" + file_name,
+#                     },
+#                     "arguments": ["-a"],
+#                 }
+#             }
+#         ]
+#     }
 
-    print("Arguments: Second transfer back to host machine")
-    print(arguments_return)
-    plugins.run(arguments_return)
-    # This will verify that copying from a remote machine to the local
-    # machine was a success
-    assert os.path.exists(file_path_return)
+#     print("Arguments: Second transfer back to host machine")
+#     print(arguments_return)
+#     plugins.run(arguments_return)
+#     # This will verify that copying from a remote machine to the local
+#     # machine was a success
+#     assert os.path.exists(file_path_return)
 
-    with open(file_path_return) as f:
-        # Now we will verify that it is the same file that was sent
-        lines = f.readlines()
-        # Should be a single line
-        random_int = int(lines[0])
-        assert random_int == original_number
+#     with open(file_path_return) as f:
+#         # Now we will verify that it is the same file that was sent
+#         lines = f.readlines()
+#         # Should be a single line
+#         random_int = int(lines[0])
+#         assert random_int == original_number
