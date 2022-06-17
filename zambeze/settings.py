@@ -102,34 +102,6 @@ class ZambezeSettings:
         """
         return self.__plugins.run(plugin_name=plugin_name, arguments=arguments)
 
-    def get_service_names(self) -> list[str]:
-        """
-        Get a list of service names.
-
-        :return: List of service names
-        :rtype: List[str]
-        """
-        services = []
-        for service in self.__settings["services"]:
-            services.append(service["name"].lower())
-
-    def get_service_properties(
-        self, service_name: str
-    ) -> dict[str, Union[str, int, float, list]]:
-        """
-        Get a List of properties from a service.
-
-        :param service_name: Service name
-        :type service_name: str
-
-        :return: List of properties
-        :rtype: Dict[str, Union[str, int, float, List]]
-        """
-        for service in self.__settings["services"]:
-            if service["name"] == service_name:
-                return service["properties"]
-        return None
-
     def __set_default(
         self, key: str, value: Union[int, float, str, dict], base: dict
     ) -> None:
