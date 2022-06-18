@@ -108,17 +108,22 @@ class Plugins:
 
         I.e. for plugins "globus" and "shell"
 
-        {
+        config = {
             "globus": {
                 "authentication flow": {
                     "type": "credential flow",
                     "secret": "blahblah"
-
-            }
+            },
             "shell": {
                 "arguments" : [""]
             }
         }
+
+        plugins = Plugins()
+
+        plugins.configure(config, ["shell"])
+
+        This will just configure the "shell" plugin
 
         """
         for key in self._plugins:
@@ -132,6 +137,26 @@ class Plugins:
 
         :return: list of all plugins that are ready to be run
         :rtype: list[str]
+
+        Example: if nothing has been configured
+
+        plugins = Plugins()
+
+        assert len(plugins.configured) == 0
+
+        Example: if globus is configured
+
+        config = {
+            "globus": {
+                "client id": "..."
+            }
+        }
+
+        plugins.configure(config)
+
+        assert len(plugins.configured) == 1
+        assert "globus" in plugins.configured
+
         """
         configured_plugins: list[str] = []
         for key in self._plugins:
@@ -176,34 +201,48 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    def check(self, arguments: dict, plugins: list[str] = ["all"]):
-        """Run the plugins specified.
+    def check(self, plugin_name: str, arguments: dict) -> None:
+        """Check that the arguments passed to the plugin "plugin_name" are valid
 
-        :param arguments: the arguments to provide to each of the plugins that
-        are to be run
+        :param plugin_name: the name of the plugin to validate against
+        :type plugin_name: str
+        :param arguments: the arguments to be validated for plugin "plugin_name"
         :type arguments: dict
-        :param plugins: The list of all the plugins to run
-        :type plugins: list[str]
+
+        Example
+
+        Assuming we are validating that the following arguments are provided for
+        the rsync plugin
+
+        plugins = Plugins()
+
+        config = {
+            "rsync": {
+                "private_ssh_key": "path to private ssh key"
+            }
+        }
+        plugins.configure()
+
+        arguments = {
+            "transfer": {
+                "source": {
+                    "ip": local_ip,
+                    "user": current_user,
+                    "path": current_valid_path,
+                },
+                "destination": {
+                    "ip": "172.22.1.69",
+                    "user": "cades",
+                    "path": "/home/cades/josh-testing",
+                },
+                "arguments": ["-a"],
+            }
+        }
+
+
         """
         check_results = {}
-        if "all" in plugins:
-            for key in self._plugins:
-                if key in arguments.keys():
-                    # If a package was passed to be processed"
-                    check_results[key] = self._plugins[key].check(arguments[key])
-                else:
-                    # else send an empty package"
-                    check_results[key] = self._plugins[key].check({})
-        else:
-            for plugin_inst in plugins:
-                if plugin_inst in arguments.keys():
-                    check_results[plugin_inst.lower()] = self._plugins[
-                        plugin_inst.lower()
-                    ].check(arguments[plugin_inst])
-                else:
-                    check_results[plugin_inst.lower()] = self._plugins[
-                        plugin_inst.lower()
-                    ].check({})
+        check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return check_results
 
     def run(self, plugin_name: str, arguments: dict) -> None:
@@ -213,5 +252,39 @@ class Plugins:
         :type plugin_name: str
         :param arguments: Plugin arguments
         :type arguments: dict
+
+        plugins = Plugins()
+
+        config = {
+                "rsync": {
+                        "ssh_key": "path to private ssh key"
+                }
+        }
+        plugins.configure(config)
+
+        arguments = {
+                "transfer": {
+                        "source": {
+                                "ip":
+                                "hostname":
+                                "path":
+                        },
+                        "destination": {
+                                "ip":
+                                "hostname":
+                                "path":
+                        }
+                }
+        }
+
+        # Should return True for each action that was found to be
+        # correctly validated
+        checks = plugins.check('rsync', arguments)
+
+        print(checks)
+
+        plugins.run('rsync', arguments)
+
+        >>> {"transfer": True }
         """
         self._plugins[plugin_name].process([arguments])
