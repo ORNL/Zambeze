@@ -188,7 +188,7 @@ def test_rsync_plugin_run():
     print("Arguments: Second transfer back to host machine")
     print(arguments_return)
     checked_actions = plugins.check("rsync", arguments_return)
-    assert checked_actions["transfer"]
+    assert checked_actions["rsync"]["transfer"]
     plugins.run("rsync", arguments_return)
     # This will verify that copying from a remote machine to the local
     # machine was a success
