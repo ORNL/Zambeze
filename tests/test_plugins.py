@@ -7,7 +7,7 @@ import os
 import pwd
 import pytest
 
-# import random
+import random
 import socket
 
 
