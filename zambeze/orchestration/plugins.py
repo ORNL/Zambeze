@@ -109,13 +109,20 @@ class Plugins:
 
         I.e. for plugins "globus" and "shell"
 
-        {   "globus": {
+        config = {
+            "globus": {
                 "client id": "..."
-            }
+            },
             "shell": {
                 "arguments" : [""]
             }
         }
+
+        plugins = Plugins()
+
+        plugins.configure(config, ["shell"])
+
+        This will just configure the "shell" plugin
 
         """
         if "all" in plugins:
@@ -162,6 +169,26 @@ class Plugins:
 
         :return: list of all plugins that are ready to be run
         :rtype: list[str]
+
+        Example: if nothing has been configured
+
+        plugins = Plugins()
+
+        assert len(plugins.configured) == 0
+
+        Example: if globus is configured
+
+        config = {
+            "globus": {
+                "client id": "..."
+            }
+        }
+        
+        plugins.configure(config)
+
+        assert len(plugins.configured) == 1
+        assert "globus" in plugins.configured
+
         """
         configured_plugins: list[str] = []
         for key in self._plugins:
@@ -218,6 +245,33 @@ class Plugins:
 
         Assuming we are validating that the following arguments are provided for
         the rsync plugin
+
+        plugins = Plugins()
+
+        config = {
+            "rsync": {
+                "private_ssh_key": "path to private ssh key"
+            }
+        }
+        plugins.configure()
+
+        arguments = {
+            "transfer": {
+                "source": {
+                    "ip": local_ip,
+                    "user": current_user,
+                    "path": current_valid_path,
+                },
+                "destination": {
+                    "ip": "172.22.1.69",
+                    "user": "cades",
+                    "path": "/home/cades/josh-testing",
+                },
+                "arguments": ["-a"],
+            }
+        }
+
+
         """
         check_results = {}
         check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
