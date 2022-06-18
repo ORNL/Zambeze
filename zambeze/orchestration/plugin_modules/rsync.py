@@ -361,7 +361,7 @@ class Rsync(Plugin):
             )
 
         for action in arguments:
-            if "transfer" in action.keys():
+            if "transfer" in action:
                 action_inst = action["transfer"]
 
                 command_list = ["rsync"]
