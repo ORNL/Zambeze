@@ -207,13 +207,17 @@ class Plugins:
         return info
 
     def check(self, plugin_name: str, arguments: dict) -> None:
-        """Run the plugins specified.
+        """Check that the arguments passed to the plugin "plugin_name" are valid
 
-        :param arguments: the arguments to provide to each of the plugins that
-        are to be run
+        :param plugin_name: the name of the plugin to validate against
+        :type plugin_name: str
+        :param arguments: the arguments to be validated for plugin "plugin_name" 
         :type arguments: dict
-        :param plugins: The list of all the plugins to run
-        :type plugins: list[str]
+
+        Example
+
+        Assuming we are validating that the following arguments are provided for
+        the rsync plugin
         """
         check_results = {}
         check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
