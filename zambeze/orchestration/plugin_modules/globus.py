@@ -38,6 +38,7 @@ class Globus(Plugin):
             "move_to_globus_collection": False,
             "move_from_globus_collection": False,
         }
+
         pass
 
     ###################################################################################
@@ -153,9 +154,8 @@ class Globus(Plugin):
             client_secret=config["authentication flow"]["secret"],
         )
         print(f"client secret: {config['authentication flow']['secret']}")
-        scopes = "urn:globus:auth:scope:transfer.api.globus.org:all"
         self.__authorizer = globus_sdk.ClientCredentialsAuthorizer(
-            confidential_client, scopes
+            confidential_client, self.__scopes
         )
         # create a new client
         self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
@@ -168,6 +168,7 @@ class Globus(Plugin):
         # {
         #     "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
         #     "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+        #     "type": "synchronous",
         #     "items": [
         #         { "source": {
         #               "type": "globus relative",
@@ -203,7 +204,13 @@ class Globus(Plugin):
             tdata.add_item(clean_source_path, clean_destination_path)
 
         transfer_result = self.__tc.submit_transfer(tdata)
-        print(transfer_result)
+
+        if "synchronous" == transfer["type"]: 
+            task_id = transfer_result["task_id"]
+            while not self.__tc.task_wait(task_id, timeout=60):
+                print("Another minute went by without {0} terminating"
+                .format(task_id))
+        return transfer_result
 
     def __runMoveToGlobusCollection(self, action_package: dict):
         """Method is designed to move a local file to a Globus collection"""
@@ -448,8 +455,8 @@ class Globus(Plugin):
         #
         # config = {
         #   "collections": [
-        #       { "UUID": "", "path": ""},
-        #       { "UUID": "", "path": ""}
+        #       { "UUID": "", "path": "", "type": "guest"},
+        #       { "UUID": "", "path": "", "type": "mapped"}
         #   ],
         #   "authentication flow": {
         #       "type": "'native' or 'client credential'"
@@ -470,6 +477,25 @@ class Globus(Plugin):
             self.__access_to_globus_cloud = False
             return
 
+        # Permissions to access mapped collections must be granted
+        # explicitly
+        mapped_collections = []
+        if "collections" in config:
+            for local_collection in config["collections"]:
+                if local_collection['type'] == "mapped":
+                    mapped_collections.append(local_collection['UUID'])
+
+        self.__scopes = "urn:globus:auth:scope:transfer.api.globus.org:all"
+        if len(mapped_collections):
+            self.__scopes = self.__scopes + "["
+            index = 1
+            for mapped_collection in mapped_collections:
+                self.__scopes = self.__scopes + f"*https://auth.globus.org/scopes/{mapped_collection}/data_access"
+                if index < len(config["collections"]):
+                    self.__scopes = self.__scopes + " "
+                    index = index + 1
+                self.__scopes = self.__scopes + "]"
+ 
         try:
             if self.__flow == "native":
                 self.__nativeAuthFlow()
@@ -490,6 +516,8 @@ class Globus(Plugin):
         
         # self.__collections must be defined before __validActions is called
         self.__validActions()
+
+        
         self.__configured = True
 
     @property

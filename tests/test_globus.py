@@ -53,6 +53,7 @@ def test_globus_basic2():
             {
                 "UUID": "57281195-1495-4995-a777-52bd5d16ee7e",
                 "path": "/home/cades/Collections/default",
+                "type": "mapped"
             }
         ],
     }
@@ -74,6 +75,7 @@ def test_globus_move_check():
             {
                 "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
                 "path": "/home/cades/Collections/default",
+                "type": "mapped"
             }
         ],
     }
@@ -121,6 +123,7 @@ def test_globus_transfer_check():
             {
                 "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
                 "path": "/home/cades/Collections/default",
+                "type": "mapped"
             }
         ],
     }
@@ -156,6 +159,7 @@ def test_globus_transfer_check():
         "transfer": {
             "source_collection_UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
             "destination_collection_UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
+            "type": "synchronous",
             "items": [
                         {
                             "source": {
@@ -192,10 +196,12 @@ def test_globus_process():
             {
                 "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
                 "path": path_to_endpoint,
+                "type": "mapped"
             },
             {
                 "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
                 "path": path_to_endpoint_shared,
+                "type": "guest"
             }
         ],
     }
@@ -234,6 +240,7 @@ def test_globus_process():
         "transfer": {
             "source_collection_UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
             "destination_collection_UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
+            "type": "synchronous",
             "items": [
                         {
                             "source": {
