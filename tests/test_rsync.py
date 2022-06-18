@@ -58,8 +58,9 @@ def test_rsync_requiredSourceAndDestinationKeysExist():
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
     assert fields_exist
 
-    package = {"destination": {"ip": "something",
-                               "user": "a user", "path": "a path to a file"}}
+    package = {
+        "destination": {"ip": "something", "user": "a user", "path": "a path to a file"}
+    }
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
     assert fields_exist is False

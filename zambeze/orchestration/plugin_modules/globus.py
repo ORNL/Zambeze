@@ -93,8 +93,7 @@ class Globus(Plugin):
                 except globus_sdk.GlobusAPIError as e:
                     if e.http_status == 404:
                         # data = e.raw_json
-                        raise Exception(
-                            "Invalid collection id. Collection is unknown.")
+                        raise Exception("Invalid collection id. Collection is unknown.")
                     else:
                         raise
 
@@ -205,11 +204,10 @@ class Globus(Plugin):
 
         transfer_result = self.__tc.submit_transfer(tdata)
 
-        if "synchronous" == transfer["type"]: 
+        if "synchronous" == transfer["type"]:
             task_id = transfer_result["task_id"]
             while not self.__tc.task_wait(task_id, timeout=60):
-                print("Another minute went by without {0} terminating"
-                .format(task_id))
+                print("Another minute went by without {0} terminating".format(task_id))
         return transfer_result
 
     def __runMoveToGlobusCollection(self, action_package: dict):
@@ -463,20 +461,23 @@ class Globus(Plugin):
         mapped_collections = []
         if "collections" in config:
             for local_collection in config["collections"]:
-                if local_collection['type'] == "mapped":
-                    mapped_collections.append(local_collection['UUID'])
+                if local_collection["type"] == "mapped":
+                    mapped_collections.append(local_collection["UUID"])
 
         self.__scopes = "urn:globus:auth:scope:transfer.api.globus.org:all"
         if len(mapped_collections):
             self.__scopes = self.__scopes + "["
             index = 1
             for mapped_collection in mapped_collections:
-                self.__scopes = self.__scopes + f"*https://auth.globus.org/scopes/{mapped_collection}/data_access"
+                self.__scopes = (
+                    self.__scopes
+                    + f"*https://auth.globus.org/scopes/{mapped_collection}/data_access"
+                )
                 if index < len(config["collections"]):
                     self.__scopes = self.__scopes + " "
                     index = index + 1
                 self.__scopes = self.__scopes + "]"
- 
+
         try:
             if self.__flow == "native":
                 self.__nativeAuthFlow()
@@ -498,7 +499,6 @@ class Globus(Plugin):
         # self.__collections must be defined before __validActions is called
         self.__validActions()
 
-        
         self.__configured = True
 
     @property
@@ -634,7 +634,8 @@ class Globus(Plugin):
         #   "transfer":
         #       {
         #           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-        #           "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+        #           "destination_collection_UUID":
+        #                                     "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
         #           "items": [
         #                 {
         #                     "source": {

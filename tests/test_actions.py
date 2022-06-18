@@ -35,9 +35,7 @@ def test_action_control_missing_target_id():
 
 @pytest.mark.unit
 def test_action_control_missing_task_id():
-    payload = {
-        "type": "Control", "target_id": uuid.uuid1(),
-        "body": "This is the body"}
+    payload = {"type": "Control", "target_id": uuid.uuid1(), "body": "This is the body"}
 
     with pytest.raises(Exception):
         assert Factory(payload)
@@ -76,8 +74,7 @@ def test_action_data():
 
 @pytest.mark.unit
 def test_action_data_missing_type():
-    payload = {"source": "/home/source/file1.txt",
-               "destination": "home/dest/file1.txt"}
+    payload = {"source": "/home/source/file1.txt", "destination": "home/dest/file1.txt"}
 
     with pytest.raises(Exception):
         assert Factory(payload)
