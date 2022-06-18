@@ -14,6 +14,7 @@ from os.path import exists
 from os.path import isdir
 from os.path import isfile
 from socket import gethostname
+from typing import Optional
 
 import json
 import logging
@@ -22,7 +23,8 @@ import shutil
 
 
 class Globus(Plugin):
-    def __init__(self):
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+        super().__init__(logger=logger)
         # Client id is specific to Zambeze project it was created by registering
         # at developers.globus.org
         self.__access_to_globus_cloud = False
