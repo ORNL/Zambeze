@@ -1,5 +1,5 @@
 # Local imports
-from .plugin import Plugin
+from .abstract_plugin import Plugin
 from ..identity import validUUID
 from ..network import externalNetworkConnectionDetected
 
