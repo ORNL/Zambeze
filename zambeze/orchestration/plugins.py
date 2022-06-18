@@ -206,7 +206,7 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    def check(self, arguments: dict, plugins: list[str] = ["all"]):
+    def check(self, plugin_name: str, arguments: dict) -> None:
         """Run the plugins specified.
 
         :param arguments: the arguments to provide to each of the plugins that
@@ -216,24 +216,7 @@ class Plugins:
         :type plugins: list[str]
         """
         check_results = {}
-        if "all" in plugins:
-            for key in self._plugins:
-                if key in arguments.keys():
-                    # If a package was passed to be processed"
-                    check_results[key] = self._plugins[key].check(arguments[key])
-                else:
-                    # else send an empty package"
-                    check_results[key] = self._plugins[key].check({})
-        else:
-            for plugin_inst in plugins:
-                if plugin_inst in arguments.keys():
-                    check_results[plugin_inst.lower()] = self._plugins[
-                        plugin_inst.lower()
-                    ].check(arguments[plugin_inst])
-                else:
-                    check_results[plugin_inst.lower()] = self._plugins[
-                        plugin_inst.lower()
-                    ].check({})
+        check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return check_results
 
     def run(self, plugin_name: str, arguments: dict) -> None:
@@ -243,6 +226,40 @@ class Plugins:
         :type plugin_name: str
         :param arguments: Plugin arguments
         :type arguments: dict
+
+        plugins = Plugins()
+
+        config = {
+                "rsync": {
+                        "ssh_key": "path to private ssh key"
+                }
+        }
+        plugins.configure(config)
+
+        arguments = {
+                "transfer": {
+                        "source": {
+                                "ip":
+                                "hostname":
+                                "path":
+                        },
+                        "destination": {
+                                "ip":
+                                "hostname":
+                                "path":
+                        }
+                }
+        }
+
+        # Should return True for each action that was found to be
+        # correctly validated
+        checks = plugins.check('rsync', arguments)
+
+        print(checks)
+
+        plugins.run('rsync', arguments)
+
+        >>> {"transfer": True }
         """
         self._plugins[plugin_name].process([arguments])
 

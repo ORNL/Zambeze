@@ -343,7 +343,8 @@ class Rsync(Plugin):
                         "ip": "valid ip address",
                         "path": "path to items that will be transferred",
                         "user": "user name"
-                    }
+                    },
+                    "arguments": ["-a"] # Additional arguments to pass to rsync command
                 }
             }
         ]
@@ -381,4 +382,5 @@ class Rsync(Plugin):
                     command_list.append(buildRemotePath(action_inst["source"]))
                     command_list.append(action_inst["destination"]["path"])
 
+                print(command_list)
                 subprocess.call(command_list)

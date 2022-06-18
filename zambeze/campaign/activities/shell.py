@@ -44,10 +44,5 @@ class ShellActivity(Activity):
         return {
             "plugin": "shell",
             "files": self.files,
-            "cmd": {
-                "bash": {
-                    "program": self.command,
-                    "args": self.arguments,
-                }
-            },
+            "cmd": {"bash": {"program": self.command, "args": self.arguments,}},
         }
