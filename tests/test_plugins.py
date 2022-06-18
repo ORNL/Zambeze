@@ -163,43 +163,40 @@ def test_rsync_plugin_run():
     assert plugins.check("rsync", arguments)
     plugins.run("rsync", arguments)
 
+    file_path_return = current_valid_path + "/demofile_return.txt"
 
-#    file_path_return = current_valid_path + "/demofile_return.txt"
-#
-#    # Remove local copy of file if it already exists
-#    if os.path.exists(file_path_return):
-#        os.remove(file_path_return)
-#
-#    arguments_return = {
-#        "rsync": [
-#            {
-#                "transfer": {
-#                    "destination": {
-#                        "ip": local_ip,
-#                        "user": current_user,
-#                        "path": file_path_return,
-#                    },
-#                    "source": {
-#                        "ip": "172.22.1.69",
-#                        "user": "cades",
-#                        "path": "/home/cades/josh-testing" + "/" + file_name,
-#                    },
-#                    "arguments": ["-a"],
-#                }
-#            }
-#        ]
-#    }
-#
-#    print("Arguments: Second transfer back to host machine")
-#    print(arguments_return)
-#    plugins.run("rsync", arguments_return["rsync"])
-#    # This will verify that copying from a remote machine to the local
-#    # machine was a success
-#    assert os.path.exists(file_path_return)
-#
-#    with open(file_path_return) as f:
-#        # Now we will verify that it is the same file that was sent
-#        lines = f.readlines()
-#        # Should be a single line
-#        random_int = int(lines[0])
-#        assert random_int == original_number
+    # Remove local copy of file if it already exists
+    if os.path.exists(file_path_return):
+        os.remove(file_path_return)
+
+    arguments_return = {
+        "transfer": {
+            "destination": {
+                "ip": local_ip,
+                "user": current_user,
+                "path": file_path_return,
+            },
+            "source": {
+                "ip": "172.22.1.69",
+                "user": "cades",
+                "path": "/home/cades/josh-testing" + "/" + file_name,
+            },
+            "arguments": ["-a"],
+        }
+    }
+
+    print("Arguments: Second transfer back to host machine")
+    print(arguments_return)
+    checked_actions = plugins.check("rsync", arguments_return)
+    assert checked_actions["transfer"]
+    plugins.run("rsync", arguments_return)
+    # This will verify that copying from a remote machine to the local
+    # machine was a success
+    assert os.path.exists(file_path_return)
+
+    with open(file_path_return) as f:
+        # Now we will verify that it is the same file that was sent
+        lines = f.readlines()
+        # Should be a single line
+        random_int = int(lines[0])
+        assert random_int == original_number
