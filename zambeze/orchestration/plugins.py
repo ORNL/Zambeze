@@ -183,7 +183,7 @@ class Plugins:
                 "client id": "..."
             }
         }
-        
+
         plugins.configure(config)
 
         assert len(plugins.configured) == 1
@@ -238,7 +238,7 @@ class Plugins:
 
         :param plugin_name: the name of the plugin to validate against
         :type plugin_name: str
-        :param arguments: the arguments to be validated for plugin "plugin_name" 
+        :param arguments: the arguments to be validated for plugin "plugin_name"
         :type arguments: dict
 
         Example
@@ -320,27 +320,3 @@ class Plugins:
         >>> {"transfer": True }
         """
         self._plugins[plugin_name].process([arguments])
-
-    # def run(self, arguments: dict, plugins: list[str] = ["all"]) -> None:
-    #     """Run the plugins specified.
-
-    #     :param arguments: the arguments to provide to each of the plugins that
-    #     are to be run
-    #     :type arguments: dict
-    #     :param plugins: The list of all the plugins to run
-    #     :type plugins: list[str]
-    #     """
-    #     if "all" in plugins:
-    #         for key in self._plugins:
-    #             if key in arguments.keys():
-    #                 # If a package was passed to be processed"
-    #                 self._plugins[key].process(arguments[key])
-    #             else:
-    #                 # else send an empty package"
-    #                 self._plugins[key].process({})
-    #     else:
-    #         for plugin_inst in plugins:
-    #             if plugin_inst in arguments.keys():
-    #                 self._plugins[plugin_inst.lower()].process(arguments[plugin_inst])
-    #             else:
-    #                 self._plugins[plugin_inst.lower()].process({})
