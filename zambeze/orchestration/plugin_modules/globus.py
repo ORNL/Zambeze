@@ -122,7 +122,7 @@ class Globus(Plugin):
         auth_code = input("Please enter the code you get after login here: ").strip()
         token_response = client.oauth2_exchange_code_for_tokens(auth_code)
 
-        # globus_auth_data = 
+        # globus_auth_data =
         token_response.by_resource_server["auth.globus.org"]
         globus_transfer_data = token_response.by_resource_server[
             "transfer.api.globus.org"
@@ -199,8 +199,8 @@ class Globus(Plugin):
         )
 
         for item in transfer["items"]:
-            clean_source_path = re.sub('/+', '/', item["source"]["path"])
-            clean_destination_path = re.sub('/+', '/', item["destination"]["path"])
+            clean_source_path = re.sub("/+", "/", item["source"]["path"])
+            clean_destination_path = re.sub("/+", "/", item["destination"]["path"])
             tdata.add_item(clean_source_path, clean_destination_path)
 
         transfer_result = self.__tc.submit_transfer(tdata)
@@ -244,8 +244,8 @@ class Globus(Plugin):
         endpoint_path = ""
         for endpoint in self.__collections:
             if endpoint["UUID"] == action_package["destination_collection_UUID"]:
-                endpoint_path = endpoint["path"] 
-                
+                endpoint_path = endpoint["path"]
+
         for item in action_package["items"]:
             source = ""
             if item["source"]["type"] == "posix absolute":
@@ -262,7 +262,6 @@ class Globus(Plugin):
             print(f"Source is: {source}")
             print(f"Destination is: {destination}")
             shutil.copyfile(source, destination)
-        
 
     def __runTransferSanityCheck(self, action_package: dict) -> bool:
         # Any agent with the globus plugin can submit a job to globus if it
@@ -328,10 +327,7 @@ class Globus(Plugin):
             if "type" not in item["source"]:
                 return False
             else:
-                if (
-                    item["source"]["type"]
-                    not in supported_source_path_types
-                ):
+                if item["source"]["type"] not in supported_source_path_types:
                     return False
             # Check if the item path is valid for the file
             if "path" not in item["source"]:
@@ -339,7 +335,7 @@ class Globus(Plugin):
             if item["source"]["type"] == "posix absolute":
                 if not exists(item["source"]["path"]):
                     return False
-                
+
             if "destination" not in item:
                 return False
 
@@ -347,10 +343,7 @@ class Globus(Plugin):
             if "type" not in item["destination"]:
                 return False
             else:
-                if (
-                    item["destination"]["type"]
-                    not in supported_destination_path_types
-                ):
+                if item["destination"]["type"] not in supported_destination_path_types:
                     return False
 
             if "path" not in item["destination"]:
@@ -390,18 +383,12 @@ class Globus(Plugin):
         # }
 
         supported_source_path_types = ["globus relative"]
-        supported_destination_path_types = [
-            "posix absolute",
-            "posix user home",
-        ]
+        supported_destination_path_types = ["posix absolute", "posix user home"]
         if not validUUID(action_package["source_collection_UUID"]):
             return False
 
         # Check that the UUID is associated with this machine
-        if (
-            not action_package["source_collection_UUID"]
-            in self.__collections
-        ):
+        if not action_package["source_collection_UUID"] in self.__collections:
             return False
 
         if self.__hostname != action_package["destination_host_name"]:
@@ -414,10 +401,7 @@ class Globus(Plugin):
             if "type" not in item["source"]:
                 return False
             else:
-                if (
-                    item["source"]["type"]
-                    not in supported_source_path_types
-                ):
+                if item["source"]["type"] not in supported_source_path_types:
                     return False
 
             if item["source"]["type"] == "posix absolute":
@@ -430,20 +414,17 @@ class Globus(Plugin):
             if "type" not in item["destination"]:
                 return False
             else:
-                if (
-                    item["destination"]["type"]
-                    not in supported_destination_path_types
-                ):
+                if item["destination"]["type"] not in supported_destination_path_types:
                     return False
 
             if "path" not in item["destination"]:
                 return False
-            
+
         return True
 
-###################################################################################
-# Public Methods
-###################################################################################
+    ###################################################################################
+    # Public Methods
+    ###################################################################################
     def configure(self, config: dict):
         # When configuring should provide the endpoint id(s) located on
         # the same machine where the Zambeze agent is running along with
@@ -513,7 +494,7 @@ class Globus(Plugin):
         self.__validEndPoint(config)
         if "collections" in config:
             self.__collections = deepcopy(config["collections"])
-        
+
         # self.__collections must be defined before __validActions is called
         self.__validActions()
 
@@ -622,15 +603,18 @@ class Globus(Plugin):
                     # Any agent with the globus plugin can submit a job to globus if it
                     # has access to the globus cloud
                     checks[action] = self.__runTransferSanityCheck(
-                            package[index][action])
+                        package[index][action]
+                    )
 
                 elif action == "move_to_globus_collection":
                     checks[action] = self.__runMoveToGlobusSanityCheck(
-                            package[index][action])
-                
+                        package[index][action]
+                    )
+
                 elif action == "move_from_globus_collection":
                     checks[action] = self.__runMoveFromGlobusSanityCheck(
-                            package[index][action])
+                        package[index][action]
+                    )
         return checks
 
     def process(self, arguments: list[dict]) -> dict:
@@ -647,7 +631,7 @@ class Globus(Plugin):
         # Example 1
         #
         # arguments = [
-        #   "transfer": 
+        #   "transfer":
         #       {
         #           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
         #           "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
@@ -742,7 +726,7 @@ class Globus(Plugin):
         for action_obj in arguments:
             # Make sure that the action is supported
             print("keys are")
-            #print(action_obj[0])
+            # print(action_obj[0])
 
             for key in action_obj:
                 print(key)
