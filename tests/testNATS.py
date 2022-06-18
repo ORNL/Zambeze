@@ -45,8 +45,7 @@ async def main():
         pass
 
     async def help_request(msg):
-        print(
-            f"Received a message on '{msg.subject} {msg.reply}': {msg.data.decode()}")
+        print(f"Received a message on '{msg.subject} {msg.reply}': {msg.data.decode()}")
         await nc.publish(msg.reply, b"I can help")
 
     # Use queue named 'workers' for distributing requests

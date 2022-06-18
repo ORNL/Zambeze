@@ -41,8 +41,7 @@ class Agent:
         :type activity: Activity
         """
         # TODO: evaluate activity and generate messages
-        asyncio.run(self.__send(MessageType.COMPUTE.value,
-                                activity.generate_message()))
+        asyncio.run(self.__send(MessageType.COMPUTE.value, activity.generate_message()))
 
         activity.status = ActivityStatus.QUEUED
 

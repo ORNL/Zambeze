@@ -166,8 +166,6 @@ def buildRemotePath(action_endpoint: dict) -> str:
 # Class
 #############################################################
 class Rsync(Plugin):
-    """Class serves as an example of a plugin"""
-
     def __init__(self):
         self.__name = "rsync"
         self.__configured = False
@@ -214,8 +212,8 @@ class Rsync(Plugin):
                 pass
             else:
                 raise Exception(
-                    "Unsupported rsync config option encountered: "
-                    f"{config_argument}")
+                    "Unsupported rsync config option encountered: " f"{config_argument}"
+                )
         self.__config = deepcopy(config)
 
     @property
@@ -306,8 +304,7 @@ class Rsync(Plugin):
                 # Ensure that at either the source or destination ip addresses
                 # are associated with the local machine
 
-                if not requiredSourceAndDestinationValuesValid(
-                        action_inst, match_host):
+                if not requiredSourceAndDestinationValuesValid(action_inst, match_host):
                     supported_actions[action_key] = False
                     continue
 
