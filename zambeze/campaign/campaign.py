@@ -48,8 +48,8 @@ class Campaign:
         self.logger.debug(f"Adding activity: {activity.name}")
         self.activities.append(activity)
 
-    def run(self) -> None:
-        """Run the set of current activities in the campaign."""
+    def dispatch(self) -> None:
+        """Dispatch the set of current activities in the campaign."""
         for activity in self.activities:
             self.logger.debug(f"Running activity: {activity.name}")
-            self.agent.run_activity(activity)
+            self.agent.dispatch_activity(activity)

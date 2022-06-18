@@ -6,7 +6,8 @@ import copy
 import os
 import pwd
 import pytest
-import random
+
+# import random
 import socket
 
 
@@ -194,3 +195,4 @@ def test_rsync_plugin_run():
         # Should be a single line
         random_int = int(lines[0])
         assert random_int == original_number
+

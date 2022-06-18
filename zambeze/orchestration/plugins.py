@@ -1,15 +1,25 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+
 # Required to occur first
 from __future__ import annotations
 
 # Local imports
-from .plugin_modules import plugin
+from .plugin_modules.abstract_plugin import Plugin
 
 # Standard imports
 from copy import deepcopy
 from importlib import import_module
 from inspect import isclass
 from pathlib import Path
+from typing import Optional
 
+import logging
 import pkgutil
 
 
@@ -17,32 +27,43 @@ class Plugins:
     """Plugins class takes care of managing all plugins.
 
     Plugins can be added as plugins by creating packages in the plugin_modules
+
+    :param logger: The logger where to log information/warning or errors.
+    :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self):
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         """Constructor"""
+        self.__logger: logging.Logger = (
+            logging.getLogger(__name__) if logger is None else logger
+        )
         self.__registerPlugins()
 
-    def __registerPlugins(self):
+    def __registerPlugins(self) -> None:
         """Will register all the plugins provided in the plugin_modules folder"""
         self._plugins = {}
+        module_names = []
 
         plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
             module = import_module(
                 f"zambeze.orchestration.plugin_modules.{module_name}"
             )
+            module_names.append(module_name)
             for attribute_name in dir(module):
                 potential_plugin = getattr(module, attribute_name)
                 if isclass(potential_plugin):
                     if (
-                        issubclass(potential_plugin, plugin.Plugin)
+                        issubclass(potential_plugin, Plugin)
                         and attribute_name != "Plugin"
                     ):
-                        self._plugins[attribute_name.lower()] = potential_plugin()
+                        self._plugins[attribute_name.lower()] = potential_plugin(
+                            logger=self.__logger
+                        )
+        self.__logger.debug(f"Registered Plugins: {', '.join(module_names)}")
 
     @property
-    def registered(self) -> list:
+    def registered(self) -> list[Plugin]:
         """List all plugins that have been registered.
 
         This method can be called at any time and is meant to simply display which
@@ -63,7 +84,7 @@ class Plugins:
         >>> shell
         >>> rsync
         """
-        plugins = []
+        plugins: list[Plugin] = []
         for key in self._plugins:
             plugins.append(deepcopy(key))
         return plugins
@@ -87,7 +108,8 @@ class Plugins:
 
         I.e. for plugins "globus" and "shell"
 
-        {   "globus": {
+        {
+            "globus": {
                 "authentication flow": {
                     "type": "credential flow",
                     "secret": "blahblah"
@@ -98,46 +120,12 @@ class Plugins:
             }
         }
 
-
         """
         for key in self._plugins:
             if key in config.keys():
                 obj = self._plugins.get(key)
                 obj.configure(config[key])
 
-    #                else:
-    #                    try:
-    #                        obj = self._plugins.get(key)
-    #                        obj.configure({})
-    #                    except Exception:
-    #                        print(
-    #                            f"Unable to configure plugin {key} missing "
-    #                            "configuration options."
-    #                        )
-    #                        raise
-    #       else:
-    #           for plugin_inst in plugins:
-    #               if plugin_inst in config.keys():
-    #                   self._plugins[plugin_inst.lower()].configure(
-    #                       config[plugin_inst.lower()]
-    #                   )
-    #                else:
-    #                    try:
-    #                        obj = self._plugins.get(plugin_inst)
-    #                        obj.configure({})
-    #                    except Exception:
-    #                        print(
-    #                            f"Unable to configure plugin {plugin_inst} "
-    #                            "missing configuration options."
-    #                        )
-    #                        print("Configuration has the following content")
-    #                        print(config)
-    #                        print(
-    #                            f"{plugin_inst} is not mentioned in the config so "
-    #                            "cannot associate configuration settings."
-    #                        )
-    #                        raise
-    #
     @property
     def configured(self) -> list[str]:
         """Will return a list of all the plugins that have been configured.
@@ -145,7 +133,7 @@ class Plugins:
         :return: list of all plugins that are ready to be run
         :rtype: list[str]
         """
-        configured_plugins = []
+        configured_plugins: list[str] = []
         for key in self._plugins:
             obj = self._plugins.get(key)
             if obj.configured:
@@ -218,26 +206,12 @@ class Plugins:
                     ].check({})
         return check_results
 
-    def run(self, arguments: dict, plugins: list[str] = ["all"]):
-        """Run the plugins specified.
+    def run(self, plugin_name: str, arguments: dict) -> None:
+        """Run a specific plugins.
 
-        :param arguments: the arguments to provide to each of the plugins that
-        are to be run
+        :param plugin_name: Plugin name
+        :type plugin_name: str
+        :param arguments: Plugin arguments
         :type arguments: dict
-        :param plugins: The list of all the plugins to run
-        :type plugins: list[str]
         """
-        if "all" in plugins:
-            for key in self._plugins:
-                if key in arguments.keys():
-                    # If a package was passed to be processed"
-                    self._plugins[key].process(arguments[key])
-                else:
-                    # else send an empty package"
-                    self._plugins[key].process({})
-        else:
-            for plugin_inst in plugins:
-                if plugin_inst in arguments.keys():
-                    self._plugins[plugin_inst.lower()].process(arguments[plugin_inst])
-                else:
-                    self._plugins[plugin_inst.lower()].process({})
+        self._plugins[plugin_name].process([arguments])

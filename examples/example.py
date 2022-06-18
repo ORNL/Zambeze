@@ -7,6 +7,7 @@
 # it under the terms of the MIT License.
 
 import logging
+import pathlib
 import time
 
 from zambeze import Campaign, ShellActivity
@@ -26,15 +27,26 @@ logger.addHandler(ch)
 campaign = Campaign("My ImageMagick Campaign", logger=logger)
 
 # define an activity
+curr_dir = pathlib.Path().resolve()
 activity = ShellActivity(
     name="ImageMagick",
-    files=[f"file://{i:02d}.jpg" for i in range(1, 11)],
+    files=[
+        f"file://{curr_dir}/../tests/campaigns/imagesequence/{i:02d}.jpg"
+        for i in range(1, 11)
+    ],
     command="convert",
-    arguments=["-delay", "20", "-loop", "0", "*.jpg", "a.gif"],
+    arguments=[
+        "-delay",
+        "20",
+        "-loop",
+        "0",
+        f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
+        "a.gif",
+    ],
     logger=logger,
 )
 campaign.add_activity(activity)
 
 # run the campaign
 time.sleep(1)
-campaign.run()
+campaign.dispatch()
