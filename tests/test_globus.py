@@ -17,12 +17,12 @@ def test_globus_basic1():
 
     """Requires that the env variable is provided"""
     configuration = {
-            "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-            "authentication flow": {
-                "type": "client credential",
-                "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
-                },
-            }
+        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication flow": {
+            "type": "client credential",
+            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+        },
+    }
 
     globus_plugin.configure(configuration)
 
@@ -43,19 +43,19 @@ def test_globus_basic2():
     in order for the move to globus endpoint and move from
     globus endpoint to local posix file system to work."""
     configuration = {
-            "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-            "authentication flow": {
-                "type": "client credential",
-                "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
-                },
-            "collections": [
-                {
-                    "UUID": "57281195-1495-4995-a777-52bd5d16ee7e",
-                    "path": "/home/cades/Collections/default",
-                    "type": "mapped"
-                    }
-                ],
+        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication flow": {
+            "type": "client credential",
+            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+        },
+        "collections": [
+            {
+                "UUID": "57281195-1495-4995-a777-52bd5d16ee7e",
+                "path": "/home/cades/Collections/default",
+                "type": "mapped",
             }
+        ],
+    }
 
     globus_plugin.configure(configuration)
 
@@ -65,19 +65,19 @@ def test_globus_basic2():
 @pytest.mark.globus
 def test_globus_move_check():
     configuration = {
-            "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-            "authentication flow": {
-                "type": "client credential",
-                "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
-                },
-            "collections": [
-                {
-                    "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
-                    "path": "/home/cades/Collections/default",
-                    "type": "mapped"
-                    }
-                ],
+        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication flow": {
+            "type": "client credential",
+            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+        },
+        "collections": [
+            {
+                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
+                "path": "/home/cades/Collections/default",
+                "type": "mapped",
             }
+        ],
+    }
 
     globus_plugin = globus.Globus()
     globus_plugin.configure(configuration)
@@ -93,21 +93,21 @@ def test_globus_move_check():
     file_path = current_valid_path + "/" + file_name
 
     package = [
-            {
-                "move_to_globus_collection": {
-                    "destination_collection_UUID": os.getenv(
-                        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
-                        ),
-                    "source_host_name": socket.gethostname(),
-                    "items": [
-                        {
-                            "source": {"type": "posix absolute", "path": file_path},
-                            "destination": {"type": "globus relative", "path": "/"},
-                            }
-                        ],
+        {
+            "move_to_globus_collection": {
+                "destination_collection_UUID": os.getenv(
+                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+                ),
+                "source_host_name": socket.gethostname(),
+                "items": [
+                    {
+                        "source": {"type": "posix absolute", "path": file_path},
+                        "destination": {"type": "globus relative", "path": "/"},
                     }
-                }
-            ]
+                ],
+            }
+        }
+    ]
 
     assert globus_plugin.check(package)
 
@@ -115,19 +115,19 @@ def test_globus_move_check():
 @pytest.mark.globus
 def test_globus_transfer_check():
     configuration = {
-            "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-            "authentication flow": {
-                "type": "client credential",
-                "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
-                },
-            "collections": [
-                {
-                    "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
-                    "path": "/home/cades/Collections/default",
-                    "type": "mapped"
-                    }
-                ],
+        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication flow": {
+            "type": "client credential",
+            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+        },
+        "collections": [
+            {
+                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
+                "path": "/home/cades/Collections/default",
+                "type": "mapped",
             }
+        ],
+    }
 
     globus_plugin = globus.Globus()
     globus_plugin.configure(configuration)
@@ -142,42 +142,41 @@ def test_globus_transfer_check():
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
 
-    package = [{
-        "move_to_globus_collection": {
-            "destination_collection_UUID": os.getenv(
-                "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+    package = [
+        {
+            "move_to_globus_collection": {
+                "destination_collection_UUID": os.getenv(
+                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
                 ),
-            "source_host_name": socket.gethostname(),
-            "items": [
-                {
-                    "source": {"type": "posix absolute", "path": file_path},
-                    "destination": {"type": "globus relative", "path": "/"},
+                "source_host_name": socket.gethostname(),
+                "items": [
+                    {
+                        "source": {"type": "posix absolute", "path": file_path},
+                        "destination": {"type": "globus relative", "path": "/"},
                     }
                 ],
             }
         },
         {
-        "transfer": {
-            "source_collection_UUID": os.getenv(
-                "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
-            "destination_collection_UUID": os.getenv(
-                "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
-            "type": "synchronous",
-            "items": [
-                {
-                    "source": {
-                        "type": "globus relative",
-                        "path": "/" + file_name
+            "transfer": {
+                "source_collection_UUID": os.getenv(
+                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+                ),
+                "destination_collection_UUID": os.getenv(
+                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"
+                ),
+                "type": "synchronous",
+                "items": [
+                    {
+                        "source": {"type": "globus relative", "path": "/" + file_name},
+                        "destination": {
+                            "type": "globus relative",
+                            "path": "/" + file_name,
                         },
-                    "destination": {
-                        "type": "globus relative",
-                        "path": "/" + file_name
-                        }
                     }
-                ]
-
+                ],
             }
-        }
+        },
     ]
     assert globus_plugin.check(package)
 
@@ -189,24 +188,24 @@ def test_globus_process():
     path_to_endpoint_shared = "/home/cades/Collections/default/shared"
 
     configuration = {
-            "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-            "authentication flow": {
-                "type": "client credential",
-                "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
-                },
-            "collections": [
-                {
-                    "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
-                    "path": path_to_endpoint,
-                    "type": "mapped"
-                    },
-                {
-                    "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
-                    "path": path_to_endpoint_shared,
-                    "type": "guest"
-                    }
-                ],
-            }
+        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication flow": {
+            "type": "client credential",
+            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+        },
+        "collections": [
+            {
+                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
+                "path": path_to_endpoint,
+                "type": "mapped",
+            },
+            {
+                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
+                "path": path_to_endpoint_shared,
+                "type": "guest",
+            },
+        ],
+    }
 
     globus_plugin = globus.Globus()
     globus_plugin.configure(configuration)
@@ -229,7 +228,7 @@ def test_globus_process():
             "move_to_globus_collection": {
                 "destination_collection_UUID": os.getenv(
                     "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
-                    ),
+                ),
                 "source_host_name": socket.gethostname(),
                 "items": [
                     {
@@ -237,7 +236,7 @@ def test_globus_process():
                         "destination": {
                             "type": "globus relative",
                             "path": relative_destination_file_path,
-                        }
+                        },
                     }
                 ],
             }
@@ -245,40 +244,38 @@ def test_globus_process():
         {
             "transfer": {
                 "source_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
+                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+                ),
                 "destination_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
+                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"
+                ),
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": {
-                            "type": "globus relative",
-                            "path": "/" + file_name
-                        },
+                        "source": {"type": "globus relative", "path": "/" + file_name},
                         "destination": {
                             "type": "globus relative",
-                            "path": "/" + file_name
-                        }
+                            "path": "/" + file_name,
+                        },
                     }
-                ]
+                ],
             }
-        }
+        },
     ]
 
     # This test is designed to move a file to the globus endpoint
     # So before we get started we are going to make sure that a file
     # does not already exist at that location
     abs_path_destination = (
-            path_to_endpoint + relative_destination_file_path +
-            os.path.basename(file_path)
-            )
+        path_to_endpoint + relative_destination_file_path + os.path.basename(file_path)
+    )
     # After it gets transferred using globus it should end up moving to the subfolder
     abs_path_destination_shared = (
-            path_to_endpoint
-            + relative_destination_file_path
-            + "shared/"
-            + os.path.basename(file_path)
-            )
+        path_to_endpoint
+        + relative_destination_file_path
+        + "shared/"
+        + os.path.basename(file_path)
+    )
     if os.path.exists(abs_path_destination):
         os.remove(abs_path_destination)
     if os.path.exists(abs_path_destination_shared):

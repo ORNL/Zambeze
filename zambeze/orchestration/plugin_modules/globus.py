@@ -22,6 +22,106 @@ import re
 import shutil
 
 
+def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
+    """Check that the approprite keys and values exist in the endpoint
+
+    param item: these are the values that help define either the source or
+    destination
+    type item: dict
+    param supported_types: Supported types, defines what values are allowed
+    type supported_types: list[str]
+    rtype: bool
+
+    This function will return False if the item provided is missing a required
+    key or provides an inappropriate value. The required keys for an endpoint
+    include:
+        * type - which can be one of three possible values:
+        ["globus relative", "posix absolute", "posix user home"]
+        * path - this is the path to the item and is required when conducting
+        a transfer.
+
+    Example
+
+    item = {
+        "type": "globus relative",
+        "path": "/file1.txt"
+    }
+
+    assert checkEndpoint(item)
+    """
+    if "type" not in item:
+        return False
+    else:
+        # Only "globus relative" path type supported
+        if item["type"] not in supported_types:
+            return False
+
+    if "path" not in item:
+        return False
+
+    return True
+
+
+def checkAllItemsHaveValidEndpoints(
+    action_package: dict,
+    supported_source_path_types: list[str],
+    supported_destination_path_types: list[str],
+) -> bool:
+    """Check that all items that are too be moved are schematically correct
+
+    Example:
+
+    Provided a list of items to be moved
+
+    items = [
+        {
+            "source": {
+                "type": "posix absolute",
+                "path": "/home/cades/file.txt"
+            },
+            "destination": {
+                "type": "globus relative",
+                "path": "/"
+            },
+        },
+        {
+            "source": {
+                "type": "posix absolute",
+                "path": "/home/cades/file2.jpeg"
+            },
+            "destination": {
+                "type": "globus relative",
+                "path": "/sub_folder/file2.jpeg"
+            },
+        }
+    ]
+
+    supported_source_path_types = ["posix absolute", "posix user home"]
+    supported_destination_path_types = ["globus relative"]
+
+    assert checkAllItemsHaveValidEndpoints(
+        items,
+        supported_source_path_types,
+        supported_destination_path_types)
+    """
+    for item in action_package["items"]:
+        if "source" not in item:
+            return False
+        if "destination" not in item:
+            return False
+
+        if not checkEndpoint(item["source"], supported_source_path_types):
+            return False
+        if not checkEndpoint(item["destination"], supported_destination_path_types):
+            return False
+
+        if item["source"]["type"] == "posix absolute":
+            if not exists(item["source"]["path"]):
+                return False
+
+    return True
+
+
 class Globus(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(logger=logger)
@@ -248,6 +348,7 @@ class Globus(Plugin):
 
         for item in action_package["items"]:
             source = ""
+
             if item["source"]["type"] == "posix absolute":
                 source = item["source"]["path"]
             else:
@@ -281,27 +382,13 @@ class Globus(Plugin):
                 if "source" not in item:
                     return False
                 else:
-                    if "type" not in item["source"]:
-                        return False
-                    else:
-                        # Only "globus relative" path type supported
-                        if "globus relative" != item["source"]["type"]:
-                            return False
-
-                    if "path" not in item["source"]:
+                    if not checkEndpoint(item["source"], ["globus relative"]):
                         return False
 
                 if "destination" not in item:
                     return False
                 else:
-                    if "type" not in item["destination"]:
-                        return False
-                    else:
-                        # Only "globus relative" path type supported
-                        if "globus relative" != item["destination"]["type"]:
-                            return False
-
-                    if "path" not in item["destination"]:
+                    if not checkEndpoint(item["destination"], ["globus relative"]):
                         return False
         return True
 
@@ -320,39 +407,11 @@ class Globus(Plugin):
         if self.__hostname != action_package["source_host_name"]:
             return False
 
-        for item in action_package["items"]:
-            if "source" not in item:
-                return False
-
-            if "type" not in item["source"]:
-                return False
-            else:
-                if item["source"]["type"] not in supported_source_path_types:
-                    return False
-            # Check if the item path is valid for the file
-            if "path" not in item["source"]:
-                return False
-            if item["source"]["type"] == "posix absolute":
-                if not exists(item["source"]["path"]):
-                    return False
-
-            if "destination" not in item:
-                return False
-
-            # Check if the item path is valid for the file
-            if "type" not in item["destination"]:
-                return False
-            else:
-                if item["destination"]["type"] not in supported_destination_path_types:
-                    return False
-
-            if "path" not in item["destination"]:
-                return False
-            if item["source"]["type"] == "posix absolute":
-                if not exists(item["destination"]["path"]):
-                    return False
-
-        return True
+        return checkAllItemsHaveValidEndpoints(
+            action_package,
+            supported_source_path_types,
+            supported_destination_path_types,
+        )
 
     def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> bool:
         # action_package = {
@@ -394,33 +453,11 @@ class Globus(Plugin):
         if self.__hostname != action_package["destination_host_name"]:
             return False
 
-        for item in action_package["items"]:
-            if "source" not in item:
-                return False
-            # Check if the item path is valid for the file
-            if "type" not in item["source"]:
-                return False
-            else:
-                if item["source"]["type"] not in supported_source_path_types:
-                    return False
-
-            if item["source"]["type"] == "posix absolute":
-                if "path" not in item["source"]:
-                    return False
-
-            if "destination" not in item:
-                return False
-            # Check if the item path is valid for the file
-            if "type" not in item["destination"]:
-                return False
-            else:
-                if item["destination"]["type"] not in supported_destination_path_types:
-                    return False
-
-            if "path" not in item["destination"]:
-                return False
-
-        return True
+        return checkAllItemsHaveValidEndpoints(
+            action_package,
+            supported_source_path_types,
+            supported_destination_path_types,
+        )
 
     ###################################################################################
     # Public Methods
