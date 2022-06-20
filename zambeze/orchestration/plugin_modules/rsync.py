@@ -249,7 +249,7 @@ class Rsync(Plugin):
 
         return {
             "configured": self.__configured,
-            "supported actions": supported_actions,
+            "supported_actions": supported_actions,
             "hostname": self.__hostname,
             "local_ip": self.__local_ip,
             "ssh_key": self.__ssh_key,
