@@ -252,10 +252,10 @@ class Rsync(Plugin):
 
         return {
             "configured": self.__configured,
-            "supported actions": supported_actions,
+            "supported_actions": supported_actions,
             "hostname": self.__hostname,
-            "local ip": self.__local_ip,
-            "ssh key": self.__ssh_key,
+            "local_ip": self.__local_ip,
+            "ssh_key": self.__ssh_key,
         }
 
     def check(self, arguments: list[dict]) -> dict:
@@ -271,19 +271,20 @@ class Rsync(Plugin):
         }
 
         arguments = [
-            { "transfer": {
-                "source" : {
-                    "ip": "128.219.183.34",
+            {
+                "transfer": {
+                    "source" : {
+                        "ip": "128.219.183.34",
                         "user: "",
                         "path: "",
-                },
+                    },
                     "destination": {
                         "ip": "172.231.41.3",
                         "user: "",
                         "path: "",
                     }
-                "arguments": ["argument1","argument2"]
-                        }
+                    "arguments": ["argument1","argument2"]
+                }
             }
         ]
 

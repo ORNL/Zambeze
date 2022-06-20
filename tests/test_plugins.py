@@ -67,11 +67,11 @@ def test_rsync_plugin_info():
     info = plugins.info
 
     assert info["rsync"]["configured"]
-    assert info["rsync"]["supported actions"][0] == "transfer"
+    assert info["rsync"]["supported_actions"][0] == "transfer"
 
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
-    assert info["rsync"]["local ip"] == local_ip
+    assert info["rsync"]["local_ip"] == local_ip
 
 
 @pytest.mark.unit
