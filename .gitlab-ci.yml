@@ -12,7 +12,7 @@ test-zambeze:
     - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
     - /opt/anaconda3/bin/python3 -m pytest -m gitlab_runner -sv
 
-test-zambeze:
+test-zambeze-globus:
   stage: test
   tags:
     - globus1
