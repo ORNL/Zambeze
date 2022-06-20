@@ -152,21 +152,21 @@ class Globus(Plugin):
     def __validConfig(self, config: dict):
         """Purpose of this method is to determine if the coniguration is correct"""
 
-        if "authentication flow" not in config:
+        if "authentication_flow" not in config:
             raise Exception(
-                "'authentication flow' key value missing from config"
-                "config must have 'authentication flow' specified"
+                "'authentication_flow' key value missing from config"
+                "config must have 'authentication_flow' specified"
             )
 
         # Check that the authentication flow is supported
-        if "native" == config["authentication flow"]["type"]:
+        if "native" == config["authentication_flow"]["type"]:
             self.__flow = "native"
-        elif "client credential" == config["authentication flow"]["type"]:
+        elif "client credential" == config["authentication_flow"]["type"]:
             self.__flow = "client credential"
         else:
             raise Exception(
                 "Unsupported authentication flow detected "
-                f"{config['authentication flow']['type']}"
+                f"{config['authentication_flow']['type']}"
             )
 
         # Check that the UUIDs are correct
@@ -252,9 +252,9 @@ class Globus(Plugin):
         print(json.dumps(config, indent=4))
         confidential_client = globus_sdk.ConfidentialAppAuthClient(
             client_id=self.__client_id,
-            client_secret=config["authentication flow"]["secret"],
+            client_secret=config["authentication_flow"]["secret"],
         )
-        print(f"client secret: {config['authentication flow']['secret']}")
+        print(f"client secret: {config['authentication_flow']['secret']}")
         self.__authorizer = globus_sdk.ClientCredentialsAuthorizer(
             confidential_client, self.__scopes
         )
@@ -476,17 +476,17 @@ class Globus(Plugin):
               { "UUID": "", "path": "", "type": "guest"},
               { "UUID": "", "path": "", "type": "mapped"}
           ],
-          "authentication flow": {
+          "authentication_flow": {
               "type": "'native' or 'client credential'"
               "secret": "blahblah"
           },
-          "client id": "UUID"
+          "client_id": "UUID"
         }
         """
         self.__validConfig(config)
 
-        if "client id" in config:
-            self.__client_id = config["client id"]
+        if "client_id" in config:
+            self.__client_id = config["client_id"]
 
         # Detect hostname
         self.__hostname = gethostname()
@@ -556,9 +556,9 @@ class Globus(Plugin):
             "       { 'UUID': '', 'path': ''},\n"
             "       { 'UUID': '', 'path': ''}\n"
             "   ],\n"
-            "   'authentication flow': {\n"
+            "   'authentication_flow': {\n"
             "       'type': 'native or client credential',\n"
-            "       'client id': '',\n"
+            "       'client_id': '',\n"
             "       'secret': ''\n"
             " }\n"
         )
@@ -584,7 +584,7 @@ class Globus(Plugin):
                 supported_actions.append(action)
 
         information["actions"] = supported_actions
-        information["authentication flow type"] = self.__flow
+        information["authentication_flow"] = self.__flow
         information["hostname"] = self.__hostname
         information["configured"] = self.__configured
         return information

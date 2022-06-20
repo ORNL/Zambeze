@@ -17,8 +17,8 @@ def test_globus_basic1():
 
     """Requires that the env variable is provided"""
     configuration = {
-        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-        "authentication flow": {
+        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication_flow": {
             "type": "client credential",
             "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
         },
@@ -43,8 +43,8 @@ def test_globus_basic2():
     in order for the move to globus endpoint and move from
     globus endpoint to local posix file system to work."""
     configuration = {
-        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-        "authentication flow": {
+        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication_flow": {
             "type": "client credential",
             "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
         },
@@ -65,8 +65,8 @@ def test_globus_basic2():
 @pytest.mark.globus
 def test_globus_move_check():
     configuration = {
-        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-        "authentication flow": {
+        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication_flow": {
             "type": "client credential",
             "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
         },
@@ -115,8 +115,8 @@ def test_globus_move_check():
 @pytest.mark.globus
 def test_globus_transfer_check():
     configuration = {
-        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-        "authentication flow": {
+        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication_flow": {
             "type": "client credential",
             "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
         },
@@ -188,8 +188,8 @@ def test_globus_process():
     path_to_endpoint_shared = "/home/cades/Collections/default/shared"
 
     configuration = {
-        "client id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
-        "authentication flow": {
+        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "authentication_flow": {
             "type": "client credential",
             "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
         },
