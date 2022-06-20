@@ -463,26 +463,26 @@ class Globus(Plugin):
     # Public Methods
     ###################################################################################
     def configure(self, config: dict):
-        # When configuring should provide the endpoint id(s) located on
-        # the same machine where the Zambeze agent is running along with
-        # their paths on the posix system
-        #
-        # One should NOT define collecitons that are not local to where the python
-        # script are running. The colletions posix endpoint must be viewable from
-        # the point of view of this script.
-        #
-        # config = {
-        #   "collections": [
-        #       { "UUID": "", "path": "", "type": "guest"},
-        #       { "UUID": "", "path": "", "type": "mapped"}
-        #   ],
-        #   "authentication flow": {
-        #       "type": "'native' or 'client credential'"
-        #       "secret": "blahblah"
-        #   },
-        #   "client id": "UUID"
-        # }
-        #
+        """ When configuring should provide the endpoint id(s) located on
+        the same machine where the Zambeze agent is running along with
+        their paths on the posix system
+
+        One should NOT define collecitons that are not local to where the python
+        script are running. The colletions posix endpoint must be viewable from
+        the point of view of this script.
+
+        config = {
+          "collections": [
+              { "UUID": "", "path": "", "type": "guest"},
+              { "UUID": "", "path": "", "type": "mapped"}
+          ],
+          "authentication flow": {
+              "type": "'native' or 'client credential'"
+              "secret": "blahblah"
+          },
+          "client id": "UUID"
+        }
+        """
         self.__validConfig(config)
 
         if "client id" in config:
