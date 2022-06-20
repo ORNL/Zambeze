@@ -15,7 +15,7 @@ test-zambeze:
 test-zambeze:
   stage: test
   tags:
-    - globus
+    - globus1
   script:
     - /opt/anaconda3/bin/python3 -m pip install -r requirements.txt
     - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
