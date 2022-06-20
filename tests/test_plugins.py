@@ -64,7 +64,7 @@ def test_rsync_service_info():
 
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
-    assert info["rsync"]["local ip"] == local_ip
+    assert info["rsync"]["local_ip"] == local_ip
 
 
 @pytest.mark.unit
