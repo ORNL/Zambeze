@@ -28,13 +28,13 @@ def getMappedCollections(config: dict) -> list[str]:
     Example:
 
     config = {
-        collections = [
+        "collections": [
             { "UUID": "XXXX...XXXX", "path": "/here/file", "type": "guest"},
             { "UUID": "YYYY...YYYY", "path": "/there/file2", "type": "mapped"}
         ]
     }
 
-    mapped_coll = self.__getMappedCollections(collections)
+    mapped_coll = getMappedCollections(config)
 
     print(mapped_coll)
 
@@ -58,7 +58,7 @@ def is_36char(item: str):
 def getGlobusScopes(mapped_collections: list[str]) -> str:
     """Get the globus scopes needed to access the mapped collections
 
-    param mapped_collections: This should contain the UUIDs of only mapped 
+    param mapped_collections: This should contain the UUIDs of only mapped
     collections
     type mapped_collections: list[str]
 
@@ -99,7 +99,7 @@ def getGlobusScopes(mapped_collections: list[str]) -> str:
             if index < len(mapped_collections):
                 scopes = scopes + " "
                 index = index + 1
-            scopes = scopes + "]"
+        scopes = scopes + "]"
     return scopes
 
 
@@ -134,7 +134,7 @@ def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
         return False
     else:
         # Only "globus relative" path type supported
-        if item["type"] not in supported_types:
+        if item["type"].lower() not in supported_types:
             return False
 
     if "path" not in item:
@@ -144,11 +144,14 @@ def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
 
 
 def checkAllItemsHaveValidEndpoints(
-    action_package: dict,
+    items: list[dict],
     supported_source_path_types: list[str],
     supported_destination_path_types: list[str],
 ) -> bool:
     """Check that all items that are too be moved are schematically correct
+
+    return: Returns true if the schema of the items is valid and false otherwise
+    rtype: bool
 
     Example:
 
@@ -185,7 +188,7 @@ def checkAllItemsHaveValidEndpoints(
         supported_source_path_types,
         supported_destination_path_types)
     """
-    for item in action_package["items"]:
+    for item in items:
         if "source" not in item:
             return False
         if "destination" not in item:
@@ -196,7 +199,7 @@ def checkAllItemsHaveValidEndpoints(
         if not checkEndpoint(item["destination"], supported_destination_path_types):
             return False
 
-        if item["source"]["type"] == "posix absolute":
+        if item["source"]["type"].lower() == "posix absolute":
             if not exists(item["source"]["path"]):
                 return False
 
@@ -240,9 +243,9 @@ class Globus(Plugin):
             )
 
         # Check that the authentication flow is supported
-        if "native" == config["authentication_flow"]["type"]:
+        if "native" == config["authentication_flow"]["type"].lower():
             self.__flow = "native"
-        elif "client credential" == config["authentication_flow"]["type"]:
+        elif "client credential" == config["authentication_flow"]["type"].lower():
             self.__flow = "client credential"
         else:
             raise Exception(
@@ -253,7 +256,6 @@ class Globus(Plugin):
         # Check that the UUIDs are correct
         if "collections" in config:
             for local_collection in config["collections"]:
-                print(local_collection)
                 if not validUUID(local_collection["UUID"]):
                     raise Exception("Invalid UUID detected in plugin.")
                 if not exists(local_collection["path"]):
@@ -345,33 +347,34 @@ class Globus(Plugin):
     # Run methods
     # -----------
     def __runTransfer(self, transfer: dict):
-        # transfer dict must have the following format
-        #
-        # {
-        #     "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-        #     "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
-        #     "type": "synchronous",
-        #     "items": [
-        #         { "source": {
-        #               "type": "globus relative",
-        #               "path": "/file1.txt"
-        #               },
-        #           "destination": {
-        #               "type": "globus relative",
-        #               "path": "dest/file1.txt"
-        #               }
-        #         },
-        #         { "source": {
-        #               "type": "globus relative",
-        #               "path": "/file2.txt"
-        #               },
-        #           "destination": {
-        #               "type": "globus relative",
-        #               "path": "dest/file2.txt"
-        #               }
-        #         }
-        #     ]
-        # }
+        """transfer dict must have the following format
+
+        {
+            "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+            "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+            "type": "synchronous",
+            "items": [
+                { "source": {
+                      "type": "globus relative",
+                      "path": "/file1.txt"
+                      },
+                  "destination": {
+                      "type": "globus relative",
+                      "path": "dest/file1.txt"
+                      }
+                },
+                { "source": {
+                      "type": "globus relative",
+                      "path": "/file2.txt"
+                      },
+                  "destination": {
+                      "type": "globus relative",
+                      "path": "dest/file2.txt"
+                      }
+                }
+            ]
+        }
+        """
         tdata = globus_sdk.TransferData(
             self.__tc,
             transfer["source_collection_UUID"],
@@ -387,41 +390,46 @@ class Globus(Plugin):
 
         transfer_result = self.__tc.submit_transfer(tdata)
 
-        if "synchronous" == transfer["type"]:
+        if "synchronous" == transfer["type"].lower():
             task_id = transfer_result["task_id"]
             while not self.__tc.task_wait(task_id, timeout=60):
                 print("Another minute went by without {0} terminating".format(task_id))
         return transfer_result
 
     def __runMoveToGlobusCollection(self, action_package: dict):
-        """Method is designed to move a local file to a Globus collection"""
-        # move dict must have the following format
-        # {
-        #     "source_host_name": "",
-        #     "destination_collection_UUID": ""
-        #     "items": [
-        #         {
-        #           "source": {
-        #               "type": "posix users home",
-        #               "path": "/file1.txt"
-        #               },
-        #           "destination": {
-        #               "type": "globus relative",
-        #               "path": "dest/file1.txt"
-        #               }
-        #         },
-        #         {
-        #           "source": {
-        #               "type": "posix users home",
-        #               "path": "/file2.txt"
-        #               },
-        #           "destination": {
-        #               "type": "globus relative",
-        #               "path": "dest/file2.txt"
-        #               }
-        #         }
-        #     ]
-        # }
+        """Method is designed to move a local file to a Globus collection
+
+        Example:
+
+        "action_package" dict must have the following format
+
+        action_package = {
+            "source_host_name": "",
+            "destination_collection_UUID": ""
+            "items": [
+                {
+                  "source": {
+                      "type": "posix users home",
+                      "path": "/file1.txt"
+                      },
+                  "destination": {
+                      "type": "globus relative",
+                      "path": "dest/file1.txt"
+                      }
+                },
+                {
+                  "source": {
+                      "type": "posix users home",
+                      "path": "/file2.txt"
+                      },
+                  "destination": {
+                      "type": "globus relative",
+                      "path": "dest/file2.txt"
+                      }
+                }
+            ]
+        }
+        """
         endpoint_path = ""
         for endpoint in self.__collections:
             if endpoint["UUID"] == action_package["destination_collection_UUID"]:
@@ -430,7 +438,7 @@ class Globus(Plugin):
         for item in action_package["items"]:
             source = ""
 
-            if item["source"]["type"] == "posix absolute":
+            if item["source"]["type"].lower() == "posix absolute":
                 source = item["source"]["path"]
             else:
                 print("only posix absolute is currently supported")
@@ -489,7 +497,7 @@ class Globus(Plugin):
             return False
 
         return checkAllItemsHaveValidEndpoints(
-            action_package,
+            action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,
         )
@@ -544,7 +552,7 @@ class Globus(Plugin):
             return False
 
         return checkAllItemsHaveValidEndpoints(
-            action_package,
+            action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,
         )
@@ -630,14 +638,23 @@ class Globus(Plugin):
     def help(self) -> str:
         message = (
             "Plugin globus when configured takes the following options\n"
+            "\n"
             "'collections': [\n"
-            "       { 'UUID': '', 'path': ''},\n"
-            "       { 'UUID': '', 'path': ''}\n"
+            "       {\n"
+            "           'UUID': 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',\n"
+            "           'path': '/path/to/collection/on/posix/system',\n"
+            "           'type': 'mapped'\n"
+            "       },\n"
+            "       {\n"
+            "           'UUID': 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY',\n"
+            "           'path': '/path/to/collection/on/posix/system2',\n"
+            "           'type': 'guest'\n"
+            "       }\n"
             "   ],\n"
             "   'authentication_flow': {\n"
             "       'type': 'native or client credential',\n"
-            "       'client_id': '',\n"
-            "       'secret': ''\n"
+            "       'client_id': 'ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ',\n"
+            "       'secret': 'my_secret'\n"
             " }\n"
         )
         return message
@@ -735,116 +752,114 @@ class Globus(Plugin):
         return checks
 
     def process(self, arguments: list[dict]) -> dict:
+        """Specify the path of the file as it appears in the Globus Collection
+        Specify the source collection UUID
+        Specify the path of the file as it appears in the final Globus Collection
+        specify the destination collection UUID
 
+        Example 1
+
+        arguments = [
+          "transfer":
+              {
+                  "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+                  "destination_collection_UUID":
+                                            "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+                  "items": [
+                        {
+                            "source": {
+                                  "type": "globus relative",
+                                  "path": "/file1.txt"
+                                  },
+                            "destination": {
+                                  "type": globus relative",
+                                  "path": "dest/file1.txt"
+                                  }
+                        },
+                        {
+                            "source": {
+                                  "type": "globus relative",
+                                  "path": "/file2.txt"
+                                  },
+                            "destination": {
+                                  "type": "globus relative",
+                                  "path": "dest/file2.txt"
+                                  }
+                        }
+                  ]
+              }
+          }
+        ]
+
+        Example 2
+
+        arguments = [
+          "move_to_globus_collection": {
+              "source_host_name": "",
+              "destination_collection_UUID": "",
+              "items": [
+                  {
+                      "source": {
+                          "type": "posix user home",
+                          "path": "/file1.txt"
+                          },
+                      "destination": {
+                          "type": "globus relative",
+                          "path": "dest/file1.txt"
+                          }
+                  },
+                  {
+                      "source": {
+                          "type": "posix absolute",
+                          "path": "/home/cades/file2.txt"
+                          },
+                      "destination": {
+                          "type": "globus relative",
+                          "path": "dest/file2.txt"
+                          }
+                  }
+              ]
+          }
+        ]
+
+        Example 3
+
+        arguments = [
+          "move_from_globus_collection": {
+              "source_host_name": "",
+              "destination_collection_UUID": "",
+              "items": [
+                  {
+                      "source": {
+                          "type": "globus relative",
+                          "path": "dest/file1.txt"
+                          },
+                      "destination": {
+                          "type": "posix user home",
+                          "path": "/file1.txt"
+                          }
+                  },
+                  {
+                      "source": {
+                          "type": "globus relative",
+                          "path": "dest/file2.txt"
+                          },
+                      "destination": {
+                          "type": "posix user home",
+                          "path": "/file2.txt"
+                          }
+                  }
+              ]
+          }
+        ]
+        """
         if not self.__configured:
             raise Exception("Cannot run globus plugin, must first be configured.")
 
         print("Running Globus plugin")
-        # Specify the path of the file as it appears in the Globus Collection
-        # Specify the source collection UUID
-        # Specify the path of the file as it appears in the final Globus Collection
-        # specify the destination collection UUID
-        #
-        # Example 1
-        #
-        # arguments = [
-        #   "transfer":
-        #       {
-        #           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-        #           "destination_collection_UUID":
-        #                                     "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
-        #           "items": [
-        #                 {
-        #                     "source": {
-        #                           "type": "globus relative",
-        #                           "path": "/file1.txt"
-        #                           },
-        #                     "destination": {
-        #                           "type": globus relative",
-        #                           "path": "dest/file1.txt"
-        #                           }
-        #                 },
-        #                 {
-        #                     "source": {
-        #                           "type": "globus relative",
-        #                           "path": "/file2.txt"
-        #                           },
-        #                     "destination": {
-        #                           "type": "globus relative",
-        #                           "path": "dest/file2.txt"
-        #                           }
-        #                 }
-        #           ]
-        #       }
-        #   }
-        # ]
-        #
-        # Example 2
-        #
-        # arguments = [
-        #   "move_to_globus_collection": {
-        #       "source_host_name": "",
-        #       "destination_collection_UUID": "",
-        #       "items": [
-        #           {
-        #               "source": {
-        #                   "type": "posix user home",
-        #                   "path": "/file1.txt"
-        #                   },
-        #               "destination": {
-        #                   "type": "globus relative",
-        #                   "path": "dest/file1.txt"
-        #                   }
-        #           },
-        #           {
-        #               "source": {
-        #                   "type": "posix absolute",
-        #                   "path": "/home/cades/file2.txt"
-        #                   },
-        #               "destination": {
-        #                   "type": "globus relative",
-        #                   "path": "dest/file2.txt"
-        #                   }
-        #           }
-        #       ]
-        #   }
-        # ]
-        #
-        # Example 3
-        #
-        # arguments = [
-        #   "move_from_globus_collection": {
-        #       "source_host_name": "",
-        #       "destination_collection_UUID": "",
-        #       "items": [
-        #           {
-        #               "source": {
-        #                   "type": "globus relative",
-        #                   "path": "dest/file1.txt"
-        #                   },
-        #               "destination": {
-        #                   "type": "posix user home",
-        #                   "path": "/file1.txt"
-        #                   }
-        #           },
-        #           {
-        #               "source": {
-        #                   "type": "globus relative",
-        #                   "path": "dest/file2.txt"
-        #                   },
-        #               "destination": {
-        #                   "type": "posix user home",
-        #                   "path": "/file2.txt"
-        #                   }
-        #           }
-        #       ]
-        #   }
-        # ]
 
         for action_obj in arguments:
             # Make sure that the action is supported
-            print("keys are")
-            # print(action_obj[0])
 
             for key in action_obj:
                 print(key)

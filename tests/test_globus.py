@@ -8,6 +8,125 @@ import random
 import socket
 
 
+@pytest.mark.unit
+def test_getMappedCollections():
+    config = {
+        "collections": [
+            {
+                "UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+                "path": "/here/file",
+                "type": "guest",
+            },
+            {
+                "UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+                "path": "/there/file2",
+                "type": "mapped",
+            },
+        ]
+    }
+
+    mapped_coll_UUIDs = globus.getMappedCollections(config)
+
+    assert len(mapped_coll_UUIDs) == 1
+    assert mapped_coll_UUIDs[0] == "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY"
+
+
+@pytest.mark.unit
+def test_getGlobusScopes():
+    mapped_collections = []
+    scopes = globus.getGlobusScopes(mapped_collections)
+    assert scopes == "urn:globus:auth:scope:transfer.api.globus.org:all"
+
+    # These are invalid entries so they will be ignored
+    mapped_collections = ["", "XXXX"]
+    scopes = globus.getGlobusScopes(mapped_collections)
+    assert scopes == "urn:globus:auth:scope:transfer.api.globus.org:all"
+
+    # Though the middle entry is not really a valid UUID it is 36 chars so
+    # it should be passed as a valid scope
+    mapped_collections = [
+        "",
+        "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+        "XXXX",
+        "ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ",
+    ]
+
+    scopes = globus.getGlobusScopes(mapped_collections)
+
+    correct_scopes = "urn:globus:auth:scope:transfer.api.globus.org:all\
+[*https://auth.globus.org/scopes/\
+YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/data_access\
+ *https://auth.globus.org/scopes/\
+ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ/data_access]"
+
+    assert scopes == correct_scopes
+
+
+@pytest.mark.unit
+def test_checkAllItemsHaveValidEndpoints():
+    file_name = "demofile_checkAllItemsHaveValidEndpoints.txt"
+    f = open(file_name, "w")
+    f.write("Testing for valid source file for test_checkAllItemsHaveValidEndpoints")
+    f.close()
+
+    current_valid_path = os.getcwd()
+    file_path = current_valid_path + "/" + file_name
+
+    file_name2 = "demofile2_checkAllItemsHaveValidEndpoints.txt"
+    f = open(file_name2, "w")
+    f.write("Testing for valid source file for test_checkAllItemsHaveValidEndpoints")
+    f.close()
+
+    file_path2 = current_valid_path + "/" + file_name2
+
+    items = [
+        {
+            "source": {"type": "posix absolute", "path": file_path},
+            "destination": {"type": "globus relative", "path": "/"},
+        },
+        {
+            "source": {"type": "posix absolute", "path": file_path2},
+            "destination": {
+                "type": "globus relative",
+                "path": "/sub_folder/file2.jpeg",
+            },
+        },
+    ]
+
+    supported_source_path_types = ["posix absolute", "posix user home"]
+    supported_destination_path_types = ["globus relative"]
+
+    assert globus.checkAllItemsHaveValidEndpoints(
+        items, supported_source_path_types, supported_destination_path_types
+    )
+
+    items2 = [
+        {
+            "source": {"type": "globus relative", "path": "/home/cades/file.txt"},
+            "destination": {"type": "globus relative", "path": "/"},
+        }
+    ]
+
+    # This should be false because in this case "globus relative" is not in the
+    # supported_source_path_types
+    assert not globus.checkAllItemsHaveValidEndpoints(
+        items2, supported_source_path_types, supported_destination_path_types
+    )
+
+    items3 = [
+        {
+            "source": {"type": "posix absolute", "path": "/home/cades/file.txt"},
+            "destination": {"type": "globus relative"},
+        }
+    ]
+
+    # This should be false because in this case "destination" is missing a
+    # "path"
+    assert not globus.checkAllItemsHaveValidEndpoints(
+        items3, supported_source_path_types, supported_destination_path_types
+    )
+
+
 @pytest.mark.globus
 def test_globus_basic1():
     globus_plugin = globus.Globus()
