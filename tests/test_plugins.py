@@ -60,7 +60,7 @@ def test_rsync_service_info():
     info = plugins.info
 
     assert info["rsync"]["configured"]
-    assert info["rsync"]["supported actions"][0] == "transfer"
+    assert info["rsync"]["supported_actions"][0] == "transfer"
 
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
