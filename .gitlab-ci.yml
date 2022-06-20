@@ -17,6 +17,6 @@ test-zambeze:
   tags:
     - globus1
   script:
-    - /opt/anaconda3/bin/python3 -m pip install -r requirements.txt
-    - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
-    - /opt/anaconda3/bin/python3 -m pytest -m globus -sv
+    - /usr/bin/python3 -m pip install -r requirements.txt
+    - /usr/bin/python3 -m pytest -m unit -sv
+    - /usr/bin/python3 -m pytest -m globus -sv
