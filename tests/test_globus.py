@@ -129,6 +129,14 @@ def test_checkAllItemsHaveValidEndpoints():
 
 @pytest.mark.globus
 def test_globus_basic1():
+
+    required_env_variable = "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"
+    if required_env_variable not in os.environ:
+        raise Exception("Globus test cannot be run if the env variable"
+                        f" {required_env_variable} is not defined and a local "
+                        "globus-connect-server and endpoint have not been"
+                        " set up.")
+
     globus_plugin = globus.Globus()
 
     assert globus_plugin.name == "globus"
@@ -139,7 +147,7 @@ def test_globus_basic1():
         "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+            "secret": os.getenv(required_env_variable),
         },
     }
 
@@ -154,6 +162,14 @@ def test_globus_basic1():
 
 @pytest.mark.globus
 def test_globus_basic2():
+
+    required_env_variable = "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"
+    if required_env_variable not in os.environ:
+        raise Exception("Globus test cannot be run if the env variable"
+                        f" {required_env_variable} is not defined and a local "
+                        "globus-connect-server and endpoint have not been"
+                        " set up.")
+
     globus_plugin = globus.Globus()
 
     """Requires that the env variable is provided
@@ -165,7 +181,7 @@ def test_globus_basic2():
         "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+            "secret": os.getenv(required_env_variable),
         },
         "collections": [
             {
@@ -183,15 +199,29 @@ def test_globus_basic2():
 
 @pytest.mark.globus
 def test_globus_move_check():
+
+    required_env_variable = "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"
+    required_env_variable2 = "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+    if required_env_variable not in os.environ:
+        raise Exception("Globus test cannot be run if the env variable"
+                        f" {required_env_variable} is not defined and a local "
+                        "globus-connect-server and endpoint have not been"
+                        " set up.")
+    if required_env_variable2 not in os.environ:
+        raise Exception("Globus test cannot be run if the env variable"
+                        f" {required_env_variable2} is not defined and a local "
+                        "globus-connect-server and endpoint have not been"
+                        " set up.")
+
     configuration = {
         "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+            "secret": os.getenv(required_env_variable),
         },
         "collections": [
             {
-                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
+                "UUID": os.getenv(required_env_variable2),
                 "path": "/home/cades/Collections/default",
                 "type": "mapped",
             }
@@ -214,9 +244,7 @@ def test_globus_move_check():
     package = [
         {
             "move_to_globus_collection": {
-                "destination_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
-                ),
+                "destination_collection_UUID": os.getenv(required_env_variable2),
                 "source_host_name": socket.gethostname(),
                 "items": [
                     {
@@ -233,15 +261,28 @@ def test_globus_move_check():
 
 @pytest.mark.globus
 def test_globus_transfer_check():
+
+    required_env_variables = [
+            "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
+            "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
+            "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"]
+
+    for env_var in required_env_variables:
+        if env_var not in os.environ:
+            raise Exception("Globus test cannot be run if the env variable"
+                            f" {env_var} is not defined and a local "
+                            "globus-connect-server and endpoint have not been"
+                            " set up.")
+
     configuration = {
         "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+            "secret": os.getenv(required_env_variables[0]),
         },
         "collections": [
             {
-                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
+                "UUID": os.getenv(required_env_variables[1]),
                 "path": "/home/cades/Collections/default",
                 "type": "mapped",
             }
@@ -265,7 +306,7 @@ def test_globus_transfer_check():
         {
             "move_to_globus_collection": {
                 "destination_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+                    required_env_variables[1]
                 ),
                 "source_host_name": socket.gethostname(),
                 "items": [
@@ -279,10 +320,10 @@ def test_globus_transfer_check():
         {
             "transfer": {
                 "source_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+                    required_env_variables[1]
                 ),
                 "destination_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"
+                    required_env_variables[2]
                 ),
                 "type": "synchronous",
                 "items": [
@@ -303,6 +344,18 @@ def test_globus_transfer_check():
 @pytest.mark.globus
 def test_globus_process():
 
+    required_env_variables = [
+            "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
+            "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
+            "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"]
+
+    for env_var in required_env_variables:
+        if env_var not in os.environ:
+            raise Exception("Globus test cannot be run if the env variable"
+                            f" {env_var} is not defined and a local "
+                            "globus-connect-server and endpoint have not been"
+                            " set up.")
+
     path_to_endpoint = "/home/cades/Collections/default"
     path_to_endpoint_shared = "/home/cades/Collections/default/shared"
 
@@ -310,16 +363,16 @@ def test_globus_process():
         "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"),
+            "secret": os.getenv(required_env_variables[0]),
         },
         "collections": [
             {
-                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"),
+                "UUID": os.getenv(required_env_variables[1]),
                 "path": path_to_endpoint,
                 "type": "mapped",
             },
             {
-                "UUID": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"),
+                "UUID": os.getenv(required_env_variables[2]),
                 "path": path_to_endpoint_shared,
                 "type": "guest",
             },
@@ -346,7 +399,7 @@ def test_globus_process():
         {
             "move_to_globus_collection": {
                 "destination_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+                    required_env_variables[1]
                 ),
                 "source_host_name": socket.gethostname(),
                 "items": [
@@ -363,10 +416,10 @@ def test_globus_process():
         {
             "transfer": {
                 "source_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
+                    required_env_variables[1]
                 ),
                 "destination_collection_UUID": os.getenv(
-                    "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"
+                    required_env_variables[2]
                 ),
                 "type": "synchronous",
                 "items": [

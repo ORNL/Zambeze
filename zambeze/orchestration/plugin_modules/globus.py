@@ -239,7 +239,7 @@ class Globus(Plugin):
         if "authentication_flow" not in config:
             raise Exception(
                 "'authentication_flow' key value missing from config"
-                "config must have 'authentication_flow' specified"
+                " config must have 'authentication_flow' specified"
             )
 
         # Check that the authentication flow is supported
@@ -332,6 +332,13 @@ class Globus(Plugin):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
         print("Config is")
         print(f"client id is {self.__client_id}")
+
+        if config["authentication_flow"]["secret"] is None:
+            raise Exception("Cannot authenticate with Globus the client secret"
+                            " has not been defined and is None.\n"
+                            "The provided erronous config is:\n\n"
+                            f"{config}")
+
         print(json.dumps(config, indent=4))
         confidential_client = globus_sdk.ConfidentialAppAuthClient(
             client_id=self.__client_id,
