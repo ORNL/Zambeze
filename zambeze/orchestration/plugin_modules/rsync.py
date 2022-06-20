@@ -130,7 +130,10 @@ def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bo
         return False
     # If make sure that paths defined on the host exist
     if not os.path.exists(action_inst[match_host]["path"]):
-        return False
+        # If it is the destination it doesn't matter as much because
+        # we will try to create it
+        if match_host == "source":
+            return False
 
     if not userExists(action_inst[match_host]["user"]):
         return False
@@ -289,6 +292,7 @@ class Rsync(Plugin):
         instance.configure(config)
         assert instance.check(arguments)
         """
+        message = ""
         supported_actions = {}
         for action in arguments:
             if "transfer" in action.keys():
@@ -298,6 +302,11 @@ class Rsync(Plugin):
 
                 if not requiredSourceAndDestinationKeysExist(action_inst):
                     supported_actions[action_key] = False
+                    message = (
+                        message
+                        + f"{action}: required source and destination "
+                        + "keys exist - False\n"
+                    )
                     continue
 
                 match_host = isTheHostTheSourceOrDestination(
@@ -310,14 +319,21 @@ class Rsync(Plugin):
 
                 if not requiredSourceAndDestinationValuesValid(action_inst, match_host):
                     supported_actions[action_key] = False
+                    message = (
+                        message
+                        + f"{action}: required {match_host} values are invalid\n"
+                    )
                     continue
 
             # If the action is not "transfer"
             else:
                 supported_actions[action_key] = False
+                message = message + f"{action} unsupported action\n"
                 continue
 
             supported_actions[action_key] = True
+
+        print(message)
         return supported_actions
 
     def process(self, arguments: list[dict]):
@@ -344,7 +360,8 @@ class Rsync(Plugin):
                         "ip": "valid ip address",
                         "path": "path to items that will be transferred",
                         "user": "user name"
-                    }
+                    },
+                    "arguments": ["-a"] # Additional arguments to pass to rsync command
                 }
             }
         ]
@@ -362,7 +379,7 @@ class Rsync(Plugin):
             )
 
         for action in arguments:
-            if "transfer" in action.keys():
+            if "transfer" in action:
                 action_inst = action["transfer"]
 
                 command_list = ["rsync"]
@@ -382,4 +399,5 @@ class Rsync(Plugin):
                     command_list.append(buildRemotePath(action_inst["source"]))
                     command_list.append(action_inst["destination"]["path"])
 
+                print(command_list)
                 subprocess.call(command_list)
