@@ -22,6 +22,87 @@ import re
 import shutil
 
 
+def getMappedCollections(config: dict) -> list[str]:
+    """Returns a list of the UUIDs that are mapped collections
+
+    Example:
+
+    config = {
+        collections = [
+            { "UUID": "XXXX...XXXX", "path": "/here/file", "type": "guest"},
+            { "UUID": "YYYY...YYYY", "path": "/there/file2", "type": "mapped"}
+        ]
+    }
+
+    mapped_coll = self.__getMappedCollections(collections)
+
+    print(mapped_coll)
+
+    # Single entry would be printed in this case
+
+    >>> ["YYYY...YYYY"]
+    """
+    mapped_collections = []
+    if "collections" in config:
+        for local_collection in config["collections"]:
+            if local_collection["type"] == "mapped":
+                mapped_collections.append(local_collection["UUID"])
+
+    return mapped_collections
+
+
+def is_36char(item: str):
+    return len(item) == 36
+
+
+def getGlobusScopes(mapped_collections: list[str]) -> str:
+    """Get the globus scopes needed to access the mapped collections
+
+    param mapped_collections: This should contain the UUIDs of only mapped 
+    collections
+    type mapped_collections: list[str]
+
+    For globus mapped collections, explicit scope has to be requested to
+    access the collection.
+
+    Example: First example empty mapped collection list
+
+    mapped_coll = [""]
+    scopes = getGlobusScopes(mapped_coll)
+    print(scopes)
+
+    # Will print general scopes
+    >>> urn:globus:auth:scope:transfer.api.globus.org:all
+
+    Example: Second example
+
+    mapped_coll = ["XXXX...XXXX", "YYYY...YYYY"]
+    scopes = getGlobusScopes(mapped_coll)
+    print(scopes)
+
+    # Will print general scopes
+
+    >>> urn:globus:auth:scope:transfer.api.globus.org:all[*https://auth.globus.org/scopes/XXXX...XXXX/data_access *https://auth.globus.org/scopes/YYYY...YYYY/data_access] # noqa: E501
+    """
+    # Clean the UUIDs in the list make sure they are all 36 characters
+    mapped_collections = list(filter(is_36char, mapped_collections))
+
+    scopes = "urn:globus:auth:scope:transfer.api.globus.org:all"
+    if len(mapped_collections):
+        scopes = scopes + "["
+        index = 1
+        for mapped_collection in mapped_collections:
+            scopes = (
+                scopes
+                + f"*https://auth.globus.org/scopes/{mapped_collection}/data_access"
+            )
+            if index < len(mapped_collections):
+                scopes = scopes + " "
+                index = index + 1
+            scopes = scopes + "]"
+    return scopes
+
+
 def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
     """Check that the approprite keys and values exist in the endpoint
 
@@ -414,32 +495,41 @@ class Globus(Plugin):
         )
 
     def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> bool:
-        # action_package = {
-        #    "source_host_name": "",
-        #    "destination_collection_UUID": "",
-        #    "items": [
-        #        {
-        #            "source": {
-        #                "type": "globus relative",
-        #                "path": "dest/file1.txt"
-        #                },
-        #            "destination": {
-        #                "type": "posix user home",
-        #                "path": "/file1.txt"
-        #                }
-        #        },
-        #        {
-        #            "source": {
-        #                "type": "globus relative",
-        #                "path": "dest/file2.txt"
-        #                },
-        #            "destination": {
-        #                "type": "posix user home",
-        #                "path": "/file2.txt"
-        #                }
-        #        }
-        #    ]
-        # }
+        """Run a sanity check for the action "move_from_globus_collection"
+
+        return: Will return true if the sanity check passes false otherwise
+
+        Example:
+
+        action_package = {
+           "source_host_name": "",
+           "destination_collection_UUID": "",
+           "items": [
+               {
+                   "source": {
+                       "type": "globus relative",
+                       "path": "dest/file1.txt"
+                       },
+                   "destination": {
+                       "type": "posix user home",
+                       "path": "/file1.txt"
+                       }
+               },
+               {
+                   "source": {
+                       "type": "globus relative",
+                       "path": "dest/file2.txt"
+                       },
+                   "destination": {
+                       "type": "posix user home",
+                       "path": "/file2.txt"
+                       }
+               }
+           ]
+        }
+
+        assert self.__runMoveFromGlobusSanityCheck(action_package)
+        """
 
         supported_source_path_types = ["globus relative"]
         supported_destination_path_types = ["posix absolute", "posix user home"]
@@ -458,6 +548,15 @@ class Globus(Plugin):
             supported_source_path_types,
             supported_destination_path_types,
         )
+
+    def __checkAccessToGlobusCloud(self):
+        """Will chech if we can reach the internet and caches access to globus
+        cloud if cannot reach it.
+        """
+        if externalNetworkConnectionDetected() is False:
+            print("Unable to connect to external network access to globus cloud denied")
+            self.__access_to_globus_cloud = False
+            return
 
     ###################################################################################
     # Public Methods
@@ -490,32 +589,11 @@ class Globus(Plugin):
 
         # Detect hostname
         self.__hostname = gethostname()
-        if externalNetworkConnectionDetected() is False:
-            print("Unable to connect to external network access to globus cloud denied")
-            self.__access_to_globus_cloud = False
-            return
+        self.__checkAccessToGlobusCloud(self)
 
-        # Permissions to access mapped collections must be granted
-        # explicitly
-        mapped_collections = []
-        if "collections" in config:
-            for local_collection in config["collections"]:
-                if local_collection["type"] == "mapped":
-                    mapped_collections.append(local_collection["UUID"])
-
-        self.__scopes = "urn:globus:auth:scope:transfer.api.globus.org:all"
-        if len(mapped_collections):
-            self.__scopes = self.__scopes + "["
-            index = 1
-            for mapped_collection in mapped_collections:
-                self.__scopes = (
-                    self.__scopes
-                    + f"*https://auth.globus.org/scopes/{mapped_collection}/data_access"
-                )
-                if index < len(config["collections"]):
-                    self.__scopes = self.__scopes + " "
-                    index = index + 1
-                self.__scopes = self.__scopes + "]"
+        # Permissions to access mapped collections must be granted explicitly
+        mapped_collections = getMappedCollections(config)
+        self.__scopes = getGlobusScopes(mapped_collections)
 
         try:
             if self.__flow == "native":
