@@ -589,7 +589,7 @@ class Globus(Plugin):
 
         # Detect hostname
         self.__hostname = gethostname()
-        self.__checkAccessToGlobusCloud(self)
+        self.__checkAccessToGlobusCloud()
 
         # Permissions to access mapped collections must be granted explicitly
         mapped_collections = getMappedCollections(config)
