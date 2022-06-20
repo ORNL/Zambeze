@@ -142,8 +142,8 @@ def test_rsync():
     assert "transfer" in instance.supportedActions
 
     assert instance.info["configured"]
-    assert instance.info["supported actions"][0] == "transfer"
+    assert instance.info["supported_actions"][0] == "transfer"
 
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
-    assert instance.info["local ip"] == local_ip
+    assert instance.info["local_ip"] == local_ip
