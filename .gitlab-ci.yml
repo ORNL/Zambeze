@@ -11,3 +11,12 @@ test-zambeze:
     - chmod 600 $ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
     - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
     - /opt/anaconda3/bin/python3 -m pytest -m gitlab_runner -sv
+
+test-zambeze:
+  stage: test
+  tags:
+    - globus
+  script:
+    - /opt/anaconda3/bin/python3 -m pip install -r requirements.txt
+    - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
+    - /opt/anaconda3/bin/python3 -m pytest -m globus -sv
