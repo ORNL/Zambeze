@@ -334,10 +334,12 @@ class Globus(Plugin):
         print(f"client id is {self.__client_id}")
 
         if config["authentication_flow"]["secret"] is None:
-            raise Exception("Cannot authenticate with Globus the client secret"
-                            " has not been defined and is None.\n"
-                            "The provided erronous config is:\n\n"
-                            f"{config}")
+            raise Exception(
+                "Cannot authenticate with Globus the client secret"
+                " has not been defined and is None.\n"
+                "The provided erronous config is:\n\n"
+                f"{config}"
+            )
 
         print(json.dumps(config, indent=4))
         confidential_client = globus_sdk.ConfidentialAppAuthClient(
