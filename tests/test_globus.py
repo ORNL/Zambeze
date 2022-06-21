@@ -480,7 +480,10 @@ def test_globus_process():
     # So before we get started we are going to make sure that a file
     # does not already exist at that location
     abs_path_destination = (
-        path_to_endpoint + relative_destination_file_path + os.path.basename(file_path)
+        path_to_endpoint
+        + relative_destination_file_path
+        + sub_folder
+        + os.path.basename(file_path)
     )
     # After it gets transferred using globus it should end up moving to the subfolder
     abs_path_destination_shared = (
