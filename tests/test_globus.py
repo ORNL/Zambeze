@@ -7,6 +7,7 @@ import pytest
 import random
 import socket
 
+GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 
 @pytest.mark.unit
 def test_getMappedCollections():
@@ -130,13 +131,17 @@ def test_checkAllItemsHaveValidEndpoints():
 @pytest.mark.globus
 def test_globus_basic1():
 
-    required_env_variable = "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"
-    if required_env_variable not in os.environ:
-        raise Exception("Globus test cannot be run if the env variable"
-                        f" {required_env_variable} is not defined and a local "
-                        "globus-connect-server and endpoint have not been"
-                        " set up.")
+    required_env_variables = [
+            "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
+            "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"]
 
+    for env_var in required_env_variables:
+        if env_var not in os.environ:
+            raise Exception("Globus test cannot be run if the env variable"
+                            f" {env_var} is not defined and a local "
+                            "globus-connect-server and endpoint have not been"
+                            " set up.")
+    
     globus_plugin = globus.Globus()
 
     assert globus_plugin.name == "globus"
@@ -144,10 +149,10 @@ def test_globus_basic1():
 
     """Requires that the env variable is provided"""
     configuration = {
-        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv(required_env_variable),
+            "secret": os.getenv(required_env_variables[1]),
         },
     }
 
@@ -163,13 +168,18 @@ def test_globus_basic1():
 @pytest.mark.globus
 def test_globus_basic2():
 
-    required_env_variable = "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"
-    if required_env_variable not in os.environ:
-        raise Exception("Globus test cannot be run if the env variable"
-                        f" {required_env_variable} is not defined and a local "
-                        "globus-connect-server and endpoint have not been"
-                        " set up.")
+    required_env_variables = [
+            "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
+            "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
+            "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"]
 
+    for env_var in required_env_variables:
+        if env_var not in os.environ:
+            raise Exception("Globus test cannot be run if the env variable"
+                            f" {env_var} is not defined and a local "
+                            "globus-connect-server and endpoint have not been"
+                            " set up.")
+    
     globus_plugin = globus.Globus()
 
     """Requires that the env variable is provided
@@ -178,14 +188,14 @@ def test_globus_basic2():
     in order for the move to globus endpoint and move from
     globus endpoint to local posix file system to work."""
     configuration = {
-        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv(required_env_variable),
+            "secret": os.getenv(required_env_variables[1]),
         },
         "collections": [
             {
-                "UUID": "57281195-1495-4995-a777-52bd5d16ee7e",
+                "UUID": os.getenv(required_env_variables[2]),
                 "path": "/home/cades/Collections/default",
                 "type": "mapped",
             }
@@ -200,28 +210,27 @@ def test_globus_basic2():
 @pytest.mark.globus
 def test_globus_move_check():
 
-    required_env_variable = "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY"
-    required_env_variable2 = "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"
-    if required_env_variable not in os.environ:
-        raise Exception("Globus test cannot be run if the env variable"
-                        f" {required_env_variable} is not defined and a local "
-                        "globus-connect-server and endpoint have not been"
-                        " set up.")
-    if required_env_variable2 not in os.environ:
-        raise Exception("Globus test cannot be run if the env variable"
-                        f" {required_env_variable2} is not defined and a local "
-                        "globus-connect-server and endpoint have not been"
-                        " set up.")
+    required_env_variables = [
+            "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
+            "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
+            "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID"]
 
+    for env_var in required_env_variables:
+        if env_var not in os.environ:
+            raise Exception("Globus test cannot be run if the env variable"
+                            f" {env_var} is not defined and a local "
+                            "globus-connect-server and endpoint have not been"
+                            " set up.")
+ 
     configuration = {
-        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv(required_env_variable),
+            "secret": os.getenv(required_env_variables[1]),
         },
         "collections": [
             {
-                "UUID": os.getenv(required_env_variable2),
+                "UUID": os.getenv(required_env_variables[2]),
                 "path": "/home/cades/Collections/default",
                 "type": "mapped",
             }
@@ -241,15 +250,26 @@ def test_globus_move_check():
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
 
+    destination_path = "/"
+    sub_folder = ""
+    if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
+        sub_folder = "runner/"
+
     package = [
         {
             "move_to_globus_collection": {
-                "destination_collection_UUID": os.getenv(required_env_variable2),
+                "destination_collection_UUID": os.getenv(required_env_variables[2]),
                 "source_host_name": socket.gethostname(),
                 "items": [
                     {
-                        "source": {"type": "posix absolute", "path": file_path},
-                        "destination": {"type": "globus relative", "path": "/"},
+                        "source": {
+                            "type": "posix absolute",
+                            "path": file_path
+                        },
+                        "destination": {
+                            "type": "globus relative",
+                            "path": destination_path + sub_folder
+                        }
                     }
                 ],
             }
@@ -263,6 +283,7 @@ def test_globus_move_check():
 def test_globus_transfer_check():
 
     required_env_variables = [
+            "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
             "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
             "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
             "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"]
@@ -275,14 +296,14 @@ def test_globus_transfer_check():
                             " set up.")
 
     configuration = {
-        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv(required_env_variables[0]),
+            "secret": os.getenv(required_env_variables[1]),
         },
         "collections": [
             {
-                "UUID": os.getenv(required_env_variables[1]),
+                "UUID": os.getenv(required_env_variables[2]),
                 "path": "/home/cades/Collections/default",
                 "type": "mapped",
             }
@@ -302,17 +323,29 @@ def test_globus_transfer_check():
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
 
+    destination_path = "/"
+    sub_folder = ""
+    if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
+        sub_folder = "runner/"
+
+
     package = [
         {
             "move_to_globus_collection": {
                 "destination_collection_UUID": os.getenv(
-                    required_env_variables[1]
+                    required_env_variables[2]
                 ),
                 "source_host_name": socket.gethostname(),
                 "items": [
                     {
-                        "source": {"type": "posix absolute", "path": file_path},
-                        "destination": {"type": "globus relative", "path": "/"},
+                        "source": {
+                            "type": "posix absolute",
+                            "path": file_path
+                        },
+                        "destination": {
+                            "type": "globus relative",
+                            "path": destination_path + sub_folder
+                        },
                     }
                 ],
             }
@@ -320,19 +353,22 @@ def test_globus_transfer_check():
         {
             "transfer": {
                 "source_collection_UUID": os.getenv(
-                    required_env_variables[1]
+                    required_env_variables[2]
                 ),
                 "destination_collection_UUID": os.getenv(
-                    required_env_variables[2]
+                    required_env_variables[3]
                 ),
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": {"type": "globus relative", "path": "/" + file_name},
+                        "source": {
+                            "type": "globus relative",
+                            "path": "/" + sub_folder + file_name
+                        },
                         "destination": {
                             "type": "globus relative",
-                            "path": "/" + file_name,
-                        },
+                            "path": destination_path + sub_folder + file_name,
+                        }
                     }
                 ],
             }
@@ -345,6 +381,7 @@ def test_globus_transfer_check():
 def test_globus_process():
 
     required_env_variables = [
+            "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
             "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
             "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
             "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID"]
@@ -360,19 +397,19 @@ def test_globus_process():
     path_to_endpoint_shared = "/home/cades/Collections/default/shared"
 
     configuration = {
-        "client_id": "ea43a708-b182-4f22-b5a1-019cc56876d1",
+        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
             "type": "client credential",
-            "secret": os.getenv(required_env_variables[0]),
+            "secret": os.getenv(required_env_variables[1]),
         },
         "collections": [
             {
-                "UUID": os.getenv(required_env_variables[1]),
+                "UUID": os.getenv(required_env_variables[2]),
                 "path": path_to_endpoint,
                 "type": "mapped",
             },
             {
-                "UUID": os.getenv(required_env_variables[2]),
+                "UUID": os.getenv(required_env_variables[3]),
                 "path": path_to_endpoint_shared,
                 "type": "guest",
             },
@@ -393,13 +430,15 @@ def test_globus_process():
     file_path = current_valid_path + "/" + file_name
 
     relative_destination_file_path = "/"
-
+    sub_folder = ""
+    if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
+         sub_folder = "runner/"
     # action items in the list should be executed in order
     package = [
         {
             "move_to_globus_collection": {
                 "destination_collection_UUID": os.getenv(
-                    required_env_variables[1]
+                    required_env_variables[2]
                 ),
                 "source_host_name": socket.gethostname(),
                 "items": [
@@ -407,7 +446,7 @@ def test_globus_process():
                         "source": {"type": "posix absolute", "path": file_path},
                         "destination": {
                             "type": "globus relative",
-                            "path": relative_destination_file_path,
+                            "path": relative_destination_file_path + sub_folder,
                         },
                     }
                 ],
@@ -416,21 +455,24 @@ def test_globus_process():
         {
             "transfer": {
                 "source_collection_UUID": os.getenv(
-                    required_env_variables[1]
+                    required_env_variables[2]
                 ),
                 "destination_collection_UUID": os.getenv(
-                    required_env_variables[2]
+                    required_env_variables[3]
                 ),
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": {"type": "globus relative", "path": "/" + file_name},
+                        "source": {
+                            "type": "globus relative",
+                            "path": "/" + sub_folder + file_name
+                        },
                         "destination": {
                             "type": "globus relative",
-                            "path": "/" + file_name,
-                        },
+                            "path": relative_destination_file_path + sub_folder + file_name,
+                        }
                     }
-                ],
+                ]
             }
         },
     ]
@@ -446,6 +488,7 @@ def test_globus_process():
         path_to_endpoint
         + relative_destination_file_path
         + "shared/"
+        + sub_folder
         + os.path.basename(file_path)
     )
     if os.path.exists(abs_path_destination):
