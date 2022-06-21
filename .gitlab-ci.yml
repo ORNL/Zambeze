@@ -17,6 +17,7 @@ test-zambeze-globus:
   tags:
     - globus1
   script:
-    - /usr/bin/python3 -m pip install -r requirements.txt
-    - /usr/bin/python3 -m pytest -m unit -sv
-    - /usr/bin/python3 -m pytest -m globus -sv
+    - source /home/cades/env-zambeze-py39/bin/activate
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pytest -m unit -sv
+    - python3 -m pytest -m globus -sv
