@@ -12,6 +12,8 @@ test-zambeze:
     - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
     - /opt/anaconda3/bin/python3 -m pytest -m gitlab_runner -sv
 
+# Ideally this job would use a virtual environment that was provisioned by 
+# Ansible, as it is, if the VM goes down this venv disappears
 test-zambeze-globus:
   stage: test
   tags:
