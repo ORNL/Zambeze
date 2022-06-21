@@ -401,3 +401,4 @@ class Rsync(Plugin):
 
                 print(command_list)
                 subprocess.call(command_list)
+        return {}

@@ -89,7 +89,7 @@ class Plugins:
             plugins.append(deepcopy(key))
         return plugins
 
-    def configure(self, config: dict, plugins: list[str] = ["all"]) -> None:
+    def configure(self, config: dict):
         """Configuration options for each plugin
 
         This method is responsible for initializing all the plugins that
@@ -97,10 +97,9 @@ class Plugins:
         plugins can be run, all plugins should be configured before they can be
         run.
 
-        :param config: This contains relevant configuration information for each plugin
+        :param config: This contains relevant configuration information for each plugin,
+        If provided will only configure the plugins listed
         :type config: dict
-        :param plugins: If provided will only register the plugins listed
-        :type plugins: list[str]
 
         Example Arguments
 
@@ -111,7 +110,9 @@ class Plugins:
 
         config = {
             "globus": {
-                "client id": "..."
+                "authentication flow": {
+                    "type": "credential flow",
+                    "secret": "blahblah"
             },
             "shell": {
                 "arguments" : [""]
@@ -125,43 +126,10 @@ class Plugins:
         This will just configure the "shell" plugin
 
         """
-        if "all" in plugins:
-            for key in self._plugins:
-                if key in config.keys():
-                    obj = self._plugins.get(key)
-                    obj.configure(config[key])
-                else:
-                    try:
-                        obj = self._plugins.get(key)
-                        obj.configure({})
-                    except Exception:
-                        print(
-                            f"Unable to configure plugin {key} missing "
-                            "configuration options."
-                        )
-                        raise
-        else:
-            for plugin_inst in plugins:
-                if plugin_inst in config.keys():
-                    self._plugins[plugin_inst.lower()].configure(
-                        config[plugin_inst.lower()]
-                    )
-                else:
-                    try:
-                        obj = self._plugins.get(plugin_inst)
-                        obj.configure({})
-                    except Exception:
-                        print(
-                            f"Unable to configure plugin {plugin_inst} "
-                            "missing configuration options."
-                        )
-                        print("Configuration has the following content")
-                        print(config)
-                        print(
-                            f"{plugin_inst} is not mentioned in the config so "
-                            "cannot associate configuration settings."
-                        )
-                        raise
+        for key in self._plugins:
+            if key in config.keys():
+                obj = self._plugins.get(key)
+                obj.configure(config[key])
 
     @property
     def configured(self) -> list[str]:

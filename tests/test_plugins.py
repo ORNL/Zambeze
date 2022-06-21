@@ -35,7 +35,14 @@ def test_check_configured_plugins():
     assert len(plugins.configured) == 0
 
     configuration = {"shell": {}}
-
+    #            "globus": {
+    #                "authentication flow": {
+    #                    "type": "client credential",
+    #                    "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY")
+    #                    }
+    #                }
+    #            }
+    #
     plugins.configure(configuration)
 
     assert len(plugins.configured) > 0
@@ -46,7 +53,7 @@ def test_rsync_plugin():
     plugins = Plugins()
     assert "rsync" not in plugins.configured
     # Only rsync should be configured
-    plugins.configure({}, ["rsync"])
+    plugins.configure({"rsync": {}})
     assert "rsync" in plugins.configured
     assert len(plugins.configured) == 1
 
@@ -55,7 +62,7 @@ def test_rsync_plugin():
 def test_rsync_plugin_info():
     plugins = Plugins()
     # Only rsync should be configured
-    plugins.configure({}, ["rsync"])
+    plugins.configure({"rsync": {}})
 
     info = plugins.info
 
@@ -70,7 +77,7 @@ def test_rsync_plugin_info():
 @pytest.mark.unit
 def test_rsync_plugin_check():
     plugins = Plugins()
-    plugins.configure({})
+    plugins.configure({"shell": {}})
 
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()

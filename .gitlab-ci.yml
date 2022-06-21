@@ -9,4 +9,17 @@ test-zambeze:
   script:
     - /opt/anaconda3/bin/python3 -m pip install -r requirements.txt
     - chmod 600 $ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
-    - /opt/anaconda3/bin/python3 -m pytest -sv
+    - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
+    - /opt/anaconda3/bin/python3 -m pytest -m gitlab_runner -sv
+
+# Ideally this job would use a virtual environment that was provisioned by 
+# Ansible, as it is, if the VM goes down this venv disappears
+test-zambeze-globus:
+  stage: test
+  tags:
+    - globus1
+  script:
+    - source /home/cades/env-zambeze-py39/bin/activate
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pytest -m unit -sv
+    - python3 -m pytest -m globus -sv
