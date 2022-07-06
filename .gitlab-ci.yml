@@ -19,7 +19,7 @@ test-zambeze-globus:
   tags:
     - globus1
   script:
-    - source /home/cades/env-zambeze-py39/bin/activate
+    - source /home/gitlab-runner/py-venv-3.9/bin/activate
     - python3 -m pip install -r requirements.txt
     - python3 -m pytest -m unit -sv
     - python3 -m pytest -m globus -sv
