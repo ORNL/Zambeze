@@ -23,7 +23,7 @@ class ZambezeSettings:
     """
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self.__logger: logging.Logger = (
+        self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
         self.load_settings()
@@ -38,18 +38,18 @@ class ZambezeSettings:
         if not conf_file:
             zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
             zambeze_folder.mkdir(parents=True, exist_ok=True)
-            self.conf_file = zambeze_folder.joinpath("agent.yaml")
-            self.conf_file.touch()
+            self._conf_file = zambeze_folder.joinpath("agent.yaml")
+            self._conf_file.touch()
 
-        with open(self.conf_file, "r") as cf:
-            self.__settings = yaml.safe_load(cf)
+        with open(self._conf_file, "r") as cf:
+            self.settings = yaml.safe_load(cf)
 
         # set default values
-        if not self.__settings:
-            self.__settings = {"nats": {}, "plugins": {}}
-        self.__set_default("host", "localhost", self.__settings["nats"])
-        self.__set_default("port", 4222, self.__settings["nats"])
-        self.__set_default("plugins", {}, self.__settings)
+        if not self.settings:
+            self.settings = {"nats": {}, "plugins": {}}
+        self.__set_default("host", "localhost", self.settings["nats"])
+        self.__set_default("port", 4222, self.settings["nats"])
+        self.__set_default("plugins", {}, self.settings)
         self.__save()
 
         self.__configure_plugins()
@@ -58,16 +58,14 @@ class ZambezeSettings:
         """
         Load and configure Zambeze plugins.
         """
-        self.__plugins = Plugins(logger=self.__logger)
+        self.plugins = Plugins(logger=self._logger)
         config = {}
 
-        for plugin_name in self.__plugins.registered:
-            if plugin_name in self.__settings["plugins"]:
-                config[plugin_name] = self.__settings["plugins"][plugin_name]["config"]
+        for plugin_name in self.plugins.registered:
+            if plugin_name in self.settings["plugins"]:
+                config[plugin_name] = self.settings["plugins"][plugin_name]["config"]
 
-        self.__plugins.configure(
-            config=config, plugins=list(self.__settings["plugins"].keys())
-        )
+        self.plugins.configure(config=config)
 
     def get_nats_connection_uri(self) -> str:
         """
@@ -76,8 +74,8 @@ class ZambezeSettings:
         :return: NATS connection URI
         :rtype: str
         """
-        host = self.__settings["nats"]["host"]
-        port = self.__settings["nats"]["port"]
+        host = self.settings["nats"]["host"]
+        port = self.settings["nats"]["port"]
         return f"nats://{host}:{port}"
 
     def is_plugin_configured(self, plugin_name: str) -> bool:
@@ -90,17 +88,7 @@ class ZambezeSettings:
         :return: True if the plugin has been configured.
         :rtype: bool
         """
-        return plugin_name in self.__plugins.configured
-
-    def run_plugin(self, plugin_name: str, arguments: dict) -> None:
-        """
-
-        :param plugin_name:
-        :rtype plugin_name: str
-        :param arguments:
-        :type arguments: dict
-        """
-        return self.__plugins.run(plugin_name=plugin_name, arguments=arguments)
+        return plugin_name in self.plugins.configured
 
     def __set_default(
         self, key: str, value: Union[int, float, str, dict], base: dict
@@ -122,5 +110,5 @@ class ZambezeSettings:
         """
         Save properties file.
         """
-        with open(self.conf_file, "w") as file:
-            yaml.dump(self.__settings, file)
+        with open(self._conf_file, "w") as file:
+            yaml.dump(self.settings, file)

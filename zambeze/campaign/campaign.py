@@ -11,7 +11,7 @@ import logging
 from .activities.abstract_activity import Activity
 from ..orchestration.agent import Agent
 
-from typing import List, Optional
+from typing import Optional
 
 
 class Campaign:
@@ -20,7 +20,7 @@ class Campaign:
     :param name: The campaign name.
     :type name: str
     :param activities: List of activities.
-    :type activities: Optional[List[Activity]]
+    :type activities: Optional[list[Activity]]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
@@ -28,7 +28,7 @@ class Campaign:
     def __init__(
         self,
         name: str,
-        activities: Optional[List[Activity]] = [],
+        activities: Optional[list[Activity]] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign."""
@@ -36,7 +36,7 @@ class Campaign:
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name: str = name
-        self.activities: List[Activity] = activities
+        self.activities: list[Activity] = activities
         self.agent = Agent(logger=self.logger)
 
     def add_activity(self, activity: Activity) -> None:

@@ -579,7 +579,7 @@ class Globus(Plugin):
     # Public Methods
     ###################################################################################
     def configure(self, config: dict):
-        """ When configuring should provide the endpoint id(s) located on
+        """When configuring should provide the endpoint id(s) located on
         the same machine where the Zambeze agent is running along with
         their paths on the posix system
 
