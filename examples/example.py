@@ -8,7 +8,6 @@
 
 import logging
 import pathlib
-import time
 
 from zambeze import Campaign, ShellActivity
 
@@ -48,5 +47,4 @@ activity = ShellActivity(
 campaign.add_activity(activity)
 
 # run the campaign
-time.sleep(1)
 campaign.dispatch()

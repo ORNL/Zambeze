@@ -23,6 +23,12 @@ Dependency installation should proceed similar to any python package.
 pip install -r requirements.txt .
 ```
 
+### Zambeze CLI
+
+```
+zambeze --help
+```
+
 ## Development Environment
 
 ### Code Formatting
