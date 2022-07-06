@@ -2,7 +2,4 @@
 Developer API
 =============
 
-.. autosummary::
-   :toctree: generated
-
-   zambeze.orchestration.plugins
+.. autosummary:: zambeze.orchestration.plugins
