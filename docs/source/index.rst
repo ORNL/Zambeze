@@ -15,3 +15,4 @@ support@zambeze.org.
     :hidden:
 
     user_api_reference.rst
+    dev_api_reference.rst
