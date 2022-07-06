@@ -8,18 +8,20 @@
 
 import json
 import logging
+import pathlib
 import typer
 
 from zambeze.orchestration.agent import Agent, ZambezeSettings
 
 logger = logging.getLogger()
+state = {"conf_file": None}
 app = typer.Typer()
 
 
 @app.command()
 def agent():
     logger.info("Starting Zambeze Agent")
-    agent = Agent(logger=logger)
+    agent = Agent(conf_file=state["conf_file"], logger=logger)
     agent.processor.join()
 
 
@@ -30,7 +32,7 @@ def config(
     ),
     file: bool = typer.Option(False, "--file", "-f", help="Show config file location."),
 ):
-    settings = ZambezeSettings(logger=logger)
+    settings = ZambezeSettings(conf_file=state["conf_file"], logger=logger)
     if file:
         typer.echo(f"Zambeze config file: {settings._conf_file}")
     if list:
@@ -38,10 +40,16 @@ def config(
 
 
 @app.callback()
-def main(debug: bool = typer.Option(False, "--debug", help="Enable debug logging.")):
+def main(
+    conf_filepath: str = typer.Option(
+        None, "--conf", "-c", help="Zambeze configuration file."
+    ),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging."),
+):
     """
-    Manage users in the awesome CLI app.
+    Zambeze command line interface
     """
+    # logging
     logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
@@ -51,9 +59,12 @@ def main(debug: bool = typer.Option(False, "--debug", help="Enable debug logging
     if debug:
         logger.setLevel(logging.DEBUG)
         ch.setLevel(logging.DEBUG)
-
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+
+    # configuration file
+    if conf_filepath:
+        state["conf_file"] = pathlib.Path(conf_filepath)
 
 
 if __name__ == "__main__":
