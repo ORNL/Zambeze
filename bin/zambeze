@@ -12,6 +12,7 @@ import typer
 
 from zambeze.orchestration.agent import Agent, ZambezeSettings
 
+logger = logging.getLogger()
 app = typer.Typer()
 
 
@@ -24,24 +25,36 @@ def agent():
 
 @app.command()
 def config(
-    list: bool = typer.Option(False, help="List configuration options."),
-    location: bool = typer.Option(False, help="Show config file location."),
+    list: bool = typer.Option(
+        False, "--list", "-l", help="List configuration options."
+    ),
+    file: bool = typer.Option(False, "--file", "-f", help="Show config file location."),
 ):
     settings = ZambezeSettings(logger=logger)
-    if location:
-        typer.echo(f"Config file: {settings._conf_file}")
+    if file:
+        typer.echo(f"Zambeze config file: {settings._conf_file}")
     if list:
         typer.echo(json.dumps(settings.settings, indent=2))
 
 
-if __name__ == "__main__":
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+@app.callback()
+def main(debug: bool = typer.Option(False, "--debug", help="Enable debug logging.")):
+    """
+    Manage users in the awesome CLI app.
+    """
+    logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
+    ch.setLevel(logging.INFO)
     formatter = logging.Formatter(
         "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
     )
+    if debug:
+        logger.setLevel(logging.DEBUG)
+        ch.setLevel(logging.DEBUG)
+
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+
+
+if __name__ == "__main__":
     app()
