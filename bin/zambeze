@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+
+import json
+import logging
+import typer
+
+from zambeze.orchestration.agent import Agent, ZambezeSettings
+
+app = typer.Typer()
+
+
+@app.command()
+def agent():
+    logger.info("Starting Zambeze Agent")
+    agent = Agent(logger=logger)
+    agent.processor.join()
+
+
+@app.command()
+def config(
+    list: bool = typer.Option(False, help="List configuration options."),
+    location: bool = typer.Option(False, help="Show config file location."),
+):
+    settings = ZambezeSettings(logger=logger)
+    if location:
+        typer.echo(f"Config file: {settings._conf_file}")
+    if list:
+        typer.echo(json.dumps(settings.settings, indent=2))
+
+
+if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
+    )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+    app()
