@@ -2,4 +2,4 @@
 Developer API
 =============
 
-.. autosummary:: zambeze.orchestration.plugins
+.. autosummary:: orchestration.plugins
