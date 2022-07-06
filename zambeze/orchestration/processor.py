@@ -38,42 +38,42 @@ class Processor(threading.Thread):
     ) -> None:
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
-        self.__settings = settings
-        self.__logger: logging.Logger = (
+        self._settings = settings
+        self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
 
     def run(self):
         """ """
-        self.__logger.debug("Starting Agent Processor")
+        self._logger.debug("Starting Agent Processor")
         asyncio.run(self.__process())
 
     async def __process(self):
         """
         Evaluate and process messages if requested activity is supported.
         """
-        self.__logger.debug(
-            f"Connecting to NATS server: {self.__settings.get_nats_connection_uri()}"
+        self._logger.debug(
+            f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
         )
-        nc = await nats.connect(self.__settings.get_nats_connection_uri())
+        nc = await nats.connect(self._settings.get_nats_connection_uri())
         sub = await nc.subscribe(MessageType.COMPUTE.value)
-        self.__logger.debug("Waiting for messages")
+        self._logger.debug("Waiting for messages")
 
         while True:
             try:
                 msg = await sub.next_msg()
                 data = json.loads(msg.data)
-                self.__logger.debug(f"Message received: {msg.data}")
-                if self.__settings.is_plugin_configured(data["plugin"].lower()):
+                self._logger.debug(f"Message received: {msg.data}")
+                if self._settings.is_plugin_configured(data["plugin"].lower()):
                     # look for files
                     if data["files"]:
-                        self.__logger.debug("Need to analyze files")
+                        self._logger.debug("Need to analyze files")
 
                     # perform compute action
-                    self.__settings.plugins.run(
+                    self._settings.plugins.run(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
-                self.__logger.debug("Waiting for messages")
+                self._logger.debug("Waiting for messages")
 
             except TimeoutError:
                 pass

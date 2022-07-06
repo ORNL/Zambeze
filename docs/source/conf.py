@@ -18,8 +18,9 @@ import sys
 # Fetch the version
 exec(open("../../zambeze/version.py").read())
 
-sys.path.insert(0,
-        os.path.abspath(os.path.join(os.path.dirname(__file__),"../../zambeze")))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../zambeze"))
+)
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------

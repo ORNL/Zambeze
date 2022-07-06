@@ -20,22 +20,17 @@ class Shell(Plugin):
     """Implementation of a Shell plugin."""
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__(logger=logger)
-        self.__name = "shell"
-        self.__configured = False
+        super().__init__("shell", logger=logger)
+        self._configured = False
 
     def configure(self, config: dict) -> None:
         """Configure shell."""
-        self._logger.debug(f"Configuring {self.__name} plugin.")
-        self.__configured = True
+        self._logger.debug(f"Configuring {self._name} plugin")
+        self._configured = True
 
     @property
     def configured(self) -> bool:
-        return self.__configured
-
-    @property
-    def name(self) -> str:
-        return self.__name
+        return self._configured
 
     @property
     def help(self) -> str:
@@ -77,7 +72,7 @@ class Shell(Plugin):
         if instance.check(arguments):
             instance.process(arguments)
         """
-        if not self.__configured:
+        if not self._configured:
             raise Exception("Cannot run shell plugin, must first be configured.")
 
         for data in arguments:
