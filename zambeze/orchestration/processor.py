@@ -65,7 +65,12 @@ class Processor(threading.Thread):
                 data = json.loads(msg.data)
                 self.__logger.debug(f"Message received: {msg.data}")
                 if self.__settings.is_plugin_configured(data["plugin"].lower()):
-                    self.__settings.run_plugin(
+                    # look for files
+                    if data["files"]:
+                        self.__logger.debug("Need to analyze files")
+
+                    # perform compute action
+                    self.__settings.plugins.run(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
                 self.__logger.debug("Waiting for messages")
