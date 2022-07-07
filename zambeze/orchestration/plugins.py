@@ -33,7 +33,11 @@ class Plugins:
     """
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        """Constructor"""
+        """Constructor
+
+        :param logger: Logger to use, defaults to None
+        :type logger: Optional[logging.Logger]
+        """
         self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
@@ -96,8 +100,8 @@ class Plugins:
         plugins can be run, all plugins should be configured before they can be
         run.
 
-        :parameter config: This contains relevant configuration information for each
-        plugin, if provided will only configure the plugins listed
+        :param config: This contains relevant configuration information for each
+            plugin, if provided will only configure the plugins listed
         :type config: dict
 
         :Example: Arguments
@@ -164,7 +168,7 @@ class Plugins:
         """Will return the current state of the registered plugins
 
         :parameter plugins: the plugins to provide information about
-        :default plugins: information about all plugins
+            defaults to information about all plugins
         :type plugins: list[str]
         :return: The actual information of each plugin that was specified
         :rtype: dict
