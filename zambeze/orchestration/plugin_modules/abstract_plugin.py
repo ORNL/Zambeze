@@ -82,23 +82,19 @@ class Plugin(ABC):
         :rtype: dict with the actions valid actions listed with bool set to
         True and invalid ones False
 
-        Example Arguments
+        :Example:
 
-        arguments =
-        [
-            { "action1": { "dothis": ...} },
-            { "action2": { "dothat": ...} },
-        ]
-
-        Example
-
-        checked_actions = plugin.check(arguments)
-
-        for action in checked_actions:
-            print(f"{action}: {checked_actions[action]}")
-
-        >>> action1 True
-        >>> action2 False
+        >>> arguments =
+        >>> [
+        >>>     { "action1": { "dothis": ...} },
+        >>>     { "action2": { "dothat": ...} },
+        >>> ]
+        >>> checked_actions = plugin.check(arguments)
+        >>> for action in checked_actions:
+        >>>     print(f"{action}: {checked_actions[action]}")
+        >>> # Should print
+        >>> # action1 True
+        >>> # action2 False
         """
 
     @abstractmethod

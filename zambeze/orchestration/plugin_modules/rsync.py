@@ -28,29 +28,25 @@ import subprocess
 def requiredEndpointKeysExist(action_endpoint: dict) -> bool:
     """Returns true if action_endpoint contains "ip","user" and "path" keys
 
-    param action_endpoint: the object that is being checked
-    type action_endpoint: dict
+    :param action_endpoint: the object that is being checked
+    :type action_endpoint: dict
 
-    Examples:
+    :Example:
 
-    action_endpoint = {
-        "ip": "138.131.32.5",
-        "user": "cades",
-        "path": "/home/cades/folder1/out.txt"
-    }
-
-    fields_exist = requiredEndpointKeysExist( action_endpoint)
-    assert fields_exist
-
-    action_endpoint = {
-        "ip": "138.131.32.5",
-        "path": "/home/cades/folder1/out.txt"
-    }
-
-    # Should fail because missing "user"
-    fields_exist = requiredEndpointKeysExist( action_endpoint)
-    assert not fields_exist
-
+    >>> action_endpoint = {
+    >>>     "ip": "138.131.32.5",
+    >>>     "user": "cades",
+    >>>     "path": "/home/cades/folder1/out.txt"
+    >>> }
+    >>> fields_exist = requiredEndpointKeysExist( action_endpoint)
+    >>> assert fields_exist
+    >>> action_endpoint = {
+    >>>     "ip": "138.131.32.5",
+    >>>     "path": "/home/cades/folder1/out.txt"
+    >>> }
+    >>> # Should fail because missing "user"
+    >>> fields_exist = requiredEndpointKeysExist( action_endpoint)
+    >>> assert not fields_exist
     """
     if "ip" not in action_endpoint:
         return False
@@ -65,27 +61,25 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> bool:
     """Returns true if both source and destination endpoints contain the
     correct fields
 
-
     Note this function does not check that the fields make since so you could have
     a completely bogus ip address and this will function will return true.
 
-    Example
+    :Example:
 
-    action_inst = {
-        "source": {
-            "ip": "",
-            "user": "",
-            "path": ""
-        },
-        "destination": {
-            "ip": "",
-            "user": "",
-            "path": ""
-        }
-    }
-
-    keys_exist = requiredSourceAndDestinationKeysExist(action_inst)
-    assert keys_exist
+    >>> action_inst = {
+    >>>     "source": {
+    >>>         "ip": "",
+    >>>         "user": "",
+    >>>         "path": ""
+    >>>     },
+    >>>     "destination": {
+    >>>         "ip": "",
+    >>>         "user": "",
+    >>>         "path": ""
+    >>>     }
+    >>> }
+    >>> keys_exist = requiredSourceAndDestinationKeysExist(action_inst)
+    >>> assert keys_exist
     """
 
     if "source" in action_inst:
@@ -106,23 +100,22 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> bool:
 def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bool:
     """Determines if the values are valid
 
-    Example
+    :Example:
 
-    action_inst = {
-        "source": {
-            "ip": "172.198.43.14",
-            "user": "cades",
-            "path": "/home/cades/Folder1/in.txt"
-        },
-        "destination": {
-            "ip": "198.128.243.15",
-            "user": "jeff",
-            "path": "/home/jeff/local/out.txt"
-        }
-    }
-
-    values_valid = requiredSourceAndDestinationValuesValid(action_inst, "source")
-    assert values_valid
+    >>> action_inst = {
+    >>>     "source": {
+    >>>         "ip": "172.198.43.14",
+    >>>         "user": "cades",
+    >>>         "path": "/home/cades/Folder1/in.txt"
+    >>>     },
+    >>>     "destination": {
+    >>>         "ip": "198.128.243.15",
+    >>>         "user": "jeff",
+    >>>         "path": "/home/jeff/local/out.txt"
+    >>>     }
+    >>> }
+    >>> values_valid = requiredSourceAndDestinationValuesValid(action_inst, "source")
+    >>> assert values_valid
 
     Extra checks are run on the source or destination
     values depending on which machine this code is running on.
@@ -190,19 +183,20 @@ class Rsync(Plugin):
     def configure(self, config: dict) -> None:
         """Configure rsync
 
-        param config: configuration options
-        type config: dict
+        :param config: configuration options
+        :type config: dict
 
         In this case the configure method checks to make sure that the rsync binary is
         available. If an ssh key file path is provided it also checks to make sure it
         is a valid path.
 
-        config = {
-            "private_ssh_key": "path to ssh key"
-        }
+        :Example:
 
-        instance = Rsync()
-        instance.configure(config)
+        >>> config = {
+        >>>     "private_ssh_key": "path to ssh key"
+        >>> }
+        >>> instance = Rsync()
+        >>> instance.configure(config)
         """
         self._logger.debug(f"Configuring {self._name} plugin")
 
@@ -263,36 +257,36 @@ class Rsync(Plugin):
     def check(self, arguments: list[dict]) -> dict:
         """Check the arguments are supported.
 
-        param arguments: arguments needed to run the rsync plugin
-        type arguments: list[dict]
+        :param arguments: arguments needed to run the rsync plugin
+        :type arguments: list[dict]
 
         Rsync must have a source and end destination machine provided.
 
-        config = {
-            "private_ssh_key": "path to ssh key"
-        }
+        :Example:
 
-        arguments = [
-            {
-                "transfer": {
-                    "source" : {
-                        "ip": "128.219.183.34",
-                        "user: "",
-                        "path: "",
-                    },
-                    "destination": {
-                        "ip": "172.231.41.3",
-                        "user: "",
-                        "path: "",
-                    }
-                    "arguments": ["argument1","argument2"]
-                }
-            }
-        ]
-
-        instance = Rsync()
-        instance.configure(config)
-        assert instance.check(arguments)
+        >>> config = {
+        >>>     "private_ssh_key": "path to ssh key"
+        >>> }
+        >>> arguments = [
+        >>>     {
+        >>>         "transfer": {
+        >>>             "source" : {
+        >>>                 "ip": "128.219.183.34",
+        >>>                 "user: "",
+        >>>                 "path: "",
+        >>>             },
+        >>>             "destination": {
+        >>>                 "ip": "172.231.41.3",
+        >>>                 "user: "",
+        >>>                 "path: "",
+        >>>             }
+        >>>             "arguments": ["argument1","argument2"]
+        >>>         }
+        >>>     }
+        >>> ]
+        >>> instance = Rsync()
+        >>> instance.configure(config)
+        >>> assert instance.check(arguments)
         """
         message = ""
         supported_actions = {}
@@ -341,37 +335,35 @@ class Rsync(Plugin):
     def process(self, arguments: list[dict]):
         """Equivalent to running the plugin after it has been set up
 
-        param arguments: arguments needed to run the rsync plugin
-        type arguments: list[dict]
+        :param arguments: arguments needed to run the rsync plugin
+        :type arguments: list[dict]
 
-        Example
+        :Example:
 
-        config = {
-            "private_ssh_key": "path to ssh key"
-        }
-
-        arguments = [
-            {
-                "transfer": {
-                    "source": {
-                        "ip": "valid ip address",
-                        "path": "path to items that will be transferred",
-                        "user": "user name"
-                    },
-                    "destination": {
-                        "ip": "valid ip address",
-                        "path": "path to items that will be transferred",
-                        "user": "user name"
-                    },
-                    "arguments": ["-a"] # Additional arguments to pass to rsync command
-                }
-            }
-        ]
-
-        instance = Rsync()
-        instance.configure(config)
-        if instance.check(arguments):
-            instance.process(arguments)
+        >>> config = {
+        >>>     "private_ssh_key": "path to ssh key"
+        >>> }
+        >>> arguments = [
+        >>>     {
+        >>>         "transfer": {
+        >>>             "source": {
+        >>>                 "ip": "valid ip address",
+        >>>                 "path": "path to items that will be transferred",
+        >>>                 "user": "user name"
+        >>>             },
+        >>>             "destination": {
+        >>>                 "ip": "valid ip address",
+        >>>                 "path": "path to items that will be transferred",
+        >>>                 "user": "user name"
+        >>>             },
+        >>>             "arguments": ["-a"] # Additional arguments to pass to rsync command
+        >>>         }
+        >>>     }
+        >>> ]
+        >>> instance = Rsync()
+        >>> instance.configure(config)
+        >>> if instance.check(arguments):
+        >>>     instance.process(arguments)
         """
         if not self._configured:
             raise Exception(

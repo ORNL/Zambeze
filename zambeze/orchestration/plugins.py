@@ -128,7 +128,6 @@ class Plugins:
         >>> plugins.configure(config, ["shell"])
 
         This will just configure the "shell" plugin
-
         """
         for key in self._plugins:
             if key in config.keys():
@@ -176,12 +175,9 @@ class Plugins:
         :return: The actual information of each plugin that was specified
         :rtype: dict
 
-        :Example: Arguments
-
-        these_plugins = ["globus", "shell"]
-
         :Example:
 
+        >>> these_plugins = ["globus", "shell"]
         >>> Plugins plugins
         >>> plugins.configure(configuration_options)
         >>> information = plugins.info(these_plugins)
@@ -200,19 +196,23 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    def check(self, plugin_name: str, arguments: dict) -> None:
+    def check(self, plugin_name: str, arguments: dict) -> dict:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
         :type plugin_name: str
         :parameter arguments: the arguments to be validated for plugin "plugin_name"
         :type arguments: dict
-        :return: nothing is returned
+        :return: What is returned are a list of the plugins and their actions
+            along with an indication on whether there was a problem with them
 
-        :Example:
+        :Example: Using rsync
 
-        Assuming we are validating that the following arguments are provided for
-        the rsync plugin
+        For the rsync plugin to be useful, both the local and remote host
+        ssh keys must have been configured. By default the rsync plugin will
+        look for the private key located at ~/.ssh/id_rsa. If the private key
+        is different then it must be specified with the "private_ssh_key" key
+        value pair.
 
         >>> plugins = Plugins()
         >>> config = {
@@ -220,7 +220,7 @@ class Plugins:
         >>>         "private_ssh_key": "path to private ssh key"
         >>>     }
         >>> }
-        >>> plugins.configure()
+        >>> plugins.configure(config)
         >>> arguments = {
         >>>     "transfer": {
         >>>         "source": {
@@ -236,6 +236,12 @@ class Plugins:
         >>>         "arguments": ["-a"],
         >>>     }
         >>> }
+        >>> checked_args = plugins.check("rsync", arguments)
+        >>> print(checked_args)
+        >>> # Should print
+        >>> # {
+        >>> #   "rsync": { "transfer": True }
+        >>> # {
         """
         check_results = {}
         check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
@@ -276,7 +282,7 @@ class Plugins:
         >>> # correctly validated
         >>> checks = plugins.check('rsync', arguments)
         >>> print(checks)
+        >>> # Should print { "rsync": { "transfer": True } }
         >>> plugins.run('rsync', arguments)
-        >>> {"transfer": True }
         """
         self._plugins[plugin_name].process([arguments])
