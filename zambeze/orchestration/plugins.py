@@ -46,6 +46,9 @@ class Plugins:
 
         plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
+            if module_name == "abstract_plugin":
+                continue
+
             module = import_module(
                 f"zambeze.orchestration.plugin_modules.{module_name}"
             )
