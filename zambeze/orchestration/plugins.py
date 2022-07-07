@@ -41,33 +41,17 @@ class Plugins:
         self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+        self.__module_names = []
+        self._plugins = {}
         self.__registerPlugins()
 
     def __registerPlugins(self) -> None:
         """Will register all the plugins provided in the plugin_modules folder"""
-        self._plugins = {}
-        module_names = []
-
         plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
-            if module_name == "abstract_plugin":
-                continue
-
-            module = import_module(
-                f"zambeze.orchestration.plugin_modules.{module_name}"
-            )
-            module_names.append(module_name)
-            for attribute_name in dir(module):
-                potential_plugin = getattr(module, attribute_name)
-                if isclass(potential_plugin):
-                    if (
-                        issubclass(potential_plugin, Plugin)
-                        and attribute_name != "Plugin"
-                    ):
-                        self._plugins[attribute_name.lower()] = potential_plugin(
-                            logger=self.__logger
-                        )
-        self.__logger.debug(f"Registered Plugins: {', '.join(module_names)}")
+            if module_name != "abstract_plugin" and module_name != "__init__":
+                self.__module_names.append(module_name)
+        self.__logger.debug(f"Registered Plugins: {', '.join(self.__module_names)}")
 
     @property
     def registered(self) -> list[Plugin]:
@@ -90,9 +74,9 @@ class Plugins:
         >>> shell
         >>> rsync
         """
-        plugins: list[Plugin] = []
-        for key in self._plugins:
-            plugins.append(deepcopy(key))
+        plugins: list[str] = []
+        for module_name in self.__module_names:
+            plugins.append(deepcopy(module_name))
         return plugins
 
     def configure(self, config: dict):
@@ -129,6 +113,21 @@ class Plugins:
 
         This will just configure the "shell" plugin
         """
+        for module_name in self.__module_names:
+            module = import_module(
+                f"zambeze.orchestration.plugin_modules.{module_name}"
+            )
+            for attribute_name in dir(module):
+                potential_plugin = getattr(module, attribute_name)
+                if isclass(potential_plugin):
+                    if (
+                        issubclass(potential_plugin, Plugin)
+                        and attribute_name != "Plugin"
+                    ):
+                        self._plugins[attribute_name.lower()] = potential_plugin(
+                            logger=self.__logger
+                        )
+
         for key in self._plugins:
             if key in config.keys():
                 obj = self._plugins.get(key)

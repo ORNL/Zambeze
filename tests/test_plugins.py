@@ -17,14 +17,18 @@ def test_registered_plugins():
     plugins = Plugins()
     found_shell = False
     found_rsync = False
+    found_globus = False
     for plugin in plugins.registered:
         if plugin == "shell":
             found_shell = True
         elif plugin == "rsync":
             found_rsync = True
+        elif plugin == "globus":
+            found_globus = True
 
     assert found_shell
     assert found_rsync
+    assert found_globus
 
 
 @pytest.mark.unit
