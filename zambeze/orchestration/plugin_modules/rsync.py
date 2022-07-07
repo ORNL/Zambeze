@@ -356,7 +356,7 @@ class Rsync(Plugin):
         >>>                 "path": "path to items that will be transferred",
         >>>                 "user": "user name"
         >>>             },
-        >>>             "arguments": ["-a"] # Additional arguments to pass to rsync command
+        >>>             "arguments": ["-a"]
         >>>         }
         >>>     }
         >>> ]
