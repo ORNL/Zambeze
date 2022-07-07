@@ -19,7 +19,7 @@ import sys
 exec(open("../../zambeze/version.py").read())
 
 head, _ = os.path.split(__file__)
-path_to_zambeze = os.path.abspath(os.path.join(head, "..", "..", "zambeze"))
+path_to_zambeze = os.path.abspath(os.path.join(head, "..", ".."))
 
 sys.path.insert(0, path_to_zambeze)
 

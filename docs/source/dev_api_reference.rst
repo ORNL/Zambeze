@@ -2,5 +2,5 @@
 Developer API
 =============
 
-.. automodule:: orchestration.plugins
+.. automodule:: zambeze.orchestration.plugins
    :members:
