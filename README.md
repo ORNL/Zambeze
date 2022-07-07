@@ -8,6 +8,9 @@
 
 # Zambeze
 
+Documentation for Zambeze can be found on
+[ReadTheDocs](https://docs.zambeze.org/en/latest/).
+
 ## Get in Touch
 
 The main channel to reach the Zambeze team is via the support email: 

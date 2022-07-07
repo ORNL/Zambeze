@@ -18,24 +18,32 @@ class ZambezeSettings:
     """
     Zambeze Settings
 
+    :param conf_file: Path to configuration file
+    :type conf_file: Optional[pathlib.Path]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(
+        self,
+        conf_file: Optional[pathlib.Path] = None,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
+        """Zambeze settings."""
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.load_settings()
+        self.load_settings(conf_file)
 
-    def load_settings(self, conf_file: pathlib.Path = None) -> None:
+    def load_settings(self, conf_file: Optional[pathlib.Path] = None) -> None:
         """
         Load Zambeze's agent settings
 
         :param conf_file: Path to configuration file
-        :type conf_file: pathlib.Path
+        :type conf_file: Optional[pathlib.Path]
         """
-        if not conf_file:
+        self._conf_file = conf_file
+        if not self._conf_file:
             zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
             zambeze_folder.mkdir(parents=True, exist_ok=True)
             self._conf_file = zambeze_folder.joinpath("agent.yaml")

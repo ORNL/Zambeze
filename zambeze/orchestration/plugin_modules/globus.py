@@ -25,22 +25,18 @@ import shutil
 def getMappedCollections(config: dict) -> list[str]:
     """Returns a list of the UUIDs that are mapped collections
 
-    Example:
+    :Example:
 
-    config = {
-        "collections": [
-            { "UUID": "XXXX...XXXX", "path": "/here/file", "type": "guest"},
-            { "UUID": "YYYY...YYYY", "path": "/there/file2", "type": "mapped"}
-        ]
-    }
-
-    mapped_coll = getMappedCollections(config)
-
-    print(mapped_coll)
-
-    # Single entry would be printed in this case
-
-    >>> ["YYYY...YYYY"]
+    >>> config = {
+    >>>     "collections": [
+    >>>         { "UUID": "XXXX...XXXX", "path": "/here/file", "type": "guest"},
+    >>>         { "UUID": "YYYY...YYYY", "path": "/there/file2", "type": "mapped"}
+    >>>     ]
+    >>> }
+    >>> mapped_coll = getMappedCollections(config)
+    >>> print(mapped_coll)
+    >>> # Single entry would be printed in this case
+    >>> # ["YYYY...YYYY"]
     """
     mapped_collections = []
     if "collections" in config:
@@ -58,31 +54,28 @@ def is_36char(item: str):
 def getGlobusScopes(mapped_collections: list[str]) -> str:
     """Get the globus scopes needed to access the mapped collections
 
-    param mapped_collections: This should contain the UUIDs of only mapped
-    collections
-    type mapped_collections: list[str]
+    :param mapped_collections: This should contain the UUIDs of only mapped
+        collections
+    :type mapped_collections: list[str]
 
     For globus mapped collections, explicit scope has to be requested to
     access the collection.
 
-    Example: First example empty mapped collection list
+    :Example: First example empty mapped collection list
 
-    mapped_coll = [""]
-    scopes = getGlobusScopes(mapped_coll)
-    print(scopes)
+    >>> mapped_coll = [""]
+    >>> scopes = getGlobusScopes(mapped_coll)
+    >>> print(scopes)
+    >>> # Will print general scopes
+    >>> # urn:globus:auth:scope:transfer.api.globus.org:all
 
-    # Will print general scopes
-    >>> urn:globus:auth:scope:transfer.api.globus.org:all
+    :Example: Second example
 
-    Example: Second example
-
-    mapped_coll = ["XXXX...XXXX", "YYYY...YYYY"]
-    scopes = getGlobusScopes(mapped_coll)
-    print(scopes)
-
-    # Will print general scopes
-
-    >>> urn:globus:auth:scope:transfer.api.globus.org:all[*https://auth.globus.org/scopes/XXXX...XXXX/data_access *https://auth.globus.org/scopes/YYYY...YYYY/data_access] # noqa: E501
+    >>> mapped_coll = ["XXXX...XXXX", "YYYY...YYYY"]
+    >>> scopes = getGlobusScopes(mapped_coll)
+    >>> print(scopes)
+    >>> # Will print general scopes
+    >>> # urn:globus:auth:scope:transfer.api.globus.org:all[*https://auth.globus.org/scopes/XXXX...XXXX/data_access *https://auth.globus.org/scopes/YYYY...YYYY/data_access] # noqa: E501
     """
     # Clean the UUIDs in the list make sure they are all 36 characters
     mapped_collections = list(filter(is_36char, mapped_collections))
@@ -106,12 +99,12 @@ def getGlobusScopes(mapped_collections: list[str]) -> str:
 def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
     """Check that the approprite keys and values exist in the endpoint
 
-    param item: these are the values that help define either the source or
-    destination
-    type item: dict
-    param supported_types: Supported types, defines what values are allowed
-    type supported_types: list[str]
-    rtype: bool
+    :param item: these are the values that help define either the source or
+        destination
+    :type item: dict
+    :param supported_types: Supported types, defines what values are allowed
+    :type supported_types: list[str]
+    :rtype: bool
 
     This function will return False if the item provided is missing a required
     key or provides an inappropriate value. The required keys for an endpoint
@@ -121,14 +114,13 @@ def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
         * path - this is the path to the item and is required when conducting
         a transfer.
 
-    Example
+    :Example:
 
-    item = {
-        "type": "globus relative",
-        "path": "/file1.txt"
-    }
-
-    assert checkEndpoint(item)
+    >>> item = {
+    >>>     "type": "globus relative",
+    >>>     "path": "/file1.txt"
+    >>> }
+    >>> assert checkEndpoint(item)
     """
     if "type" not in item:
         return False
@@ -150,43 +142,41 @@ def checkAllItemsHaveValidEndpoints(
 ) -> bool:
     """Check that all items that are too be moved are schematically correct
 
-    return: Returns true if the schema of the items is valid and false otherwise
-    rtype: bool
+    :return: Returns true if the schema of the items is valid and false otherwise
+    :rtype: bool
 
-    Example:
+    :Example:
 
     Provided a list of items to be moved
 
-    items = [
-        {
-            "source": {
-                "type": "posix absolute",
-                "path": "/home/cades/file.txt"
-            },
-            "destination": {
-                "type": "globus relative",
-                "path": "/"
-            },
-        },
-        {
-            "source": {
-                "type": "posix absolute",
-                "path": "/home/cades/file2.jpeg"
-            },
-            "destination": {
-                "type": "globus relative",
-                "path": "/sub_folder/file2.jpeg"
-            },
-        }
-    ]
-
-    supported_source_path_types = ["posix absolute", "posix user home"]
-    supported_destination_path_types = ["globus relative"]
-
-    assert checkAllItemsHaveValidEndpoints(
-        items,
-        supported_source_path_types,
-        supported_destination_path_types)
+    >>> items = [
+    >>>     {
+    >>>         "source": {
+    >>>             "type": "posix absolute",
+    >>>             "path": "/home/cades/file.txt"
+    >>>         },
+    >>>         "destination": {
+    >>>             "type": "globus relative",
+    >>>             "path": "/"
+    >>>         },
+    >>>     },
+    >>>     {
+    >>>         "source": {
+    >>>             "type": "posix absolute",
+    >>>             "path": "/home/cades/file2.jpeg"
+    >>>         },
+    >>>         "destination": {
+    >>>             "type": "globus relative",
+    >>>             "path": "/sub_folder/file2.jpeg"
+    >>>         },
+    >>>     }
+    >>> ]
+    >>> supported_source_path_types = ["posix absolute", "posix user home"]
+    >>> supported_destination_path_types = ["globus relative"]
+    >>> assert checkAllItemsHaveValidEndpoints(
+    >>>     items,
+    >>>     supported_source_path_types,
+    >>>     supported_destination_path_types)
     """
     for item in items:
         if "source" not in item:
@@ -208,7 +198,7 @@ def checkAllItemsHaveValidEndpoints(
 
 class Globus(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__(logger=logger)
+        super().__init__("globus", logger=logger)
         # Client id is specific to Zambeze project it was created by registering
         # at developers.globus.org
         self.__access_to_globus_cloud = False
@@ -667,10 +657,6 @@ class Globus(Plugin):
             " }\n"
         )
         return message
-
-    @property
-    def name(self) -> str:
-        return self.__name
 
     @property
     def configured(self) -> bool:

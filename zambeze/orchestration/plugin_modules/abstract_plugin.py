@@ -21,10 +21,22 @@ class Plugin(ABC):
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        """Returns the name of the plugin.
+
+        The name of the plugin, should be lower case
+
+        :return: Name of the plugin
+        :rtype: string
+        """
+        return self._name
 
     @abstractmethod
     def configure(self, config: dict) -> None:
@@ -59,20 +71,6 @@ class Plugin(ABC):
         defaults."""
         raise NotImplementedError("returns information about the plugin.")
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Returns the name of the plugin.
-
-        The name of the plugin, should be lower case
-
-        :return: name of the plugin
-        :rtype: string
-        """
-        raise NotImplementedError(
-            "name method of derived plugin must be " "implemented."
-        )
-
     @abstractmethod
     def check(self, arguments: list[dict]) -> dict:
         """Determine if the proposed arguments can be executed by this instance.
@@ -84,23 +82,19 @@ class Plugin(ABC):
         :rtype: dict with the actions valid actions listed with bool set to
         True and invalid ones False
 
-        Example Arguments
+        :Example:
 
-        arguments =
-        [
-            { "action1": { "dothis": ...} },
-            { "action2": { "dothat": ...} },
-        ]
-
-        Example
-
-        checked_actions = plugin.check(arguments)
-
-        for action in checked_actions:
-            print(f"{action}: {checked_actions[action]}")
-
-        >>> action1 True
-        >>> action2 False
+        >>> arguments =
+        >>> [
+        >>>     { "action1": { "dothis": ...} },
+        >>>     { "action2": { "dothat": ...} },
+        >>> ]
+        >>> checked_actions = plugin.check(arguments)
+        >>> for action in checked_actions:
+        >>>     print(f"{action}: {checked_actions[action]}")
+        >>> # Should print
+        >>> # action1 True
+        >>> # action2 False
         """
 
     @abstractmethod
