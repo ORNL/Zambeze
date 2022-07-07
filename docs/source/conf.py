@@ -19,8 +19,14 @@ import sys
 exec(open("../../zambeze/version.py").read())
 
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../zambeze"))
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", os.sep,
+        "..", os.sep, "zambeze"))
 )
+sys.path.insert(1, os.path.dirname(os.path.abspath("../")) + os.sep +
+        "zambeze")
+sys.path.insert(1, os.path.dirname(os.path.abspath("../..")) + os.sep +
+        "zambeze")
+
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
