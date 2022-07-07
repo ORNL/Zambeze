@@ -9,6 +9,7 @@
 import asyncio
 import json
 import logging
+import pathlib
 import nats
 
 from typing import Optional
@@ -20,16 +21,22 @@ from ..settings import ZambezeSettings
 class Agent:
     """A distributed Agent.
 
+    :param conf_file: Path to configuration file
+    :type conf_file: Optional[pathlib.Path]
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(
+        self,
+        conf_file: Optional[pathlib.Path] = None,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
         """Create an object that represents a distributed agent."""
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self._settings = ZambezeSettings(logger=self._logger)
+        self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
         self._processor = Processor(settings=self._settings, logger=self._logger)
         self._processor.start()
 
@@ -44,7 +51,6 @@ class Agent:
         :param activity: An activity object.
         :type activity: Activity
         """
-        asyncio.run(self.__send(MessageType.COMPUTE.value, activity.generate_message()))
         # TODO: evaluate activity and generate messages
         asyncio.run(self.__send(MessageType.COMPUTE.value, activity.generate_message()))
 

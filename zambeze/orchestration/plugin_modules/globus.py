@@ -208,7 +208,7 @@ def checkAllItemsHaveValidEndpoints(
 
 class Globus(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__(logger=logger)
+        super().__init__("globus", logger=logger)
         # Client id is specific to Zambeze project it was created by registering
         # at developers.globus.org
         self.__access_to_globus_cloud = False
@@ -667,10 +667,6 @@ class Globus(Plugin):
             " }\n"
         )
         return message
-
-    @property
-    def name(self) -> str:
-        return self.__name
 
     @property
     def configured(self) -> bool:

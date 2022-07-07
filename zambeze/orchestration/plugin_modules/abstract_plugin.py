@@ -21,10 +21,22 @@ class Plugin(ABC):
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        """Returns the name of the plugin.
+
+        The name of the plugin, should be lower case
+
+        :return: Name of the plugin
+        :rtype: string
+        """
+        return self._name
 
     @abstractmethod
     def configure(self, config: dict) -> None:
@@ -58,20 +70,6 @@ class Plugin(ABC):
         information about the plugin such as configuration settings and
         defaults."""
         raise NotImplementedError("returns information about the plugin.")
-
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Returns the name of the plugin.
-
-        The name of the plugin, should be lower case
-
-        :return: name of the plugin
-        :rtype: string
-        """
-        raise NotImplementedError(
-            "name method of derived plugin must be " "implemented."
-        )
 
     @abstractmethod
     def check(self, arguments: list[dict]) -> dict:

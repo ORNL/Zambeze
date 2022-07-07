@@ -18,8 +18,9 @@ import sys
 # Fetch the version
 exec(open("../../zambeze/version.py").read())
 
-sys.path.insert(0,
-        os.path.abspath(os.path.join(os.path.dirname(__file__),"../../zambeze")))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../zambeze"))
+)
 sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
@@ -38,8 +39,12 @@ release = str(__version__)
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["recommonmark", "sphinx_rtd_theme", "sphinx.ext.autodoc",
-        "sphinx.ext.autosummary"]
+extensions = [
+    "recommonmark",
+    "sphinx_rtd_theme",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

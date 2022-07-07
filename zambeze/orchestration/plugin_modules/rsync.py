@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+
 # Local imports
 from .abstract_plugin import Plugin
 
@@ -6,13 +14,12 @@ from ..system_utils import userExists
 from ..network import isAddressValid
 
 # Standard imports
-from copy import deepcopy
 from typing import Optional
 
 import logging
-import os
-import subprocess
+import pathlib
 import socket
+import subprocess
 
 
 #############################################################
@@ -129,7 +136,7 @@ def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bo
     if match_host is None:
         return False
     # If make sure that paths defined on the host exist
-    if not os.path.exists(action_inst[match_host]["path"]):
+    if not pathlib.Path(action_inst[match_host]["path"]).exists():
         # If it is the destination it doesn't matter as much because
         # we will try to create it
         if match_host == "source":
@@ -173,13 +180,12 @@ class Rsync(Plugin):
     """Class serves as an example of a plugin"""
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__(logger=logger)
-        self.__name = "rsync"
-        self.__configured = False
-        self.__supported_actions = {"transfer": False}
-        self.__hostname = socket.gethostname()
-        self.__local_ip = socket.gethostbyname(self.__hostname)
-        self.__ssh_key = os.path.expanduser("~") + "/.ssh/id_rsa"
+        super().__init__("rsync", logger=logger)
+        self._configured = False
+        self._supported_actions = {"transfer": False}
+        self._hostname = socket.gethostname()
+        self._local_ip = socket.gethostbyname(self._hostname)
+        self._ssh_key = pathlib.Path.home().joinpath(".ssh/id_rsa")
 
     def configure(self, config: dict) -> None:
         """Configure rsync
@@ -198,37 +204,33 @@ class Rsync(Plugin):
         instance = Rsync()
         instance.configure(config)
         """
+        self._logger.debug(f"Configuring {self._name} plugin")
 
         # Check that rsync is available
         if isExecutable("rsync"):
-            self.__configured = True
-            self.__supported_actions["transfer"] = True
+            self._configured = True
+            self._supported_actions["transfer"] = True
             if "private_ssh_key" in config:
-                if os.path.exists(config["private_ssh_key"]):
-                    self.__ssh_key = config["private_ssh_key"]
+                if pathlib.Path(config["private_ssh_key"]).exists():
+                    self._ssh_key = config["private_ssh_key"]
                 else:
-                    key_path = config["private_ssh_key"]
-                    error_msg = "Private ssh key does not appear to exist" "{}".format(
-                        key_path
+                    error_msg = (
+                        f'Private ssh key does not exist {config["private_ssh_key"]}'
                     )
                     raise Exception(error_msg)
+            self._logger.debug(f"  Private key: {self._ssh_key}")
 
         for config_argument in config.keys():
             if config_argument == "private_ssh_key":
                 pass
             else:
                 raise Exception(
-                    "Unsupported rsync config option encountered: " f"{config_argument}"
+                    f"Unsupported rsync config option encountered: {config_argument}"
                 )
-        self.__config = deepcopy(config)
 
     @property
     def configured(self) -> bool:
-        return self.__configured
-
-    @property
-    def name(self) -> str:
-        return self.__name
+        return self._configured
 
     @property
     def help(self) -> str:
@@ -237,8 +239,8 @@ class Rsync(Plugin):
     @property
     def supportedActions(self) -> list[str]:
         supported_actions = []
-        for action in self.__supported_actions:
-            if self.__supported_actions[action]:
+        for action in self._supported_actions:
+            if self._supported_actions[action]:
                 supported_actions.append(action)
         return supported_actions
 
@@ -246,16 +248,16 @@ class Rsync(Plugin):
     def info(self) -> dict:
         """Provides information about the instance of the plugin"""
         supported_actions = []
-        for action in self.__supported_actions:
-            if self.__supported_actions[action]:
+        for action in self._supported_actions:
+            if self._supported_actions[action]:
                 supported_actions.append(action)
 
         return {
-            "configured": self.__configured,
+            "configured": self._configured,
             "supported_actions": supported_actions,
-            "hostname": self.__hostname,
-            "local_ip": self.__local_ip,
-            "ssh_key": self.__ssh_key,
+            "hostname": self._hostname,
+            "local_ip": self._local_ip,
+            "ssh_key": self._ssh_key,
         }
 
     def check(self, arguments: list[dict]) -> dict:
@@ -310,7 +312,7 @@ class Rsync(Plugin):
                     continue
 
                 match_host = isTheHostTheSourceOrDestination(
-                    action_inst, self.__local_ip
+                    action_inst, self._local_ip
                 )
 
                 # Now that we know the fields exist ensure that they are valid
@@ -371,10 +373,9 @@ class Rsync(Plugin):
         if instance.check(arguments):
             instance.process(arguments)
         """
-
-        if not self.__configured:
+        if not self._configured:
             raise Exception(
-                f"Cannot process {self.__name} plugin, {self.__name} "
+                f"Cannot process {self._name} plugin, {self._name} "
                 "plugin must first be configured."
             )
 
@@ -383,7 +384,7 @@ class Rsync(Plugin):
                 action_inst = action["transfer"]
 
                 command_list = ["rsync"]
-                ssh_commands = ["-e", "ssh -i " + self.__ssh_key]
+                ssh_commands = ["-e", "ssh -i " + self._ssh_key]
                 for argument in ssh_commands:
                     command_list.append(argument)
 
@@ -391,11 +392,11 @@ class Rsync(Plugin):
                     for argument in action_inst["arguments"]:
                         command_list.append(argument)
 
-                if action_inst["source"]["ip"] == self.__local_ip:
+                if action_inst["source"]["ip"] == self._local_ip:
                     command_list.append(action_inst["source"]["path"])
                     command_list.append(buildRemotePath(action_inst["destination"]))
 
-                elif action_inst["destination"]["ip"] == self.__local_ip:
+                elif action_inst["destination"]["ip"] == self._local_ip:
                     command_list.append(buildRemotePath(action_inst["source"]))
                     command_list.append(action_inst["destination"]["path"])
 
