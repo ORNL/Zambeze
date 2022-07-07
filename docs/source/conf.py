@@ -18,12 +18,10 @@ import sys
 # Fetch the version
 exec(open("../../zambeze/version.py").read())
 
-sys.path.insert(
-    0,
-    os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", os.sep, "..", os.sep, "zambeze")
-    ),
-)
+head, _ = os.path.split(__file__)
+path_to_zambeze = os.path.abspath(os.path.join(head, "..", "..", "zambeze"))
+
+sys.path.insert(0, path_to_zambeze)
 
 sys.setrecursionlimit(1500)
 
