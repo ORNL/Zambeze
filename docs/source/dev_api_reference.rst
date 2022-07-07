@@ -2,4 +2,5 @@
 Developer API
 =============
 
-.. autosummary:: orchestration.plugins
+.. automodule:: orchestration.plugins
+   :members:
