@@ -1,7 +1,7 @@
-dvc>=2.12.1
+base64
 globus_sdk>=3.9
 nats-py>=2.1.0
-pygithub>=1.55.0
+requests
 pytest>=6.2.4
 pyyaml>=5.4.1
 setuptools>=49.3.1

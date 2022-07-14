@@ -198,7 +198,8 @@ def checkAllItemsHaveValidEndpoints(
 
 class Globus(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("globus", logger=logger)
+        self.__name = "globus"
+        super().__init__(self.__name, logger=logger)
         # Client id is specific to Zambeze project it was created by registering
         # at developers.globus.org
         self.__access_to_globus_cloud = False
@@ -208,13 +209,11 @@ class Globus(Plugin):
         self.__configured = False
         self.__flow = "client credential"
         self.__hostname = None
-        self.__name = "globus"
         self.__supported_actions = {
             "transfer": False,
             "move_to_globus_collection": False,
             "move_from_globus_collection": False,
         }
-
         pass
 
     ###################################################################################
