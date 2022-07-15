@@ -11,18 +11,45 @@ import logging
 import pathlib
 import typer
 
-from zambeze.orchestration.agent import Agent, ZambezeSettings
+from zambeze.orchestration.agent.agent import ZambezeSettings
+from zambeze.orchestration.agent.commands import agent_start, agent_stop, agent_get_status
 
+# Typer configuration (including 'agent' sub-app).
+agent_app = typer.Typer()
+app = typer.Typer()
+app.add_typer(agent_app, name="agent")
+
+# Logging and state configuration.
 logger = logging.getLogger()
 state = {"conf_file": None}
-app = typer.Typer()
 
 
-@app.command()
-def agent():
-    logger.info("Starting Zambeze Agent")
-    agent = Agent(conf_file=state["conf_file"], logger=logger)
-    agent.processor.join()
+@agent_app.command()
+def start():
+    """
+    Start Zambeze agent as its own daemonized subprocess. This will write logs to a user's ~/.zambeze directory and
+    automatically select ports for both data and heartbeat communications.
+
+    The 'start' command will resemble the following CLI command:
+
+    # zambeze-agent start --log-path /Users/tylerskluzacek/.zambeze/the_log.log --debug --zmq-heartbeat-port 5002 \
+    # --zmq-activity-port 5001
+
+    """
+
+    # Step 1.
+
+    state_information = agent_start(logger)
+
+    state_information['status'] = "RUNNING"
+
+
+
+@agent_app.command()
+def stop():
+    """
+    Stop a user's running Zambeze agent.
+    """
 
 
 @app.command()
