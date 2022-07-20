@@ -98,6 +98,8 @@ def agent_stop(logger):
     with open(state_path, 'w') as f:
         json.dump(old_state, f)
 
+    logger.info("Received stop signal.")
+
 
 def agent_get_status():
     raise NotImplementedError("Get status not yet supported...")

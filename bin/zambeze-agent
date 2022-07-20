@@ -6,9 +6,11 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+import logging
 import typer
 
 from zambeze.orchestration.agent.agent import Agent
+from zambeze.orchestration.agent.commands import agent_stop
 
 # logger = logging.getLogger()
 agent_state = {"conf_file": None}
@@ -25,7 +27,6 @@ def start(
     """
     Start the agent (set logger and ZMQ ports).
     """
-    import logging
 
     print(f"Log path: {log_path}")
     agent_logger = logging.getLogger('agent')
@@ -71,14 +72,11 @@ def status():
 @app.command()
 def stop(
         log_path: str = typer.Option("", help="Path to logs on disk."),
-        debug: bool = typer.Option(False, help="If debug logs are enabled."),
-        zmq_activity_port: int = typer.Option(0, help="Port at which activities are received."),
-        zmq_heartbeat_port: int = typer.Option(0, help="Port for agent heartbeat communication."),
-        config_path: str = typer.Option("", help="Path to config.")):
+        debug: bool = typer.Option(False, help="If debug logs are enabled.")):
     """
     Start the agent (set logger and ZMQ ports).
     """
-    raise NotImplementedError("Stop does not yet exist.")
+    raise NotImplementedError("Stop is currently handled entirely by commands.py")
 
 
 if __name__ == "__main__":
