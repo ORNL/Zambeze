@@ -8,14 +8,10 @@
 
 import logging
 import zmq
-import json
 import pickle
-import subprocess
-import os
+
 
 from .activities.abstract_activity import Activity
-
-# from ..orchestration.agent import Agent
 from zambeze.orchestration.agent.commands import agent_start
 
 from typing import Optional
@@ -65,11 +61,7 @@ class Campaign:
         for activity in self.activities:
             self.logger.debug(f"Running activity: {activity.name}")
 
-            # Dump dict into string (.dumps) and serialize string as bytestring (.encode)
+            # Dump dict into string (.dumps) and serialize string
+            #   as bytestring (.encode)
             serial_activity = pickle.dumps(activity)
             self.zmq_socket.send(serial_activity)
-
-            # Acknowledge receipt
-            message = self.zmq_socket.recv()
-            # TODO: TYLER!
-            print(f"RECEIVED REPLY: {message.decode()}")

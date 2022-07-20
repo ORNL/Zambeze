@@ -6,5 +6,5 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-from .abstract_activity import Activity
-from .shell import ShellActivity
+from .abstract_activity import Activity  # noqa: F401
+from .shell import ShellActivity  # noqa: F401
