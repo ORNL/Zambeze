@@ -10,9 +10,7 @@ import logging
 import typer
 
 from zambeze.orchestration.agent.agent import Agent
-from zambeze.orchestration.agent.commands import agent_stop
 
-# logger = logging.getLogger()
 agent_state = {"conf_file": None}
 app = typer.Typer()
 
@@ -62,21 +60,6 @@ def start(
 
     # agent_logger.info("Writing agent state to disk. ")
     # agent.processor.join()
-
-
-@app.command()
-def status():
-    raise NotImplementedError("STATUS does not yet exist.")
-
-
-@app.command()
-def stop(
-        log_path: str = typer.Option("", help="Path to logs on disk."),
-        debug: bool = typer.Option(False, help="If debug logs are enabled.")):
-    """
-    Start the agent (set logger and ZMQ ports).
-    """
-    raise NotImplementedError("Stop is currently handled entirely by commands.py")
 
 
 if __name__ == "__main__":

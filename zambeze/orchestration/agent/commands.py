@@ -81,13 +81,17 @@ def agent_stop(logger):
         with open(state_path, 'r') as f:
             old_state = json.load(f)
         if old_state['status'] in ["STOPPED", "INITIALIZED"]:
-            print("Agent is already STOPPED.")
+            logger.info("Agent is already STOPPED. Exiting...")
+            return
 
     # Sends kill signal. Don't need to try/catch?
     # Perhaps want to check if process *actually* running?
     # See: https://stackoverflow.com/questions/568271/how-to-check-if-there-exists-a-process-with-a-given-pid-in-python
     logger.info(f"Killing the agent with PID: {old_state['pid']}")
-    os.kill(old_state['pid'], SIGKILL)  # TODO: confirm this is blocking.
+    try:
+        os.kill(old_state['pid'], SIGKILL)  # TODO: confirm this is blocking.
+    except ProcessLookupError:
+        logger.debug("Process ID does not exist: agent already terminated. Cleaning up...")
 
     # Reset state to be correct.
     old_state["status"] = "STOPPED"
@@ -98,8 +102,14 @@ def agent_stop(logger):
     with open(state_path, 'w') as f:
         json.dump(old_state, f)
 
-    logger.info("Received stop signal.")
+    logger.info("Agent successfully stopped!\n")
 
 
-def agent_get_status():
-    raise NotImplementedError("Get status not yet supported...")
+def agent_get_status(logger):
+    if not os.path.isfile(state_path):
+        logger.info("Agent does not exist. You can start an agent with 'zambeze agent start'.")
+
+    with open(state_path, 'r') as f:
+        old_state = json.load(f)
+
+    logger.info(f"Agent Status: {old_state['status']}.")

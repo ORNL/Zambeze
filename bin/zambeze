@@ -37,8 +37,6 @@ def start():
 
     """
 
-    # Step 1.
-
     agent_start(logger)
 
 
@@ -47,7 +45,17 @@ def stop():
     """
     Stop a user's running Zambeze agent.
     """
+
     agent_stop(logger)
+
+
+@agent_app.command()
+def status():
+    """
+    Stop a user's running Zambeze agent.
+    """
+
+    agent_get_status(logger)
 
 
 @app.command()
