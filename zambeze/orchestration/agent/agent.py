@@ -7,7 +7,6 @@
 # it under the terms of the MIT License.
 
 import asyncio
-import json
 import logging
 import pathlib
 import pickle
@@ -52,14 +51,14 @@ class Agent:
         self.receive_activity_from_campaign()
 
     def receive_activity_from_campaign(self):
-
-        # Receive and unwrap the activity message from ZMQ.
-        activity_message = pickle.loads((self.zmq_socket.recv()))
-        self.dispatch_activity(activity_message)
-
-        # Receive confirmation of message sent.
-        # TODO: TYLER.
-        resp_object = {'send_status': 'SUCCESS', 'agent_id': self.agent_id}
+        """
+        Receive activity messages via ZMQ
+        """
+        while True:
+            # Receive and unwrap the activity message from ZMQ.
+            activity_message = pickle.loads((self.zmq_socket.recv()))
+            # Dispatch the activity!
+            self.dispatch_activity(activity_message)
 
     @property
     def processor(self) -> Processor:
