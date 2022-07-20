@@ -49,7 +49,7 @@ class Agent:
         self.zmq_socket.bind("tcp://*:5555")
 
         while True:
-            self._logger.error("YAYAYAYA")
+            self._logger.info("Waiting for new activities from campaign(s)...")
             self.receive_activity_from_campaign()
 
     def receive_activity_from_campaign(self):
@@ -57,9 +57,8 @@ class Agent:
         Receive activity messages via ZMQ
         """
         # Receive and unwrap the activity message from ZMQ.
-        self._logger.error("WE ARE RIGHT FREAKIN HERE")
         activity_message = pickle.loads((self.zmq_socket.recv()))
-        self._logger.error(f"Received message from campaign: {activity_message}")
+        self._logger.info(f"Received message from campaign: {activity_message}")
 
         # Dispatch the activity!
         self.dispatch_activity(activity_message)
@@ -76,7 +75,7 @@ class Agent:
         :param activity: An activity object.
         :type activity: Activity
         """
-        self._logger.error(f"DISPAAAAAAAAAAATCH...")
+        self._logger.error("Received activity for dispatch...")
         asyncio.run(
             self.processor.send(MessageType.COMPUTE.value, activity.generate_message())
         )
