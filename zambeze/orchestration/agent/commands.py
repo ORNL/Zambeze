@@ -54,14 +54,17 @@ def agent_start(logger):
     hb_socket.close()
 
     # *********** #
-    # TODO: Get rid of this block
+    # TODO: Use ZMQ utilities to auto-find port.
     data_port = 5555
     hb_port = 5556
     # *********** #
 
+    arg_list = ["zambeze-agent", "--log-path", zambeze_log_path, "--debug", "--zmq-heartbeat-port", str(hb_port),
+                "--zmq-activity-port", str(data_port)]
+    logger.info(f"Command: {' '.join(arg_list)}")
+
     # Open the subprocess and save the process state to file (for future access).
-    proc = subprocess.Popen(["zambeze-agent", "start", "--log-path", zambeze_log_path,
-                             "--debug", "--zmq-heartbeat-port", str(hb_port), "--zmq-activity-port", str(data_port)],
+    proc = subprocess.Popen(arg_list,
                             stdout=devnull, stderr=devnull)
     logger.info(f"Started agent with PID: {proc.pid}")
 
@@ -90,6 +93,12 @@ def agent_stop(logger):
     logger.info(f"Killing the agent with PID: {old_state['pid']}")
     try:
         os.kill(old_state['pid'], SIGKILL)  # TODO: confirm this is blocking.
+        try:
+            os.waitpid(old_state['pid'], 0)
+        except ChildProcessError:
+            # This block just means that 'kill' won the *race*.
+            pass
+
     except ProcessLookupError:
         logger.debug("Process ID does not exist: agent already terminated. Cleaning up...")
 

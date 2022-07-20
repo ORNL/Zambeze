@@ -12,10 +12,10 @@ import typer
 from zambeze.orchestration.agent.agent import Agent
 
 agent_state = {"conf_file": None}
-app = typer.Typer()
+agent_app = typer.Typer()
 
 
-@app.command()
+@agent_app.command()
 def start(
         log_path: str = typer.Option("", help="Path to logs on disk."),
         debug: bool = typer.Option(False, help="If debug logs are enabled."),
@@ -58,9 +58,6 @@ def start(
 
     Agent(conf_file=config_path, logger=agent_logger)
 
-    # agent_logger.info("Writing agent state to disk. ")
-    # agent.processor.join()
-
 
 if __name__ == "__main__":
-    app()
+    agent_app()
