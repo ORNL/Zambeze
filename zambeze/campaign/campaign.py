@@ -45,9 +45,7 @@ class Campaign:
         self.zmq_socket.connect("tcp://127.0.0.1:5555")
 
         # TODO Tyler -- Bring this back...
-        # self.logger.info(f"hello A? ")
-        # agent_start(self.logger)
-        # self.logger.info(f"hello B? ")
+        agent_start(self.logger)
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.

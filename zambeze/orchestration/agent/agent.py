@@ -62,10 +62,8 @@ class Agent:
         self._logger.error(f"Received message from campaign: {activity_message}")
 
         # Dispatch the activity!
-        # TODO: bring back!
         self.dispatch_activity(activity_message)
-        self._logger.error(f"DISPATCHED! ")
-        self.zmq_socket.send(b"REPLY!")
+        self.zmq_socket.send(b"Agent successfully dispatched task!")
 
     @property
     def processor(self) -> Processor:
