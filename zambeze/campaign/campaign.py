@@ -42,10 +42,12 @@ class Campaign:
         self.activities: list[Activity] = activities
         self.zmq_context = zmq.Context()
         self.zmq_socket = self.zmq_context.socket(zmq.REQ)
-        self.zmq_socket.connect("tcp://localhost:5555")
+        self.zmq_socket.connect("tcp://127.0.0.1:5555")
 
-        # TODO Tyler -- check that the logger works as intended here.
-        agent_start(self.logger)
+        # TODO Tyler -- Bring this back...
+        # self.logger.info(f"hello A? ")
+        # agent_start(self.logger)
+        # self.logger.info(f"hello B? ")
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
@@ -58,6 +60,8 @@ class Campaign:
 
     def dispatch(self) -> None:
         """Dispatch the set of current activities in the campaign."""
+        self.logger.info("BINGO BOINGO")
+        self.logger.info(len(self.activities))
         for activity in self.activities:
             self.logger.debug(f"Running activity: {activity.name}")
 
@@ -65,3 +69,5 @@ class Campaign:
             #   as bytestring (.encode)
             serial_activity = pickle.dumps(activity)
             self.zmq_socket.send(serial_activity)
+            self.logger.info("SENT?!")
+            self.logger.info(f"REPLY: {self.zmq_socket.recv()}")

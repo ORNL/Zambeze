@@ -133,6 +133,7 @@ class Processor(threading.Thread):
         :param body: Message body
         :type body: dict
         """
+        self._logger.debug(f"hi 1")
         self._logger.debug(
             f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
         )

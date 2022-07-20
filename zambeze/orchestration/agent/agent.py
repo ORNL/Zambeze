@@ -48,17 +48,24 @@ class Agent:
         self.zmq_socket = self.zmq_context.socket(zmq.REP)
         self.zmq_socket.bind("tcp://*:5555")
 
-        self.receive_activity_from_campaign()
+        while True:
+            self._logger.error("YAYAYAYA")
+            self.receive_activity_from_campaign()
 
     def receive_activity_from_campaign(self):
         """
         Receive activity messages via ZMQ
         """
-        while True:
-            # Receive and unwrap the activity message from ZMQ.
-            activity_message = pickle.loads((self.zmq_socket.recv()))
-            # Dispatch the activity!
-            self.dispatch_activity(activity_message)
+        # Receive and unwrap the activity message from ZMQ.
+        self._logger.error("WE ARE RIGHT FREAKIN HERE")
+        activity_message = pickle.loads((self.zmq_socket.recv()))
+        self._logger.error(f"Received message from campaign: {activity_message}")
+
+        # Dispatch the activity!
+        # TODO: bring back!
+        self.dispatch_activity(activity_message)
+        self._logger.error(f"DISPATCHED! ")
+        self.zmq_socket.send(b"REPLY!")
 
     @property
     def processor(self) -> Processor:
@@ -71,6 +78,7 @@ class Agent:
         :param activity: An activity object.
         :type activity: Activity
         """
+        self._logger.error(f"DISPAAAAAAAAAAATCH...")
         asyncio.run(
             self.processor.send(MessageType.COMPUTE.value, activity.generate_message())
         )
