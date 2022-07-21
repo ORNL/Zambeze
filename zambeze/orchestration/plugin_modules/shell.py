@@ -46,7 +46,7 @@ class Shell(Plugin):
 
     def check(self, arguments: list[dict]) -> dict:
         print("Checking shell plugin")
-        return {"run": False}
+        return {"run": (False, "Checks not implemented.")}
 
     def process(self, arguments: list[dict]):
         """

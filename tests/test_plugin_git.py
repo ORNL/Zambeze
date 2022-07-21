@@ -17,27 +17,130 @@ def test_git_checkCommit():
     Test will create a file and then upload it to the GitHub Repo. The file
     will contain a single random number.
     """
+
+    access_token = os.getenv('ZAMBEZE84_GITHUB_ACCESS_TOKEN')
+    current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
-    f = open(file_name, "w")
+    f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
 
-    package = {
+    package = [{
         "commit": {
-            "repo": "https://github.com/Zambeze84/TestRepo.git",
+            "repo": "TestRepo",
+            "owner": "Zambeze84",
             "branch": "main",
-            "path": "path to file",
+            "source": {
+                    "path": current_dir + "/" + file_name,
+                    "type": "posix absolute"
+                },
+            "destination": {
+                    "path": "/",
+                    "type": "GitHub repository root"
+                },
             "commit_message": "Adding a file",
             "credentials": {
-                "user_name": "BobMarley",
-                "access_token": "user access token",
-                "email": "user@awesome.com"
+                "user_name": "zambeze84",
+                "access_token": access_token,
+                "email": "zambeze84@gmail.com"
             }
         }
-    }
+    }]
 
     git_plugin = git.Git()
-
+    git_plugin.configure({})
     checked_actions = git_plugin.check(package)
-    assert checked_actions["commit"]
+    print(checked_actions)
+    assert checked_actions["commit"][0]
+
+    # This package is missing the repo key
+    package = [{
+        "commit": {
+            "owner": "Zambeze84",
+            "branch": "main",
+            "source": {
+                    "path": current_dir + "/" + file_name,
+                    "type": "posix absolute"
+                },
+            "destination": {
+                    "path": "/",
+                    "type": "GitHub repository root"
+                },
+            "commit_message": "Adding a file",
+            "credentials": {
+                "user_name": "zambeze84",
+                "access_token": access_token,
+                "email": "zambeze84@gmail.com"
+            }
+        }
+    }]
+    checked_actions = git_plugin.check(package)
+    assert not checked_actions["commit"][0]
+
+    # This package is missing the branch key
+    package = [{
+        "commit": {
+            "repo": "TestRepo",
+            "owner": "Zambeze84",
+            "source": {
+                    "path": current_dir + "/" + file_name,
+                    "type": "posix absolute"
+                },
+            "destination": {
+                    "path": "/",
+                    "type": "GitHub repository root"
+                },
+            "commit_message": "Adding a file",
+            "credentials": {
+                "user_name": "zambeze84",
+                "access_token": access_token,
+                "email": "zambeze84@gmail.com"
+            }
+        }
+    }]
+    checked_actions = git_plugin.check(package)
+    assert not checked_actions["commit"][0]
+
+    # This package is missing the source key
+    package = [{
+        "commit": {
+            "repo": "TestRepo",
+            "owner": "Zambeze84",
+            "branch": "main",
+            "destination": {
+                    "path": "/",
+                    "type": "GitHub repository root"
+                },
+            "commit_message": "Adding a file",
+            "credentials": {
+                "user_name": "zambeze84",
+                "access_token": access_token,
+                "email": "zambeze84@gmail.com"
+            }
+        }
+    }]
+    checked_actions = git_plugin.check(package)
+    assert not checked_actions["commit"][0]
+
+    # This package is missing the credentials key
+    package = [{
+        "commit": {
+            "repo": "TestRepo",
+            "owner": "Zambeze84",
+            "branch": "main",
+            "source": {
+                    "path": current_dir + "/" + file_name,
+                    "type": "posix absolute"
+                },
+            "destination": {
+                    "path": "/",
+                    "type": "GitHub repository root"
+                },
+            "commit_message": "Adding a file",
+        }
+    }]
+    checked_actions = git_plugin.check(package)
+    assert not checked_actions["commit"][0]
+
+

@@ -21,10 +21,10 @@ import logging
 
 
 class Git(Plugin):
-    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "git"
         super().__init__(self.__name, logger=logger)
-        self._supported_actions = {
+        self.__supported_actions = {
             "authorize": False,
             "clone": False,
             "commit": True,
@@ -33,6 +33,8 @@ class Git(Plugin):
             "delete": False,
             "delete_branch": False,
         }
+
+        self.__configured = False
         self.__api_base = "https://api.github.com/"
 
     def __checkRepoOwnerExists(self, repo_owner: str) -> bool:
@@ -76,6 +78,11 @@ class Git(Plugin):
         api_url = self.__api_base + f"repos/{repo_owner}/{repo_name}"
         headers = {"Authorization": f"Bearer {token}"}
 
+        if repo_name.endswith(".git"):
+            return (False, f"Please remove '.git' from the repo name \
+{repo_name}")
+
+        print(f"api_url is {api_url}")
         if token is None:
             response = requests.get(api_url)
         else:
@@ -86,25 +93,23 @@ class Git(Plugin):
         print(results)
 
         if "message" in results:
+            msg = ""
             if "Not Found" == results["message"]:
-                print(
-                    f"Repo is not known {repo_name}, if it is a private repo make\
-                        sure you provide authentication."
-                )
+                msg = f"Repo is not known {repo_name}, if it is a private repo make\
+ sure you provide authentication."
             else:
-                print("Unknown error")
-                print(results["message"])
-            return False
-        return True
+                msg = results["message"]
+            return (False, msg)
+        return (True, "")
 
-    def __checkCommit(self, action_obj: dict) -> bool:
+    def __checkCommit(self, action_obj: dict) -> (bool, str):
         """Function ensures that the action_obj is provided with the right fields
 
         :param action_obj: json paramters needed to commit an object to a GitHub repo
         :type action_obj: dict
         :return: True if the action_obj has the required components, False
-        otherwise
-        :rtype: bool
+        otherwise, if there is an error a string is also returned
+        :rtype: (bool, str)
 
         Required parameters include:
 
@@ -117,35 +122,51 @@ class Git(Plugin):
         # Check that the following required parameters have been provided
         required_keys = ["repo", "owner", "source", "destination", "credentials"]
 
+        msg = ""
         for key in required_keys:
             if key not in action_obj:
-                return False
+                return False, f"\n{key} is not a supported key of the 'commit' action."
 
+        check_success = True
         if "path" not in action_obj["source"]:
-            return False
+            msg = msg + "\n'path' key not found in 'source' in 'commit' action"
+            check_success = False
 
         if "path" not in action_obj["destination"]:
-            return False
+            msg = msg + "\n'path' key not found in 'destination' in 'commit' action"
+            check_success = False
 
         if "user_name" not in action_obj["credentials"]:
-            return False
+            msg = msg + "\n'user_name' key not found in 'credentials' in 'commit' action"
+            check_success = False
 
         if "access_token" not in action_obj["credentials"]:
-            return False
+            msg = msg + "\n'access_token' key not found in 'credentials' in \
+                        'commit' action"
+            check_success = False
 
         if "email" not in action_obj["credentials"]:
-            return False
+            msg = msg + "'access_token' key not found in 'credentials' in \
+                        'commit' action"
+            check_success = False
 
         if not self.__checkRepoOwnerExists(action_obj["owner"]):
-            return False
+            msg = msg + "'owner' key not found in 'commit' action"
+            check_success = False
 
-        token = action_obj["credentials"]["access_token"]
-        if not self.__checkRepoExists(
-            action_obj["repo"], action_obj["owner"], token=token
-        ):
-            return False
+        if check_success:
+            # Only run these checks if previous checks have all passed
+            token = action_obj["credentials"]["access_token"]
+            repo_exists, error_msg = self.__checkRepoExists(
+                action_obj["repo"], action_obj["owner"], token=token
+            )
+            if not repo_exists:
+                msg = msg + error_msg
+                msg = msg + f" \nUnable to verify the existance of the 'repo':\
+ {action_obj['repo']} in 'commit' action"
+                check_success = False
 
-        return True
+        return check_success, msg
 
     def __commit(self, action_obj: dict):
         """Function for commiting contents to GitHub
@@ -232,14 +253,14 @@ class Git(Plugin):
         :param config: Configuration for the plugin
         :type config: dict
         """
-        # self._supported_actions["authorize"] = True
-        self._supported_actions["commit"] = True
-        # self._supported_actions["commit"] = True
-        # self._supported_actions["clone"] = True
-        # self._supported_actions["create_branch"] = True
-        # self._supported_actions["create_repo"] = True
-        # self._supported_actions["delete"] = True
-        # self._supported_actions["delete_branch"] = True
+        # self.__supported_actions["authorize"] = True
+        self.__supported_actions["commit"] = True
+        # self.__supported_actions["commit"] = True
+        # self.__supported_actions["clone"] = True
+        # self.__supported_actions["create_branch"] = True
+        # self.__supported_actions["create_repo"] = True
+        # self.__supported_actions["delete"] = True
+        # self.__supported_actions["delete_branch"] = True
 
         self.__configured = True
 
@@ -250,8 +271,8 @@ class Git(Plugin):
     @property
     def supportedActions(self) -> list[str]:
         supported_actions = []
-        for action in self._supported_actions:
-            if self._supported_actions[action]:
+        for action in self.__supported_actions:
+            if self.__supported_actions[action]:
                 supported_actions.append(action)
         return supported_actions
 
@@ -264,7 +285,15 @@ class Git(Plugin):
         """This method is to be used after configuration step and will return
         information about the plugin such as configuration settings and
         defaults."""
-        raise NotImplementedError("returns information about the plugin.")
+        information = {}
+
+        supported_actions = []
+        for action in self.__supported_actions:
+            if self.__supported_actions[action]:
+                supported_actions.append(action)
+
+        information["actions"] = supported_actions
+        return information
 
     def check(self, arguments: list[dict]) -> dict:
         """Determine if the proposed arguments can be executed by this instance.
@@ -311,7 +340,7 @@ class Git(Plugin):
         >>> for action in checked_actions:
         >>>     print(f"{action}: {checked_actions[action]}")
         >>> # Should print
-        >>> # commit True
+        >>> # commit (True,"")
 
         """
         supported_actions = {}
@@ -319,13 +348,12 @@ class Git(Plugin):
             # Make sure that the action is supported
 
             for key in action_obj:
-                print(key)
-
                 if key not in self.__supported_actions:
-                    raise Exception(f"{key} is not supported.")
+                    supported_actions[key] = (False, f"{key} is not supported.")
+                    continue
 
                 if key == "commit":
-                    supported_actions["key"] = self.__checkCommit(action_obj[key])
+                    supported_actions[key] = self.__checkCommit(action_obj[key])
 
         return supported_actions
 

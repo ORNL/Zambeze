@@ -283,7 +283,9 @@ def test_globus_move_check():
         }
     ]
 
-    assert globus_plugin.check(package)
+    checked_actions = globus_plugin.check(package)
+    print(checked_actions)
+    assert checked_actions["move_to_globus_collection"][0]
 
 
 @pytest.mark.globus
