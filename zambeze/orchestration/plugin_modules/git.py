@@ -25,10 +25,9 @@ class Git(Plugin):
         self.__name = "git"
         super().__init__(self.__name, logger=logger)
         self._supported_actions = {
-            "add": False,
             "authorize": False,
             "clone": False,
-            "commit": False,
+            "commit": True,
             "create_repo": False,
             "create_branch": False,
             "delete": False,
@@ -75,9 +74,7 @@ class Git(Plugin):
         called to ensure the owner exists.
         """
         api_url = self.__api_base + f"repos/{repo_owner}/{repo_name}"
-        headers = {
-                "Authorization": f"Bearer {token}"
-                }
+        headers = {"Authorization": f"Bearer {token}"}
 
         if token is None:
             response = requests.get(api_url)
@@ -90,19 +87,20 @@ class Git(Plugin):
 
         if "message" in results:
             if "Not Found" == results["message"]:
-                print(f"Repo is not known {repo_name}, if it is a private repo make\
-                        sure you provide authentication.")
+                print(
+                    f"Repo is not known {repo_name}, if it is a private repo make\
+                        sure you provide authentication."
+                )
             else:
                 print("Unknown error")
                 print(results["message"])
             return False
         return True
 
-
-    def __checkAdd(self, action_obj: dict) -> bool:
+    def __checkCommit(self, action_obj: dict) -> bool:
         """Function ensures that the action_obj is provided with the right fields
 
-        :param action_obj: json paramters needed to add an object to a GitHub repo
+        :param action_obj: json paramters needed to commit an object to a GitHub repo
         :type action_obj: dict
         :return: True if the action_obj has the required components, False
         otherwise
@@ -117,8 +115,7 @@ class Git(Plugin):
         "credentials"
         """
         # Check that the following required parameters have been provided
-        required_keys = ["repo", "owner", "source", "destination",
-                         "credentials"]
+        required_keys = ["repo", "owner", "source", "destination", "credentials"]
 
         for key in required_keys:
             if key not in action_obj:
@@ -143,15 +140,15 @@ class Git(Plugin):
             return False
 
         token = action_obj["credentials"]["access_token"]
-        if not self.__checkRepoExists(action_obj["repo"],
-                                      action_obj["owner"],
-                                      token=token):
+        if not self.__checkRepoExists(
+            action_obj["repo"], action_obj["owner"], token=token
+        ):
             return False
 
         return True
 
-    def __add(self, action_obj: dict):
-        """Function for adding contents to GitHub
+    def __commit(self, action_obj: dict):
+        """Function for commiting contents to GitHub
 
         :param action_obj: needed content to execute the action
         :type action_obj: dict
@@ -187,52 +184,56 @@ class Git(Plugin):
         with open(action_obj["source"]["path"]) as f:
             content = base64.b64encode(f.read())
 
-        url = (self.__api_base + "repos/"
-               + action_obj["owner"] + "/"
-               + action_obj["repo"] + "/"
-               + action_obj["destination"]["path"])
+        url = (
+            self.__api_base
+            + "repos/"
+            + action_obj["owner"]
+            + "/"
+            + action_obj["repo"]
+            + "/"
+            + action_obj["destination"]["path"]
+        )
         headers = {
-                "Authorization": "token " +
-                action_obj["credentials"]["access_token"],
-                "Accept": "application/vnd.github+json"
-                }
+            "Authorization": "token " + action_obj["credentials"]["access_token"],
+            "Accept": "application/vnd.github+json",
+        }
         body = {
-                "message": action_obj["commit_message"],
-                "committer": {
-                    "name": action_obj["credentials"]["user_name"],
-                    "email": action_obj["credentials"]["email"]
-                    },
-                "content": content
-                }
+            "message": action_obj["commit_message"],
+            "committer": {
+                "name": action_obj["credentials"]["user_name"],
+                "email": action_obj["credentials"]["email"],
+            },
+            "content": content,
+        }
         response = requests.put(url, data=json.dumps(body), headers=headers)
         response.json()
 
-#    def __clone(this, action_obj: dict):
-#        """Function for cloning contents of a GitHub repository"""
-#
-#    def __commit(this, action_obj: dict):
-#        """Function for commit to a GitHub"""
-#
-#    def __createRepo(this, action_obj: dict):
-#        """Function for creating a repo on GitHub"""
-#    
-#    def __createBranch(this, action_obj: dict):
-#        """Function for creating a branch on GitHub"""
-#
-#    def __delete(this, action_obj: dict):
-#        """Function for deleting from a repo on GitHub"""
-#
-#    def __deleteBranch(this, action_obj: dict):
-#        """Function for creating a branch on GitHub"""
+    #    def __clone(this, action_obj: dict):
+    #        """Function for cloning contents of a GitHub repository"""
+    #
+    #    def __commit(this, action_obj: dict):
+    #        """Function for commit to a GitHub"""
+    #
+    #    def __createRepo(this, action_obj: dict):
+    #        """Function for creating a repo on GitHub"""
+    #
+    #    def __createBranch(this, action_obj: dict):
+    #        """Function for creating a branch on GitHub"""
+    #
+    #    def __delete(this, action_obj: dict):
+    #        """Function for deleting from a repo on GitHub"""
+    #
+    #    def __deleteBranch(this, action_obj: dict):
+    #        """Function for creating a branch on GitHub"""
 
     def configure(self, config: dict) -> None:
-        """Configure this set up the plugin.
+        """Configuration to set up the plugin.
 
         :param config: Configuration for the plugin
         :type config: dict
         """
         # self._supported_actions["authorize"] = True
-        self._supported_actions["add"] = True
+        self._supported_actions["commit"] = True
         # self._supported_actions["commit"] = True
         # self._supported_actions["clone"] = True
         # self._supported_actions["create_branch"] = True
@@ -288,6 +289,30 @@ class Git(Plugin):
         >>> # Should print
         >>> # action1 True
         >>> # action2 False
+
+        :Example: Concrete
+
+        >>> arguments = [
+        >>>     {   "commit": {
+        >>>             "repo": "Name of repository",
+        >>>             "branch": "Name of branch",
+        >>>             "path": "path to file",
+        >>>             "commit_message": "Adding a file",
+        >>>             "credentials": {
+        >>>                 "user_name": "BobMarley",
+        >>>                 "access_token": "user access token",
+        >>>                 "email": "user@awesome.com"
+        >>>             }
+        >>>         }
+        >>>     }
+        >>> ]
+        >>> checked_actions = git_plugin.check(arguments)
+        >>> 
+        >>> for action in checked_actions:
+        >>>     print(f"{action}: {checked_actions[action]}")
+        >>> # Should print
+        >>> # commit True
+
         """
         supported_actions = {}
         for action_obj in arguments:
@@ -299,11 +324,10 @@ class Git(Plugin):
                 if key not in self.__supported_actions:
                     raise Exception(f"{key} is not supported.")
 
-                if key == "add":
-                    supported_actions["key"] = self.__checkAdd(action_obj[key])
+                if key == "commit":
+                    supported_actions["key"] = self.__checkCommit(action_obj[key])
 
         return supported_actions
-
 
     def process(self, arguments: list[dict]) -> dict:
         """Run actions
@@ -316,7 +340,7 @@ class Git(Plugin):
         :Example:
 
         >>> arguments = [
-        >>>     {   "add": {
+        >>>     {   "commit": {
         >>>             "repo": "Name of repository",
         >>>             "branch": "Name of branch",
         >>>             "path": "path to file",
@@ -332,14 +356,14 @@ class Git(Plugin):
         >>> git_plugin = Git()
         >>> git_plugin.process(arguments)
         """
-#        if "base_url" in arguments:
-#            # Github Enterprise with custom hostname
-#            g = Github(base_url=arguments["base_url"],
-#                       login_or_token=arguments["credentials"]["access_token"])
-#        else:
-#            # using an access token
-#            g = Github(arguments["credentials"]["access_token"])
-#
+        #        if "base_url" in arguments:
+        #            # Github Enterprise with custom hostname
+        #            g = Github(base_url=arguments["base_url"],
+        #                       login_or_token=arguments["credentials"]["access_token"])
+        #        else:
+        #            # using an access token
+        #            g = Github(arguments["credentials"]["access_token"])
+        #
         if not self.__configured:
             error_msg = f"Cannot run {self.__name} plugin, must first be configured."
             raise Exception(error_msg)
@@ -353,22 +377,21 @@ class Git(Plugin):
                 if key not in self.__supported_actions:
                     raise Exception(f"{key} is not supported.")
 
-                if key == "add":
-                    self.__add(action_obj[key])
-#                elif key == "authorize":
-#                    self.__authorize(action_obj[key])
-#                elif key == "clone":
-#                    self.__clone(action_obj[key])
-#                elif key == "commit":
-#                    self.__commit(action_obj[key])
-#                elif key == "create_branch":
-#                    self.__createBranch(action_obj[key])
-#                elif key == "create_repo":
-#                    self.__createRepo(action_obj[key])
-#                elif key == "delete":
-#                    self.__delete(action_obj[key])
-#                elif key == "delete_branch":
-#                    self.__deleteBranch(action_obj[key])
-#
+                if key == "commit":
+                    self.__commit(action_obj[key])
+        #                elif key == "authorize":
+        #                    self.__authorize(action_obj[key])
+        #                elif key == "clone":
+        #                    self.__clone(action_obj[key])
+        #                elif key == "commit":
+        #                    self.__commit(action_obj[key])
+        #                elif key == "create_branch":
+        #                    self.__createBranch(action_obj[key])
+        #                elif key == "create_repo":
+        #                    self.__createRepo(action_obj[key])
+        #                elif key == "delete":
+        #                    self.__delete(action_obj[key])
+        #                elif key == "delete_branch":
+        #                    self.__deleteBranch(action_obj[key])
+        #
         return {}
-
