@@ -198,7 +198,7 @@ def test_git_checkCommitFailure4():
 
 
 @pytest.mark.gitlab_runner
-def test_git_processCommit():
+def test_git_processCommitAndDownload():
     """Tests that the Git Plugin correctly verifies the json dict used to make
     a commit to a file.
 
@@ -239,3 +239,33 @@ def test_git_processCommit():
     git_plugin.configure({})
     git_plugin.check(package)
     git_plugin.process(package)
+
+    file_name2 = "demofile_for_git_commit_download.txt"
+    package = [
+        {
+            "download": {
+                "repo": "TestRepo",
+                "owner": "Zambeze84",
+                "branch": "main",
+                "destination": {
+                    "path": current_dir + "/" + file_name2,
+                    "type": "posix absolute",
+                },
+                "source": {"path": file_name, "type": "GitHub repository root"},
+                "credentials": {
+                    "access_token": access_token,
+                },
+            }
+        }
+    ]
+
+    git_plugin = git.Git()
+    git_plugin.configure({})
+    git_plugin.check(package)
+    git_plugin.process(package)
+
+    with open(file_name2) as f:
+        number_from_repo = f.read()
+
+    assert number_from_repo == str(original_number)
+

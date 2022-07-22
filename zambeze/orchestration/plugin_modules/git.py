@@ -28,15 +28,62 @@ class Git(Plugin):
         self.__supported_actions = {
             "authorize": False,
             "clone": False,
-            "commit": True,
+            "commit": False,
             "create_repo": False,
             "create_branch": False,
             "delete": False,
             "delete_branch": False,
+            "download": False,
         }
 
         self.__configured = False
         self.__api_base = "https://api.github.com/"
+
+    def __testConnectionToGitHubAPI(self) -> (bool, str):
+        """Will test the connection to the GitHub API
+
+        :return: True if able to connect, False otherwise with error message
+        :rtype: (bool, str)
+        """
+        api_url = self.__api_base + "users/octocat"
+        try:
+            requests.get(api_url)
+        except Exception as e:
+            error_msg = "Unable to connect to GitHub API\n"
+            error_msg = error_msg + e
+            return False, error_msg
+
+        return True, ""
+
+    def __checkBranchExists(
+                            self,
+                            repo_name,
+                            repo_owner,
+                            branch="main",
+                            access_token=None) -> (bool, str):
+        """Will check if the branch exists on the remote repository"""
+        api_url = self.__api_base
+        api_url = api_url + f"repos/{repo_owner}/{repo_name}/branches/{branch}"
+        try:
+            if access_token:
+                header = {"Authorization": f"token {access_token}"}
+                response = requests.get(api_url, headers=header)
+            else:
+                response = requests.get(api_url)
+        except requests.ConnectionError as e:
+            return False, str(e)
+
+        results = response.json()
+
+        if "message" in results:
+            error_msg = ""
+            if "Branch not found" == results["message"]:
+                error_msg = f"Branch is not found {branch}"
+            else:
+                error_msg = results["message"]
+            return False, error_msg
+        return True, ""
+
 
     def __checkRepoOwnerExists(self, repo_owner: str) -> (bool, str):
         """Will check that the repo owner exists on GitHub
@@ -110,6 +157,121 @@ class Git(Plugin):
             return (False, msg)
         return (True, "")
 
+
+    def __checkDownload(self, action_obj: dict) -> (bool, str):
+        """Function ensures that the action_obj is provided with the right fields
+
+        :param action_obj: json paramters needed to commit an object to a GitHub repo
+        :type action_obj: dict
+        :return: True if the action_obj has the required components, False
+        otherwise, if there is an error a string is also returned
+        :rtype: (bool, str)
+
+        Required parameters include:
+
+        "repo"
+        "owner"
+        "source"
+        "source.type"
+        "source.path"
+        "destination"
+        "destination.type"
+        "destination.path"
+        "credentials"
+        "credentials.access_token"
+
+        :Example:
+
+        >>> action_obj = {
+        >>>     "repo": "Name of repository",
+        >>>     "owner": "Owner of repository",
+        >>>     "branch": "Name of branch",
+        >>>     "source": {
+        >>>         "type": "GitHub repository root",
+        >>>         "path": "path to file as it should appear in the repo"
+        >>>     },
+        >>>     "destination": {
+        >>>         "type": "posix absolute",
+        >>>         "path": "path to file local"
+        >>>     },
+        >>>     "credentials": {
+        >>>         "access_token": "user access token",
+        >>>     }
+        >>> }
+
+
+        """
+        # Check that the following required parameters have been provided
+        required_keys = ["repo", "owner", "source", "destination", "credentials"]
+
+        msg = ""
+        for key in required_keys:
+            if key not in action_obj:
+                return (
+                    False,
+                    f"\nrequired key: {key} is missing from the \
+'download' action.",
+                )
+
+        check_success = True
+        if "path" not in action_obj["source"]:
+            msg = msg + "\n'path' key not found in 'source' in 'download' action"
+            check_success = False
+
+        if "type" not in action_obj["source"]:
+            msg = msg + "\n'type' key not found in 'source' in 'download' action"
+            check_success = False
+
+        if "path" not in action_obj["destination"]:
+            msg = msg + "\n'path' key not found in 'destination' in 'download' action"
+            check_success = False
+
+        if "type" not in action_obj["destination"]:
+            msg = msg + "\n'type' key not found in 'destination' in 'download' action"
+            check_success = False
+
+        if "access_token" not in action_obj["credentials"]:
+            msg = (
+                msg
+                + "\n'access_token' key not found in 'credentials' in \
+                        'download' action"
+            )
+            check_success = False
+
+        if check_success:
+            owner_exists, error_msg = self.__checkRepoOwnerExists(action_obj["owner"])
+            if not owner_exists:
+                msg = msg + error_msg
+                check_success = False
+
+            source_path = action_obj["source"]["path"]
+            if not source_path:
+                msg = msg + "\nError source path cannot be empty"
+                check_success = False
+
+            if source_path.endswith("/"):
+                msg = msg + "\nError source path must end with a filename"
+                check_success = False
+
+            # Only run these checks if previous checks have all passed
+            token = action_obj["credentials"]["access_token"]
+            repo_exists, error_msg = self.__checkRepoExists(
+                action_obj["repo"], action_obj["owner"], token=token
+            )
+            if not repo_exists:
+                msg = msg + error_msg
+                msg = (
+                    msg
+                    + f" \nUnable to verify the existance of the 'repo':\
+ {action_obj['repo']} in 'download' action"
+                )
+                check_success = False
+
+        return check_success, msg
+
+
+
+
     def __checkCommit(self, action_obj: dict) -> (bool, str):
         """Function ensures that the action_obj is provided with the right fields
 
@@ -124,8 +286,40 @@ class Git(Plugin):
         "repo"
         "owner"
         "source"
+        "source.type"
+        "source.path"
         "destination"
+        "destination.type"
+        "destination.path"
         "credentials"
+        "credentials.user_name"
+        "credentials.access_token"
+        "credentials.email"
+
+        Optional paramters
+        "branch"
+
+        :Example:
+
+        >>> action_obj = {
+        >>>     "repo": "Name of repository",
+        >>>     "owner": "Owner of repository",
+        >>>     "branch": "Name of branch",
+        >>>     "source": {
+        >>>         "type": "posix absolute",
+        >>>         "path": "path to file local"
+        >>>     },
+        >>>     "destination": {
+        >>>         "type": "GitHub repository root",
+        >>>         "path": "path to file as it should appear in the repo"
+        >>>     },
+        >>>     "commit_message": "Adding a file",
+        >>>     "credentials": {
+        >>>         "user_name": "BobMarley",
+        >>>         "access_token": "user access token",
+        >>>         "email": "user@awesome.com"
+        >>>     }
+        >>> }
         """
         # Check that the following required parameters have been provided
         required_keys = ["repo", "owner", "source", "destination", "credentials"]
@@ -177,6 +371,25 @@ class Git(Plugin):
             )
             check_success = False
 
+        if "branch" in action_obj:
+            # Check if branch exists
+            access_token = None
+            if "access_token" in action_obj["credentials"]:
+                access_token = action_obj["credentials"]["access_token"]
+
+            branch_exists, error_msg = self.__checkBranchExists(
+                            action_obj["repo"],
+                            action_obj["owner"],
+                            action_obj["branch"],
+                            access_token)
+
+            if not branch_exists:
+                msg = (
+                        msg
+                        + f"'branch' {action_obj['branch']} does not exist on GitHub repo "
+                        + f"{action_obj['repo']} for owner {action_obj['owner']} ")
+                check_success = False
+
         if check_success:
             owner_exists, error_msg = self.__checkRepoOwnerExists(action_obj["owner"])
             if not owner_exists:
@@ -208,6 +421,65 @@ class Git(Plugin):
 
         return check_success, msg
 
+    def __fileExistsOnRepo(self, action_obj, file_obj) -> (bool, dict):
+        """Function for getting file if it exists
+
+        :param action_obj: needed content to execute the action
+        :type action_obj: dict
+
+        :Example:
+
+        >>> action_obj = {
+        >>>     "repo": "Name of repository",
+        >>>     "owner": "Owner of repository",
+        >>>     "branch": "Name of branch",
+        >>>     "credentials": {
+        >>>         "access_token": "user access token",
+        >>>     }
+        >>> }
+        >>> file_obj = {
+        >>>     "type": "GitHub repository root",
+        >>>     "path": "path to file as it should appear in the repo"
+        >>> }
+
+        """
+
+        clean_file_path_and_file = file_obj["path"]
+        if clean_file_path_and_file.startswith("/"):
+            clean_file_path_and_file = clean_file_path_and_file[1:]
+
+        url = (
+            self.__api_base
+            + "repos/"
+            + action_obj["owner"]
+            + "/"
+            + action_obj["repo"]
+            + "/contents/"
+            + clean_file_path_and_file
+        )
+        headers = {
+            "Authorization": "token " +
+            action_obj["credentials"]["access_token"],
+            "Accept": "application/vnd.github+json",
+        }
+
+        if "branch" in action_obj:
+            response = requests.get(
+                    url,
+                    headers=headers,
+                    params={"ref": action_obj["branch"]}).json()
+        else:
+            print("Checking if file exists on default branch")
+            response = requests.get(
+                    url,
+                    headers=headers)
+
+        if "message" in response:
+            return False, response
+
+        return True, response
+
+
     def __commit(self, action_obj: dict):
         """Function for commiting contents to GitHub
 
@@ -224,12 +496,12 @@ class Git(Plugin):
         >>>     "owner": "Owner of repository",
         >>>     "branch": "Name of branch",
         >>>     "source": {
-        >>>             "type": "posix absolute",
-        >>>             "path": "path to file local"
+        >>>         "type": "posix absolute",
+        >>>         "path": "path to file local"
         >>>     },
         >>>     "destination": {
-        >>>             "type": "GitHub repository root",
-        >>>             "path": "path to file as it should appear in the repo"
+        >>>         "type": "GitHub repository root",
+        >>>         "path": "path to file as it should appear in the repo"
         >>>     },
         >>>     "commit_message": "Adding a file",
         >>>     "credentials": {
@@ -246,6 +518,20 @@ class Git(Plugin):
         with open(action_obj["source"]["path"]) as f:
             file_content = f.read()
             print(file_content)
+
+            github_repo_info = {}
+            github_repo_info["repo"] = action_obj["repo"]
+            github_repo_info["owner"] = action_obj["owner"]
+            if "branch" in action_obj:
+                github_repo_info["branch"] = action_obj["branch"]
+            github_repo_info["credentials"] = action_obj["credentials"]
+
+            file_exists, response = self.__fileExistsOnRepo(
+                    github_repo_info, action_obj["destination"])
+
+            print("Checking if file exists")
+            print(response)
+
             encoded_content = base64.b64encode(bytes(file_content, "utf-8"))
 
             clean_dest_path_and_file = action_obj["destination"]["path"]
@@ -265,6 +551,7 @@ class Git(Plugin):
                 "Authorization": "token " + action_obj["credentials"]["access_token"],
                 "Accept": "application/vnd.github+json",
             }
+
             body = {
                 "message": action_obj["commit_message"],
                 "committer": {
@@ -274,14 +561,17 @@ class Git(Plugin):
                 "content": encoded_content.decode("utf-8"),
             }
 
-            print("url")
-            print(url)
-            print("headers")
-            print(headers)
-            print("body")
+            if file_exists:
+                # Need to add the "sha" to the body
+                body["sha"] = response["sha"]
+
+            print("Body of commit")
             print(body)
-            response = requests.put(url, data=json.dumps(body), headers=headers)
-            print(response.json())
+            response = requests.put(url, data=json.dumps(body),
+                    headers=headers).json()
+            print("Response")
+            print(response)
+            return response
 
     #    def __clone(this, action_obj: dict):
     #        """Function for cloning contents of a GitHub repository"""
@@ -301,22 +591,89 @@ class Git(Plugin):
     #    def __deleteBranch(this, action_obj: dict):
     #        """Function for creating a branch on GitHub"""
 
-    def configure(self, config: dict) -> None:
+    def __download(self, action_obj: dict):
+        """Function for downloading contents from GitHub
+
+        :param action_obj: needed content to execute the action
+        :type action_obj: dict
+
+        :Example:
+
+        >>> action_obj = {
+        >>>     "repo": "Name of repository",
+        >>>     "owner": "Owner of repository",
+        >>>     "branch": "Name of branch",
+        >>>     "source": {
+        >>>         "type": "GitHub repository root",
+        >>>         "path": "path to file as it should appear in the repo"
+        >>>     },
+        >>>     "destination": {
+        >>>         "type": "posix absolute",
+        >>>         "path": "path to file local"
+        >>>     },
+        >>>     "credentials": {
+        >>>         "access_token": "user access token",
+        >>>     }
+        >>> }
+
+        path will be converted to base64 encoded string and then sent.
+        """
+        with open(action_obj["destination"]["path"], 'w+') as f:
+
+            clean_source_path_and_file = action_obj["source"]["path"]
+            if clean_source_path_and_file.startswith("/"):
+                clean_source_path_and_file = clean_source_path_and_file[1:]
+
+            github_repo_info = {}
+            github_repo_info["repo"] = action_obj["repo"]
+            github_repo_info["owner"] = action_obj["owner"]
+            github_repo_info["branch"] = action_obj["branch"]
+            github_repo_info["credentials"] = action_obj["credentials"]
+
+            file_exists, response = self.__fileExistsOnRepo(
+                    github_repo_info, action_obj["source"])
+
+            if "message" in response:
+                error_msg = ""
+                if "Not Found" == response["message"]:
+                    error_msg = f"File does not exist in the repo\
+ {clean_source_path_and_file}"
+                else:
+                    error_msg = response["message"]
+                return error_msg
+
+            content = base64.b64decode(
+                    response["content"]
+                    .encode('utf-8')
+                    ).decode('utf-8')
+
+            f.write(content)
+
+
+    def configure(self, config: dict) -> str:
         """Configuration to set up the plugin.
 
-        :param config: Configuration for the plugin
+        :parameter config: Configuration for the plugin
         :type config: dict
         """
-        # self.__supported_actions["authorize"] = True
-        self.__supported_actions["commit"] = True
-        # self.__supported_actions["commit"] = True
-        # self.__supported_actions["clone"] = True
-        # self.__supported_actions["create_branch"] = True
-        # self.__supported_actions["create_repo"] = True
-        # self.__supported_actions["delete"] = True
-        # self.__supported_actions["delete_branch"] = True
+        can_connect, message = self.__testConnectionToGitHubAPI()
+        if can_connect:
+            # self.__supported_actions["authorize"] = True
+            self.__supported_actions["commit"] = True
+            # self.__supported_actions["commit"] = True
+            # self.__supported_actions["clone"] = True
+            # self.__supported_actions["create_branch"] = True
+            # self.__supported_actions["create_repo"] = True
+            # self.__supported_actions["delete"] = True
+            # self.__supported_actions["delete_branch"] = True
+            self.__supported_actions["download"] = True
+            self.__configured = True
+        else:
+            # If we cannot connect any longer to the GitHub repo we are no 
+            # longer correctly configured
+            self.__configured = False
 
-        self.__configured = True
+        return message
 
     @property
     def configured(self) -> bool:
@@ -408,6 +765,8 @@ class Git(Plugin):
 
                 if key == "commit":
                     supported_actions[key] = self.__checkCommit(action_obj[key])
+                elif key == "download":
+                    supported_actions[key] = self.__checkDownload(action_obj[key])
 
         return supported_actions
 
@@ -461,6 +820,8 @@ class Git(Plugin):
 
                 if key == "commit":
                     self.__commit(action_obj[key])
+                elif key == "download":
+                    self.__download(action_obj[key])
         #                elif key == "authorize":
         #                    self.__authorize(action_obj[key])
         #                elif key == "clone":
