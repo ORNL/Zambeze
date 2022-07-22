@@ -16,12 +16,16 @@ class ShellActivity(Activity):
 
     :param name: Campaign activity name.
     :type name: str
+
     :param files: List of file URIs.
     :type files: Optional[list[str]]
+
     :param command: Action's command.
     :type command: Optional[str]
+
     :param arguments: List of arguments.
     :type arguments: Optional[list[str]]
+
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
@@ -33,6 +37,7 @@ class ShellActivity(Activity):
         command: Optional[str] = None,
         arguments: Optional[list[str]] = [],
         logger: Optional[logging.Logger] = None,
+        **kwargs
     ) -> None:
         """Create an object of a unix shell activity."""
         super().__init__(name, files, command, arguments, logger)
@@ -40,9 +45,15 @@ class ShellActivity(Activity):
             logger if logger else logging.getLogger(__name__)
         )
 
+        # Pull out environment variables, IF users submitted them.
+        if 'env_vars' in kwargs:
+            self.env_vars = kwargs.get("env_vars")
+        else:
+            self.env_vars = None
+
     def generate_message(self) -> dict:
         return {
             "plugin": "shell",
             "files": self.files,
-            "cmd": {"bash": {"program": self.command, "args": self.arguments}},
+            "cmd": {"bash": {"program": self.command, "args": self.arguments, "env_vars": self.env_vars}},
         }

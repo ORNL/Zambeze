@@ -43,6 +43,7 @@ activity = ShellActivity(
         "a.gif",
     ],
     logger=logger,
+    env_vars=[('PATH', '$PATH:/opt/homebrew/bin')]
 )
 campaign.add_activity(activity)
 
