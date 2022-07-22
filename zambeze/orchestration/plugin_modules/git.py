@@ -13,6 +13,7 @@ from .abstract_plugin import Plugin
 import base64
 import json
 import requests
+import time
 
 # Standard imports
 from typing import Optional
@@ -37,26 +38,31 @@ class Git(Plugin):
         self.__configured = False
         self.__api_base = "https://api.github.com/"
 
-    def __checkRepoOwnerExists(self, repo_owner: str) -> bool:
+    def __checkRepoOwnerExists(self, repo_owner: str) -> (bool, str):
         """Will check that the repo owner exists on GitHub
 
         :param repo_owner: The GitHub repository owner
         :type repo_owner: string
         """
         api_url = self.__api_base + f"users/{repo_owner}"
-        response = requests.get(api_url)
+        try:
+            response = requests.get(api_url)
+        except requests.ConnectionError as e:
+            return False, str(e) 
+
         results = response.json()
 
         if "message" in results:
+            error_msg = ""
             if "Not Found" == results["message"]:
-                print(f"Repository owner is unknown {repo_owner}")
+                error_msg = f"Repository owner is unknown {repo_owner}"
             else:
-                print("Unknown error")
-                print(results["message"])
-            return False
-        return True
+                error_msg = results["message"]
+            return False, error_msg
+        return True, ""
 
-    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> bool:
+    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> \
+            (bool, str):
         """Will check that the repo exists on GitHub
 
         By default will check that the repo exists if it is public. If you would
@@ -76,21 +82,21 @@ class Git(Plugin):
         called to ensure the owner exists.
         """
         api_url = self.__api_base + f"repos/{repo_owner}/{repo_name}"
-        headers = {"Authorization": f"Bearer {token}"}
+        header = {"Authorization": f"token {token}"}
 
         if repo_name.endswith(".git"):
             return (False, f"Please remove '.git' from the repo name \
 {repo_name}")
 
-        print(f"api_url is {api_url}")
-        if token is None:
-            response = requests.get(api_url)
-        else:
-            response = requests.get(api_url, headers=headers)
+        try:
+            if token is None:
+                response = requests.get(api_url)
+            else:
+                response = requests.get(api_url, headers=header)
+        except requests.ConnectionError as e:
+            return False, str(e) 
 
         results = response.json()
-
-        print(results)
 
         if "message" in results:
             msg = ""
@@ -101,6 +107,7 @@ class Git(Plugin):
                 msg = results["message"]
             return (False, msg)
         return (True, "")
+
 
     def __checkCommit(self, action_obj: dict) -> (bool, str):
         """Function ensures that the action_obj is provided with the right fields
@@ -125,19 +132,29 @@ class Git(Plugin):
         msg = ""
         for key in required_keys:
             if key not in action_obj:
-                return False, f"\n{key} is not a supported key of the 'commit' action."
+                return False, f"\nrequired key: {key} is missing from the \
+'commit' action."
 
         check_success = True
         if "path" not in action_obj["source"]:
             msg = msg + "\n'path' key not found in 'source' in 'commit' action"
             check_success = False
 
+        if "type" not in action_obj["source"]:
+            msg = msg + "\n'type' key not found in 'source' in 'commit' action"
+            check_success = False
+
         if "path" not in action_obj["destination"]:
             msg = msg + "\n'path' key not found in 'destination' in 'commit' action"
             check_success = False
 
+        if "type" not in action_obj["destination"]:
+            msg = msg + "\n'type' key not found in 'destination' in 'commit' action"
+            check_success = False
+
         if "user_name" not in action_obj["credentials"]:
-            msg = msg + "\n'user_name' key not found in 'credentials' in 'commit' action"
+            msg = msg + "\n'user_name' key not found in 'credentials' in "
+            msg = msg + "'commit' action"
             check_success = False
 
         if "access_token" not in action_obj["credentials"]:
@@ -150,11 +167,21 @@ class Git(Plugin):
                         'commit' action"
             check_success = False
 
-        if not self.__checkRepoOwnerExists(action_obj["owner"]):
-            msg = msg + "'owner' key not found in 'commit' action"
-            check_success = False
-
         if check_success:
+            owner_exists, error_msg = self.__checkRepoOwnerExists(action_obj["owner"])
+            if not owner_exists:
+                msg = msg + error_msg
+                check_success = False
+
+            dest_path = action_obj["destination"]["path"]
+            if not dest_path:
+                msg = msg + "\nError destionation path cannot be empty"
+                check_success = False
+
+            if dest_path.endswith("/"):
+                msg = msg + "\nError destination path must end with a filename"
+                check_success = False
+
             # Only run these checks if previous checks have all passed
             token = action_obj["credentials"]["access_token"]
             repo_exists, error_msg = self.__checkRepoExists(
@@ -189,7 +216,7 @@ class Git(Plugin):
         >>>     },
         >>>     "destination": {
         >>>             "type": "GitHub repository root",
-        >>>             "path": "path to file local"
+        >>>             "path": "path to file as it should appear in the repo"
         >>>     },
         >>>     "commit_message": "Adding a file",
         >>>     "credentials": {
@@ -201,33 +228,47 @@ class Git(Plugin):
 
         path will be converted to base64 encoded string and then sent.
         """
-        content = ""
+        print("Trying to read from file")
+        print(action_obj["source"]["path"])
         with open(action_obj["source"]["path"]) as f:
-            content = base64.b64encode(f.read())
+            file_content = f.read()
+            print(file_content)
+            encoded_content = base64.b64encode(bytes(file_content, 'utf-8'))
 
-        url = (
-            self.__api_base
-            + "repos/"
-            + action_obj["owner"]
-            + "/"
-            + action_obj["repo"]
-            + "/"
-            + action_obj["destination"]["path"]
-        )
-        headers = {
-            "Authorization": "token " + action_obj["credentials"]["access_token"],
-            "Accept": "application/vnd.github+json",
-        }
-        body = {
-            "message": action_obj["commit_message"],
-            "committer": {
-                "name": action_obj["credentials"]["user_name"],
-                "email": action_obj["credentials"]["email"],
-            },
-            "content": content,
-        }
-        response = requests.put(url, data=json.dumps(body), headers=headers)
-        response.json()
+            clean_dest_path_and_file = action_obj["destination"]["path"]
+            if clean_dest_path_and_file.startswith('/'):
+                clean_dest_path_and_file = clean_dest_path_and_file[1:]
+
+            url = (
+                self.__api_base
+                + "repos/"
+                + action_obj["owner"]
+                + "/"
+                + action_obj["repo"]
+                + "/contents/"
+                + clean_dest_path_and_file
+            )
+            headers = {
+                "Authorization": "token " + action_obj["credentials"]["access_token"],
+                "Accept": "application/vnd.github+json",
+            }
+            body = {
+                "message": action_obj["commit_message"],
+                "committer": {
+                    "name": action_obj["credentials"]["user_name"],
+                    "email": action_obj["credentials"]["email"],
+                },
+                "content": encoded_content.decode("utf-8"),
+            }
+
+            print("url")
+            print(url)
+            print("headers")
+            print(headers)
+            print("body")
+            print(body)
+            response = requests.put(url, data=json.dumps(body), headers=headers)
+            print(response.json())
 
     #    def __clone(this, action_obj: dict):
     #        """Function for cloning contents of a GitHub repository"""
