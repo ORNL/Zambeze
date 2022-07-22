@@ -48,7 +48,7 @@ class Git(Plugin):
         try:
             response = requests.get(api_url)
         except requests.ConnectionError as e:
-            return False, str(e) 
+            return False, str(e)
 
         results = response.json()
 
@@ -61,8 +61,7 @@ class Git(Plugin):
             return False, error_msg
         return True, ""
 
-    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> \
-            (bool, str):
+    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> (bool, str):
         """Will check that the repo exists on GitHub
 
         By default will check that the repo exists if it is public. If you would
@@ -85,8 +84,11 @@ class Git(Plugin):
         header = {"Authorization": f"token {token}"}
 
         if repo_name.endswith(".git"):
-            return (False, f"Please remove '.git' from the repo name \
-{repo_name}")
+            return (
+                False,
+                f"Please remove '.git' from the repo name \
+{repo_name}",
+            )
 
         try:
             if token is None:
@@ -94,7 +96,7 @@ class Git(Plugin):
             else:
                 response = requests.get(api_url, headers=header)
         except requests.ConnectionError as e:
-            return False, str(e) 
+            return False, str(e)
 
         results = response.json()
 
@@ -107,7 +109,6 @@ class Git(Plugin):
                 msg = results["message"]
             return (False, msg)
         return (True, "")
-
 
     def __checkCommit(self, action_obj: dict) -> (bool, str):
         """Function ensures that the action_obj is provided with the right fields
@@ -132,8 +133,11 @@ class Git(Plugin):
         msg = ""
         for key in required_keys:
             if key not in action_obj:
-                return False, f"\nrequired key: {key} is missing from the \
-'commit' action."
+                return (
+                    False,
+                    f"\nrequired key: {key} is missing from the \
+'commit' action.",
+                )
 
         check_success = True
         if "path" not in action_obj["source"]:
@@ -158,13 +162,19 @@ class Git(Plugin):
             check_success = False
 
         if "access_token" not in action_obj["credentials"]:
-            msg = msg + "\n'access_token' key not found in 'credentials' in \
+            msg = (
+                msg
+                + "\n'access_token' key not found in 'credentials' in \
                         'commit' action"
+            )
             check_success = False
 
         if "email" not in action_obj["credentials"]:
-            msg = msg + "'access_token' key not found in 'credentials' in \
+            msg = (
+                msg
+                + "'access_token' key not found in 'credentials' in \
                         'commit' action"
+            )
             check_success = False
 
         if check_success:
@@ -189,8 +199,11 @@ class Git(Plugin):
             )
             if not repo_exists:
                 msg = msg + error_msg
-                msg = msg + f" \nUnable to verify the existance of the 'repo':\
+                msg = (
+                    msg
+                    + f" \nUnable to verify the existance of the 'repo':\
  {action_obj['repo']} in 'commit' action"
+                )
                 check_success = False
 
         return check_success, msg
@@ -233,10 +246,10 @@ class Git(Plugin):
         with open(action_obj["source"]["path"]) as f:
             file_content = f.read()
             print(file_content)
-            encoded_content = base64.b64encode(bytes(file_content, 'utf-8'))
+            encoded_content = base64.b64encode(bytes(file_content, "utf-8"))
 
             clean_dest_path_and_file = action_obj["destination"]["path"]
-            if clean_dest_path_and_file.startswith('/'):
+            if clean_dest_path_and_file.startswith("/"):
                 clean_dest_path_and_file = clean_dest_path_and_file[1:]
 
             url = (
@@ -377,7 +390,7 @@ class Git(Plugin):
         >>>     }
         >>> ]
         >>> checked_actions = git_plugin.check(arguments)
-        >>> 
+        >>>
         >>> for action in checked_actions:
         >>>     print(f"{action}: {checked_actions[action]}")
         >>> # Should print

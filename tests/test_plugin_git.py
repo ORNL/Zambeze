@@ -18,7 +18,7 @@ def test_git_checkCommitSuccess():
     will contain a single random number.
     """
 
-    access_token = os.getenv('ZAMBEZE84_GITHUB_ACCESS_TOKEN')
+    access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
     f = open(current_dir + "/" + file_name, "w")
@@ -26,27 +26,26 @@ def test_git_checkCommitSuccess():
     f.write(str(original_number))
     f.close()
 
-    package = [{
-        "commit": {
-            "repo": "TestRepo",
-            "owner": "Zambeze84",
-            "branch": "main",
-            "source": {
+    package = [
+        {
+            "commit": {
+                "repo": "TestRepo",
+                "owner": "Zambeze84",
+                "branch": "main",
+                "source": {
                     "path": current_dir + "/" + file_name,
-                    "type": "posix absolute"
+                    "type": "posix absolute",
                 },
-            "destination": {
-                    "path": file_name,
-                    "type": "GitHub repository root"
+                "destination": {"path": file_name, "type": "GitHub repository root"},
+                "commit_message": "Adding a file",
+                "credentials": {
+                    "user_name": "zambeze84",
+                    "access_token": access_token,
+                    "email": "zambeze84@gmail.com",
                 },
-            "commit_message": "Adding a file",
-            "credentials": {
-                "user_name": "zambeze84",
-                "access_token": access_token,
-                "email": "zambeze84@gmail.com"
             }
         }
-    }]
+    ]
 
     git_plugin = git.Git()
     git_plugin.configure({})
@@ -58,7 +57,7 @@ def test_git_checkCommitSuccess():
 @pytest.mark.unit
 def test_git_checkCommitFailure1():
 
-    access_token = os.getenv('ZAMBEZE84_GITHUB_ACCESS_TOKEN')
+    access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
     f = open(current_dir + "/" + file_name, "w")
@@ -67,26 +66,25 @@ def test_git_checkCommitFailure1():
     f.close()
 
     # This package is missing the repo key
-    package = [{
-        "commit": {
-            "owner": "Zambeze84",
-            "branch": "main",
-            "source": {
+    package = [
+        {
+            "commit": {
+                "owner": "Zambeze84",
+                "branch": "main",
+                "source": {
                     "path": current_dir + "/" + file_name,
-                    "type": "posix absolute"
+                    "type": "posix absolute",
                 },
-            "destination": {
-                    "path": file_name,
-                    "type": "GitHub repository root"
+                "destination": {"path": file_name, "type": "GitHub repository root"},
+                "commit_message": "Adding a file",
+                "credentials": {
+                    "user_name": "zambeze84",
+                    "access_token": access_token,
+                    "email": "zambeze84@gmail.com",
                 },
-            "commit_message": "Adding a file",
-            "credentials": {
-                "user_name": "zambeze84",
-                "access_token": access_token,
-                "email": "zambeze84@gmail.com"
             }
         }
-    }]
+    ]
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
@@ -96,7 +94,7 @@ def test_git_checkCommitFailure1():
 @pytest.mark.unit
 def test_git_checkCommitFailure2():
 
-    access_token = os.getenv('ZAMBEZE84_GITHUB_ACCESS_TOKEN')
+    access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
     f = open(current_dir + "/" + file_name, "w")
@@ -105,26 +103,28 @@ def test_git_checkCommitFailure2():
     f.close()
 
     # This package is missing the destination type
-    package = [{
-        "commit": {
-            "repo": "TestRepo",
-            "owner": "Zambeze84",
-            "branch": "main",
-            "source": {
+    package = [
+        {
+            "commit": {
+                "repo": "TestRepo",
+                "owner": "Zambeze84",
+                "branch": "main",
+                "source": {
                     "path": current_dir + "/" + file_name,
-                    "type": "posix absolute"
+                    "type": "posix absolute",
                 },
-            "destination": {
+                "destination": {
                     "path": file_name,
                 },
-            "commit_message": "Adding a file",
-            "credentials": {
-                "user_name": "zambeze84",
-                "access_token": access_token,
-                "email": "zambeze84@gmail.com"
+                "commit_message": "Adding a file",
+                "credentials": {
+                    "user_name": "zambeze84",
+                    "access_token": access_token,
+                    "email": "zambeze84@gmail.com",
+                },
             }
         }
-    }]
+    ]
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
@@ -134,7 +134,7 @@ def test_git_checkCommitFailure2():
 @pytest.mark.unit
 def test_git_checkCommitFailure3():
 
-    access_token = os.getenv('ZAMBEZE84_GITHUB_ACCESS_TOKEN')
+    access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
     f = open(current_dir + "/" + file_name, "w")
@@ -143,23 +143,22 @@ def test_git_checkCommitFailure3():
     f.close()
 
     # This package is missing the source key
-    package = [{
-        "commit": {
-            "repo": "TestRepo",
-            "owner": "Zambeze84",
-            "branch": "main",
-            "destination": {
-                    "path": file_name,
-                    "type": "GitHub repository root"
+    package = [
+        {
+            "commit": {
+                "repo": "TestRepo",
+                "owner": "Zambeze84",
+                "branch": "main",
+                "destination": {"path": file_name, "type": "GitHub repository root"},
+                "commit_message": "Adding a file",
+                "credentials": {
+                    "user_name": "zambeze84",
+                    "access_token": access_token,
+                    "email": "zambeze84@gmail.com",
                 },
-            "commit_message": "Adding a file",
-            "credentials": {
-                "user_name": "zambeze84",
-                "access_token": access_token,
-                "email": "zambeze84@gmail.com"
             }
         }
-    }]
+    ]
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
@@ -177,22 +176,21 @@ def test_git_checkCommitFailure4():
     f.close()
 
     # This package is missing the credentials key
-    package = [{
-        "commit": {
-            "repo": "TestRepo",
-            "owner": "Zambeze84",
-            "branch": "main",
-            "source": {
+    package = [
+        {
+            "commit": {
+                "repo": "TestRepo",
+                "owner": "Zambeze84",
+                "branch": "main",
+                "source": {
                     "path": current_dir + "/" + file_name,
-                    "type": "posix absolute"
+                    "type": "posix absolute",
                 },
-            "destination": {
-                    "path": file_name,
-                    "type": "GitHub repository root"
-                },
-            "commit_message": "Adding a file",
+                "destination": {"path": file_name, "type": "GitHub repository root"},
+                "commit_message": "Adding a file",
+            }
         }
-    }]
+    ]
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
@@ -208,7 +206,7 @@ def test_git_processCommit():
     will contain a single random number.
     """
 
-    access_token = os.getenv('ZAMBEZE84_GITHUB_ACCESS_TOKEN')
+    access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
     f = open(current_dir + "/" + file_name, "w")
@@ -216,31 +214,28 @@ def test_git_processCommit():
     f.write(str(original_number))
     f.close()
 
-    package = [{
-        "commit": {
-            "repo": "TestRepo",
-            "owner": "Zambeze84",
-            "branch": "main",
-            "source": {
+    package = [
+        {
+            "commit": {
+                "repo": "TestRepo",
+                "owner": "Zambeze84",
+                "branch": "main",
+                "source": {
                     "path": current_dir + "/" + file_name,
-                    "type": "posix absolute"
+                    "type": "posix absolute",
                 },
-            "destination": {
-                    "path": file_name,
-                    "type": "GitHub repository root"
+                "destination": {"path": file_name, "type": "GitHub repository root"},
+                "commit_message": "Adding a file",
+                "credentials": {
+                    "user_name": "zambeze84",
+                    "access_token": access_token,
+                    "email": "zambeze84@gmail.com",
                 },
-            "commit_message": "Adding a file",
-            "credentials": {
-                "user_name": "zambeze84",
-                "access_token": access_token,
-                "email": "zambeze84@gmail.com"
             }
         }
-    }]
+    ]
 
     git_plugin = git.Git()
     git_plugin.configure({})
     git_plugin.check(package)
     git_plugin.process(package)
-
-

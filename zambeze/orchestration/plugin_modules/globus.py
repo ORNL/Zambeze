@@ -470,15 +470,21 @@ class Globus(Plugin):
                     return False, "'source' missing from 'items' in 'transfer'"
                 else:
                     if not checkEndpoint(item["source"], ["globus relative"]):
-                        return False, "'source' in ['transfer']['items'] must \
-                                have a value of 'globus relative'"
+                        return (
+                            False,
+                            "'source' in ['transfer']['items'] must \
+                                have a value of 'globus relative'",
+                        )
 
                 if "destination" not in item:
                     return False, "'destination' missing from 'items' in 'transfer'"
                 else:
                     if not checkEndpoint(item["destination"], ["globus relative"]):
-                        return False, "'destination' in ['transfer']['items'] must \
-                                have a value of 'globus relative'"
+                        return (
+                            False,
+                            "'destination' in ['transfer']['items'] must \
+                                have a value of 'globus relative'",
+                        )
         return True
 
     def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
@@ -488,21 +494,30 @@ class Globus(Plugin):
         # This is needed in case there is more than a single collection on
         # the machine
         if not validUUID(action_package["destination_collection_UUID"]):
-            return False, f"Invalid 'destination_collection_UUID' detected in \
-            'move_to_globus_collection': {action_package['destination_collection_UUID']}"
+            return (
+                False,
+                f"Invalid 'destination_collection_UUID' detected in \
+            'move_to_globus_collection': {action_package['destination_collection_UUID']}",
+            )
 
         # This is needed so the correct orchestrator picks executes the task
         # a bit redundant though becuase the globus collection UUID should
         # be unique
         if self.__hostname != action_package["source_host_name"]:
-            return False, f"{self.__hostname} is not equal to provided \
-            {action_package['source_host_name']} in 'move_to_globus_collection'"
+            return (
+                False,
+                f"{self.__hostname} is not equal to provided \
+            {action_package['source_host_name']} in 'move_to_globus_collection'",
+            )
 
-        return checkAllItemsHaveValidEndpoints(
-            action_package["items"],
-            supported_source_path_types,
-            supported_destination_path_types,
-        ), ""
+        return (
+            checkAllItemsHaveValidEndpoints(
+                action_package["items"],
+                supported_source_path_types,
+                supported_destination_path_types,
+            ),
+            "",
+        )
 
     def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> (bool, str):
         """Run a sanity check for the action "move_from_globus_collection"
@@ -544,17 +559,26 @@ class Globus(Plugin):
         supported_source_path_types = ["globus relative"]
         supported_destination_path_types = ["posix absolute", "posix user home"]
         if not validUUID(action_package["source_collection_UUID"]):
-            return False, f"Invalid 'source_collection_UUID' dectected in 'move_from_globus_collection': \
-                    {action_package['source_collection_UUID']}"
+            return (
+                False,
+                f"Invalid 'source_collection_UUID' dectected in 'move_from_globus_collection': \
+                    {action_package['source_collection_UUID']}",
+            )
 
         # Check that the UUID is associated with this machine
         if not action_package["source_collection_UUID"] in self.__collections:
-            return False, "Missing 'source_collection_UUID' in \
-        'move_from_globus_collection'"
+            return (
+                False,
+                "Missing 'source_collection_UUID' in \
+        'move_from_globus_collection'",
+            )
 
         if self.__hostname != action_package["destination_host_name"]:
-            return False, f"{self.__hostname} is not equal to provided \
-            {action_package['source_host_name']} in 'move_from_globus_collection'"
+            return (
+                False,
+                f"{self.__hostname} is not equal to provided \
+            {action_package['source_host_name']} in 'move_from_globus_collection'",
+            )
 
         return checkAllItemsHaveValidEndpoints(
             action_package["items"],
