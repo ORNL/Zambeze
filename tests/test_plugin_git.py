@@ -9,7 +9,7 @@ import random
 import socket
 
 
-@pytest.mark.unit
+@pytest.mark.gitlab_runner
 def test_git_checkCommitSuccess():
     """Tests that the Git Plugin correctly verifies the json dict used to make
     a commit to a file.
@@ -54,7 +54,7 @@ def test_git_checkCommitSuccess():
     assert checked_actions["commit"][0]
 
 
-@pytest.mark.unit
+@pytest.mark.gitlab_runner
 def test_git_checkCommitFailure1():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
@@ -91,7 +91,7 @@ def test_git_checkCommitFailure1():
     assert not checked_actions["commit"][0]
 
 
-@pytest.mark.unit
+@pytest.mark.gitlab_runner
 def test_git_checkCommitFailure2():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
@@ -131,7 +131,7 @@ def test_git_checkCommitFailure2():
     assert not checked_actions["commit"][0]
 
 
-@pytest.mark.unit
+@pytest.mark.gitlab_runner
 def test_git_checkCommitFailure3():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
@@ -165,7 +165,7 @@ def test_git_checkCommitFailure3():
     assert not checked_actions["commit"][0]
 
 
-@pytest.mark.unit
+@pytest.mark.gitlab_runner
 def test_git_checkCommitFailure4():
 
     current_dir = os.getcwd()
@@ -197,7 +197,7 @@ def test_git_checkCommitFailure4():
     assert not checked_actions["commit"][0]
 
 
-@pytest.mark.unit
+@pytest.mark.gitlab_runner
 def test_git_processCommit():
     """Tests that the Git Plugin correctly verifies the json dict used to make
     a commit to a file.
