@@ -268,4 +268,3 @@ def test_git_processCommitAndDownload():
         number_from_repo = f.read()
 
     assert number_from_repo == str(original_number)
-

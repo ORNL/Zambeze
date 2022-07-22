@@ -56,11 +56,8 @@ class Git(Plugin):
         return True, ""
 
     def __checkBranchExists(
-                            self,
-                            repo_name,
-                            repo_owner,
-                            branch="main",
-                            access_token=None) -> (bool, str):
+        self, repo_name, repo_owner, branch="main", access_token=None
+    ) -> (bool, str):
         """Will check if the branch exists on the remote repository"""
         api_url = self.__api_base
         api_url = api_url + f"repos/{repo_owner}/{repo_name}/branches/{branch}"
@@ -83,7 +80,6 @@ class Git(Plugin):
                 error_msg = results["message"]
             return False, error_msg
         return True, ""
-
 
     def __checkRepoOwnerExists(self, repo_owner: str) -> (bool, str):
         """Will check that the repo owner exists on GitHub
@@ -156,7 +152,6 @@ class Git(Plugin):
                 msg = results["message"]
             return (False, msg)
         return (True, "")
-
 
     def __checkDownload(self, action_obj: dict) -> (bool, str):
         """Function ensures that the action_obj is provided with the right fields
@@ -269,9 +264,6 @@ class Git(Plugin):
 
         return check_success, msg
 
-
-
-
     def __checkCommit(self, action_obj: dict) -> (bool, str):
         """Function ensures that the action_obj is provided with the right fields
 
@@ -378,16 +370,18 @@ class Git(Plugin):
                 access_token = action_obj["credentials"]["access_token"]
 
             branch_exists, error_msg = self.__checkBranchExists(
-                            action_obj["repo"],
-                            action_obj["owner"],
-                            action_obj["branch"],
-                            access_token)
+                action_obj["repo"],
+                action_obj["owner"],
+                action_obj["branch"],
+                access_token,
+            )
 
             if not branch_exists:
                 msg = (
-                        msg
-                        + f"'branch' {action_obj['branch']} does not exist on GitHub repo "
-                        + f"{action_obj['repo']} for owner {action_obj['owner']} ")
+                    msg
+                    + f"'branch' {action_obj['branch']} does not exist on GitHub repo "
+                    + f"{action_obj['repo']} for owner {action_obj['owner']} "
+                )
                 check_success = False
 
         if check_success:
@@ -458,27 +452,22 @@ class Git(Plugin):
             + clean_file_path_and_file
         )
         headers = {
-            "Authorization": "token " +
-            action_obj["credentials"]["access_token"],
+            "Authorization": "token " + action_obj["credentials"]["access_token"],
             "Accept": "application/vnd.github+json",
         }
 
         if "branch" in action_obj:
             response = requests.get(
-                    url,
-                    headers=headers,
-                    params={"ref": action_obj["branch"]}).json()
+                url, headers=headers, params={"ref": action_obj["branch"]}
+            ).json()
         else:
             print("Checking if file exists on default branch")
-            response = requests.get(
-                    url,
-                    headers=headers)
+            response = requests.get(url, headers=headers)
 
         if "message" in response:
             return False, response
 
         return True, response
-
 
     def __commit(self, action_obj: dict):
         """Function for commiting contents to GitHub
@@ -527,7 +516,8 @@ class Git(Plugin):
             github_repo_info["credentials"] = action_obj["credentials"]
 
             file_exists, response = self.__fileExistsOnRepo(
-                    github_repo_info, action_obj["destination"])
+                github_repo_info, action_obj["destination"]
+            )
 
             print("Checking if file exists")
             print(response)
@@ -567,8 +557,7 @@ class Git(Plugin):
 
             print("Body of commit")
             print(body)
-            response = requests.put(url, data=json.dumps(body),
-                    headers=headers).json()
+            response = requests.put(url, data=json.dumps(body), headers=headers).json()
             print("Response")
             print(response)
             return response
@@ -618,7 +607,7 @@ class Git(Plugin):
 
         path will be converted to base64 encoded string and then sent.
         """
-        with open(action_obj["destination"]["path"], 'w+') as f:
+        with open(action_obj["destination"]["path"], "w+") as f:
 
             clean_source_path_and_file = action_obj["source"]["path"]
             if clean_source_path_and_file.startswith("/"):
@@ -631,7 +620,8 @@ class Git(Plugin):
             github_repo_info["credentials"] = action_obj["credentials"]
 
             file_exists, response = self.__fileExistsOnRepo(
-                    github_repo_info, action_obj["source"])
+                github_repo_info, action_obj["source"]
+            )
 
             if "message" in response:
                 error_msg = ""
@@ -642,13 +632,11 @@ class Git(Plugin):
                     error_msg = response["message"]
                 return error_msg
 
-            content = base64.b64decode(
-                    response["content"]
-                    .encode('utf-8')
-                    ).decode('utf-8')
+            content = base64.b64decode(response["content"].encode("utf-8")).decode(
+                "utf-8"
+            )
 
             f.write(content)
-
 
     def configure(self, config: dict) -> str:
         """Configuration to set up the plugin.
@@ -669,7 +657,7 @@ class Git(Plugin):
             self.__supported_actions["download"] = True
             self.__configured = True
         else:
-            # If we cannot connect any longer to the GitHub repo we are no 
+            # If we cannot connect any longer to the GitHub repo we are no
             # longer correctly configured
             self.__configured = False
 
