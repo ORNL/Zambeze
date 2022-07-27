@@ -81,7 +81,8 @@ class Shell(Plugin):
             cmd = data["bash"]["args"]
             cmd.insert(0, data["bash"]["program"])
 
-            # Take an image of the parent environment -- then add the environment variables to it.
+            # Take an image of the parent environment
+            # -- then add the environment variables to it.
             parent_env = os.environ.copy()
 
             try:
@@ -91,7 +92,7 @@ class Shell(Plugin):
             except ValueError as e:
                 self._logger.error(f"Caught ValueError: {e}")
 
-            shell_cmd = ' '.join(cmd)
+            shell_cmd = " ".join(cmd)
 
             self._logger.debug(f"Running SHELL command: {shell_cmd}")
 

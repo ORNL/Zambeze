@@ -43,7 +43,8 @@ activity = ShellActivity(
         "a.gif",
     ],
     logger=logger,
-    env_vars=[('PATH', '$PATH:/opt/homebrew/bin')]
+    # Uncomment if running on M1 Mac.
+    env_vars=[("PATH", "$PATH:/opt/homebrew/bin")],
 )
 campaign.add_activity(activity)
 

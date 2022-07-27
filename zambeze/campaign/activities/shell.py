@@ -46,7 +46,7 @@ class ShellActivity(Activity):
         )
 
         # Pull out environment variables, IF users submitted them.
-        if 'env_vars' in kwargs:
+        if "env_vars" in kwargs:
             self.env_vars = kwargs.get("env_vars")
         else:
             self.env_vars = None
@@ -55,5 +55,11 @@ class ShellActivity(Activity):
         return {
             "plugin": "shell",
             "files": self.files,
-            "cmd": {"bash": {"program": self.command, "args": self.arguments, "env_vars": self.env_vars}},
+            "cmd": {
+                "bash": {
+                    "program": self.command,
+                    "args": self.arguments,
+                    "env_vars": self.env_vars,
+                }
+            },
         }
