@@ -1,5 +1,5 @@
 Getting Started
-****************
+===============
 
 In order to set up and start using Zambeze, you will need the following dependencies:
  * A running nats server, see `nats documentation <https://docs.nats.io>`_.
