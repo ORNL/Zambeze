@@ -1,9 +1,10 @@
 Getting Started
 ****************
 
-This page describes how to:
- * get started with setting up Zambeze
- * running your first application with Zambeze.
+In order to set up and start using Zambeze, you will need the following dependencies:
+ * A running nats server, see `nats documentation <https://docs.nats.io>`_.
+ * Python >= 3.7. We suggest using `Anaconda <https://www.anaconda.com>`_.
+ * (Optional) ImageMagick to try a first mock example use-case. It is available `here <https://imagemagick.org/>`_.
 
 NATS Server Setup
 ------------------
