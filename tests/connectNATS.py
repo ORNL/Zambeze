@@ -4,7 +4,7 @@ import nats
 
 async def main():
     # Connect to NATS!
-    nc = await nats.connect("172.22.1.67")
+    nc = await nats.connect("0.0.0.0")
 
     # Receive messages on 'foo'
     sub = await nc.subscribe("foo")

@@ -7,9 +7,12 @@
 # it under the terms of the MIT License.
 
 import logging
+import zmq
+import pickle
+
 
 from .activities.abstract_activity import Activity
-from ..orchestration.agent import Agent
+from zambeze.orchestration.agent.commands import agent_start
 
 from typing import Optional
 
@@ -37,7 +40,11 @@ class Campaign:
         )
         self.name: str = name
         self.activities: list[Activity] = activities
-        self.agent = Agent(logger=self.logger)
+        self.zmq_context = zmq.Context()
+        self.zmq_socket = self.zmq_context.socket(zmq.REQ)
+        self.zmq_socket.connect("tcp://127.0.0.1:5555")
+
+        agent_start(self.logger)
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
@@ -50,6 +57,12 @@ class Campaign:
 
     def dispatch(self) -> None:
         """Dispatch the set of current activities in the campaign."""
+        self.logger.info(f"Number of activities to dispatch: {len(self.activities)}")
         for activity in self.activities:
             self.logger.debug(f"Running activity: {activity.name}")
-            self.agent.dispatch_activity(activity)
+
+            # Dump dict into string (.dumps) and serialize string
+            #   as bytestring (.encode)
+            serial_activity = pickle.dumps(activity)
+            self.zmq_socket.send(serial_activity)
+            self.logger.info(f"REPLY: {self.zmq_socket.recv()}")
