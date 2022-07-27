@@ -43,6 +43,7 @@ class Activity(ABC):
         command: Optional[str] = None,
         arguments: Optional[list[str]] = [],
         logger: Optional[logging.Logger] = None,
+        **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
         self.logger: logging.Logger = (
@@ -53,6 +54,7 @@ class Activity(ABC):
         self.command: str = command
         self.arguments: list[str] = arguments
         self.status: ActivityStatus = ActivityStatus.CREATED
+        self.__dict__.update(kwargs)
 
     def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.
