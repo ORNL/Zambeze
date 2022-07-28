@@ -3,10 +3,8 @@ import zambeze.orchestration.plugin_modules.git as git
 
 # Standard imports
 import os
-import pwd
 import pytest
 import random
-import socket
 
 
 @pytest.mark.gitlab_runner

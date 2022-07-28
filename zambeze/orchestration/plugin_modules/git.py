@@ -13,7 +13,6 @@ from .abstract_plugin import Plugin
 import base64
 import json
 import requests
-import time
 
 # Standard imports
 from typing import Optional
