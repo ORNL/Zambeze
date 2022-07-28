@@ -1,36 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
+
 import json
+import logging
 import os
+import pathlib
 import subprocess
-import uuid
 import zmq
 
+from datetime import datetime
 from signal import SIGKILL
 
 
 # Pass stdout/stderr to devnull (in subprocesses) to avoid memory issues.
 devnull = open(os.devnull, "wb")
 
-user_base_dir = os.path.expanduser("~")
-state_path = os.path.join(user_base_dir, ".zambeze/agent.state")
+zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
+state_path = zambeze_base_dir.joinpath("agent.state")
 
 
-def agent_start(logger):
+def agent_start(logger: logging.Logger) -> None:
     """
     Start the agent via the local zambeze-agent utility and save initial state.
 
-    Parameters:
-        logger (logging.logger) the agent logger that writes to ~/.zambeze/logs
-    Returns:
-        None
+    :param logger: The agent logger that writes to ~/.zambeze/logs
+    :type logger: logging.Logger
     """
-
     logger.info("Initializing Zambeze Agent...")
     # Create user dir and make sure the base logging path exists.
-    zambeze_base_dir = os.path.join(user_base_dir, ".zambeze/logs")
+    logs_base_dir = zambeze_base_dir.joinpath("logs")
 
     # First check to make sure no agents already running!
-    if os.path.isfile(state_path):
-        with open(state_path, "r") as f:
+    if state_path.is_file():
+        with state_path.open("r") as f:
             old_state = json.load(f)
         if old_state["status"] == "RUNNING":
             logger.info(
@@ -40,14 +47,16 @@ def agent_start(logger):
 
     # Ensure that we have a folder in which to write logs.
     try:
-        os.makedirs(zambeze_base_dir, exist_ok=True)
+        logs_base_dir.mkdir(exist_ok=True)
     except OSError:
         logger.error("Creating log directory failed! Terminating...")
         return
 
     # Create a random identifier for logs (UUID).
     # Users can list them in order of date to see which one is latest.
-    zambeze_log_path = os.path.join(zambeze_base_dir, str(uuid.uuid4()))
+    zambeze_log_path = logs_base_dir.joinpath(
+        datetime.utcnow().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
+    )
 
     # Randomly select two ports...
     # Both ports should be available, because we're binding
@@ -76,7 +85,7 @@ def agent_start(logger):
     arg_list = [
         "zambeze-agent",
         "--log-path",
-        zambeze_log_path,
+        str(zambeze_log_path.resolve()),
         "--debug",
         "--zmq-heartbeat-port",
         str(hb_port),
@@ -91,31 +100,28 @@ def agent_start(logger):
 
     agent_state = {
         "pid": proc.pid,
-        "log_path": zambeze_log_path,
+        "log_path": str(zambeze_log_path.resolve()),
         "zmq_heartbeat_port": hb_port,
         "zmq_activity_port": data_port,
         "status": "RUNNING",
     }
 
-    with open(state_path, "w") as f:
+    with state_path.open("w") as f:
         json.dump(agent_state, f)
 
 
-def agent_stop(logger):
+def agent_stop(logger: logging.Logger) -> None:
     """
     Stop the agent by killing its system process and updating the state file.
 
-    Parameters:
-        logger (logging.logger) the agent logger that writes to ~/.zambeze/logs
-    Returns:
-        None
+    :param logger: The agent logger that writes to ~/.zambeze/logs
+    :type logger: logging.Logger
     """
-
     logger.info("Received stop signal.")
 
     # Check to make sure agent is *supposed to be* running.
-    if os.path.isfile(state_path):
-        with open(state_path, "r") as f:
+    if state_path.is_file():
+        with state_path.open("r") as f:
             old_state = json.load(f)
         if old_state["status"] in ["STOPPED", "INITIALIZED"]:
             logger.info("Agent is already STOPPED. Exiting...")
@@ -143,28 +149,26 @@ def agent_stop(logger):
     old_state["zmq_activity_port"] = None
 
     # Flush state to disk.
-    with open(state_path, "w") as f:
+    with state_path.open("w") as f:
         json.dump(old_state, f)
 
     logger.info("Agent successfully stopped!\n")
 
 
-def agent_get_status(logger):
+def agent_get_status(logger: logging.Logger) -> None:
     """
     Get the status of the user's local agent and print it to the console
     (and do nothing else).
 
-    Parameters:
-        logger (logging.logger) the agent logger that writes to ~/.zambeze/logs
-    Returns:
-        None
+    :param logger: The agent logger that writes to ~/.zambeze/logs
+    :type logger: logging.Logger
     """
-    if not os.path.isfile(state_path):
+    if not state_path.is_file():
         logger.info(
             "Agent does not exist. You can start an agent with 'zambeze agent start'."
         )
 
-    with open(state_path, "r") as f:
+    with state_path.open("r") as f:
         old_state = json.load(f)
 
     logger.info(f"Agent Status: {old_state['status']}.")
