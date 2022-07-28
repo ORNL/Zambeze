@@ -85,6 +85,10 @@ class Git(Plugin):
 
         :param repo_owner: The GitHub repository owner
         :type repo_owner: string
+        :param access_token: Though you don't need an access token to query the
+        repo owner, if you provide one you will be given higher rate limits to
+        the GitHub API.
+        :type access_token: str or None
         """
         api_url = self.__api_base + f"users/{repo_owner}"
         try:

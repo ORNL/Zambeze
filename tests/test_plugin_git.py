@@ -54,7 +54,8 @@ def test_git_checkCommitSuccess():
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitFailure1():
-
+    """This test should fail because the commit package is missing the repo
+    key"""
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
@@ -63,7 +64,6 @@ def test_git_checkCommitFailure1():
     f.write(str(original_number))
     f.close()
 
-    # This package is missing the repo key
     package = [
         {
             "commit": {
@@ -91,6 +91,8 @@ def test_git_checkCommitFailure1():
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitFailure2():
+    """This test should fail because the commit package is missing the
+    destination type key"""
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
@@ -100,7 +102,6 @@ def test_git_checkCommitFailure2():
     f.write(str(original_number))
     f.close()
 
-    # This package is missing the destination type
     package = [
         {
             "commit": {
@@ -131,6 +132,8 @@ def test_git_checkCommitFailure2():
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitFailure3():
+    """This test should fail because the commit package is missing the
+    source key"""
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
@@ -140,7 +143,6 @@ def test_git_checkCommitFailure3():
     f.write(str(original_number))
     f.close()
 
-    # This package is missing the source key
     package = [
         {
             "commit": {
@@ -165,6 +167,8 @@ def test_git_checkCommitFailure3():
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitFailure4():
+    """This test should fail because the commit package is missing the
+    credentials key"""
 
     current_dir = os.getcwd()
     file_name = "demofile_for_git_commit.txt"
@@ -173,7 +177,6 @@ def test_git_checkCommitFailure4():
     f.write(str(original_number))
     f.close()
 
-    # This package is missing the credentials key
     package = [
         {
             "commit": {
