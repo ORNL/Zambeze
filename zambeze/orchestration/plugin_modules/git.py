@@ -80,7 +80,7 @@ class Git(Plugin):
             return False, error_msg
         return True, ""
 
-    def __checkRepoOwnerExists(self, repo_owner: str) -> (bool, str):
+    def __checkRepoOwnerExists(self, repo_owner: str, access_token=None) -> (bool, str):
         """Will check that the repo owner exists on GitHub
 
         :param repo_owner: The GitHub repository owner
@@ -88,7 +88,11 @@ class Git(Plugin):
         """
         api_url = self.__api_base + f"users/{repo_owner}"
         try:
-            response = requests.get(api_url)
+            if access_token:
+                header = {"Authorization": f"token {access_token}"}
+                response = requests.get(api_url, headers=header)
+            else:
+                response = requests.get(api_url)
         except requests.ConnectionError as e:
             return False, str(e)
 
@@ -346,6 +350,7 @@ class Git(Plugin):
             msg = msg + "'commit' action"
             check_success = False
 
+        access_token = None
         if "access_token" not in action_obj["credentials"]:
             msg = (
                 msg
@@ -353,6 +358,8 @@ class Git(Plugin):
                         'commit' action"
             )
             check_success = False
+        else:
+            access_token = action_obj["credentials"]["access_token"]
 
         if "email" not in action_obj["credentials"]:
             msg = (
@@ -364,10 +371,6 @@ class Git(Plugin):
 
         if "branch" in action_obj:
             # Check if branch exists
-            access_token = None
-            if "access_token" in action_obj["credentials"]:
-                access_token = action_obj["credentials"]["access_token"]
-
             branch_exists, error_msg = self.__checkBranchExists(
                 action_obj["repo"],
                 action_obj["owner"],
@@ -384,7 +387,9 @@ class Git(Plugin):
                 check_success = False
 
         if check_success:
-            owner_exists, error_msg = self.__checkRepoOwnerExists(action_obj["owner"])
+            owner_exists, error_msg = self.__checkRepoOwnerExists(
+                    action_obj["owner"], access_token)
+
             if not owner_exists:
                 msg = msg + error_msg
                 check_success = False
@@ -399,9 +404,8 @@ class Git(Plugin):
                 check_success = False
 
             # Only run these checks if previous checks have all passed
-            token = action_obj["credentials"]["access_token"]
             repo_exists, error_msg = self.__checkRepoExists(
-                action_obj["repo"], action_obj["owner"], token=token
+                action_obj["repo"], action_obj["owner"], token=access_token
             )
             if not repo_exists:
                 msg = msg + error_msg
