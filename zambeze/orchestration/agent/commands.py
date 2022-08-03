@@ -49,7 +49,7 @@ def agent_start(logger: logging.Logger) -> None:
     try:
         logs_base_dir.mkdir(exist_ok=True)
     except OSError:
-        logger.error("Creating log directory failed! Terminating...")
+        logger.error(f"Failed to create log directory: {logs_base_dir}")
         return
 
     # Create a random identifier for logs (UUID).
