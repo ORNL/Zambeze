@@ -16,7 +16,6 @@ from os.path import isfile
 from socket import gethostname
 from typing import Optional
 
-import json
 import logging
 import re
 import shutil
@@ -121,7 +120,7 @@ def checkEndpoint(item: dict, supported_types: list[str]) -> (bool, str):
     >>>     "path": "/file1.txt"
     >>> }
     >>> valid, msg = checkEndpoint(item)
-    >>> assert valid 
+    >>> assert valid
     """
     if "type" not in item:
         return False, "Missing type"
@@ -130,7 +129,8 @@ def checkEndpoint(item: dict, supported_types: list[str]) -> (bool, str):
         if item["type"].lower() not in supported_types:
             return (
                 False,
-                f"Missing {item['type'].lower()} not in supported types {supported_types}",
+                f"Missing {item['type'].lower()} not in supported types \
+                        {supported_types}",
             )
 
     if "path" not in item:
@@ -473,14 +473,14 @@ class Globus(Plugin):
                 else:
                     valid, msg = checkEndpoint(item["source"], ["globus relative"])
                     if not valid:
-                        return (False, f"Error in source\n" + msg)
+                        return (False, "Error in source\n" + msg)
 
                 if "destination" not in item:
                     return False, "'destination' missing from 'items' in 'transfer'"
                 else:
                     valid, msg = checkEndpoint(item["destination"], ["globus relative"])
                     if not valid:
-                        return (False, f"Error in destination\n" + msg)
+                        return (False, "Error in destination\n" + msg)
         return True, ""
 
     def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
