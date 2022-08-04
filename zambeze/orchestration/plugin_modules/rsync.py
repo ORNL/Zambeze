@@ -327,9 +327,8 @@ class Rsync(Plugin):
                 message = message + f"{action} unsupported action\n"
                 continue
 
-            supported_actions[action_key] = True
+            supported_actions[action_key] = (True, message)
 
-        print(message)
         return supported_actions
 
     def process(self, arguments: list[dict]):
