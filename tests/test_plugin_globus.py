@@ -505,3 +505,91 @@ def test_globus_process():
 
     # After processing we should verify that the file exists at the final location
     assert os.path.exists(abs_path_destination_shared)
+
+
+@pytest.mark.globus
+def test_globus_process_from_esnet():
+
+    required_env_variables = [
+        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
+        "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
+        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
+        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
+    ]
+
+    for env_var in required_env_variables:
+        if env_var not in os.environ:
+            raise Exception(
+                "Globus test cannot be run if the env variable"
+                f" {env_var} is not defined and a local "
+                "globus-connect-server and endpoint have not been"
+                " set up."
+            )
+
+    path_to_endpoint = "/home/cades/Collections/default"
+    path_to_endpoint_shared = "/home/cades/Collections/default/shared"
+
+    configuration = {
+        "client_id": os.getenv(required_env_variables[0]),
+        "authentication_flow": {
+            "type": "client credential",
+            "secret": os.getenv(required_env_variables[1]),
+        },
+        "collections": [
+            {
+                "UUID": os.getenv(required_env_variables[2]),
+                "path": path_to_endpoint,
+                "type": "mapped",
+            },
+            {
+                "UUID": os.getenv(required_env_variables[3]),
+                "path": path_to_endpoint_shared,
+                "type": "guest",
+            },
+        ],
+    }
+
+    globus_plugin = globus.Globus()
+    globus_plugin.configure(configuration)
+
+    # action items in the list should be executed in order
+    ESNET_GLOBUS_ENDPOINT_UUID = "ece400da-0182-4777-91d6-27a1808f8371"
+
+    package = [
+        {
+            "transfer": {
+                "source_collection_UUID": ESNET_GLOBUS_ENDPOINT_UUID,
+                "destination_collection_UUID": os.getenv(required_env_variables[3]),
+                "type": "synchronous",
+                "items": [
+                    {
+                        "source": {
+                            "type": "globus relative",
+                            "path": "/1M.dat",
+                        },
+                        "destination": {
+                            "type": "globus relative",
+                            "path": "/1M.dat", 
+                        },
+                    }
+                ],
+            }
+        },
+    ]
+
+    # This test is designed to move a file to the globus endpoint
+    # So before we get started we are going to make sure that a file
+    # does not already exist at that location
+    abs_path_destination = (
+        path_to_endpoint
+        + "/1M.dat" 
+    )
+    
+    if os.path.exists(abs_path_destination):
+        os.remove(abs_path_destination)
+
+    if globus_plugin.check(package):
+        globus_plugin.process(package)
+
+    # After processing we should verify that the file exists at the final location
+    assert os.path.exists(abs_path_destination)
