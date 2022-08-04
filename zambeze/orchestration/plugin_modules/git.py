@@ -20,20 +20,36 @@ from typing import Optional
 import logging
 
 
-def check_path(path_name: str, dest_path: str, msg: str, success: bool) -> (bool, str):
-    if not dest_path:
+def check_path(path_name: str, path: str, msg: str, success: bool) -> (bool, str):
+    """Takes a path string and ensures it is correctly formatted.
+
+    :param path_name: The name of the type of the file path i.e. "source"
+    :type path_name: str
+    :param path: The actual path that is being checked
+    :type path: str
+    :param msg: The existing error messages that the function will append to
+    :type msg: str
+    :param success: Whether all previous checks have been successful or not
+    :type success: bool
+    """
+    if not path:
         msg = msg + f"\nError {path_name} path cannot be empty"
         return False, msg
 
-    if dest_path.endswith("/"):
-        msg = msg + f"\nError {path_name} path must end with a filename"
+    if path.endswith("/"):
+        msg = msg + f"\nError {path_name} path must end with a filename, path"
+        msg = msg + f" is {path}"
         return False, msg
     return success, msg
 
 
-def contains_subkey(action_name, obj, key, subkey, is_success, msg) -> (bool, str):
+def contains_subkey(
+    action_name: str, obj: dict, key: str, subkey: str, is_success: bool, msg: str
+) -> (bool, str):
     """Checks if the the object contains a subkey
 
+    :param action_name: Describes what action is being called for better logging
+    :type action_name: str
     :param obj: The object being checked
     :type obj: The object is a dict
     :param key: The objects key, where we will be checking for a subkey
@@ -267,8 +283,9 @@ class Git(Plugin):
         keys = ["source", "source", "destination", "destination", "credentials"]
         subkeys = ["path", "type", "path", "type", "access_token"]
         for (key, subkey) in zip(keys, subkeys):
-            success, msg = contains_subkey("download action", action_obj, key,
-                                           subkey, success, msg)
+            success, msg = contains_subkey(
+                "download action", action_obj, key, subkey, success, msg
+            )
 
         if success:
             owner_exists, error_msg = self.__checkRepoOwnerExists(action_obj["owner"])
@@ -357,13 +374,20 @@ class Git(Plugin):
                 )
 
         success = True
-        keys = ["source", "source", "destination", "destination", "credentials",
-                "credentials", "credentials"]
-        subkeys = ["path", "type", "path", "type", "user_name", "access_token",
-                   "email"]
+        keys = [
+            "source",
+            "source",
+            "destination",
+            "destination",
+            "credentials",
+            "credentials",
+            "credentials",
+        ]
+        subkeys = ["path", "type", "path", "type", "user_name", "access_token", "email"]
         for (key, subkey) in zip(keys, subkeys):
-            success, msg = contains_subkey("commit action", action_obj, key,
-                                           subkey, success, msg)
+            success, msg = contains_subkey(
+                "commit action", action_obj, key, subkey, success, msg
+            )
 
         access_token = None
         if success:
