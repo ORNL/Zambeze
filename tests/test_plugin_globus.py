@@ -98,9 +98,10 @@ def test_checkAllItemsHaveValidEndpoints():
     supported_source_path_types = ["posix absolute", "posix user home"]
     supported_destination_path_types = ["globus relative"]
 
-    assert globus.checkAllItemsHaveValidEndpoints(
+    output = globus.checkAllItemsHaveValidEndpoints(
         items, supported_source_path_types, supported_destination_path_types
     )
+    assert output[0]
 
     items2 = [
         {
@@ -111,9 +112,10 @@ def test_checkAllItemsHaveValidEndpoints():
 
     # This should be false because in this case "globus relative" is not in the
     # supported_source_path_types
-    assert not globus.checkAllItemsHaveValidEndpoints(
+    output = globus.checkAllItemsHaveValidEndpoints(
         items2, supported_source_path_types, supported_destination_path_types
     )
+    assert not output[0]
 
     items3 = [
         {
@@ -124,9 +126,10 @@ def test_checkAllItemsHaveValidEndpoints():
 
     # This should be false because in this case "destination" is missing a
     # "path"
-    assert not globus.checkAllItemsHaveValidEndpoints(
+    output = globus.checkAllItemsHaveValidEndpoints(
         items3, supported_source_path_types, supported_destination_path_types
     )
+    assert not output[0]
 
 
 @pytest.mark.globus
@@ -376,7 +379,11 @@ def test_globus_transfer_check():
             }
         },
     ]
-    assert globus_plugin.check(package)
+
+    output = globus_plugin.check(package)
+
+    for item in output:
+        assert output[item][0]
 
 
 @pytest.mark.globus
@@ -500,7 +507,15 @@ def test_globus_process():
     if os.path.exists(abs_path_destination_shared):
         os.remove(abs_path_destination_shared)
 
-    if globus_plugin.check(package):
+    checked_items = globus_plugin.check(package)
+    all_checks_pass = True
+    for item in checked_items:
+        if not checked_items[item][0]:
+            print("Something went wrong.")
+            print(checked_items[item][1])
+            all_checks_pass = False
+
+    if all_checks_pass:
         globus_plugin.process(package)
 
     # After processing we should verify that the file exists at the final location
@@ -559,22 +574,16 @@ def test_globus_process_from_esnet():
         {
             "transfer": {
                 "source_collection_UUID": ESNET_GLOBUS_ENDPOINT_UUID,
-                "destination_collection_UUID": os.getenv(required_env_variables[3]),
+                "destination_collection_UUID": os.getenv(required_env_variables[2]),
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": {
-                            "type": "globus relative",
-                            "path": "/1M.dat",
-                        },
-                        "destination": {
-                            "type": "globus relative",
-                            "path": "/1M.dat",
-                        },
+                        "source": {"type": "globus relative", "path": "/1M.dat"},
+                        "destination": {"type": "globus relative", "path": "/1M.dat"},
                     }
                 ],
             }
-        },
+        }
     ]
 
     # This test is designed to move a file to the globus endpoint
@@ -585,8 +594,12 @@ def test_globus_process_from_esnet():
     if os.path.exists(abs_path_destination):
         os.remove(abs_path_destination)
 
-    if globus_plugin.check(package):
+    output = globus_plugin.check(package)
+    if output["transfer"][0]:
         globus_plugin.process(package)
+    else:
+        print("Check failed no transfer was conducted.")
+        print(output["transfer"][1])
 
     # After processing we should verify that the file exists at the final location
     assert os.path.exists(abs_path_destination)

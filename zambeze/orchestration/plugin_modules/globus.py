@@ -96,7 +96,7 @@ def getGlobusScopes(mapped_collections: list[str]) -> str:
     return scopes
 
 
-def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
+def checkEndpoint(item: dict, supported_types: list[str]) -> (bool, str):
     """Check that the approprite keys and values exist in the endpoint
 
     :param item: these are the values that help define either the source or
@@ -120,26 +120,30 @@ def checkEndpoint(item: dict, supported_types: list[str]) -> bool:
     >>>     "type": "globus relative",
     >>>     "path": "/file1.txt"
     >>> }
-    >>> assert checkEndpoint(item)
+    >>> valid, msg = checkEndpoint(item)
+    >>> assert valid 
     """
     if "type" not in item:
-        return False
+        return False, "Missing type"
     else:
         # Only "globus relative" path type supported
         if item["type"].lower() not in supported_types:
-            return False
+            return (
+                False,
+                f"Missing {item['type'].lower()} not in supported types {supported_types}",
+            )
 
     if "path" not in item:
-        return False
+        return False, "Missing path"
 
-    return True
+    return True, ""
 
 
 def checkAllItemsHaveValidEndpoints(
     items: list[dict],
     supported_source_path_types: list[str],
     supported_destination_path_types: list[str],
-) -> bool:
+) -> (bool, str):
     """Check that all items that are too be moved are schematically correct
 
     :return: Returns true if the schema of the items is valid and false otherwise
@@ -180,20 +184,25 @@ def checkAllItemsHaveValidEndpoints(
     """
     for item in items:
         if "source" not in item:
-            return False
+            return False, "Missing source key"
         if "destination" not in item:
-            return False
+            return False, "Missing destination key"
 
-        if not checkEndpoint(item["source"], supported_source_path_types):
-            return False
-        if not checkEndpoint(item["destination"], supported_destination_path_types):
-            return False
+        valid, msg = checkEndpoint(item["source"], supported_source_path_types)
+        if not valid:
+            return False, "Invalid source\n" + msg
+
+        valid, msg = checkEndpoint(
+            item["destination"], supported_destination_path_types
+        )
+        if not valid:
+            return False, "Invalid destination\n" + msg
 
         if item["source"]["type"].lower() == "posix absolute":
             if not exists(item["source"]["path"]):
-                return False
+                return False, f"Item does not exist {item['source']['path']}"
 
-    return True
+    return True, ""
 
 
 class Globus(Plugin):
@@ -319,8 +328,6 @@ class Globus(Plugin):
 
     def __clientCredentialAuthFlow(self, config: dict):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
-        print("Config is")
-        print(f"client id is {self.__client_id}")
 
         if config["authentication_flow"]["secret"] is None:
             raise Exception(
@@ -330,12 +337,10 @@ class Globus(Plugin):
                 f"{config}"
             )
 
-        print(json.dumps(config, indent=4))
         confidential_client = globus_sdk.ConfidentialAppAuthClient(
             client_id=self.__client_id,
             client_secret=config["authentication_flow"]["secret"],
         )
-        print(f"client secret: {config['authentication_flow']['secret']}")
         self.__authorizer = globus_sdk.ClientCredentialsAuthorizer(
             confidential_client, self.__scopes
         )
@@ -387,7 +392,6 @@ class Globus(Plugin):
             tdata.add_item(clean_source_path, clean_destination_path)
 
         transfer_result = self.__tc.submit_transfer(tdata)
-
         if "synchronous" == transfer["type"].lower():
             task_id = transfer_result["task_id"]
             while not self.__tc.task_wait(task_id, timeout=60):
@@ -447,8 +451,6 @@ class Globus(Plugin):
                 if isfile(source):
                     destination = destination + "/" + basename(source)
 
-            print(f"Source is: {source}")
-            print(f"Destination is: {destination}")
             shutil.copyfile(source, destination)
 
     def __runTransferSanityCheck(self, action_package: dict) -> (bool, str):
@@ -469,23 +471,17 @@ class Globus(Plugin):
                 if "source" not in item:
                     return False, "'source' missing from 'items' in 'transfer'"
                 else:
-                    if not checkEndpoint(item["source"], ["globus relative"]):
-                        return (
-                            False,
-                            "'source' in ['transfer']['items'] must \
-                                have a value of 'globus relative'",
-                        )
+                    valid, msg = checkEndpoint(item["source"], ["globus relative"])
+                    if not valid:
+                        return (False, f"Error in source\n" + msg)
 
                 if "destination" not in item:
                     return False, "'destination' missing from 'items' in 'transfer'"
                 else:
-                    if not checkEndpoint(item["destination"], ["globus relative"]):
-                        return (
-                            False,
-                            "'destination' in ['transfer']['items'] must \
-                                have a value of 'globus relative'",
-                        )
-        return True
+                    valid, msg = checkEndpoint(item["destination"], ["globus relative"])
+                    if not valid:
+                        return (False, f"Error in destination\n" + msg)
+        return True, ""
 
     def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
         supported_source_path_types = ["posix absolute", "posix user home"]
@@ -511,13 +507,10 @@ class Globus(Plugin):
             {action_package['source_host_name']} in 'move_to_globus_collection'",
             )
 
-        return (
-            checkAllItemsHaveValidEndpoints(
-                action_package["items"],
-                supported_source_path_types,
-                supported_destination_path_types,
-            ),
-            "",
+        return checkAllItemsHaveValidEndpoints(
+            action_package["items"],
+            supported_source_path_types,
+            supported_destination_path_types,
         )
 
     def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> (bool, str):
@@ -589,7 +582,7 @@ class Globus(Plugin):
         )
 
     def __checkAccessToGlobusCloud(self):
-        """Will chech if we can reach the internet and caches access to globus
+        """Will check if we can reach the internet and caches access to globus
         cloud if cannot reach it.
         """
         if externalNetworkConnectionDetected() is False:
@@ -758,7 +751,7 @@ class Globus(Plugin):
                     checks[action] = (False, "action is not supported.")
                     continue
 
-                if action == "transfers":
+                if action == "transfer":
                     # Any agent with the globus plugin can submit a job to globus if it
                     # has access to the globus cloud
                     checks[action] = self.__runTransferSanityCheck(
@@ -774,6 +767,8 @@ class Globus(Plugin):
                     checks[action] = self.__runMoveFromGlobusSanityCheck(
                         package[index][action]
                     )
+                else:
+                    checks[action] = (False, "Unrecognized action keyworkd")
         return checks
 
     def process(self, arguments: list[dict]) -> dict:
@@ -881,14 +876,10 @@ class Globus(Plugin):
         if not self.__configured:
             raise Exception("Cannot run globus plugin, must first be configured.")
 
-        print("Running Globus plugin")
-
         for action_obj in arguments:
             # Make sure that the action is supported
 
             for key in action_obj:
-                print(key)
-
                 if key not in self.__supported_actions:
                     raise Exception(f"{key} is not supported.")
 

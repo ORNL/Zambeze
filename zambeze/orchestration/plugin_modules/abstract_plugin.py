@@ -80,7 +80,7 @@ class Plugin(ABC):
         :type arguments: list[dict]
         :return: Returns the list of actions that are vaid
         :rtype: dict with the actions valid actions listed with bool set to
-        True and invalid ones False
+        True and invalid ones False, along with a message.
 
         :Example:
 
@@ -93,8 +93,8 @@ class Plugin(ABC):
         >>> for action in checked_actions:
         >>>     print(f"{action}: {checked_actions[action]}")
         >>> # Should print
-        >>> # action1 True
-        >>> # action2 False
+        >>> # action1 True, ""
+        >>> # action2 False, "This was the problem"
         """
 
     @abstractmethod
