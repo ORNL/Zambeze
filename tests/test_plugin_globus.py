@@ -265,6 +265,7 @@ def test_globus_move_check():
 
     destination_path = "/"
     sub_folder = ""
+    # This is so that we can run the test both as a runner and as user
     if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
         sub_folder = "runner/"
 
@@ -340,6 +341,7 @@ def test_globus_transfer_check():
 
     destination_path = "/"
     sub_folder = ""
+    # This is so that we can run the test both as a runner and as user
     if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
         sub_folder = "runner/"
 
@@ -443,6 +445,7 @@ def test_globus_process():
 
     relative_destination_file_path = "/"
     sub_folder = ""
+    # This is so that we can run the test both as a runner and as user
     if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
         sub_folder = "runner/"
     # action items in the list should be executed in order
@@ -524,7 +527,13 @@ def test_globus_process():
 
 @pytest.mark.globus
 def test_globus_process_from_esnet():
+    """NOTE
 
+    We cannot simply download to a collection, we have to download to 
+    a folder that is owned by the user running the this test. I.e. if
+    the GitLab Runner is being used then we have to specify a folder that
+    the GitLab Runner can actually access from the POSIX side.
+    """
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
@@ -570,6 +579,11 @@ def test_globus_process_from_esnet():
     # action items in the list should be executed in order
     ESNET_GLOBUS_ENDPOINT_UUID = "ece400da-0182-4777-91d6-27a1808f8371"
 
+    # This is so that we can run the test both as a runner and as user
+    sub_folder = ""
+    if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
+        sub_folder = "runner/"
+
     package = [
         {
             "transfer": {
@@ -579,7 +593,10 @@ def test_globus_process_from_esnet():
                 "items": [
                     {
                         "source": {"type": "globus relative", "path": "/1M.dat"},
-                        "destination": {"type": "globus relative", "path": "/1M.dat"},
+                        "destination": {
+                            "type": "globus relative",
+                            "path": subfolder + "/1M.dat",
+                        },
                     }
                 ],
             }
@@ -589,7 +606,7 @@ def test_globus_process_from_esnet():
     # This test is designed to move a file to the globus endpoint
     # So before we get started we are going to make sure that a file
     # does not already exist at that location
-    abs_path_destination = path_to_endpoint + "/1M.dat"
+    abs_path_destination = path_to_endpoint + subfolder + "/1M.dat"
 
     if os.path.exists(abs_path_destination):
         os.remove(abs_path_destination)
