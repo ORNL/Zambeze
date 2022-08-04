@@ -20,6 +20,16 @@ from typing import Optional
 import logging
 
 
+def checkEndpoint(endpoint_obj: dict, allowed_types) -> (bool, str):
+    """Will make sure that the endpoint is a valid type and checks the path if
+    possible.
+
+    >>> {
+    >>>    "type": "posix absolute",
+    >>>    "path": "path to file local"
+    >>> }
+    """
+
 class Git(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "git"
