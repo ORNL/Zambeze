@@ -497,7 +497,8 @@ class Globus(Plugin):
             return (
                 False,
                 f"Invalid 'destination_collection_UUID' detected in \
-            'move_to_globus_collection': {action_package['destination_collection_UUID']}",
+            'move_to_globus_collection': \
+            {action_package['destination_collection_UUID']}",
             )
 
         # This is needed so the correct orchestrator picks executes the task
@@ -561,8 +562,9 @@ class Globus(Plugin):
         if not validUUID(action_package["source_collection_UUID"]):
             return (
                 False,
-                f"Invalid 'source_collection_UUID' dectected in 'move_from_globus_collection': \
-                    {action_package['source_collection_UUID']}",
+                f"Invalid 'source_collection_UUID' dectected in \
+                 'move_from_globus_collection': \
+                 {action_package['source_collection_UUID']}",
             )
 
         # Check that the UUID is associated with this machine
