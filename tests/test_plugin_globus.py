@@ -497,7 +497,7 @@ def test_globus_process():
         + sub_folder
         + os.path.basename(file_path)
     )
-    # After it gets transferred using globus it should end up moving to the subfolder
+    # After it gets transferred using globus it should end up moving to the sub_folder
     abs_path_destination_shared = (
         path_to_endpoint
         + relative_destination_file_path
@@ -595,7 +595,7 @@ def test_globus_process_from_esnet():
                         "source": {"type": "globus relative", "path": "/1M.dat"},
                         "destination": {
                             "type": "globus relative",
-                            "path": subfolder + "/1M.dat",
+                            "path": sub_folder + "/1M.dat",
                         },
                     }
                 ],
@@ -606,7 +606,7 @@ def test_globus_process_from_esnet():
     # This test is designed to move a file to the globus endpoint
     # So before we get started we are going to make sure that a file
     # does not already exist at that location
-    abs_path_destination = path_to_endpoint + subfolder + "/1M.dat"
+    abs_path_destination = path_to_endpoint + sub_folder + "/1M.dat"
 
     if os.path.exists(abs_path_destination):
         os.remove(abs_path_destination)
