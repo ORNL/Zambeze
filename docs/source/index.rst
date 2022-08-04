@@ -14,5 +14,7 @@ support@zambeze.org.
     :maxdepth: 1
     :hidden:
 
+    getting_started
     user_api_reference
     dev_api_reference
+

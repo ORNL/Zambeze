@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2022 Oak Ridge National Laboratory.
@@ -7,6 +8,7 @@
 # it under the terms of the MIT License.
 
 import logging
+import os
 import subprocess
 
 # Local imports
@@ -78,6 +80,27 @@ class Shell(Plugin):
         for data in arguments:
             cmd = data["bash"]["args"]
             cmd.insert(0, data["bash"]["program"])
-            self._logger.debug(f"Running SHELL command: {' '.join(cmd)}")
-            shell_exec = subprocess.Popen(cmd)
+
+            # Take an image of the parent environment
+            # -- then add the environment variables to it.
+            parent_env = os.environ.copy()
+
+            try:
+                # env_tup : (key, value)
+                for env_tup in data["bash"]["env_vars"]:
+                    parent_env[env_tup[0]] = env_tup[1]
+            except ValueError as e:
+                self._logger.error(f"Caught ValueError: {e}")
+
+            shell_cmd = " ".join(cmd)
+
+            self._logger.debug(f"Running SHELL command: {shell_cmd}")
+
+            # converting to use actual SHELL so subprocess can inherit parent env
+            #   (dev note 1: needed for Tyler's ORNL M1 Mac)
+            #   (dev note 2: shell=False can lead to shell injection attacks
+            #       if cmd coming from untrusted source. See:
+            # https://stackoverflow.com/questions/21009416/python-subprocess-security)
+            # shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
+            shell_exec = subprocess.Popen(shell_cmd, shell=True)
             shell_exec.wait()
