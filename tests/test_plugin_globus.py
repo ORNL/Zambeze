@@ -606,11 +606,7 @@ def test_globus_process_from_esnet():
     # This test is designed to move a file to the globus endpoint
     # So before we get started we are going to make sure that a file
     # does not already exist at that location
-    abs_path_destination = (
-        path_to_endpoint
-        + sub_folder
-        + '/1M.dat'
-    )
+    abs_path_destination = path_to_endpoint + sub_folder + "/1M.dat"
 
     if os.path.exists(abs_path_destination):
         os.remove(abs_path_destination)

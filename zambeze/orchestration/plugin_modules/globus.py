@@ -354,7 +354,7 @@ class Globus(Plugin):
     def __runTransfer(self, transfer: dict):
         """transfer dict must have the following format
 
-        :Example: 
+        :Example:
 
         >>> {
         >>>     "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
@@ -488,7 +488,7 @@ class Globus(Plugin):
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
-        :Example: 
+        :Example:
 
         >>> {
         >>>     "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
@@ -522,12 +522,15 @@ class Globus(Plugin):
         if not self.__access_to_globus_cloud:
             return False, "No access to Globus Service to conduct 'transfer'."
 
-        if "source_collection_UUID" not in action_package:
-            return False, "'source_collection_UUID' missing from 'transfer'."
-        if "destination_collection_UUID" not in action_package:
-            return False, "'destination_collection_UUID' missing from 'transfer'."
-        if "type" not in action_package:
-            return False, "'type' missing from 'transfer'."
+        required_keys = [
+            "source_collection_UUID",
+            "destination_collection_UUID",
+            "type",
+            "items",
+        ]
+        for required in required_keys:
+            if required not in action_package:
+                return False, f"{required} key missing from 'transfer' action."
 
         if action_package["type"] != "synchronous":
             if action_package["type"] != "asynchronous":
@@ -537,23 +540,21 @@ class Globus(Plugin):
             synchronous and asynchronous you have specified {action_package['type']}",
                 )
 
-        if "items" not in action_package:
-            return False, "'items' missing from 'transfer'"
-        else:
-            for item in action_package["items"]:
-                if "source" not in item:
-                    return False, "'source' missing from 'items' in 'transfer'"
-                else:
-                    valid, msg = checkEndpoint(item["source"], ["globus relative"])
-                    if not valid:
-                        return (False, "Error in source\n" + msg)
+        for item in action_package["items"]:
+            if "source" not in item:
+                return False, "'source' missing from 'items' in 'transfer'"
+            else:
+                valid, msg = checkEndpoint(item["source"], ["globus relative"])
+                if not valid:
+                    return (False, "Error in source\n" + msg)
 
-                if "destination" not in item:
-                    return False, "'destination' missing from 'items' in 'transfer'"
-                else:
-                    valid, msg = checkEndpoint(item["destination"], ["globus relative"])
-                    if not valid:
-                        return (False, "Error in destination\n" + msg)
+            if "destination" not in item:
+                return False, "'destination' missing from 'items' in 'transfer'"
+            else:
+                valid, msg = checkEndpoint(item["destination"], ["globus relative"])
+                if not valid:
+                    return (False, "Error in destination\n" + msg)
+
         return True, ""
 
     def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
@@ -613,34 +614,33 @@ class Globus(Plugin):
 
         Example:
 
-        action_package = {
-           "source_host_name": "",
-           "destination_collection_UUID": "",
-           "items": [
-               {
-                   "source": {
-                       "type": "globus relative",
-                       "path": "dest/file1.txt"
-                       },
-                   "destination": {
-                       "type": "posix user home",
-                       "path": "/file1.txt"
-                       }
-               },
-               {
-                   "source": {
-                       "type": "globus relative",
-                       "path": "dest/file2.txt"
-                       },
-                   "destination": {
-                       "type": "posix user home",
-                       "path": "/file2.txt"
-                       }
-               }
-           ]
-        }
-
-        assert self.__runMoveFromGlobusSanityCheck(action_package)
+        >>> action_package = {
+        >>>    "source_host_name": "",
+        >>>    "destination_collection_UUID": "",
+        >>>    "items": [
+        >>>        {
+        >>>            "source": {
+        >>>                "type": "globus relative",
+        >>>                "path": "dest/file1.txt"
+        >>>                },
+        >>>            "destination": {
+        >>>                "type": "posix user home",
+        >>>                "path": "/file1.txt"
+        >>>                }
+        >>>        },
+        >>>        {
+        >>>            "source": {
+        >>>                "type": "globus relative",
+        >>>                "path": "dest/file2.txt"
+        >>>                },
+        >>>            "destination": {
+        >>>                "type": "posix user home",
+        >>>                "path": "/file2.txt"
+        >>>                }
+        >>>        }
+        >>>    ]
+        >>> }
+        >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
         """
 
         supported_source_path_types = ["globus relative"]
