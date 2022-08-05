@@ -612,7 +612,7 @@ def test_globus_process_from_esnet():
         os.remove(abs_path_destination)
 
     if globus_plugin.check(package):
-        result = globus_plugin.process(package)
+        globus_plugin.process(package)
 
     # After processing we should verify that the file exists at the final location
     assert os.path.exists(abs_path_destination)

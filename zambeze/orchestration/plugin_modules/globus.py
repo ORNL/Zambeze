@@ -21,6 +21,49 @@ import re
 import shutil
 
 
+def checkTransferEndpoint(action_package: dict) -> (bool, str):
+    """Makes sure each item to be transferred has the correct format
+
+    :Example:
+
+    >>> "items": [
+    >>>     { "source": {
+    >>>           "type": "globus relative",
+    >>>           "path": "/file1.txt"
+    >>>           },
+    >>>       "destination": {
+    >>>           "type": "globus relative",
+    >>>           "path": "dest/file1.txt"
+    >>>           }
+    >>>     },
+    >>>     { "source": {
+    >>>           "type": "globus relative",
+    >>>           "path": "/file2.txt"
+    >>>           },
+    >>>       "destination": {
+    >>>           "type": "globus relative",
+    >>>           "path": "dest/file2.txt"
+    >>>           }
+    >>>     }
+    >>> ]
+    """
+    for item in action_package["items"]:
+        if "source" not in item:
+            return False, "'source' missing from 'items' in 'transfer'"
+        else:
+            valid, msg = checkEndpoint(item["source"], ["globus relative"])
+            if not valid:
+                return (False, "Error in source\n" + msg)
+
+        if "destination" not in item:
+            return False, "'destination' missing from 'items' in 'transfer'"
+        else:
+            valid, msg = checkEndpoint(item["destination"], ["globus relative"])
+            if not valid:
+                return (False, "Error in destination\n" + msg)
+    return True, ""
+
+
 def getMappedCollections(config: dict) -> list[str]:
     """Returns a list of the UUIDs that are mapped collections
 
@@ -540,22 +583,7 @@ class Globus(Plugin):
             synchronous and asynchronous you have specified {action_package['type']}",
                 )
 
-        for item in action_package["items"]:
-            if "source" not in item:
-                return False, "'source' missing from 'items' in 'transfer'"
-            else:
-                valid, msg = checkEndpoint(item["source"], ["globus relative"])
-                if not valid:
-                    return (False, "Error in source\n" + msg)
-
-            if "destination" not in item:
-                return False, "'destination' missing from 'items' in 'transfer'"
-            else:
-                valid, msg = checkEndpoint(item["destination"], ["globus relative"])
-                if not valid:
-                    return (False, "Error in destination\n" + msg)
-
-        return True, ""
+        return checkTransferEndpoint(action_package)
 
     def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
         supported_source_path_types = ["posix absolute", "posix user home"]
