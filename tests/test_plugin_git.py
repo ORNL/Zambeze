@@ -112,9 +112,7 @@ def test_git_checkCommitFailure2():
                     "path": current_dir + "/" + file_name,
                     "type": "posix absolute",
                 },
-                "destination": {
-                    "path": file_name,
-                },
+                "destination": {"path": file_name},
                 "commit_message": "Adding a file",
                 "credentials": {
                     "user_name": "zambeze84",
@@ -253,9 +251,7 @@ def test_git_processCommitAndDownload():
                     "type": "posix absolute",
                 },
                 "source": {"path": file_name, "type": "GitHub repository root"},
-                "credentials": {
-                    "access_token": access_token,
-                },
+                "credentials": {"access_token": access_token},
             }
         }
     ]
