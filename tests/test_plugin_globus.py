@@ -529,7 +529,7 @@ def test_globus_process():
 def test_globus_process_from_esnet():
     """NOTE
 
-    We cannot simply download to a collection, we have to download to 
+    We cannot simply download to a collection, we have to download to
     a folder that is owned by the user running the this test. I.e. if
     the GitLab Runner is being used then we have to specify a folder that
     the GitLab Runner can actually access from the POSIX side.
