@@ -54,9 +54,10 @@ class ZambezeSettings:
 
         # set default values
         if not self.settings:
-            self.settings = {"nats": {}, "plugins": {}}
+            self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
         self.__set_default("host", "localhost", self.settings["nats"])
         self.__set_default("port", 4222, self.settings["nats"])
+        self.__set_default("port", 5555, self.settings["zmq"])
         self.__set_default("plugins", {}, self.settings)
         self.__save()
 
@@ -85,6 +86,16 @@ class ZambezeSettings:
         host = self.settings["nats"]["host"]
         port = self.settings["nats"]["port"]
         return f"nats://{host}:{port}"
+
+    def get_zmq_connection_uri(self) -> str:
+        """
+        Get the ZMQ connection URI.
+
+        :return: ZMQ connection URI
+        :rtype: str
+        """
+        port = self.settings["zmq"]["port"]
+        return f"tcp://*:{port}"
 
     def is_plugin_configured(self, plugin_name: str) -> bool:
         """

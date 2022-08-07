@@ -10,7 +10,6 @@ import logging
 import zmq
 import pickle
 
-
 from .activities.abstract_activity import Activity
 from zambeze.orchestration.agent.commands import agent_start
 
@@ -35,16 +34,17 @@ class Campaign:
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign."""
-        self.logger: logging.Logger = (
+        self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name: str = name
         self.activities: list[Activity] = activities
-        self.zmq_context = zmq.Context()
-        self.zmq_socket = self.zmq_context.socket(zmq.REQ)
-        self.zmq_socket.connect("tcp://127.0.0.1:5555")
 
-        agent_start(self.logger)
+        self._zmq_context = zmq.Context()
+        self._zmq_socket = self._zmq_context.socket(zmq.REQ)
+        self._zmq_socket.connect("tcp://localhost:5555")
+
+        # agent_start(self._logger)
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
@@ -52,17 +52,18 @@ class Campaign:
         :param activity: An activity object.
         :type activity: Activity
         """
-        self.logger.debug(f"Adding activity: {activity.name}")
+        self._logger.debug(f"Adding activity: {activity.name}")
         self.activities.append(activity)
 
     def dispatch(self) -> None:
         """Dispatch the set of current activities in the campaign."""
-        self.logger.info(f"Number of activities to dispatch: {len(self.activities)}")
+        self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
+
         for activity in self.activities:
-            self.logger.debug(f"Running activity: {activity.name}")
+            self._logger.debug(f"Running activity: {activity.name}")
 
             # Dump dict into string (.dumps) and serialize string
             #   as bytestring (.encode)
             serial_activity = pickle.dumps(activity)
-            self.zmq_socket.send(serial_activity)
-            self.logger.info(f"REPLY: {self.zmq_socket.recv()}")
+            self._zmq_socket.send(serial_activity)
+            self._logger.info(f"REPLY: {self._zmq_socket.recv()}")

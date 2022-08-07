@@ -14,9 +14,9 @@ import zmq
 
 from typing import Optional
 from uuid import uuid4
-from zambeze.orchestration.processor import Processor, MessageType
-from zambeze.campaign.activities.abstract_activity import Activity, ActivityStatus
-from zambeze.settings import ZambezeSettings
+from ..processor import Processor, MessageType
+from ...campaign.activities.abstract_activity import Activity, ActivityStatus
+from ...settings import ZambezeSettings
 
 
 class Agent:
@@ -38,31 +38,31 @@ class Agent:
             logging.getLogger(__name__) if logger is None else logger
         )
 
-        self.agent_id = uuid4()
+        self._agent_id = uuid4()
 
         self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
         self._processor = Processor(settings=self._settings, logger=self._logger)
         self._processor.start()
 
-        self.zmq_context = zmq.Context()
-        self.zmq_socket = self.zmq_context.socket(zmq.REP)
-        self.zmq_socket.bind("tcp://*:5555")
+        self._zmq_context = zmq.Context()
+        self._zmq_socket = self._zmq_context.socket(zmq.REP)
+        self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
 
         while True:
             self._logger.info("Waiting for new activities from campaign(s)...")
-            self.receive_activity_from_campaign()
+            self._receive_activity_from_campaign()
 
-    def receive_activity_from_campaign(self):
+    def _receive_activity_from_campaign(self) -> None:
         """
         Receive activity messages via ZMQ
         """
         # Receive and unwrap the activity message from ZMQ.
-        activity_message = pickle.loads((self.zmq_socket.recv()))
+        activity_message = pickle.loads((self._zmq_socket.recv()))
         self._logger.info(f"Received message from campaign: {activity_message}")
 
         # Dispatch the activity!
         self.dispatch_activity(activity_message)
-        self.zmq_socket.send(b"Agent successfully dispatched task!")
+        self._zmq_socket.send(b"Agent successfully dispatched task!")
 
     @property
     def processor(self) -> Processor:

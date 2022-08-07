@@ -49,7 +49,7 @@ class ShellActivity(Activity):
         if "env_vars" in kwargs:
             self.env_vars = kwargs.get("env_vars")
         else:
-            self.env_vars = None
+            self.env_vars = []
 
     def generate_message(self) -> dict:
         return {
