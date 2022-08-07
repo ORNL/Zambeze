@@ -11,7 +11,8 @@ import zmq
 import pickle
 
 from .activities.abstract_activity import Activity
-from zambeze.orchestration.agent.commands import agent_start
+
+# from zambeze.orchestration.agent.commands import agent_start
 
 from typing import Optional
 
