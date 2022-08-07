@@ -114,24 +114,23 @@ class Plugins:
         This will just configure the "shell" plugin
         """
         for module_name in self.__module_names:
-            module = import_module(
-                f"zambeze.orchestration.plugin_modules.{module_name}"
-            )
-            for attribute_name in dir(module):
-                potential_plugin = getattr(module, attribute_name)
-                if isclass(potential_plugin):
-                    if (
-                        issubclass(potential_plugin, Plugin)
-                        and attribute_name != "Plugin"
-                    ):
-                        self._plugins[attribute_name.lower()] = potential_plugin(
-                            logger=self.__logger
-                        )
+            if module_name in config.keys() and module_name in self.__module_names:
+                module = import_module(
+                    f"zambeze.orchestration.plugin_modules.{module_name}"
+                )
+                for attribute_name in dir(module):
+                    potential_plugin = getattr(module, attribute_name)
+                    if isclass(potential_plugin):
+                        if (
+                            issubclass(potential_plugin, Plugin)
+                            and attribute_name != "Plugin"
+                        ):
+                            self._plugins[attribute_name.lower()] = potential_plugin(
+                                logger=self.__logger
+                            )
 
-        for key in self._plugins:
-            if key in config.keys():
-                obj = self._plugins.get(key)
-                obj.configure(config[key])
+                obj = self._plugins.get(module_name)
+                obj.configure(config[module_name])
 
     @property
     def configured(self) -> list[str]:
