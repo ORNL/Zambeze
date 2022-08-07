@@ -47,7 +47,7 @@ def agent_start(logger: logging.Logger) -> None:
 
     # Ensure that we have a folder in which to write logs.
     try:
-        logs_base_dir.mkdir(exist_ok=True)
+        logs_base_dir.mkdir(parents=True, exist_ok=True)
     except OSError:
         logger.error(f"Failed to create log directory: {logs_base_dir}")
         return
@@ -55,7 +55,7 @@ def agent_start(logger: logging.Logger) -> None:
     # Create a random identifier for logs (UUID).
     # Users can list them in order of date to see which one is latest.
     zambeze_log_path = logs_base_dir.joinpath(
-        datetime.utcnow().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
+        f"{datetime.utcnow().strftime('%Y_%m_%d-%H_%M_%S_%f')[:-3]}.log"
     )
 
     # Randomly select two ports...
