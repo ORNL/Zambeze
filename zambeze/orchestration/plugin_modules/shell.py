@@ -100,5 +100,6 @@ class Shell(Plugin):
             #   (dev note 2: shell=False can lead to shell injection attacks
             #       if cmd coming from untrusted source. See:
             # https://stackoverflow.com/questions/21009416/python-subprocess-security)
-            shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
+            #shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
+            shell_exec = subprocess.Popen(shell_cmd, shell=True)
             shell_exec.wait()
