@@ -110,9 +110,10 @@ class Processor(threading.Thread):
                         "cmd": [
                             {
                                 "transfer": {
-                                    # placeholder
+                                    "type": "synchronous",
+                                    "items": [file_url],
                                 }
-                            }
+                            },
                         ],
                     },
                 )
