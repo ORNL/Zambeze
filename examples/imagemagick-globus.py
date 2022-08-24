@@ -40,7 +40,7 @@ activity = ShellActivity(
         "20",
         "-loop",
         "0",
-        f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
+        f"{curr_dir}/*.jpg",
         "a.gif",
     ],
     logger=logger,
