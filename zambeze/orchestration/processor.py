@@ -102,25 +102,44 @@ class Processor(threading.Thread):
                 if not pathlib.Path(file_url.path).exists():
                     raise Exception(f"Unable to find file: {file_url.path}")
 
+            elif file_url.scheme == "globus":
+                await self.send(
+                    MessageType.COMPUTE.value,
+                    {
+                        "plugin": "globus",
+                        "cmd": [
+                            {
+                                "transfer": {
+                                    # placeholder
+                                }
+                            }
+                        ],
+                    },
+                )
+
             elif file_url.scheme == "rsync":
                 await self.send(
                     MessageType.COMPUTE.value,
                     {
                         "plugin": "rsync",
-                        "cmd": {
-                            "transfer": {
-                                "source": {
-                                    "ip": file_url.netloc,
-                                    "path": file_url.path,
-                                    "user": file_url.username,
-                                },
-                                "destination": {
-                                    "ip": socket.gethostbyname(socket.gethostname()),
-                                    "path": str(pathlib.Path().resolve()),
-                                    "user": getpass.getuser(),
-                                },
+                        "cmd": [
+                            {
+                                "transfer": {
+                                    "source": {
+                                        "ip": file_url.netloc,
+                                        "path": file_url.path,
+                                        "user": file_url.username,
+                                    },
+                                    "destination": {
+                                        "ip": socket.gethostbyname(
+                                            socket.gethostname()
+                                        ),
+                                        "path": str(pathlib.Path().resolve()),
+                                        "user": getpass.getuser(),
+                                    },
+                                }
                             }
-                        },
+                        ],
                     },
                 )
 
