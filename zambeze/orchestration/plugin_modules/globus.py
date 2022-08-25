@@ -10,6 +10,7 @@ import globus_sdk
 # Standard imports
 from copy import deepcopy
 from os.path import basename
+from os.path import dirname
 from os.path import exists
 from os.path import isdir
 from os.path import isfile
@@ -19,6 +20,73 @@ from typing import Optional
 import logging
 import re
 import shutil
+
+
+def globusURISeparator(uri: str) -> dict:
+    """Will take a globus URI and break it into its components
+
+    :Example:
+
+    >>> globus_uri = globus://XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX/path/file.txt
+    >>> uri_components = globusURISeparator(globus_uri)
+    >>> print( uri_components.UUID )
+    >>> print( uri_components.path )
+    >>> print( uri_components.file_name )
+    >>> print( uri_components.error_msg )
+
+    The output should be
+
+    >>> XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX
+    >>> /path/
+    >>> file.txt
+    """
+    globus_uri_tag = "globus://"
+    # Start by ensuring the start of the uri begins with globus://
+    if not uri.startswith(globus_uri_tag):
+        error_msg = f"Incompatible Globus URI format {uri} must start with "
+        error_msg = error_msg + "globus://"
+        return ("", "", "", error_msg)
+
+    UUID_and_path = uri[len(globus_uri_tag):]
+    UUID = UUID_and_path[0:36]
+    if not validUUID(UUID):
+        error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
+        error_msg = error_msg + "character valid URI of the form "
+        error_msg = error_msg + "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+        return ("", "", "", error_msg)
+
+    URI_path = UUID_and_path[36:]
+    return (UUID, basename(URI_path), dirname(URI_path), "")
+
+def fileURISeparator(uri: str) -> dict:
+    """Will take a file URI and break it into its components
+
+    :Example:
+
+    >>> file_uri = file://path/file.txt
+    >>> uri_components = fileURISeparator(file_uri)
+    >>> print( uri_components.path )
+    >>> print( uri_components.file_name )
+    >>> print( uri_components.error_msg )
+
+    The output should be
+
+    >>> /path/
+    >>> file.txt
+    """
+    file_uri_tag = "file://"
+    # Start by ensuring the start of the uri begins with globus://
+    if not uri.startswith(file_uri_tag):
+        error_msg = f"Incompatible file URI format {uri} must start with "
+        error_msg = error_msg + "file://"
+        return ("", "", "", error_msg)
+
+    file_and_path = uri[len(file_uri_tag):]
+    path = dirname(file_and_path)
+    if len(path) == 0:
+        path = "/"
+    elif path[0] != "/"
+    return (basename(file_and_path), dirname(file_and_path), "")
 
 
 def checkTransferEndpoint(action_package: dict) -> (bool, str):
