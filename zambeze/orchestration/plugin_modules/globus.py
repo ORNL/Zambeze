@@ -9,6 +9,7 @@ import globus_sdk
 
 # Standard imports
 from copy import deepcopy
+import os
 from os.path import basename
 from os.path import dirname
 from os.path import exists
@@ -21,14 +22,17 @@ import logging
 import re
 import shutil
 
+def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
+    return next((True for endpoint in endpoint_list if endpoint["uuid"] == globus_uuid), False)
 
-def globusURISeparator(uri: str) -> dict:
+def globusURISeparator(uri: str, default_uuid) -> dict:
     """Will take a globus URI and break it into its components
 
     :Example:
 
+    >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
     >>> globus_uri = globus://XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX/path/file.txt
-    >>> uri_components = globusURISeparator(globus_uri)
+    >>> uri_components = globusURISeparator(globus_uri, default_uri)
     >>> print( uri_components.UUID )
     >>> print( uri_components.path )
     >>> print( uri_components.file_name )
@@ -39,7 +43,25 @@ def globusURISeparator(uri: str) -> dict:
     >>> XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX
     >>> /path/
     >>> file.txt
+
+    :Example: When no endpoint UUID is provided in the URI the default should be used
+
+    >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
+    >>> globus_uri = globus://path/file.txt
+    >>> uri_components = globusURISeparator(globus_uri, default_uri)
+    >>> print( uri_components.UUID )
+    >>> print( uri_components.path )
+    >>> print( uri_components.file_name )
+    >>> print( uri_components.error_msg )
+
+    The output should be
+
+    >>> YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ
+    >>> /path/
+    >>> file.txt
     """
+    uri = uri.lstrip(' ').rstrip(' ') 
+
     globus_uri_tag = "globus://"
     # Start by ensuring the start of the uri begins with globus://
     if not uri.startswith(globus_uri_tag):
@@ -48,15 +70,35 @@ def globusURISeparator(uri: str) -> dict:
         return ("", "", "", error_msg)
 
     UUID_and_path = uri[len(globus_uri_tag):]
-    UUID = UUID_and_path[0:36]
-    if not validUUID(UUID):
-        error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
-        error_msg = error_msg + "character valid URI of the form "
-        error_msg = error_msg + "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-        return ("", "", "", error_msg)
+    # Replace multiple occurances of // with single /
+    UUID_and_path = re.sub(os.sep + '{2,}', os.sep, UUID_and_path) 
 
-    URI_path = UUID_and_path[36:]
-    return (UUID, basename(URI_path), dirname(URI_path), "")
+    UUID = UUID_and_path[0:36]
+
+    file_and_path = UUID_and_path
+    valid_uuid = default_uuid
+    # Check if the first 36 chars contains os.sep it is probably a file_path 
+    # in which case the default uuid should be provided
+    if not os.sep in UUID:
+        if not validUUID(UUID):
+            error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
+            error_msg = error_msg + "character valid UUID of the form "
+            error_msg = error_msg + "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+            error_msg = error_msg + f" the provided UUID is {UUID} it must also"
+            error_msg = error_msg + " conform to RFC4122"
+            return ("", "", "", error_msg)
+        valid_uuid = UUID
+        file_and_path = UUID_and_path[36:]
+
+    path = dirname(file_and_path)
+
+    if not path.startswith(os.sep):
+        path = os.sep + path
+
+    if not path.endswith(os.sep):
+        path = path + os.sep
+
+    return (valid_uuid, path, basename(file_and_path), "")
 
 def fileURISeparator(uri: str) -> dict:
     """Will take a file URI and break it into its components
@@ -74,6 +116,8 @@ def fileURISeparator(uri: str) -> dict:
     >>> /path/
     >>> file.txt
     """
+    uri = uri.lstrip(' ').rstrip(' ') 
+
     file_uri_tag = "file://"
     # Start by ensuring the start of the uri begins with globus://
     if not uri.startswith(file_uri_tag):
@@ -83,10 +127,14 @@ def fileURISeparator(uri: str) -> dict:
 
     file_and_path = uri[len(file_uri_tag):]
     path = dirname(file_and_path)
-    if len(path) == 0:
-        path = "/"
-    elif path[0] != "/"
-    return (basename(file_and_path), dirname(file_and_path), "")
+
+    if not path.startswith(os.sep):
+        path = os.sep + path
+
+    if not path.endswith(os.sep):
+        path = path + os.sep
+
+    return (path, basename(file_and_path), "")
 
 
 def checkTransferEndpoint(action_package: dict) -> (bool, str):
@@ -95,38 +143,29 @@ def checkTransferEndpoint(action_package: dict) -> (bool, str):
     :Example:
 
     >>> "items": [
-    >>>     { "source": {
-    >>>           "type": "globus relative",
-    >>>           "path": "/file1.txt"
-    >>>           },
-    >>>       "destination": {
-    >>>           "type": "globus relative",
-    >>>           "path": "dest/file1.txt"
-    >>>           }
+    >>>     {
+    >>>          "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1/txt"
+    >>>          "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1/txt"
     >>>     },
-    >>>     { "source": {
-    >>>           "type": "globus relative",
-    >>>           "path": "/file2.txt"
-    >>>           },
-    >>>       "destination": {
-    >>>           "type": "globus relative",
-    >>>           "path": "dest/file2.txt"
-    >>>           }
+    >>>     {
+    >>>          "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2/txt"
+    >>>          "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2/txt"
     >>>     }
     >>> ]
+
     """
     for item in action_package["items"]:
         if "source" not in item:
             return False, "'source' missing from 'items' in 'transfer'"
         else:
-            valid, msg = checkEndpoint(item["source"], ["globus relative"])
+            valid, msg = checkEndpoint(item["source"], ["globus"])
             if not valid:
                 return (False, "Error in source\n" + msg)
 
         if "destination" not in item:
             return False, "'destination' missing from 'items' in 'transfer'"
         else:
-            valid, msg = checkEndpoint(item["destination"], ["globus relative"])
+            valid, msg = checkEndpoint(item["destination"], ["globus"])
             if not valid:
                 return (False, "Error in destination\n" + msg)
     return True, ""
@@ -138,7 +177,7 @@ def getMappedCollections(config: dict) -> list[str]:
     :Example:
 
     >>> config = {
-    >>>     "collections": [
+    >>>     "local_endpoints": [
     >>>         { "UUID": "XXXX...XXXX", "path": "/here/file", "type": "guest"},
     >>>         { "UUID": "YYYY...YYYY", "path": "/there/file2", "type": "mapped"}
     >>>     ]
@@ -149,10 +188,10 @@ def getMappedCollections(config: dict) -> list[str]:
     >>> # ["YYYY...YYYY"]
     """
     mapped_collections = []
-    if "collections" in config:
-        for local_collection in config["collections"]:
-            if local_collection["type"] == "mapped":
-                mapped_collections.append(local_collection["UUID"])
+    if "local_endpoints" in config:
+        for local_endpoint in config["local_endpoints"]:
+            if local_endpoint["type"] == "mapped":
+                mapped_collections.append(local_endpoint["uuid"])
 
     return mapped_collections
 
@@ -206,50 +245,36 @@ def getGlobusScopes(mapped_collections: list[str]) -> str:
     return scopes
 
 
-def checkEndpoint(item: dict, supported_types: list[str]) -> (bool, str):
+def checkEndpoint(item: str, supported_types: list[str]) -> (bool, str):
     """Check that the approprite keys and values exist in the endpoint
 
-    :param item: these are the values that help define either the source or
-        destination
-    :type item: dict
+    :param item: uri
+    :type item: str
     :param supported_types: Supported types, defines what values are allowed
     :type supported_types: list[str]
     :rtype: bool
 
-    This function will return False if the item provided is missing a required
-    key or provides an inappropriate value. The required keys for an endpoint
-    include:
-        * type - which can be one of three possible values:
-        ["globus relative", "posix absolute", "posix user home"]
-        * path - this is the path to the item and is required when conducting
-        a transfer.
+    This function will return False if the item provided is an inappropriate value. 
+        * type - only two types are currently supported
+        ["globus", "file"]
 
     :Example:
 
-    >>> item = {
-    >>>     "type": "globus relative",
-    >>>     "path": "/file1.txt"
-    >>> }
+    >>> item = "globus:://XXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
     >>> valid, msg = checkEndpoint(item)
     >>> assert valid
     """
-    if "type" not in item:
-        return False, "Missing type"
-    else:
-        # Only "globus relative" path type supported
-        if item["type"].lower() not in supported_types:
-            return (
-                False,
-                f"Missing {item['type'].lower()} not in supported types \
-                        {supported_types}",
-            )
-
-    if "path" not in item:
-        return False, "Missing path"
-
-    return True, ""
-
-
+    # Only "globus relative" path type supported
+    for supported_type in supported_types:
+        if item.startswith(supported_type + "://" ):
+            return True, ""
+            
+    return (
+        False,
+        f"Missing {item} not in supported types \
+                {supported_types} uri should start with i.e. globus://"
+    )
+    
 def checkAllItemsHaveValidEndpoints(
     items: list[dict],
     supported_source_path_types: list[str],
@@ -260,34 +285,37 @@ def checkAllItemsHaveValidEndpoints(
     :return: Returns true if the schema of the items is valid and false otherwise
     :rtype: bool
 
-    :Example:
+    :Example: Input
 
     Provided a list of items to be moved
 
-    >>> items = [
+    >>> "items": [
+    >>>       {
+    >>>           "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
+    >>>           "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+    >>>       },
+    >>>       {
+    >>>           "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
+    >>>           "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+    >>>       }
+    >>> ]
+
+    "Example: Input 2
+
+    >>> "items": [
     >>>     {
-    >>>         "source": {
-    >>>             "type": "posix absolute",
-    >>>             "path": "/home/cades/file.txt"
-    >>>         },
-    >>>         "destination": {
-    >>>             "type": "globus relative",
-    >>>             "path": "/"
-    >>>         },
+    >>>         "source": "file://file1.txt",
+    >>>         "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
     >>>     },
     >>>     {
-    >>>         "source": {
-    >>>             "type": "posix absolute",
-    >>>             "path": "/home/cades/file2.jpeg"
-    >>>         },
-    >>>         "destination": {
-    >>>             "type": "globus relative",
-    >>>             "path": "/sub_folder/file2.jpeg"
-    >>>         },
+    >>>         "source": "file://file2.txt",
+    >>>         "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
     >>>     }
     >>> ]
-    >>> supported_source_path_types = ["posix absolute", "posix user home"]
-    >>> supported_destination_path_types = ["globus relative"]
+
+
+    >>> supported_source_path_types = ["file"]
+    >>> supported_destination_path_types = ["globus"]
     >>> assert checkAllItemsHaveValidEndpoints(
     >>>     items,
     >>>     supported_source_path_types,
@@ -295,9 +323,9 @@ def checkAllItemsHaveValidEndpoints(
     """
     for item in items:
         if "source" not in item:
-            return False, "Missing source key"
+            return False, "Item is missing source key"
         if "destination" not in item:
-            return False, "Missing destination key"
+            return False, "Item is missing destination key"
 
         valid, msg = checkEndpoint(item["source"], supported_source_path_types)
         if not valid:
@@ -308,10 +336,6 @@ def checkAllItemsHaveValidEndpoints(
         )
         if not valid:
             return False, "Invalid destination\n" + msg
-
-        if item["source"]["type"].lower() == "posix absolute":
-            if not exists(item["source"]["path"]):
-                return False, f"Item does not exist {item['source']['path']}"
 
     return True, ""
 
@@ -325,10 +349,11 @@ class Globus(Plugin):
         self.__access_to_globus_cloud = False
         # This is the default for Zambeze
         self.__client_id = "435d07fa-8b10-4e04-b005-054c68be3f14"
-        self.__collections = []
+        self.__endpoints = []
         self.__configured = False
         self.__flow = "client credential"
         self.__hostname = None
+        self.__default_endpoint = None
         self.__supported_actions = {
             "transfer": False,
             "move_to_globus_collection": False,
@@ -344,7 +369,23 @@ class Globus(Plugin):
     # -----------------
 
     def __validConfig(self, config: dict):
-        """Purpose of this method is to determine if the coniguration is correct"""
+        """Purpose of this method is to determine if the coniguration is correct
+
+        :Example: Config
+
+        >>> config = {
+        >>>   "local_endpoints": [
+        >>>       { "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5", "path": "/scratch/", "type": "guest"},
+        >>>       { "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5", "path": "/project/", "type": "mapped"}
+        >>>   ],
+        >>>   "authentication_flow": {
+        >>>       "type": "'native' or 'client credential'"
+        >>>       "secret": "blahblah"
+        >>>   },
+        >>>   "default_endpoint": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5"
+        >>>   "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021"
+        >>> }
+        """
 
         if "authentication_flow" not in config:
             raise Exception(
@@ -363,34 +404,52 @@ class Globus(Plugin):
                 f"{config['authentication_flow']['type']}"
             )
 
+
         # Check that the UUIDs are correct
-        if "collections" in config:
-            for local_collection in config["collections"]:
-                if not validUUID(local_collection["UUID"]):
-                    raise Exception("Invalid UUID detected in plugin.")
-                if not exists(local_collection["path"]):
+        if "local_endpoints" in config:
+            for local_endpoint in config["local_endpoints"]:
+                if not validUUID(local_endpoint["uuid"]):
+                    raise Exception(f"Invalid uuid detected in plugin: {local_endpoint['uuid']}")
+                if not exists(local_endpoint["path"]):
                     # Check that the collection path is correct and exists on the local
                     # POSIX filesystem
                     raise Exception(
-                        f"Invalid path detected in plugin: {local_collection['path']}"
+                        f"Invalid path detected in plugin: {local_endpoint['path']}"
                     )
 
-    def __validEndPoint(self, config: dict):
+            if "default_endpoint" not in config:
+                raise Exception(
+                    "'default_endpoint' key value missing from config"
+                    " config must have 'default_endpoint' specified if local_endpoints are configured."
+                )
+
+            if not validUUID(config["default_endpoint"]):
+                raise Exception(f"Invalid uuid detected in plugin for default endpoint: {config['default_endpoint']}")
+
+            
+            # Make sure that default_endpoint is one of the endpoints that has been configured
+
+            if not localEndpointExists(config["default_endpoint"], config["local_endpoints"]):
+                raise Exception(f"Invalid default endpoint {config['default_endpoint']} not one of the 'local_endpoints' {config['local_endpoints']}")
+
+    def __validEndPoints(self, config: dict):
         """This method can only be run after the authentication flow has been run"""
 
         # Check that the endpoints actually exist in Globus and are not just made up
-        if "collections" in config:
-            for local_collection in config["collections"]:
+        if "local_endpoints" in config:
+            for local_collection in config["local_endpoints"]:
                 # Check that the collection id is recognized by Globus and is a
                 # valid globus collection UUID
                 try:
-                    self.__tc.get_endpoint(local_collection["UUID"])
+                    self.__tc.get_endpoint(local_collection["uuid"])
                 except globus_sdk.GlobusAPIError as e:
                     if e.http_status == 404:
                         # data = e.raw_json
-                        raise Exception("Invalid collection id. Collection is unknown.")
+                        uid = local_collection["uuid"]
+                        raise Exception(f"Invalid collection id {uid}. Collection is unknown.")
                     else:
                         raise
+
 
     def __validActions(self):
         # If we were able to communicate with Globus then the transfer action should be
@@ -400,7 +459,7 @@ class Globus(Plugin):
             self.__supported_actions["get_task_status"] = True
         # If we have no errors at this point then and there is at least one collection
         # then we can move to and from them
-        if len(self.__collections):
+        if len(self.__endpoints):
             self.__supported_actions["move_to_globus_collection"] = True
             self.__supported_actions["move_from_globus_collection"] = True
 
@@ -468,59 +527,51 @@ class Globus(Plugin):
         :Example:
 
         >>> {
-        >>>     "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-        >>>     "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
         >>>     "type": "synchronous",
         >>>     "items": [
-        >>>         { "source": {
-        >>>               "type": "globus relative",
-        >>>               "path": "/file1.txt"
-        >>>               },
-        >>>           "destination": {
-        >>>               "type": "globus relative",
-        >>>               "path": "dest/file1.txt"
-        >>>               }
-        >>>         },
-        >>>         { "source": {
-        >>>               "type": "globus relative",
-        >>>               "path": "/file2.txt"
-        >>>               },
-        >>>           "destination": {
-        >>>               "type": "globus relative",
-        >>>               "path": "dest/file2.txt"
-        >>>               }
-        >>>         }
+        >>>                 {
+        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
+        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+        >>>                 },
+        >>>                 {
+        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
+        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+        >>>                 }
         >>>     ]
         >>> }
 
         If the type is asynchrouns a runTransfer will return a callback action
         that can be executed to check the status of the generated task
         """
-        tdata = globus_sdk.TransferData(
-            self.__tc,
-            transfer["source_collection_UUID"],
-            transfer["destination_collection_UUID"],
-            label="Zambeze Workflow",
-            sync_level="checksum",
-        )
 
         for item in transfer["items"]:
-            clean_source_path = re.sub("/+", "/", item["source"]["path"])
-            clean_destination_path = re.sub("/+", "/", item["destination"]["path"])
-            tdata.add_item(clean_source_path, clean_destination_path)
+            source_globus_uri = globusURISeparator(item["source"], self.__default_endpoint)
+            dest_globus_uri = globusURISeparator(item["destination"], self.__default_endpoint)
+            
+            tdata = globus_sdk.TransferData(
+                self.__tc,
+                source_globus_uri[0],
+                dest_globus_uri[0],
+                label="Zambeze Workflow",
+                sync_level="checksum",
+            )
 
-        transfer_result = {}
-        if "synchronous" == transfer["type"].lower():
-            transfer_result = self.__tc.submit_transfer(tdata)
-            task_id = transfer_result["task_id"]
-            while not self.__tc.task_wait(task_id, timeout=60):
-                print("Another minute went by without {0} terminating".format(task_id))
-        elif "asynchronous" == transfer["type"].lower():
-            result = self.__tc.submit_transfer(tdata)
-            transfer_result = {
-                "callback": {"get_task_status": {"task_id": result["task_id"]}},
-                "result": {"status": result["code"], "message": result["message"]},
-            }
+            source_file_path = source_globus_uri[1] + source_globus_uri[2]
+            dest_file_path = dest_globus_uri[1] + dest_globus_uri[2]
+            tdata.add_item(source_file_path, dest_file_path)
+
+            transfer_result = {}
+            if "synchronous" == transfer["type"].lower():
+                transfer_result = self.__tc.submit_transfer(tdata)
+                task_id = transfer_result["task_id"]
+                while not self.__tc.task_wait(task_id, timeout=60):
+                    print("Another minute went by without {0} terminating".format(task_id))
+            elif "asynchronous" == transfer["type"].lower():
+                result = self.__tc.submit_transfer(tdata)
+                transfer_result = {
+                    "callback": {"get_task_status": {"task_id": result["task_id"]}},
+                    "result": {"status": result["code"], "message": result["message"]},
+                }
 
         return transfer_result
 
@@ -540,6 +591,10 @@ class Globus(Plugin):
         }
         return get_status_result
 
+    def __getPOSIXpathToEndpoint(self, globus_uuid: str) -> str:
+        return next((endpoint["path"] for endpoint in self.__endpoints if endpoint["uuid"] == globus_uuid), None)
+
+
     def __runMoveToGlobusCollection(self, action_package: dict):
         """Method is designed to move a local file to a Globus collection
 
@@ -548,52 +603,55 @@ class Globus(Plugin):
         "action_package" dict must have the following format
 
         >>> action_package = {
-        >>>     "source_host_name": "",
-        >>>     "destination_collection_UUID": ""
         >>>     "items": [
-        >>>         {
-        >>>           "source": {
-        >>>               "type": "posix users home",
-        >>>               "path": "/file1.txt"
-        >>>               },
-        >>>           "destination": {
-        >>>               "type": "globus relative",
-        >>>               "path": "dest/file1.txt"
-        >>>               }
-        >>>         },
-        >>>         {
-        >>>           "source": {
-        >>>               "type": "posix users home",
-        >>>               "path": "/file2.txt"
-        >>>               },
-        >>>           "destination": {
-        >>>               "type": "globus relative",
-        >>>               "path": "dest/file2.txt"
-        >>>               }
-        >>>         }
+        >>>           {
+        >>>               "source": "file://file1.txt",
+        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
+        >>>           },
+        >>>           {
+        >>>               "source": "file://file2.txt",
+        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
+        >>>           }
         >>>     ]
         >>> }
         """
-        endpoint_path = ""
-        for endpoint in self.__collections:
-            if endpoint["UUID"] == action_package["destination_collection_UUID"]:
-                endpoint_path = endpoint["path"]
-
+#        endpoint_path = ""
+#        for endpoint in self.__endpoints:
+#            if endpoint["UUID"] == action_package["destination_collection_UUID"]:
+#                endpoint_path = endpoint["path"]
+#
         for item in action_package["items"]:
-            source = ""
+            source_sep_file_uri = fileURISeparator(item["source"])
+            source_path = source_sep_file_uri[0] + source_sep_file_uri[1]
+            #source = ""
 
-            if item["source"]["type"].lower() == "posix absolute":
-                source = item["source"]["path"]
-            else:
-                print("only posix absolute is currently supported")
+            #if item["source"]["type"].lower() == "file":
+            #    source = item["source"]["path"]
+            #else:
+            #    print("only file is currently supported")
+            destination_sep_globus_uri = globusURISeparator(item["destination"], self.__default_endpoint)
 
-            destination = endpoint_path + "/" + item["destination"]["path"]
-            if isdir(destination):
-                # Then name the file the same as the source file
-                if isfile(source):
-                    destination = destination + "/" + basename(source)
+            destination_uuid = destination_sep_globus_uri[0]
+            destination_file_name = destination_sep_globus_uri[2]
+            destination_endpoint_path = self.__getPOSIXpathToEndpoint(destination_uuid)
+                
+            # /mnt/globus/collections
+            destination_path = destination_endpoint_path
 
-            shutil.copyfile(source, destination)
+            # /mnt/globus/collections + /file_path/
+            destination_path = destination_path + destination_sep_globus_uri[1]
+
+            if isdir(destination_path):
+
+                if len(destination_file_name) > 0:
+                    # /mnt/globus/collections + /file_path/ + file.txt
+                    destination_path = destination_path + destination_file_name 
+                else:
+                    # Then name the file the same as the source file
+                    if isfile(source_path):
+                        destination_path = destination_path + basename(source_path)
+
+            shutil.copyfile(source_path, destination_path)
 
     def __runTransferSanityCheck(self, action_package: dict) -> (bool, str):
         """Checks to ensure that the action_package has the right format and
@@ -602,27 +660,15 @@ class Globus(Plugin):
         :Example:
 
         >>> {
-        >>>     "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-        >>>     "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
         >>>     "type": "synchronous",
         >>>     "items": [
-        >>>         { "source": {
-        >>>               "type": "globus relative",
-        >>>               "path": "/file1.txt"
-        >>>               },
-        >>>           "destination": {
-        >>>               "type": "globus relative",
-        >>>               "path": "dest/file1.txt"
-        >>>               }
+        >>>         {
+        >>>             "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
+        >>>             "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
         >>>         },
-        >>>         { "source": {
-        >>>               "type": "globus relative",
-        >>>               "path": "/file2.txt"
-        >>>               },
-        >>>           "destination": {
-        >>>               "type": "globus relative",
-        >>>               "path": "dest/file2.txt"
-        >>>               }
+        >>>         {
+        >>>             "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
+        >>>             "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
         >>>         }
         >>>     ]
         >>> }
@@ -634,8 +680,6 @@ class Globus(Plugin):
             return False, "No access to Globus Service to conduct 'transfer'."
 
         required_keys = [
-            "source_collection_UUID",
-            "destination_collection_UUID",
             "type",
             "items",
         ]
@@ -654,34 +698,37 @@ class Globus(Plugin):
         return checkTransferEndpoint(action_package)
 
     def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
-        supported_source_path_types = ["posix absolute", "posix user home"]
-        supported_destination_path_types = ["globus relative"]
+        supported_source_path_types = ["file"]
+        supported_destination_path_types = ["globus"]
 
-        # This is needed in case there is more than a single collection on
-        # the machine
-        if not validUUID(action_package["destination_collection_UUID"]):
-            return (
-                False,
-                f"Invalid 'destination_collection_UUID' detected in \
-            'move_to_globus_collection': \
-            {action_package['destination_collection_UUID']}",
-            )
 
-        # This is needed so the correct orchestrator picks executes the task
-        # a bit redundant though becuase the globus collection UUID should
-        # be unique
-        if self.__hostname != action_package["source_host_name"]:
-            return (
-                False,
-                f"{self.__hostname} is not equal to provided \
-            {action_package['source_host_name']} in 'move_to_globus_collection'",
-            )
-
-        return checkAllItemsHaveValidEndpoints(
+        valid, msg = checkAllItemsHaveValidEndpoints(
             action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,
         )
+
+        if valid:
+            for item in action_package["items"]:
+                globus_sep_uri = globusURISeparator(item["destination"], self.__default_endpoint)
+                if not validUUID(globus_sep_uri[0]):
+                    error_msg = f"Invalid uuid dectected in \
+                                'move_from_globus_collection' item: {item} \nuuid: \
+                                {globus_sep_uri[0]}"
+                    return (False, error_msg)
+                if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
+                    error_msg = f"Invalid source endpoint uuid dectected in \
+                                'move_from_globus_collection' item: {item} \nuuid: \
+                                {globus_sep_uri[0]}\nRecognized endpoints are {self.__endpoints}."
+                    return (False, error_msg)
+
+                file_sep_uri = fileURISeparator(item["source"])
+                file_path = file_sep_uri[0] + file_sep_uri[1]
+                if not exists(file_path):
+                    return False, f"Item does not exist {file_path}"
+
+        return (valid, msg)
+
 
     def __runGetTaskStatusSanityCheck(self, action_package: dict) -> (bool, str):
         """Checks that the get_task_status action is correctly configured
@@ -714,61 +761,49 @@ class Globus(Plugin):
         >>>    "source_host_name": "",
         >>>    "destination_collection_UUID": "",
         >>>    "items": [
-        >>>        {
-        >>>            "source": {
-        >>>                "type": "globus relative",
-        >>>                "path": "dest/file1.txt"
-        >>>                },
-        >>>            "destination": {
-        >>>                "type": "posix user home",
-        >>>                "path": "/file1.txt"
-        >>>                }
-        >>>        },
-        >>>        {
-        >>>            "source": {
-        >>>                "type": "globus relative",
-        >>>                "path": "dest/file2.txt"
-        >>>                },
-        >>>            "destination": {
-        >>>                "type": "posix user home",
-        >>>                "path": "/file2.txt"
-        >>>                }
-        >>>        }
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt"
+        >>>               "destination": "file://file1.txt",
+        >>>           },
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt"
+        >>>               "destination": "file://file2.txt",
+        >>>           }
         >>>    ]
         >>> }
         >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
         """
 
         supported_source_path_types = ["globus relative"]
-        supported_destination_path_types = ["posix absolute", "posix user home"]
-        if not validUUID(action_package["source_collection_UUID"]):
-            return (
-                False,
-                f"Invalid 'source_collection_UUID' dectected in \
-                 'move_from_globus_collection': \
-                 {action_package['source_collection_UUID']}",
-            )
+        supported_destination_path_types = ["file"]
 
-        # Check that the UUID is associated with this machine
-        if not action_package["source_collection_UUID"] in self.__collections:
-            return (
-                False,
-                "Missing 'source_collection_UUID' in \
-        'move_from_globus_collection'",
-            )
-
-        if self.__hostname != action_package["destination_host_name"]:
-            return (
-                False,
-                f"{self.__hostname} is not equal to provided \
-            {action_package['source_host_name']} in 'move_from_globus_collection'",
-            )
-
-        return checkAllItemsHaveValidEndpoints(
+        valid, msg = checkAllItemsHaveValidEndpoints(
             action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,
         )
+
+        if valid:
+            for item in action_package["items"]:
+                globus_sep_uri = globusURISeparator(item["source"], self.__default_endpoint)
+                if not validUUID(globus_sep_uri[0]):
+                    error_msg = f"Invalid uuid dectected in \
+                                'move_from_globus_collection' item: {item} \nuuid: \
+                                {globus_sep_uri[0]}"
+                    return (False, error_msg)
+                if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
+                    error_msg = f"Invalid source endpoint uuid dectected in \
+                                'move_from_globus_collection' item: {item} \nuuid: \
+                                {globus_sep_uri[0]}\nRecognized endpoints are {self.__endpoints}."
+                    return (False, error_msg)
+
+                file_sep_uri = fileURISeparator(item["destination"])
+                file_path = file_sep_uri[0] + file_sep_uri[1]
+                if not exists(file_path):
+                    return False, f"Item does not exist {file_path}"
+
+
+        return (valid, msg)
 
     def __checkAccessToGlobusCloud(self):
         """Will check if we can reach the internet and caches access to globus
@@ -787,20 +822,21 @@ class Globus(Plugin):
         the same machine where the Zambeze agent is running along with
         their paths on the posix system
 
-        One should NOT define collecitons that are not local to where the python
-        script are running. The colletions posix endpoint must be viewable from
+        One should NOT define collections that are not local to where the python
+        script are running. The colletion's posix endpoints must be viewable from
         the point of view of this script.
 
         config = {
-          "collections": [
-              { "UUID": "", "path": "", "type": "guest"},
-              { "UUID": "", "path": "", "type": "mapped"}
+          "local_endpoints": [
+              { "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5", "path": "/scratch/", "type": "guest"},
+              { "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5", "path": "/project/", "type": "mapped"}
           ],
           "authentication_flow": {
               "type": "'native' or 'client credential'"
               "secret": "blahblah"
           },
-          "client_id": "UUID"
+          "default_endpoint": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5"
+          "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021"
         }
         """
         self.__validConfig(config)
@@ -829,11 +865,11 @@ class Globus(Plugin):
                 "communicate with the Globus API"
             )
 
-        self.__validEndPoint(config)
-        if "collections" in config:
-            self.__collections = deepcopy(config["collections"])
+        self.__validEndPoints(config)
+        if "local_endpoints" in config:
+            self.__endpoints = deepcopy(config["local_endpoints"])
+            self.__default_endpoint = deepcopy(config["default_endpoint"])
 
-        # self.__collections must be defined before __validActions is called
         self.__validActions()
 
         self.__configured = True
@@ -849,25 +885,21 @@ class Globus(Plugin):
     @property
     def help(self) -> str:
         message = (
-            "Plugin globus when configured takes the following options\n"
+            "Plugin globus when configured takes the following options.\n"
+            "This is what should appear in the zambeze yaml config file.\n"
             "\n"
-            "'collections': [\n"
-            "       {\n"
-            "           'UUID': 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX',\n"
-            "           'path': '/path/to/collection/on/posix/system',\n"
-            "           'type': 'mapped'\n"
-            "       },\n"
-            "       {\n"
-            "           'UUID': 'YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY',\n"
-            "           'path': '/path/to/collection/on/posix/system2',\n"
-            "           'type': 'guest'\n"
-            "       }\n"
-            "   ],\n"
-            "   'authentication_flow': {\n"
-            "       'type': 'native or client credential',\n"
-            "       'client_id': 'ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ',\n"
-            "       'secret': 'my_secret'\n"
-            " }\n"
+            " local_endpoints:\n"
+            "   - uuid: '4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5'\n"
+            "     path: '/scratch/'\n"
+            "     type: 'mapped'\n"
+            "   - uuid: 'JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5'\n"
+            "     path: '/project/'\n"
+            "     type: 'guest'\n"
+            " default_endpoint: '4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5'\n"
+            " authentication_flow:\n"
+            "   type: 'native'\n"
+            "   secret: 'my_secret'\n"
+            " client_id: '9c9fee8f-f686-4e28-a961-647af41fe02'\n"
         )
         return message
 
@@ -878,61 +910,87 @@ class Globus(Plugin):
     @property
     def info(self) -> dict:
         information = {}
-        information["globus_app_id"] = self.__client_id
-        information["collections"] = self.__collections
+        information["client_id"] = self.__client_id
+        information["local_endpoints"] = self.__endpoints
 
         supported_actions = []
         for action in self.__supported_actions:
             if self.__supported_actions[action]:
                 supported_actions.append(action)
 
+        
+        information["default_endpoint"] = self.__default_endpoint
         information["actions"] = supported_actions
         information["authentication_flow"] = self.__flow
         information["hostname"] = self.__hostname
         information["configured"] = self.__configured
         return information
 
-    def check(self, package: list[dict]) -> dict:
-        """Cycle through the items in the package and checks if this instance
+    def check(self, arguments: list[dict]) -> dict:
+        """Checks the input argument for errors
+
+        Cycle through the items in the argument and checks if this instance
         can execute them. This method should be called before process with
-        the same package.
+        the same argument.
 
-        arguments = [
-          { "transfer": {
-                  "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-                  "destination_collection_UUID": "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
-                  "items": [
-                        {
-                            "source": {
-                                "type": "globus relative",
-                                "path": "/file1.txt"
-                                },
-                            "destination": {
-                                "type": globus relative",
-                                "path": "dest/file1.txt"
-                                }
-                        },
-                        {
-                            "source": {
-                                "type": "globus relative",
-                                "path": "/file2.txt"
-                                },
-                            "destination": {
-                                "type": "globus relative",
-                                "path": "dest/file2.txt"
-                                }
-                        }
-                  ]
-              }
-            }
-        ]
+        Example 1
 
+        >>> arguments = [
+        >>>   { "transfer":
+        >>>       {
+        >>>           "type": "synchronous",
+        >>>           "items": [
+        >>>                 {
+        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
+        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+        >>>                 },
+        >>>                 {
+        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
+        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+        >>>                 }
+        >>>           ]
+        >>>       }
+        >>>   }
+        >>> ]
 
+        Example 2
+
+        >>> arguments = [
+        >>>   { "move_to_globus_collection": {
+        >>>       "items": [
+        >>>           {
+        >>>               "source": "file://file1.txt",
+        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
+        >>>           },
+        >>>           {
+        >>>               "source": "file://file2.txt",
+        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
+        >>>           }
+        >>>       ]
+        >>>   }
+        >>> ]
+
+        Example 3
+
+        >>> arguments = [
+        >>>   { "move_from_globus_collection": {
+        >>>       "items": [
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt"
+        >>>               "destination": "file://file1.txt",
+        >>>           },
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt"
+        >>>               "destination": "file://file2.txt",
+        >>>           }
+        >>>       ]
+        >>>   }
+        >>> ]
         """
         checks = {}
         # Here we are cycling a list of dicts
-        for index in range(len(package)):
-            for action in package[index]:
+        for index in range(len(arguments)):
+            for action in arguments[index]:
 
                 # Check if the action is supported
                 if self.__supported_actions[action] is False:
@@ -943,60 +1001,48 @@ class Globus(Plugin):
                     # Any agent with the globus plugin can submit a job to globus if it
                     # has access to the globus cloud
                     checks[action] = self.__runTransferSanityCheck(
-                        package[index][action]
+                        arguments[index][action]
                     )
 
                 elif action == "move_to_globus_collection":
                     checks[action] = self.__runMoveToGlobusSanityCheck(
-                        package[index][action]
+                        arguments[index][action]
                     )
 
                 elif action == "move_from_globus_collection":
                     checks[action] = self.__runMoveFromGlobusSanityCheck(
-                        package[index][action]
+                        arguments[index][action]
                     )
                 elif action == "get_task_status":
                     checks[action] = self.__runGetTaskStatusSanityCheck(
-                        package[index][action]
+                        arguments[index][action]
                     )
                 else:
-                    checks[action] = (False, "Unrecognized action keyworkd")
+                    checks[action] = (False, "Unrecognized action keyword")
         return checks
 
     def process(self, arguments: list[dict]) -> dict:
-        """Specify the path of the file as it appears in the Globus Collection
-        Specify the source collection UUID
-        Specify the path of the file as it appears in the final Globus Collection
-        specify the destination collection UUID
+        """Run the globus process
+
+        Supported actions include running a transfer between two endpoints
+
+        :param arguments: the actions that the globus plugin should execute
+        :type arguments: list of dicts
 
         Example 1
 
         >>> arguments = [
-        >>>   "transfer":
+        >>>   { "transfer":
         >>>       {
-        >>>           "source_collection_UUID": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-        >>>           "destination_collection_UUID":
-        >>>                                     "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY",
+        >>>           "type": "synchronous",
         >>>           "items": [
         >>>                 {
-        >>>                     "source": {
-        >>>                           "type": "globus relative",
-        >>>                           "path": "/file1.txt"
-        >>>                           },
-        >>>                     "destination": {
-        >>>                           "type": "globus relative",
-        >>>                           "path": "dest/file1.txt"
-        >>>                           }
+        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
+        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
         >>>                 },
         >>>                 {
-        >>>                     "source": {
-        >>>                           "type": "globus relative",
-        >>>                           "path": "/file2.txt"
-        >>>                           },
-        >>>                     "destination": {
-        >>>                           "type": "globus relative",
-        >>>                           "path": "dest/file2.txt"
-        >>>                           }
+        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
+        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
         >>>                 }
         >>>           ]
         >>>       }
@@ -1006,29 +1052,15 @@ class Globus(Plugin):
         Example 2
 
         >>> arguments = [
-        >>>   "move_to_globus_collection": {
-        >>>       "source_host_name": "",
-        >>>       "destination_collection_UUID": "",
+        >>>   { "move_to_globus_collection": {
         >>>       "items": [
         >>>           {
-        >>>               "source": {
-        >>>                   "type": "posix user home",
-        >>>                   "path": "/file1.txt"
-        >>>                   },
-        >>>               "destination": {
-        >>>                   "type": "globus relative",
-        >>>                   "path": "dest/file1.txt"
-        >>>                   }
+        >>>               "source": "file://file1.txt",
+        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
         >>>           },
         >>>           {
-        >>>               "source": {
-        >>>                   "type": "posix absolute",
-        >>>                   "path": "/home/cades/file2.txt"
-        >>>                   },
-        >>>               "destination": {
-        >>>                   "type": "globus relative",
-        >>>                   "path": "dest/file2.txt"
-        >>>                   }
+        >>>               "source": "file://file2.txt",
+        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
         >>>           }
         >>>       ]
         >>>   }
@@ -1037,29 +1069,15 @@ class Globus(Plugin):
         Example 3
 
         >>> arguments = [
-        >>>   "move_from_globus_collection": {
-        >>>       "source_host_name": "",
-        >>>       "destination_collection_UUID": "",
+        >>>   { "move_from_globus_collection": {
         >>>       "items": [
         >>>           {
-        >>>               "source": {
-        >>>                   "type": "globus relative",
-        >>>                   "path": "dest/file1.txt"
-        >>>                   },
-        >>>               "destination": {
-        >>>                   "type": "posix user home",
-        >>>                   "path": "/file1.txt"
-        >>>                   }
+        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt"
+        >>>               "destination": "file://file1.txt",
         >>>           },
         >>>           {
-        >>>               "source": {
-        >>>                   "type": "globus relative",
-        >>>                   "path": "dest/file2.txt"
-        >>>                   },
-        >>>               "destination": {
-        >>>                   "type": "posix user home",
-        >>>                   "path": "/file2.txt"
-        >>>                   }
+        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt"
+        >>>               "destination": "file://file2.txt",
         >>>           }
         >>>       ]
         >>>   }
