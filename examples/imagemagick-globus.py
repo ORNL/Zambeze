@@ -30,8 +30,8 @@ curr_dir = pathlib.Path().resolve()
 activity = ShellActivity(
     name="ImageMagick",
     files=[
-        f"globus://ef1a9560-7ca1-11e5-992c-22000b96db58/gpfs/alpine/stf019"
-        f"/proj-shared/zambeze/test-images/{i:02d}.jpg"
+        "globus://ef1a9560-7ca1-11e5-992c-22000b96db58"
+        f"/gpfs/alpine/stf019/proj-shared/zambeze/test-images/{i:02d}.jpg"
         for i in range(1, 11)
     ],
     command="convert",
