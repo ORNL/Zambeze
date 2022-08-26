@@ -19,6 +19,7 @@ from socket import gethostname
 from typing import Optional
 
 import logging
+import pickle
 import re
 import shutil
 
@@ -467,36 +468,53 @@ class Globus(Plugin):
     # ----------------------
     def __nativeAuthFlow(self):
         # Using Native auth flow
-        client = globus_sdk.NativeAppAuthClient(self.__client_id)
 
-        client.oauth2_start_flow(refresh_tokens=True)
-        authorize_url = client.oauth2_get_authorize_url()
-        print(f"Please go to this URL and login:\n\n{authorize_url}\n")
+        home_dir = os.path.expanduser('~')
+        if not exists(home_dir + "/.zambeze"):
+            os.mkdir( home_dir + "/.zambeze" )
 
-        auth_code = input("Please enter the code you get after login here: ").strip()
-        token_response = client.oauth2_exchange_code_for_tokens(auth_code)
+        token_file = home_dir + "/.zambeze/globus.tokens"
+        if exists(token_file):
+            infile = open(token_file, 'rb')
+            self.__authorizer = pickle.load(infile)
+            infile.close()
+        else:
+            client = globus_sdk.NativeAppAuthClient(self.__client_id)
+            
+            client.oauth2_start_flow(requested_scopes=self.__scopes, refresh_tokens=True)
+            authorize_url = client.oauth2_get_authorize_url()
+            print(f"Please go to this URL and login:\n\n{authorize_url}\n")
 
-        # globus_auth_data =
-        token_response.by_resource_server["auth.globus.org"]
-        globus_transfer_data = token_response.by_resource_server[
-            "transfer.api.globus.org"
-        ]
+            auth_code = input("Please enter the code you get after login here: ").strip()
+            token_response = client.oauth2_exchange_code_for_tokens(auth_code)
 
-        # most specifically, you want these tokens as strings
-        # AUTH_TOKEN = globus_auth_data["access_token"]
-        transfer_rt = globus_transfer_data["refresh_token"]
-        transfer_at = globus_transfer_data["access_token"]
-        expires_at_s = globus_transfer_data["expires_at_seconds"]
+            # globus_auth_data =
+            token_response.by_resource_server["auth.globus.org"]
+            globus_transfer_data = token_response.by_resource_server[
+                "transfer.api.globus.org"
+            ]
 
-        # construct a RefreshTokenAuthorizer
-        # note that `client` is passed to it, to allow it to do the refreshes
-        self.__authorizer = globus_sdk.RefreshTokenAuthorizer(
-            transfer_rt, client, access_token=transfer_at, expires_at=expires_at_s
-        )
+            # most specifically, you want these tokens as strings
+            # AUTH_TOKEN = globus_auth_data["access_token"]
+            transfer_rt = globus_transfer_data["refresh_token"]
+            transfer_at = globus_transfer_data["access_token"]
+            expires_at_s = globus_transfer_data["expires_at_seconds"]
+
+            # construct a RefreshTokenAuthorizer
+            # note that `client` is passed to it, to allow it to do the refreshes
+            self.__authorizer = globus_sdk.RefreshTokenAuthorizer(
+                transfer_rt, client, access_token=transfer_at, expires_at=expires_at_s
+            )
+
+            outfile = open(token_file,'wb')
+            pickle.dump(self.__authorizer, outfile)
+            outfile.close()
 
         # and try using `tc` to make TransferClient calls. Everything should just
         # work -- for days and days, months and months, even years
         self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
+
+
 
     def __clientCredentialAuthFlow(self, config: dict):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
