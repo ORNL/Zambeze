@@ -480,22 +480,30 @@ class Globus(Plugin):
             infile.close()
         else:
             client = globus_sdk.NativeAppAuthClient(self.__client_id)
-            
+           
             client.oauth2_start_flow(requested_scopes=self.__scopes, refresh_tokens=True)
             authorize_url = client.oauth2_get_authorize_url()
             print(f"Please go to this URL and login:\n\n{authorize_url}\n")
 
             auth_code = input("Please enter the code you get after login here: ").strip()
             token_response = client.oauth2_exchange_code_for_tokens(auth_code)
+   
+            # {
+            #   "transfer.api.globus.org": {
+            #     "scope": "urn:globus:auth:scope:transfer.api.globus.org:all",
+            #     "access_token": "Agb3BPYkMlePplDMnKPeO6Vobb2nzXKamzjkblVynnjg0z782zT5C47bv56Dm0G9v5lBqrBxW2J9m1HkY6vErc2wJgY",
+            #     "refresh_token": "Agr6m6D4geqKv03YQzKPNxjOqK8Ob79aPEwrzmyGBly8xKY1yMs3Uow1E4VozBYxprxvp5OxOp2dozW79Gr8rpgraEeVg",
+            #     "token_type": "Bearer",
+            #     "expires_at_seconds": 1661652891,
+            #     "resource_server": "transfer.api.globus.org"
+            #   }
+            # }
 
-            # globus_auth_data =
-            token_response.by_resource_server["auth.globus.org"]
             globus_transfer_data = token_response.by_resource_server[
                 "transfer.api.globus.org"
             ]
 
             # most specifically, you want these tokens as strings
-            # AUTH_TOKEN = globus_auth_data["access_token"]
             transfer_rt = globus_transfer_data["refresh_token"]
             transfer_at = globus_transfer_data["access_token"]
             expires_at_s = globus_transfer_data["expires_at_seconds"]
