@@ -23,12 +23,12 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # create campaign
-campaign = Campaign("My ImageMagick Campaign", logger=logger)
+campaign = Campaign("My ImageMagick-Globus Campaign", logger=logger)
 
 # define an activity
 curr_dir = pathlib.Path().resolve()
 activity = ShellActivity(
-    name="ImageMagick",
+    name="Globus-ImageMagick",
     files=[
         "globus://ef1a9560-7ca1-11e5-992c-22000b96db58"
         f"/gpfs/alpine/stf019/proj-shared/zambeze/test-images/{i:02d}.jpg"

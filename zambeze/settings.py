@@ -49,6 +49,7 @@ class ZambezeSettings:
             self._conf_file = zambeze_folder.joinpath("agent.yaml")
             self._conf_file.touch()
 
+        self._logger.info(f"Loading settings from config file: {self._conf_file}")
         with open(self._conf_file, "r") as cf:
             self.settings = yaml.safe_load(cf)
 
@@ -72,6 +73,7 @@ class ZambezeSettings:
 
         for plugin_name in self.plugins.registered:
             if plugin_name in self.settings["plugins"]:
+                self._logger.info(f"Configuring Plugin: {plugin_name}")
                 config[plugin_name] = self.settings["plugins"][plugin_name]["config"]
 
         self.plugins.configure(config=config)
