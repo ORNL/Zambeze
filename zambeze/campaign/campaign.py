@@ -12,7 +12,7 @@ import pickle
 
 from .activities.abstract_activity import Activity
 
-# from zambeze.orchestration.agent.commands import agent_start
+from zambeze.orchestration.agent.commands import agent_start
 
 from typing import Optional
 
@@ -45,7 +45,7 @@ class Campaign:
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
         self._zmq_socket.connect("tcp://localhost:5555")
 
-        # agent_start(self._logger)
+        agent_start(self._logger)
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.

@@ -33,6 +33,10 @@ class ZambezeSettings:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+        # set default values
+        self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
+        print(self.settings)
+        print(self.settings["zmq"])
         self.load_settings(conf_file)
 
     def load_settings(self, conf_file: Optional[pathlib.Path] = None) -> None:
@@ -49,18 +53,25 @@ class ZambezeSettings:
             self._conf_file = zambeze_folder.joinpath("agent.yaml")
             self._conf_file.touch()
 
+        #if not self.settings:
+        #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
+
         self._logger.info(f"Loading settings from config file: {self._conf_file}")
         with open(self._conf_file, "r") as cf:
-            self.settings = yaml.safe_load(cf)
+            self.settings.update(yaml.safe_load(cf))
 
-        # set default values
-        if not self.settings:
-            self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
+        print("self settings")
+        print(self.settings)
+
         self.__set_default("host", "localhost", self.settings["nats"])
         self.__set_default("port", 4222, self.settings["nats"])
+        self.__set_default("host", "localhost", self.settings["zmq"])
         self.__set_default("port", 5555, self.settings["zmq"])
         self.__set_default("plugins", {}, self.settings)
         self.__save()
+
+        print("self settings after default")
+        print(self.settings)
 
         self.__configure_plugins()
 
