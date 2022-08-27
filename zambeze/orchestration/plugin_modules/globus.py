@@ -24,7 +24,12 @@ import re
 import shutil
 
 def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
-    return next((True for endpoint in endpoint_list if endpoint["uuid"] == globus_uuid), False)
+    for item in endpoint_list:
+      print(f"Comparing items {item['uuid'].lower()} with {globus_uuid.lower()}")
+      if item["uuid"].lower() == globus_uuid.lower():
+        return True
+    return False
+
 
 def globusURISeparator(uri: str, default_uuid) -> dict:
     """Will take a globus URI and break it into its components
@@ -431,7 +436,12 @@ class Globus(Plugin):
             # Make sure that default_endpoint is one of the endpoints that has been configured
 
             if not localEndpointExists(config["default_endpoint"], config["local_endpoints"]):
-                raise Exception(f"Invalid default endpoint {config['default_endpoint']} not one of the 'local_endpoints' {config['local_endpoints']}")
+                error_msg = f"Invalid default endpoint {config['default_endpoint']}"
+                error_msg = error_msg + " not one of the 'local_endpoints'"
+                error_msg = error_msg + " check your "
+                error_msg = error_msg + " agent.yaml file. Local endpoints are:"
+                error_msg = error_msg + f"\n{config['local_endpoints']}"
+                raise Exception(error_msg)
 
     def __validEndPoints(self, config: dict):
         """This method can only be run after the authentication flow has been run"""

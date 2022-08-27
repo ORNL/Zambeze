@@ -52,6 +52,14 @@ class Processor(threading.Thread):
         self._logger.debug("Starting Agent Processor")
         asyncio.run(self.__process())
 
+    async def __disconnected():
+        self._logger.info(f"Disconnected from nats... {self._settings.get_nats_connection_uri()}")
+        print(f"Disconnected from nats... {self._settings.get_nats_connection_uri()}")
+
+    async def __reconnected():
+        self._logger.info(f"Reconnected to nats... {self._settings.get_nats_connection_uri()}")
+        print(f"Reconnected to nats... {self._settings.get_nats_connection_uri()}")
+
     async def __process(self):
         """
         Evaluate and process messages if requested activity is supported.
@@ -59,12 +67,20 @@ class Processor(threading.Thread):
         self._logger.debug(
             f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
         )
-        nc = await nats.connect(self._settings.get_nats_connection_uri())
+        print(f"Connecting to {self._settings.get_nats_connection_uri()}")
+
+        nc = await nats.connect(self._settings.get_nats_connection_uri(),
+                                reconnected_cb=self.__reconnected,
+                                disconnected_cb=self.__disconnected,
+                                connect_timeout=1)
+
+        print("subscribing")
         sub = await nc.subscribe(MessageType.COMPUTE.value)
         self._logger.debug("Waiting for messages")
 
         while True:
             try:
+                print("Grab next msg")
                 msg = await sub.next_msg()
                 data = json.loads(msg.data)
                 self._logger.debug(f"Message received: {msg.data}")
