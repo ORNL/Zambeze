@@ -356,7 +356,7 @@ class Globus(Plugin):
         # at developers.globus.org
         self.__access_to_globus_cloud = False
         # This is the default for Zambeze
-        self.__client_id = "435d07fa-8b10-4e04-b005-054c68be3f14"
+        self.__client_id = None
         self.__endpoints = []
         self.__configured = False
         self.__flow = "client credential"
@@ -946,8 +946,11 @@ class Globus(Plugin):
         """
         self.__validConfig(config)
 
-        if "client_id" in config:
-            self.__client_id = config["client_id"]
+        print("config is ")
+        print(config)
+        if "authentication_flow" in config:
+          if "client_id" in config["authentication_flow"]:
+              self.__client_id = config["authentication_flow"]["client_id"]
 
         # Detect hostname
         self.__hostname = gethostname()

@@ -7,6 +7,7 @@
 # it under the terms of the MIT License.
 
 import logging
+import os
 import pathlib
 import yaml
 
@@ -46,12 +47,33 @@ class ZambezeSettings:
         :param conf_file: Path to configuration file
         :type conf_file: Optional[pathlib.Path]
         """
-        self._conf_file = conf_file
-        if not self._conf_file:
-            zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
+        self._conf_file = pathlib.Path(conf_file)
+
+        zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
+        if not zambeze_folder.exists():
             zambeze_folder.mkdir(parents=True, exist_ok=True)
-            self._conf_file = zambeze_folder.joinpath("agent.yaml")
-            self._conf_file.touch()
+
+        default_conf = zambeze_folder.joinpath("agent.yaml")
+        if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
+            if not self._conf_file.exists():
+              self._conf_file.touch()
+              default_settings = {
+                "nats": {
+                  "host": "127.0.0.1",
+                  "port": 4222
+                },
+                "plugins": {
+                  "shell": {
+                    "config": {}
+                  }
+                },
+                "zmq": {
+                  "host": "localhost",
+                  "port": 5555
+                }
+              }
+              with open(self._conf_file, 'w') as f:
+                yaml.dump(default_settings, f)
 
         # if not self.settings:
         #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
@@ -60,18 +82,12 @@ class ZambezeSettings:
         with open(self._conf_file, "r") as cf:
             self.settings.update(yaml.safe_load(cf))
 
-        print("self settings")
-        print(self.settings)
-
         self.__set_default("host", "localhost", self.settings["nats"])
         self.__set_default("port", 4222, self.settings["nats"])
         self.__set_default("host", "localhost", self.settings["zmq"])
         self.__set_default("port", 5555, self.settings["zmq"])
         self.__set_default("plugins", {}, self.settings)
         self.__save()
-
-        print("self settings after default")
-        print(self.settings)
 
         self.__configure_plugins()
 
