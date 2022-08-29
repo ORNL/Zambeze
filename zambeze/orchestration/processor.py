@@ -12,6 +12,7 @@ import json
 import logging
 import pathlib
 import nats
+import os
 import socket
 import threading
 
@@ -78,18 +79,41 @@ class Processor(threading.Thread):
         sub = await nc.subscribe(MessageType.COMPUTE.value)
         self._logger.debug("Waiting for messages")
 
+        print("processor settings")
+        print(self._settings.settings)
+        print("Changing directory to")
+        print(self._settings.settings["plugins"]["All"]["default_working_directory"])
+        os.chdir(self._settings.settings["plugins"]["All"]["default_working_directory"])
+
         while True:
             try:
                 print("Grab next msg")
                 msg = await sub.next_msg()
+                print("message is ")
+                print(msg)
+                print("message data is ")
+                print(msg.data)
                 data = json.loads(msg.data)
+                print("Unloaded")
                 self._logger.debug(f"Message received: {msg.data}")
+
                 if self._settings.is_plugin_configured(data["plugin"].lower()):
+
+                    print("Plugin is configured") 
                     # look for files
                     if "files" in data and data["files"]:
                         await self.__process_files(data["files"])
+                        
 
+                    print("Printing content to be executed")
+                    print(data["cmd"])
                     # perform compute action
+                    checked_result = self._settings.plugins.check(
+                        plugin_name=data["plugin"].lower(), arguments=data["cmd"]
+                    )
+                    print(checked_result)
+                    for action in checked_result[data["plugin"].lower()]:
+                      print(action)
                     self._settings.plugins.run(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
@@ -110,29 +134,91 @@ class Processor(threading.Thread):
         :type files: list[str]
         """
         self._logger.debug("Processing files...")
-
+        print("Processing files")
         for file in files:
             file_url = urlparse(file)
-
+            print("File_url is")
+            print(file_url.geturl())
             if file_url.scheme == "file":
                 if not pathlib.Path(file_url.path).exists():
                     raise Exception(f"Unable to find file: {file_url.path}")
 
             elif file_url.scheme == "globus":
-                await self.send(
-                    MessageType.COMPUTE.value,
-                    {
-                        "plugin": "globus",
-                        "cmd": [
-                            {
+
+                # Check if we have plugin
+                print("Running scheme globus")
+                if self._settings.is_plugin_configured("globus"):
+                    print("Getting url basename")
+                    source_file_name = os.path.basename(file_url.path)
+                    print(f"Source file name: {source_file_name}")
+                    default_endpoint = self._settings.settings["plugins"]["globus"]["config"]["default_endpoint"]
+                    print(f"default endpoint: {default_endpoint}")
+                    default_working_dir = self._settings.settings["plugins"]["All"]["default_working_directory"]
+                    print(f"default working directory: {default_working_dir}")
+
+                    local_globus_uri = "globus://"
+                    local_globus_uri = local_globus_uri + default_endpoint + os.sep
+                    local_globus_uri = local_globus_uri + source_file_name
+                    print(f"local_globus_uri: {local_globus_uri}")
+
+                    local_posix_uri = "file://"
+                    local_posix_uri = local_posix_uri + default_working_dir + os.sep
+                    local_posix_uri = local_posix_uri + source_file_name 
+                    print(f"local_posix_uri: {local_posix_uri}")
+                    print("file url after calling geturl")
+                    print(file_url.geturl())
+                    message1 =  {
                                 "transfer": {
                                     "type": "synchronous",
-                                    "items": [file_url],
+                                    "items": [
+                                      { "source": file_url.geturl(),
+                                        "destination": local_globus_uri 
+                                      }
+                                    ],
                                 }
-                            },
-                        ],
-                    },
-                )
+                            }
+
+                    print("Sending message")
+                    print(message1)
+                    # perform compute action
+                    checked_result = self._settings.plugins.check( plugin_name="globus",arguments=message1)
+                    print(checked_result)
+                    for action in checked_result["globus"]:
+                      print(action)
+                    
+                    self._settings.plugins.run(plugin_name="globus",arguments=message1)
+
+                    message2 ={ 
+                              "move_from_globus_collection": {
+                                  "items": 
+                                  [{
+                                    "source": local_globus_uri,
+                                    "destination": local_posix_uri
+                                  }]
+                              }
+                            }
+                    print("Sending message")
+                    print(message2)
+                    self._settings.plugins.run(plugin_name="globus",arguments=message2)
+                else:
+#                    await self.send(
+#                        MessageType.COMPUTE.value,
+#                        {
+#                            "plugin": "globus",
+#                            "cmd": [
+#                                {
+#                                    "transfer": {
+#                                        "type": "synchronous",
+#                                        "items": [file_url],
+#                                    }
+#                                },
+#                            ],
+#                        },
+#                    )
+                    raise Exception("Needs to be implemented.")
+               
+
+                
 
             elif file_url.scheme == "rsync":
                 await self.send(

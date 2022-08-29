@@ -2,7 +2,7 @@
 from uuid import UUID
 
 
-def validUUID(uuid_to_test: str, version=4) -> bool:
+def validUUID(uuid_to_test: str, version=None) -> bool:
     """Check if uuid_to_test is a valid UUID.
 
     :param uuid_to_test: The 36 character UUID
@@ -28,7 +28,10 @@ def validUUID(uuid_to_test: str, version=4) -> bool:
     """
     uuid_obj = ""
     try:
-        uuid_obj = UUID(uuid_to_test, version=version)
+        if version:
+          uuid_obj = UUID(uuid_to_test, version=version)
+        else:
+          uuid_obj = UUID(uuid_to_test)
     except ValueError:
         return False
     return str(uuid_obj).lower() == str(uuid_to_test).lower()
