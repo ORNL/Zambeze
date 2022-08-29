@@ -57,8 +57,6 @@ class Shell(Plugin):
         >>> }]
 
         """
-        print("Arguments are")
-        print(arguments)
         checks = {}
         for item in arguments:
           for shell in item.keys():
@@ -71,7 +69,6 @@ class Shell(Plugin):
 
             checks[shell] = ("True", "")
 
-        print("Checking shell plugin")
         return checks 
 
     def process(self, arguments: list[dict]):

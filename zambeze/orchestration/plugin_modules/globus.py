@@ -25,7 +25,6 @@ import shutil
 
 def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
     for item in endpoint_list:
-      print(f"Comparing items {item['uuid'].lower()} with {globus_uuid.lower()}")
       if item["uuid"].lower() == globus_uuid.lower():
         return True
     return False
@@ -104,10 +103,6 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
     if not path.endswith(os.sep):
         path = path + os.sep
 
-    print("Contents of globusURISeparator")
-    print(valid_uuid)
-    print(path)
-    print(basename(file_and_path))
     return (valid_uuid, path, basename(file_and_path), "")
 
 def fileURISeparator(uri: str) -> dict:
@@ -585,10 +580,7 @@ class Globus(Plugin):
         """
 
         for item in transfer["items"]:
-            print("Separating source item")
             source_globus_uri = globusURISeparator(item["source"], self.__default_endpoint)
-            print(source_globus_uri)
-            print("Separating destination item")
             dest_globus_uri = globusURISeparator(item["destination"], self.__default_endpoint)
             
             tdata = globus_sdk.TransferData(
@@ -603,17 +595,15 @@ class Globus(Plugin):
             dest_file_path = dest_globus_uri[1] + dest_globus_uri[2]
             tdata.add_item(source_file_path, dest_file_path)
 
-            print("Submitting packet to be transferred")
-            print(tdata)
+            self._logger.info("Packet to be transferred by Globus.")
+            self._logger.info(tdata)
             transfer_result = {}
             if "synchronous" == transfer["type"].lower():
                 transfer_result = self.__tc.submit_transfer(tdata)
-                print("Transfer result")
                 self._logger.info(transfer_result)
-                print(transfer_result)
                 task_id = transfer_result["task_id"]
                 while not self.__tc.task_wait(task_id, timeout=60):
-                    print("Another minute went by without {0} terminating".format(task_id))
+                    self._logger.info("Another minute went by without {0} terminating".format(task_id))
             elif "asynchronous" == transfer["type"].lower():
                 result = self.__tc.submit_transfer(tdata)
                 self._logger.info(result)
@@ -664,22 +654,11 @@ class Globus(Plugin):
         >>>     ]
         >>> }
         """
-#        endpoint_path = ""
-#        for endpoint in self.__endpoints:
-#            if endpoint["UUID"] == action_package["destination_collection_UUID"]:
-#                endpoint_path = endpoint["path"]
-#
         for item in action_package["items"]:
             source_sep_file_uri = fileURISeparator(item["source"])
             source_path = source_sep_file_uri[0] + source_sep_file_uri[1]
-            #source = ""
-
-            #if item["source"]["type"].lower() == "file":
-            #    source = item["source"]["path"]
-            #else:
-            #    print("only file is currently supported")
+            
             destination_sep_globus_uri = globusURISeparator(item["destination"], self.__default_endpoint)
-
             destination_uuid = destination_sep_globus_uri[0]
             destination_file_name = destination_sep_globus_uri[2]
             destination_endpoint_path = self.__getPOSIXpathToEndpoint(destination_uuid)
@@ -723,28 +702,12 @@ class Globus(Plugin):
         >>>     ]
         >>> }
         """
-#        endpoint_path = ""
-#        for endpoint in self.__endpoints:
-#            if endpoint["UUID"] == action_package["destination_collection_UUID"]:
-#                endpoint_path = endpoint["path"]
-#
         for item in action_package["items"]:
-            print("Called moving from Globus moving items")
-            print("item is")
-            print(item)
             destination_sep_file_uri = fileURISeparator(item["destination"])
-            print(destination_sep_file_uri)
             destination_path = destination_sep_file_uri[0]
             destination_file_name = destination_sep_file_uri[1]
 
-            #source = ""
-
-            #if item["source"]["type"].lower() == "file":
-            #    source = item["source"]["path"]
-            #else:
-            #    print("only file is currently supported")
             source_sep_globus_uri = globusURISeparator(item["source"], self.__default_endpoint)
-
             source_uuid = source_sep_globus_uri[0]
             source_file_name = source_sep_globus_uri[2]
             source_endpoint_path = self.__getPOSIXpathToEndpoint(source_uuid)
@@ -928,7 +891,7 @@ class Globus(Plugin):
         cloud if cannot reach it.
         """
         if externalNetworkConnectionDetected() is False:
-            print("Unable to connect to external network access to globus cloud denied")
+            self._logger.debug("Unable to connect to external network access to globus cloud denied")
             self.__access_to_globus_cloud = False
             return
 
@@ -1108,9 +1071,7 @@ class Globus(Plugin):
         checks = {}
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
-            print("Checking arguments")
             for action in arguments[index]:
-                print(f"action is: {action}")
                 # Check if the action is supported
                 if self.__supported_actions[action] is False:
                     checks[action] = (False, "action is not supported.")
