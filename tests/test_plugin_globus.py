@@ -75,10 +75,10 @@ def test_globusURISeparator():
     file_path = "/file_path/"
     file_name = "file.txt"
     uri = "globus://" + valid_uuid + file_path + file_name
-    result = globus.globusURISeparator(uri,default_uuid)
-    
+    result = globus.globusURISeparator(uri, default_uuid)
+
     assert result[0] == valid_uuid
-    assert result[1] == file_path 
+    assert result[1] == file_path
     assert result[2] == file_name
     assert len(result[3]) == 0
 
@@ -88,7 +88,7 @@ def test_globusURISeparator():
     file_name = "file.txt"
     uri = "globus://" + valid_uuid + file_path + file_name
     result = globus.globusURISeparator(uri, default_uuid)
-    
+
     assert result[0] == valid_uuid
     assert result[1] == "/"
     assert result[2] == file_name
@@ -99,8 +99,8 @@ def test_globusURISeparator():
     file_path = "/"
     file_name = ""
     uri = "globus://" + valid_uuid + file_path + file_name
-    result = globus.globusURISeparator(uri,default_uuid)
-    
+    result = globus.globusURISeparator(uri, default_uuid)
+
     assert result[0] == valid_uuid
     assert result[1] == "/"
     assert result[2] == ""
@@ -111,13 +111,12 @@ def test_globusURISeparator():
     file_path = " "
     file_name = ""
     uri = "globus://" + valid_uuid + file_path + file_name
-    result = globus.globusURISeparator(uri,default_uuid)
-    
+    result = globus.globusURISeparator(uri, default_uuid)
+
     assert result[0] == valid_uuid
     assert result[1] == "/"
     assert result[2] == ""
     assert len(result[3]) == 0
-
 
     # "  globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX "
     valid_uuid = str(uuid.uuid4())
@@ -125,7 +124,7 @@ def test_globusURISeparator():
     file_name = ""
     uri = "  globus://" + valid_uuid + file_path + file_name
     result = globus.globusURISeparator(uri, default_uuid)
-    
+
     assert result[0] == valid_uuid
     assert result[1] == "/"
     assert result[2] == ""
@@ -137,7 +136,7 @@ def test_globusURISeparator():
     file_name = "file.txt"
     uri = "globus://" + valid_uuid + file_path + file_name
     result = globus.globusURISeparator(uri, default_uuid)
-    
+
     assert result[0] == valid_uuid
     assert result[1] == "/"
     assert result[2] == file_name
@@ -149,7 +148,7 @@ def test_globusURISeparator():
     file_name = "file.txt"
     uri = "  globus://" + file_path + file_name
     result = globus.globusURISeparator(uri, default_uuid)
-    
+
     assert result[0] == default_uuid
     assert result[1] == "/"
     assert result[2] == file_name
@@ -164,8 +163,8 @@ def test_fileURISeparator():
     file_name = "file.txt"
     uri = "file://" + file_path + file_name
     result = globus.fileURISeparator(uri)
-    
-    assert result[0] == os.sep + file_path 
+
+    assert result[0] == os.sep + file_path
     assert result[1] == file_name
     assert len(result[2]) == 0
 
@@ -174,7 +173,7 @@ def test_fileURISeparator():
     file_name = "file.txt"
     uri = "file://" + file_path + file_name
     result = globus.fileURISeparator(uri)
-    
+
     assert result[0] == "/"
     assert result[1] == file_name
     assert len(result[2]) == 0
@@ -184,7 +183,7 @@ def test_fileURISeparator():
     file_name = ""
     uri = "file://" + file_path + file_name
     result = globus.fileURISeparator(uri)
-    
+
     assert result[0] == "/"
     assert result[1] == ""
     assert len(result[2]) == 0
@@ -194,18 +193,17 @@ def test_fileURISeparator():
     file_name = ""
     uri = "file://" + file_path + file_name
     result = globus.fileURISeparator(uri)
-    
+
     assert result[0] == "/"
     assert result[1] == ""
     assert len(result[2]) == 0
-
 
     # "  file:// "
     file_path = " "
     file_name = ""
     uri = "  file://" + file_path + file_name
     result = globus.fileURISeparator(uri)
-    
+
     assert result[0] == "/"
     assert result[1] == ""
     assert len(result[2]) == 0
@@ -237,7 +235,7 @@ def test_checkAllItemsHaveValidEndpoints():
         },
         {
             "source": "file://" + file_path2,
-            "destination": "globus://" + random_uuid + "/sub_folder/file2.jpeg"
+            "destination": "globus://" + random_uuid + "/sub_folder/file2.jpeg",
         },
     ]
 
@@ -251,7 +249,7 @@ def test_checkAllItemsHaveValidEndpoints():
 
     items2 = [
         {
-            "source": "globus://"  + random_uuid + file_path,
+            "source": "globus://" + random_uuid + file_path,
             "destination": "globus://" + random_uuid + "/",
         }
     ]
@@ -263,12 +261,7 @@ def test_checkAllItemsHaveValidEndpoints():
     )
     assert not output[0]
 
-    items3 = [
-        {
-            "source": "file://home/cades/file.txt",
-            "destination": "globus://",
-        }
-    ]
+    items3 = [{"source": "file://home/cades/file.txt", "destination": "globus://"}]
 
     # This should be true because in this case "destination" should
     # use the default endpoint uuid
@@ -356,7 +349,7 @@ def test_globus_basic2():
                 "type": "mapped",
             }
         ],
-        "default_endpoint": os.getenv(required_env_variables[2])
+        "default_endpoint": os.getenv(required_env_variables[2]),
     }
 
     globus_plugin.configure(configuration)
@@ -395,7 +388,7 @@ def test_globus_move_check():
                 "type": "mapped",
             }
         ],
-        "default_endpoint": os.getenv(required_env_variables[2])
+        "default_endpoint": os.getenv(required_env_variables[2]),
     }
 
     globus_plugin = globus.Globus()
@@ -423,9 +416,12 @@ def test_globus_move_check():
                 "items": [
                     {
                         "source": "file://" + file_path,
-                        "destination": "globus://" + os.getenv(required_env_variables[2]) + destination_path + sub_folder
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + destination_path
+                        + sub_folder,
                     }
-                ],
+                ]
             }
         }
     ]
@@ -466,7 +462,7 @@ def test_globus_transfer_check():
                 "type": "mapped",
             }
         ],
-        "default_endpoint": os.getenv(required_env_variables[2])
+        "default_endpoint": os.getenv(required_env_variables[2]),
     }
 
     globus_plugin = globus.Globus()
@@ -494,9 +490,9 @@ def test_globus_transfer_check():
                 "items": [
                     {
                         "source": "file://" + file_path,
-                        "destination": "globus://" + destination_path + sub_folder
+                        "destination": "globus://" + destination_path + sub_folder,
                     }
-                ],
+                ]
             }
         },
         {
@@ -504,8 +500,16 @@ def test_globus_transfer_check():
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": "globus://" + os.getenv(required_env_variables[2]) + os.sep + sub_folder + file_name,
-                        "destination": "globus://" + os.getenv(required_env_variables[3]) + destination_path + sub_folder + file_name
+                        "source": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + os.sep
+                        + sub_folder
+                        + file_name,
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[3])
+                        + destination_path
+                        + sub_folder
+                        + file_name,
                     }
                 ],
             }
@@ -558,7 +562,7 @@ def test_globus_process():
                 "type": "guest",
             },
         ],
-        "default_endpoint": os.getenv(required_env_variables[3])
+        "default_endpoint": os.getenv(required_env_variables[3]),
     }
 
     globus_plugin = globus.Globus()
@@ -586,9 +590,12 @@ def test_globus_process():
                 "items": [
                     {
                         "source": "file://" + file_path,
-                        "destination": "globus://" + os.getenv(required_env_variables[2]) + relative_destination_file_path + sub_folder
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + relative_destination_file_path
+                        + sub_folder,
                     }
-                ],
+                ]
             }
         },
         {
@@ -596,8 +603,15 @@ def test_globus_process():
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": "globus://" + os.getenv(required_env_variables[2]) + sub_folder + file_name,
-                        "destination": "globus://" + os.getenv(required_env_variables[3]) + relative_destination_file_path + sub_folder + file_name
+                        "source": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + sub_folder
+                        + file_name,
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[3])
+                        + relative_destination_file_path
+                        + sub_folder
+                        + file_name,
                     }
                 ],
             }
@@ -686,9 +700,8 @@ def test_globus_process_from_esnet():
                 "path": path_to_endpoint_shared,
                 "type": "guest",
             },
-
         ],
-        "default_endpoint": os.getenv(required_env_variables[3])
+        "default_endpoint": os.getenv(required_env_variables[3]),
     }
 
     globus_plugin = globus.Globus()
@@ -708,8 +721,11 @@ def test_globus_process_from_esnet():
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": "globus://" + ESNET_GLOBUS_ENDPOINT_UUID +"/1M.dat",
-                        "destination": "globus://" + os.getenv(required_env_variables[2]) + sub_folder + "1M.dat"
+                        "source": "globus://" + ESNET_GLOBUS_ENDPOINT_UUID + "/1M.dat",
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + sub_folder
+                        + "1M.dat",
                     }
                 ],
             }
@@ -774,7 +790,7 @@ def test_globus_process_async():
                 "type": "guest",
             },
         ],
-        "default_endpoint": os.getenv(required_env_variables[3])
+        "default_endpoint": os.getenv(required_env_variables[3]),
     }
 
     globus_plugin = globus.Globus()
@@ -801,9 +817,12 @@ def test_globus_process_async():
                 "items": [
                     {
                         "source": "file://" + file_path,
-                        "destination": "globus://" + os.getenv(required_env_variables[2]) + relative_destination_file_path + sub_folder
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + relative_destination_file_path
+                        + sub_folder,
                     }
-                ],
+                ]
             }
         },
         {
@@ -811,8 +830,15 @@ def test_globus_process_async():
                 "type": "asynchronous",
                 "items": [
                     {
-                        "source": "globus://" + os.getenv(required_env_variables[2]) + sub_folder + file_name,
-                        "destination": "globus://" + os.getenv(required_env_variables[3]) + relative_destination_file_path + sub_folder + file_name
+                        "source": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + sub_folder
+                        + file_name,
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[3])
+                        + relative_destination_file_path
+                        + sub_folder
+                        + file_name,
                     }
                 ],
             }
@@ -883,9 +909,7 @@ def test_globus_process():
 
     configuration = {
         "client_id": os.getenv(required_env_variables[0]),
-        "authentication_flow": {
-            "type": "native",
-        },
+        "authentication_flow": {"type": "native"},
         "local_endpoints": [
             {
                 "uuid": os.getenv(required_env_variables[1]),
@@ -898,7 +922,7 @@ def test_globus_process():
                 "type": "guest",
             },
         ],
-        "default_endpoint": os.getenv(required_env_variables[2])
+        "default_endpoint": os.getenv(required_env_variables[2]),
     }
 
     globus_plugin = globus.Globus()
@@ -926,9 +950,12 @@ def test_globus_process():
                 "items": [
                     {
                         "source": "file://" + file_path,
-                        "destination": "globus://" + os.getenv(required_env_variables[1]) + relative_destination_file_path + sub_folder
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[1])
+                        + relative_destination_file_path
+                        + sub_folder,
                     }
-                ],
+                ]
             }
         },
         {
@@ -936,8 +963,15 @@ def test_globus_process():
                 "type": "synchronous",
                 "items": [
                     {
-                        "source": "globus://" + os.getenv(required_env_variables[1]) + sub_folder + file_name,
-                        "destination": "globus://" + os.getenv(required_env_variables[2]) + relative_destination_file_path + sub_folder + file_name
+                        "source": "globus://"
+                        + os.getenv(required_env_variables[1])
+                        + sub_folder
+                        + file_name,
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + relative_destination_file_path
+                        + sub_folder
+                        + file_name,
                     }
                 ],
             }
@@ -979,5 +1013,3 @@ def test_globus_process():
 
     # After processing we should verify that the file exists at the final location
     assert os.path.exists(abs_path_destination_shared)
-
-
