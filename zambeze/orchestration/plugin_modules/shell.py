@@ -59,17 +59,22 @@ class Shell(Plugin):
         """
         checks = {}
         for item in arguments:
-          for shell in item.keys():
-            if which(shell) is None:
-              return { shell: ( False, "Unrecognized shell" ) }
+            for shell in item.keys():
+                if which(shell) is None:
+                    return {shell: (False, "Unrecognized shell")}
 
-            if "program" in item:
-              if which(shell["program"]) is None:
-                return { shell: ( False, f"Unable to locate program: {shell['program']}" ) }
+                if "program" in item:
+                    if which(shell["program"]) is None:
+                        return {
+                            shell: (
+                                False,
+                                f"Unable to locate program: {shell['program']}",
+                            )
+                        }
 
-            checks[shell] = ("True", "")
+                checks[shell] = ("True", "")
 
-        return checks 
+        return checks
 
     def process(self, arguments: list[dict]):
         """

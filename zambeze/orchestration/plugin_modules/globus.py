@@ -23,10 +23,11 @@ import pickle
 import re
 import shutil
 
+
 def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
     for item in endpoint_list:
-      if item["uuid"].lower() == globus_uuid.lower():
-        return True
+        if item["uuid"].lower() == globus_uuid.lower():
+            return True
     return False
 
 
@@ -65,7 +66,7 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
     >>> /path/
     >>> file.txt
     """
-    uri = uri.lstrip(' ').rstrip(' ') 
+    uri = uri.lstrip(" ").rstrip(" ")
 
     globus_uri_tag = "globus://"
     # Start by ensuring the start of the uri begins with globus://
@@ -74,15 +75,15 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
         error_msg = error_msg + "globus://"
         return ("", "", "", error_msg)
 
-    UUID_and_path = uri[len(globus_uri_tag):]
+    UUID_and_path = uri[len(globus_uri_tag) :]
     # Replace multiple occurances of // with single /
-    UUID_and_path = re.sub(os.sep + '{2,}', os.sep, UUID_and_path) 
+    UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
     UUID = UUID_and_path[0:36]
 
     file_and_path = UUID_and_path
     valid_uuid = default_uuid
-    # Check if the first 36 chars contains os.sep it is probably a file_path 
+    # Check if the first 36 chars contains os.sep it is probably a file_path
     # in which case the default uuid should be provided
     if not os.sep in UUID:
         if not validUUID(UUID):
@@ -105,6 +106,7 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
 
     return (valid_uuid, path, basename(file_and_path), "")
 
+
 def fileURISeparator(uri: str) -> dict:
     """Will take a file URI and break it into its components
 
@@ -121,7 +123,7 @@ def fileURISeparator(uri: str) -> dict:
     >>> /path/
     >>> file.txt
     """
-    uri = uri.lstrip(' ').rstrip(' ') 
+    uri = uri.lstrip(" ").rstrip(" ")
 
     file_uri_tag = "file://"
     # Start by ensuring the start of the uri begins with globus://
@@ -130,7 +132,7 @@ def fileURISeparator(uri: str) -> dict:
         error_msg = error_msg + "file://"
         return ("", "", "", error_msg)
 
-    file_and_path = uri[len(file_uri_tag):]
+    file_and_path = uri[len(file_uri_tag) :]
     path = dirname(file_and_path)
 
     if not path.startswith(os.sep):
@@ -271,15 +273,16 @@ def checkEndpoint(item: str, supported_types: list[str]) -> (bool, str):
     """
     # Only "globus relative" path type supported
     for supported_type in supported_types:
-        if item.startswith(supported_type + "://" ):
+        if item.startswith(supported_type + "://"):
             return True, ""
-            
+
     return (
         False,
         f"Missing {item} not in supported types \
-                {supported_types} uri should start with i.e. globus://"
+                {supported_types} uri should start with i.e. globus://",
     )
-    
+
+
 def checkAllItemsHaveValidEndpoints(
     items: list[dict],
     supported_source_path_types: list[str],
@@ -409,12 +412,13 @@ class Globus(Plugin):
                 f"{config['authentication_flow']['type']}"
             )
 
-
         # Check that the UUIDs are correct
         if "local_endpoints" in config:
             for local_endpoint in config["local_endpoints"]:
                 if not validUUID(local_endpoint["uuid"]):
-                    raise Exception(f"Invalid uuid detected in plugin: {local_endpoint['uuid']}")
+                    raise Exception(
+                        f"Invalid uuid detected in plugin: {local_endpoint['uuid']}"
+                    )
                 if not exists(local_endpoint["path"]):
                     # Check that the collection path is correct and exists on the local
                     # POSIX filesystem
@@ -429,12 +433,15 @@ class Globus(Plugin):
                 )
 
             if not validUUID(config["default_endpoint"]):
-                raise Exception(f"Invalid uuid detected in plugin for default endpoint: {config['default_endpoint']}")
+                raise Exception(
+                    f"Invalid uuid detected in plugin for default endpoint: {config['default_endpoint']}"
+                )
 
-            
             # Make sure that default_endpoint is one of the endpoints that has been configured
 
-            if not localEndpointExists(config["default_endpoint"], config["local_endpoints"]):
+            if not localEndpointExists(
+                config["default_endpoint"], config["local_endpoints"]
+            ):
                 error_msg = f"Invalid default endpoint {config['default_endpoint']}"
                 error_msg = error_msg + " not one of the 'local_endpoints'"
                 error_msg = error_msg + " check your "
@@ -456,10 +463,11 @@ class Globus(Plugin):
                     if e.http_status == 404:
                         # data = e.raw_json
                         uid = local_collection["uuid"]
-                        raise Exception(f"Invalid collection id {uid}. Collection is unknown.")
+                        raise Exception(
+                            f"Invalid collection id {uid}. Collection is unknown."
+                        )
                     else:
                         raise
-
 
     def __validActions(self):
         # If we were able to communicate with Globus then the transfer action should be
@@ -478,25 +486,29 @@ class Globus(Plugin):
     def __nativeAuthFlow(self):
         # Using Native auth flow
 
-        home_dir = os.path.expanduser('~')
+        home_dir = os.path.expanduser("~")
         if not exists(home_dir + "/.zambeze"):
-            os.mkdir( home_dir + "/.zambeze" )
+            os.mkdir(home_dir + "/.zambeze")
 
         token_file = home_dir + "/.zambeze/globus.tokens"
         if exists(token_file):
-            infile = open(token_file, 'rb')
+            infile = open(token_file, "rb")
             self.__authorizer = pickle.load(infile)
             infile.close()
         else:
             client = globus_sdk.NativeAppAuthClient(self.__client_id)
-           
-            client.oauth2_start_flow(requested_scopes=self.__scopes, refresh_tokens=True)
+
+            client.oauth2_start_flow(
+                requested_scopes=self.__scopes, refresh_tokens=True
+            )
             authorize_url = client.oauth2_get_authorize_url()
             print(f"Please go to this URL and login:\n\n{authorize_url}\n")
 
-            auth_code = input("Please enter the code you get after login here: ").strip()
+            auth_code = input(
+                "Please enter the code you get after login here: "
+            ).strip()
             token_response = client.oauth2_exchange_code_for_tokens(auth_code)
-   
+
             # {
             #   "transfer.api.globus.org": {
             #     "scope": "urn:globus:auth:scope:transfer.api.globus.org:all",
@@ -523,15 +535,13 @@ class Globus(Plugin):
                 transfer_rt, client, access_token=transfer_at, expires_at=expires_at_s
             )
 
-            outfile = open(token_file,'wb')
+            outfile = open(token_file, "wb")
             pickle.dump(self.__authorizer, outfile)
             outfile.close()
 
         # and try using `tc` to make TransferClient calls. Everything should just
         # work -- for days and days, months and months, even years
         self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
-
-
 
     def __clientCredentialAuthFlow(self, config: dict):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
@@ -580,9 +590,13 @@ class Globus(Plugin):
         """
 
         for item in transfer["items"]:
-            source_globus_uri = globusURISeparator(item["source"], self.__default_endpoint)
-            dest_globus_uri = globusURISeparator(item["destination"], self.__default_endpoint)
-            
+            source_globus_uri = globusURISeparator(
+                item["source"], self.__default_endpoint
+            )
+            dest_globus_uri = globusURISeparator(
+                item["destination"], self.__default_endpoint
+            )
+
             tdata = globus_sdk.TransferData(
                 self.__tc,
                 source_globus_uri[0],
@@ -603,7 +617,9 @@ class Globus(Plugin):
                 self._logger.info(transfer_result)
                 task_id = transfer_result["task_id"]
                 while not self.__tc.task_wait(task_id, timeout=60):
-                    self._logger.info("Another minute went by without {0} terminating".format(task_id))
+                    self._logger.info(
+                        "Another minute went by without {0} terminating".format(task_id)
+                    )
             elif "asynchronous" == transfer["type"].lower():
                 result = self.__tc.submit_transfer(tdata)
                 self._logger.info(result)
@@ -631,8 +647,14 @@ class Globus(Plugin):
         return get_status_result
 
     def __getPOSIXpathToEndpoint(self, globus_uuid: str) -> str:
-        return next((endpoint["path"] for endpoint in self.__endpoints if endpoint["uuid"] == globus_uuid), None)
-
+        return next(
+            (
+                endpoint["path"]
+                for endpoint in self.__endpoints
+                if endpoint["uuid"] == globus_uuid
+            ),
+            None,
+        )
 
     def __runMoveToGlobusCollection(self, action_package: dict):
         """Method is designed to move a local file to a Globus collection
@@ -657,12 +679,14 @@ class Globus(Plugin):
         for item in action_package["items"]:
             source_sep_file_uri = fileURISeparator(item["source"])
             source_path = source_sep_file_uri[0] + source_sep_file_uri[1]
-            
-            destination_sep_globus_uri = globusURISeparator(item["destination"], self.__default_endpoint)
+
+            destination_sep_globus_uri = globusURISeparator(
+                item["destination"], self.__default_endpoint
+            )
             destination_uuid = destination_sep_globus_uri[0]
             destination_file_name = destination_sep_globus_uri[2]
             destination_endpoint_path = self.__getPOSIXpathToEndpoint(destination_uuid)
-                
+
             # /mnt/globus/collections
             destination_path = destination_endpoint_path
 
@@ -673,14 +697,13 @@ class Globus(Plugin):
 
                 if len(destination_file_name) > 0:
                     # /mnt/globus/collections + /file_path/ + file.txt
-                    destination_path = destination_path + destination_file_name 
+                    destination_path = destination_path + destination_file_name
                 else:
                     # Then name the file the same as the source file
                     if isfile(source_path):
                         destination_path = destination_path + basename(source_path)
 
             shutil.copyfile(source_path, destination_path)
-
 
     def __runMoveFromGlobusCollection(self, action_package: dict):
         """Method is designed to move a local file from a Globus collection
@@ -707,13 +730,15 @@ class Globus(Plugin):
             destination_path = destination_sep_file_uri[0]
             destination_file_name = destination_sep_file_uri[1]
 
-            source_sep_globus_uri = globusURISeparator(item["source"], self.__default_endpoint)
+            source_sep_globus_uri = globusURISeparator(
+                item["source"], self.__default_endpoint
+            )
             source_uuid = source_sep_globus_uri[0]
             source_file_name = source_sep_globus_uri[2]
             source_endpoint_path = self.__getPOSIXpathToEndpoint(source_uuid)
-                
+
             # /mnt/globus/collections
-            source_path = source_endpoint_path 
+            source_path = source_endpoint_path
 
             # /mnt/globus/collections + /file_path/
             source_path = source_path + source_sep_globus_uri[1]
@@ -725,14 +750,13 @@ class Globus(Plugin):
 
                 if len(destination_file_name) > 0:
                     # /mnt/globus/collections + /file_path/ + file.txt
-                    destination_path = destination_path + destination_file_name 
+                    destination_path = destination_path + destination_file_name
                 else:
                     # Then name the file the same as the source file
                     if isfile(source_path):
                         destination_path = destination_path + source_file_name
 
             shutil.copyfile(source_path, destination_path)
-
 
     def __runTransferSanityCheck(self, action_package: dict) -> (bool, str):
         """Checks to ensure that the action_package has the right format and
@@ -760,10 +784,7 @@ class Globus(Plugin):
         if not self.__access_to_globus_cloud:
             return False, "No access to Globus Service to conduct 'transfer'."
 
-        required_keys = [
-            "type",
-            "items",
-        ]
+        required_keys = ["type", "items"]
         for required in required_keys:
             if required not in action_package:
                 return False, f"{required} key missing from 'transfer' action."
@@ -782,7 +803,6 @@ class Globus(Plugin):
         supported_source_path_types = ["file"]
         supported_destination_path_types = ["globus"]
 
-
         valid, msg = checkAllItemsHaveValidEndpoints(
             action_package["items"],
             supported_source_path_types,
@@ -791,7 +811,9 @@ class Globus(Plugin):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(item["destination"], self.__default_endpoint)
+                globus_sep_uri = globusURISeparator(
+                    item["destination"], self.__default_endpoint
+                )
                 if not validUUID(globus_sep_uri[0]):
                     error_msg = f"Invalid uuid dectected in \
                                 'move_from_globus_collection' item: {item} \nuuid: \
@@ -809,7 +831,6 @@ class Globus(Plugin):
                     return False, f"Item does not exist {file_path}"
 
         return (valid, msg)
-
 
     def __runGetTaskStatusSanityCheck(self, action_package: dict) -> (bool, str):
         """Checks that the get_task_status action is correctly configured
@@ -866,7 +887,9 @@ class Globus(Plugin):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(item["source"], self.__default_endpoint)
+                globus_sep_uri = globusURISeparator(
+                    item["source"], self.__default_endpoint
+                )
                 if not validUUID(globus_sep_uri[0]):
                     error_msg = f"Invalid uuid dectected in \
                                 'move_from_globus_collection' item: {item} \nuuid: \
@@ -883,7 +906,6 @@ class Globus(Plugin):
                 if not exists(file_path):
                     return False, f"Item does not exist {file_path}"
 
-
         return (valid, msg)
 
     def __checkAccessToGlobusCloud(self):
@@ -891,7 +913,9 @@ class Globus(Plugin):
         cloud if cannot reach it.
         """
         if externalNetworkConnectionDetected() is False:
-            self._logger.debug("Unable to connect to external network access to globus cloud denied")
+            self._logger.debug(
+                "Unable to connect to external network access to globus cloud denied"
+            )
             self.__access_to_globus_cloud = False
             return
 
@@ -999,7 +1023,6 @@ class Globus(Plugin):
             if self.__supported_actions[action]:
                 supported_actions.append(action)
 
-        
         information["default_endpoint"] = self.__default_endpoint
         information["actions"] = supported_actions
         information["authentication_flow"] = self.__flow

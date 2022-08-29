@@ -163,7 +163,6 @@ class Plugins:
 
         return configured_plugins
 
-
     @property
     def info(self, plugins: list[str] = ["all"]) -> dict:
         """Will return the current state of the registered plugins

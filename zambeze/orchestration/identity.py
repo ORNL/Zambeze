@@ -29,9 +29,9 @@ def validUUID(uuid_to_test: str, version=None) -> bool:
     uuid_obj = ""
     try:
         if version:
-          uuid_obj = UUID(uuid_to_test, version=version)
+            uuid_obj = UUID(uuid_to_test, version=version)
         else:
-          uuid_obj = UUID(uuid_to_test)
+            uuid_obj = UUID(uuid_to_test)
     except ValueError:
         return False
     return str(uuid_obj).lower() == str(uuid_to_test).lower()

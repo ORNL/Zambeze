@@ -53,7 +53,7 @@ class ZambezeSettings:
             self._conf_file = zambeze_folder.joinpath("agent.yaml")
             self._conf_file.touch()
 
-        #if not self.settings:
+        # if not self.settings:
         #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
 
         self._logger.info(f"Loading settings from config file: {self._conf_file}")
