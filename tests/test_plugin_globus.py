@@ -5,7 +5,6 @@ import zambeze.orchestration.plugin_modules.globus as globus
 import os
 import pytest
 import random
-import socket
 import time
 import uuid
 
@@ -862,7 +861,8 @@ def test_globus_process_async():
         + os.path.basename(file_path)
     )
 
-    # Remove files from previous runs that might exist on the mapped and guest collections
+    # Remove files from previous runs that might exist on the mapped and guest
+    # collections
     if os.path.exists(abs_path_destination):
         os.remove(abs_path_destination)
     if os.path.exists(abs_path_destination_shared):
@@ -887,7 +887,7 @@ def test_globus_process_async():
 
 
 @pytest.mark.globus_manual
-def test_globus_process():
+def test_globus_process_manual():
 
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",
