@@ -34,6 +34,9 @@ def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
 def globusURISeparator(uri: str, default_uuid) -> dict:
     """Will take a globus URI and break it into its components
 
+    :param uri: the globus uri globus://XXXXX...XXX/path/file.txt
+    :type uri: str
+
     :Example:
 
     >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
@@ -75,7 +78,7 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
         error_msg = error_msg + "globus://"
         return ("", "", "", error_msg)
 
-    UUID_and_path = uri[len(globus_uri_tag) :]
+    UUID_and_path = uri[len(globus_uri_tag):]
     # Replace multiple occurances of // with single /
     UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
@@ -85,7 +88,7 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
     valid_uuid = default_uuid
     # Check if the first 36 chars contains os.sep it is probably a file_path
     # in which case the default uuid should be provided
-    if not os.sep in UUID:
+    if os.sep not in UUID:
         if not validUUID(UUID):
             error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
             error_msg = error_msg + "character valid UUID of the form "
@@ -110,6 +113,9 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
 def fileURISeparator(uri: str) -> dict:
     """Will take a file URI and break it into its components
 
+    :param uri: File uri should be like file://path/file.txt
+    :type uri: str
+
     :Example:
 
     >>> file_uri = file://path/file.txt
@@ -132,7 +138,7 @@ def fileURISeparator(uri: str) -> dict:
         error_msg = error_msg + "file://"
         return ("", "", "", error_msg)
 
-    file_and_path = uri[len(file_uri_tag) :]
+    file_and_path = uri[len(file_uri_tag):]
     path = dirname(file_and_path)
 
     if not path.startswith(os.sep):
@@ -147,16 +153,20 @@ def fileURISeparator(uri: str) -> dict:
 def checkTransferEndpoint(action_package: dict) -> (bool, str):
     """Makes sure each item to be transferred has the correct format
 
+    :param action_package: the package that contains instructions for
+    transferring files.
+    :type action_package: dict
+
     :Example:
 
     >>> "items": [
     >>>     {
-    >>>          "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1/txt"
-    >>>          "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1/txt"
+    >>>          "source": "globus://XXXXXXXX-...-XXXXXXXXXXXX/file1/txt"
+    >>>          "destination": "globus://YYYYYYYY-...-YYYYYYYYYYYY/dest/file1/txt"
     >>>     },
     >>>     {
-    >>>          "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2/txt"
-    >>>          "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2/txt"
+    >>>          "source": "globus://XXXXXXXX-...-XXXXXXXXXXXX/file2/txt"
+    >>>          "destination": "globus://YYYYYYYY-...-YYYYYYYYYYYY/dest/file2/txt"
     >>>     }
     >>> ]
 
@@ -180,6 +190,10 @@ def checkTransferEndpoint(action_package: dict) -> (bool, str):
 
 def getMappedCollections(config: dict) -> list[str]:
     """Returns a list of the UUIDs that are mapped collections
+
+    :param config: Indicates where on the local filesystem the Globus collection
+    is located.
+    :type config: dict
 
     :Example:
 
@@ -261,7 +275,7 @@ def checkEndpoint(item: str, supported_types: list[str]) -> (bool, str):
     :type supported_types: list[str]
     :rtype: bool
 
-    This function will return False if the item provided is an inappropriate value. 
+    This function will return False if the item provided is an inappropriate value.
         * type - only two types are currently supported
         ["globus", "file"]
 
@@ -300,11 +314,11 @@ def checkAllItemsHaveValidEndpoints(
     >>> "items": [
     >>>       {
     >>>           "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
-    >>>           "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+    >>>           "destination": "globus://YYYYYYYY-...-YYYYYYYYYYYY/dest/file1.txt"
     >>>       },
     >>>       {
     >>>           "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
-    >>>           "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+    >>>           "destination": "globus://YYYYYYYY-...-YYYYYYYYYYYY/dest/file2.txt"
     >>>       }
     >>> ]
 
@@ -383,8 +397,15 @@ class Globus(Plugin):
 
         >>> config = {
         >>>   "local_endpoints": [
-        >>>       { "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5", "path": "/scratch/", "type": "guest"},
-        >>>       { "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5", "path": "/project/", "type": "mapped"}
+        >>>       {
+        >>>         "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5",
+        >>>         "path": "/scratch/",
+        >>>         "type": "guest"
+        >>>       },
+        >>>       {
+        >>>         "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5",
+        >>>         "path": "/project/",
+        >>>         "type": "mapped"}
         >>>   ],
         >>>   "authentication_flow": {
         >>>       "type": "'native' or 'client credential'"
@@ -429,15 +450,18 @@ class Globus(Plugin):
             if "default_endpoint" not in config:
                 raise Exception(
                     "'default_endpoint' key value missing from config"
-                    " config must have 'default_endpoint' specified if local_endpoints are configured."
+                    " config must have 'default_endpoint' specified if"
+                    " local_endpoints are configured."
                 )
 
             if not validUUID(config["default_endpoint"]):
                 raise Exception(
-                    f"Invalid uuid detected in plugin for default endpoint: {config['default_endpoint']}"
+                    "Invalid uuid detected in plugin for default endpoint: "
+                    f" {config['default_endpoint']}"
                 )
 
-            # Make sure that default_endpoint is one of the endpoints that has been configured
+            # Make sure that default_endpoint is one of the endpoints that has 
+            # been configured
 
             if not localEndpointExists(
                 config["default_endpoint"], config["local_endpoints"]
@@ -450,8 +474,14 @@ class Globus(Plugin):
                 raise Exception(error_msg)
 
     def __validEndPoints(self, config: dict):
-        """This method can only be run after the authentication flow has been run"""
+        """This method can only be run after the authentication flow has been run
 
+        :param config: This is the configuration information read in from the
+        agent.yaml file when the agent is started up.
+        :type config: dict
+
+        :raises Exception: If the collection/endpoint uuid is invalid
+        """
         # Check that the endpoints actually exist in Globus and are not just made up
         if "local_endpoints" in config:
             for local_collection in config["local_endpoints"]:
@@ -509,17 +539,6 @@ class Globus(Plugin):
             ).strip()
             token_response = client.oauth2_exchange_code_for_tokens(auth_code)
 
-            # {
-            #   "transfer.api.globus.org": {
-            #     "scope": "urn:globus:auth:scope:transfer.api.globus.org:all",
-            #     "access_token": "Agb3BPYkMlePplDMnKPeO6Vobb2nzXKamzjkblVynnjg0z782zT5C47bv56Dm0G9v5lBqrBxW2J9m1HkY6vErc2wJgY",
-            #     "refresh_token": "Agr6m6D4geqKv03YQzKPNxjOqK8Ob79aPEwrzmyGBly8xKY1yMs3Uow1E4VozBYxprxvp5OxOp2dozW79Gr8rpgraEeVg",
-            #     "token_type": "Bearer",
-            #     "expires_at_seconds": 1661652891,
-            #     "resource_server": "transfer.api.globus.org"
-            #   }
-            # }
-
             globus_transfer_data = token_response.by_resource_server[
                 "transfer.api.globus.org"
             ]
@@ -575,12 +594,12 @@ class Globus(Plugin):
         >>>     "type": "synchronous",
         >>>     "items": [
         >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
-        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file1.txt",
+        >>>                     "destination": "globus://YYYY...YYYYYYY/dest/file1.txt"
         >>>                 },
         >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
-        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXX/file2.txt",
+        >>>                     "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
         >>>                 }
         >>>     ]
         >>> }
@@ -667,11 +686,11 @@ class Globus(Plugin):
         >>>     "items": [
         >>>           {
         >>>               "source": "file://file1.txt",
-        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
+        >>>               "destination": "globus://YYYYYYYY-...-YYYYYYYYYYYY/file1.txt"
         >>>           },
         >>>           {
         >>>               "source": "file://file2.txt",
-        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
+        >>>               "destination": "globus://YYYYYYYY-...YYYYYYYYYYYY/file2.txt"
         >>>           }
         >>>     ]
         >>> }
@@ -715,11 +734,11 @@ class Globus(Plugin):
         >>> action_package = {
         >>>     "items": [
         >>>           {
-        >>>               "source": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
+        >>>               "source": "globus://YYYYYYY...-YYYYYYYYYYYY/file1.txt"
         >>>               "destination": "file://file1.txt",
         >>>           },
         >>>           {
-        >>>               "source": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
+        >>>               "source": "globus://YYYYYYY...YYYYYYYYYYY/file2.txt"
         >>>               "destination": "file://file2.txt",
         >>>           }
         >>>     ]
@@ -768,12 +787,12 @@ class Globus(Plugin):
         >>>     "type": "synchronous",
         >>>     "items": [
         >>>         {
-        >>>             "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
-        >>>             "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+        >>>             "source": "globus://XXXXXXXX-XX...X-XXXXXXXXXXXX/file1.txt",
+        >>>             "destination": "globus://YYYYYY...-YYYYYYYYYYYY/dest/file1.txt"
         >>>         },
         >>>         {
-        >>>             "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
-        >>>             "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+        >>>             "source": "globus://XXXXXXXX-...XXX-XXXXXXXXXXXX/file2.txt",
+        >>>             "destination": "globus://YYYY...Y-YYYYYYYYYYYY/dest/file2.txt"
         >>>         }
         >>>     ]
         >>> }
@@ -822,7 +841,8 @@ class Globus(Plugin):
                 if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
                     error_msg = f"Invalid source endpoint uuid dectected in \
                                 'move_from_globus_collection' item: {item} \nuuid: \
-                                {globus_sep_uri[0]}\nRecognized endpoints are {self.__endpoints}."
+                                {globus_sep_uri[0]}\nRecognized endpoints \
+                                are {self.__endpoints}."
                     return (False, error_msg)
 
                 file_sep_uri = fileURISeparator(item["source"])
@@ -864,11 +884,11 @@ class Globus(Plugin):
         >>>    "destination_collection_UUID": "",
         >>>    "items": [
         >>>           {
-        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt"
+        >>>               "source": "globus://XXXXXXXX-...X-XXXXXXXXXXXX/file1.txt"
         >>>               "destination": "file://file1.txt",
         >>>           },
         >>>           {
-        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt"
+        >>>               "source": "globus://XXXXXXXX-X...XXX-XXXXXXXXXXXX/file2.txt"
         >>>               "destination": "file://file2.txt",
         >>>           }
         >>>    ]
@@ -898,7 +918,8 @@ class Globus(Plugin):
                 if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
                     error_msg = f"Invalid source endpoint uuid dectected in \
                                 'move_from_globus_collection' item: {item} \nuuid: \
-                                {globus_sep_uri[0]}\nRecognized endpoints are {self.__endpoints}."
+                                {globus_sep_uri[0]}\nRecognized endpoints \
+                                are {self.__endpoints}."
                     return (False, error_msg)
 
                 file_sep_uri = fileURISeparator(item["destination"])
@@ -933,8 +954,15 @@ class Globus(Plugin):
 
         config = {
           "local_endpoints": [
-              { "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5", "path": "/scratch/", "type": "guest"},
-              { "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5", "path": "/project/", "type": "mapped"}
+              {
+                "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5",
+                "path": "/scratch/",
+                "type": "guest"
+              },
+              {
+                "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5",
+                "path": "/project/",
+                "type": "mapped"}
           ],
           "authentication_flow": {
               "type": "'native' or 'client credential'"
@@ -1045,12 +1073,12 @@ class Globus(Plugin):
         >>>           "type": "synchronous",
         >>>           "items": [
         >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
-        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+        >>>                     "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
+        >>>                     "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
         >>>                 },
         >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
-        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
+        >>>                     "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
         >>>                 }
         >>>           ]
         >>>       }
@@ -1064,11 +1092,11 @@ class Globus(Plugin):
         >>>       "items": [
         >>>           {
         >>>               "source": "file://file1.txt",
-        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
+        >>>               "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt"
         >>>           },
         >>>           {
         >>>               "source": "file://file2.txt",
-        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
+        >>>               "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt"
         >>>           }
         >>>       ]
         >>>   }
@@ -1080,11 +1108,11 @@ class Globus(Plugin):
         >>>   { "move_from_globus_collection": {
         >>>       "items": [
         >>>           {
-        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt"
+        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt"
         >>>               "destination": "file://file1.txt",
         >>>           },
         >>>           {
-        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt"
+        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt"
         >>>               "destination": "file://file2.txt",
         >>>           }
         >>>       ]
@@ -1140,12 +1168,12 @@ class Globus(Plugin):
         >>>           "type": "synchronous",
         >>>           "items": [
         >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt",
-        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file1.txt"
+        >>>                     "source": "globus://XXXXXXXX-XXX...XXXX/file1.txt",
+        >>>                     "destination": "globus://YYYYYYY...YYYY/dest/file1.txt"
         >>>                 },
         >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt",
-        >>>                     "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/dest/file2.txt"
+        >>>                     "source": "globus://XXXXXXXX-XXX...XXXX/file2.txt",
+        >>>                     "destination": "globus://YYYYYYY...YYYYY/dest/file2.txt"
         >>>                 }
         >>>           ]
         >>>       }
@@ -1159,11 +1187,11 @@ class Globus(Plugin):
         >>>       "items": [
         >>>           {
         >>>               "source": "file://file1.txt",
-        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file1.txt"
+        >>>               "destination": "globus://YYYYYYYY...YYYYYYYYYY/file1.txt"
         >>>           },
         >>>           {
         >>>               "source": "file://file2.txt",
-        >>>               "destination": "globus://YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY/file2.txt"
+        >>>               "destination": "globus://YYYYYYYY...-YYYYYYYYYYYY/file2.txt"
         >>>           }
         >>>       ]
         >>>   }
@@ -1175,11 +1203,11 @@ class Globus(Plugin):
         >>>   { "move_from_globus_collection": {
         >>>       "items": [
         >>>           {
-        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file1.txt"
+        >>>               "source": "globus://XXXXX...XXXXXXXXXXX/file1.txt"
         >>>               "destination": "file://file1.txt",
         >>>           },
         >>>           {
-        >>>               "source": "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file2.txt"
+        >>>               "source": "globus://XXXXX...XXX-XXXXXXXXXXXX/file2.txt"
         >>>               "destination": "file://file2.txt",
         >>>           }
         >>>       ]

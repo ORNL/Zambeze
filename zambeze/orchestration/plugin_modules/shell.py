@@ -49,7 +49,7 @@ class Shell(Plugin):
     def check(self, arguments: list[dict]) -> dict:
         """Checks to see if the provided shell is supported
 
-        
+
         :Example" 
 
         >>> arguments = [ {
