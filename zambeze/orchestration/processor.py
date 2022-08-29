@@ -106,6 +106,8 @@ class Processor(threading.Thread):
                         
 
                     print("Printing content to be executed")
+                    self._logger.info("Command to be executed.")
+                    self._logger.info(data["cmd"])
                     print(data["cmd"])
                     # perform compute action
                     checked_result = self._settings.plugins.check(
