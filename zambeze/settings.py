@@ -7,6 +7,7 @@
 # it under the terms of the MIT License.
 
 import logging
+import os
 import pathlib
 import yaml
 
@@ -33,6 +34,10 @@ class ZambezeSettings:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+        # set default values
+        self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
+        print(self.settings)
+        print(self.settings["zmq"])
         self.load_settings(conf_file)
 
     def load_settings(self, conf_file: Optional[pathlib.Path] = None) -> None:
@@ -42,21 +47,34 @@ class ZambezeSettings:
         :param conf_file: Path to configuration file
         :type conf_file: Optional[pathlib.Path]
         """
-        self._conf_file = conf_file
-        if not self._conf_file:
-            zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
+        self._conf_file = pathlib.Path(conf_file)
+
+        zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
+        if not zambeze_folder.exists():
             zambeze_folder.mkdir(parents=True, exist_ok=True)
-            self._conf_file = zambeze_folder.joinpath("agent.yaml")
-            self._conf_file.touch()
 
+        default_conf = zambeze_folder.joinpath("agent.yaml")
+        if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
+            if not self._conf_file.exists():
+                self._conf_file.touch()
+                default_settings = {
+                    "nats": {"host": "127.0.0.1", "port": 4222},
+                    "plugins": {"shell": {"config": {}}},
+                    "zmq": {"host": "127.0.0.1", "port": 5555},
+                }
+                with open(self._conf_file, "w") as f:
+                    yaml.dump(default_settings, f)
+
+        # if not self.settings:
+        #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
+
+        self._logger.info(f"Loading settings from config file: {self._conf_file}")
         with open(self._conf_file, "r") as cf:
-            self.settings = yaml.safe_load(cf)
+            self.settings.update(yaml.safe_load(cf))
 
-        # set default values
-        if not self.settings:
-            self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
-        self.__set_default("host", "localhost", self.settings["nats"])
+        self.__set_default("host", "127.0.0.1", self.settings["nats"])
         self.__set_default("port", 4222, self.settings["nats"])
+        self.__set_default("host", "127.0.0.1", self.settings["zmq"])
         self.__set_default("port", 5555, self.settings["zmq"])
         self.__set_default("plugins", {}, self.settings)
         self.__save()
@@ -72,6 +90,7 @@ class ZambezeSettings:
 
         for plugin_name in self.plugins.registered:
             if plugin_name in self.settings["plugins"]:
+                self._logger.info(f"Configuring Plugin: {plugin_name}")
                 config[plugin_name] = self.settings["plugins"][plugin_name]["config"]
 
         self.plugins.configure(config=config)

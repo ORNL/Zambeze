@@ -12,6 +12,7 @@ import json
 import logging
 import pathlib
 import nats
+import os
 import socket
 import threading
 
@@ -52,6 +53,16 @@ class Processor(threading.Thread):
         self._logger.debug("Starting Agent Processor")
         asyncio.run(self.__process())
 
+    async def __disconnected(self):
+        self._logger.info(
+            f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
+        )
+
+    async def __reconnected(self):
+        self._logger.info(
+            f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
+        )
+
     async def __process(self):
         """
         Evaluate and process messages if requested activity is supported.
@@ -59,24 +70,51 @@ class Processor(threading.Thread):
         self._logger.debug(
             f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
         )
-        nc = await nats.connect(self._settings.get_nats_connection_uri())
+        print(f"Connecting to {self._settings.get_nats_connection_uri()}")
+
+        nc = await nats.connect(
+            self._settings.get_nats_connection_uri(),
+            reconnected_cb=self.__reconnected,
+            disconnected_cb=self.__disconnected,
+            connect_timeout=1,
+        )
+
         sub = await nc.subscribe(MessageType.COMPUTE.value)
         self._logger.debug("Waiting for messages")
+
+        default_working_dir = self._settings.settings["plugins"]["All"][
+            "default_working_directory"
+        ]
+        self._logger.debug(f"Moving to working directory {default_working_dir}")
+        os.chdir(default_working_dir)
 
         while True:
             try:
                 msg = await sub.next_msg()
                 data = json.loads(msg.data)
-                self._logger.debug(f"Message received: {msg.data}")
+                self._logger.debug("Message received:")
+                self._logger.debug(json.dumps(data, indent=4))
+
                 if self._settings.is_plugin_configured(data["plugin"].lower()):
+
                     # look for files
                     if "files" in data and data["files"]:
                         await self.__process_files(data["files"])
+
+                    self._logger.info("Command to be executed.")
+                    self._logger.info(json.dumps(data["cmd"], indent=4))
+
+                    # Running Checks
+                    checked_result = self._settings.plugins.check(
+                        plugin_name=data["plugin"].lower(), arguments=data["cmd"]
+                    )
+                    self._logger.debug(checked_result)
 
                     # perform compute action
                     self._settings.plugins.run(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
+
                 self._logger.debug("Waiting for messages")
 
             except TimeoutError:
@@ -94,29 +132,90 @@ class Processor(threading.Thread):
         :type files: list[str]
         """
         self._logger.debug("Processing files...")
-
         for file in files:
             file_url = urlparse(file)
-
             if file_url.scheme == "file":
                 if not pathlib.Path(file_url.path).exists():
                     raise Exception(f"Unable to find file: {file_url.path}")
 
             elif file_url.scheme == "globus":
-                await self.send(
-                    MessageType.COMPUTE.value,
-                    {
-                        "plugin": "globus",
-                        "cmd": [
-                            {
-                                "transfer": {
-                                    "type": "synchronous",
-                                    "items": [file_url],
+
+                # Check if we have plugin
+                if self._settings.is_plugin_configured("globus"):
+                    source_file_name = os.path.basename(file_url.path)
+                    default_endpoint = self._settings.settings["plugins"]["globus"][
+                        "config"
+                    ]["default_endpoint"]
+                    default_working_dir = self._settings.settings["plugins"]["All"][
+                        "default_working_directory"
+                    ]
+
+                    local_globus_uri = "globus://"
+                    local_globus_uri = local_globus_uri + default_endpoint + os.sep
+                    local_globus_uri = local_globus_uri + source_file_name
+
+                    local_posix_uri = "file://"
+                    local_posix_uri = local_posix_uri + default_working_dir + os.sep
+                    local_posix_uri = local_posix_uri + source_file_name
+
+                    # Schedule the Globus transfer
+                    transfer_args = {
+                        "transfer": {
+                            "type": "synchronous",
+                            "items": [
+                                {
+                                    "source": file_url.geturl(),
+                                    "destination": local_globus_uri,
                                 }
-                            },
-                        ],
-                    },
-                )
+                            ],
+                        }
+                    }
+
+                    checked_result = self._settings.plugins.check(
+                        plugin_name="globus", arguments=transfer_args
+                    )
+                    self._logger.debug(checked_result)
+                    self._settings.plugins.run(
+                        plugin_name="globus", arguments=transfer_args
+                    )
+
+                    # Move from the Globus collection to the default working
+                    # directory
+                    move_to_file_path_args = {
+                        "move_from_globus_collection": {
+                            "items": [
+                                {
+                                    "source": local_globus_uri,
+                                    "destination": local_posix_uri,
+                                }
+                            ]
+                        }
+                    }
+                    checked_result = self._settings.plugins.check(
+                        plugin_name="globus", arguments=move_to_file_path_args
+                    )
+                    self._logger.debug(checked_result)
+                    self._settings.plugins.run(
+                        plugin_name="globus", arguments=move_to_file_path_args
+                    )
+                else:
+                    # If the local agent does not support Globus we will need to send a request to
+                    # to nats for someone else to handle the transfer
+                    #                    await self.send(
+                    #                        MessageType.COMPUTE.value,
+                    #                        {
+                    #                            "plugin": "globus",
+                    #                            "cmd": [
+                    #                                {
+                    #                                    "transfer": {
+                    #                                        "type": "synchronous",
+                    #                                        "items": [file_url],
+                    #                                    }
+                    #                                },
+                    #                            ],
+                    #                        },
+                    #                    )
+                    raise Exception("Needs to be implemented.")
 
             elif file_url.scheme == "rsync":
                 await self.send(

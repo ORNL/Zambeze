@@ -12,6 +12,7 @@ import subprocess
 
 # Local imports
 from .abstract_plugin import Plugin
+from shutil import which
 
 # Standard imports
 from typing import Optional
@@ -46,8 +47,34 @@ class Shell(Plugin):
         return {}
 
     def check(self, arguments: list[dict]) -> dict:
-        print("Checking shell plugin")
-        return {"run": (False, "Checks not implemented.")}
+        """Checks to see if the provided shell is supported
+
+
+        :Example"
+
+        >>> arguments = [ {
+        >>>   "bash": { }
+        >>> }]
+
+        """
+        checks = {}
+        for item in arguments:
+            for shell in item.keys():
+                if which(shell) is None:
+                    return {shell: (False, "Unrecognized shell")}
+
+                if "program" in item:
+                    if which(shell["program"]) is None:
+                        return {
+                            shell: (
+                                False,
+                                f"Unable to locate program: {shell['program']}",
+                            )
+                        }
+
+                checks[shell] = ("True", "")
+
+        return checks
 
     def process(self, arguments: list[dict]):
         """

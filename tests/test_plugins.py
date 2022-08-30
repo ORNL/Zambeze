@@ -78,7 +78,7 @@ def test_rsync_plugin_info():
     assert info["rsync"]["local_ip"] == local_ip
 
 
-@pytest.mark.unit
+@pytest.mark.gitlab_runner
 def test_rsync_plugin_check():
     plugins = Plugins()
     plugins.configure({"shell": {}})
