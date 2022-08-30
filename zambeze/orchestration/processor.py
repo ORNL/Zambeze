@@ -83,15 +83,19 @@ class Processor(threading.Thread):
 
         sub = await nc.subscribe(MessageType.COMPUTE.value)
         self._logger.debug("Waiting for messages")
+
+        default_working_dir = self._settings.settings['plugins']['All']['default_working_directory']
         self._logger.debug(
-            f"Moving to working directory {os.chdir(self._settings.settings['plugins']['All']['default_working_directory'])}"
+            f"Moving to working directory {default_working_dir}"
         )
+        os.chdir(default_working_dir)
 
         while True:
             try:
                 msg = await sub.next_msg()
                 data = json.loads(msg.data)
-                self._logger.debug(f"Message received: {msg.data}")
+                self._logger.debug("Message received:")
+                self._logger.debug(json.dumps(data,indent=4))
 
                 if self._settings.is_plugin_configured(data["plugin"].lower()):
 
@@ -100,7 +104,7 @@ class Processor(threading.Thread):
                         await self.__process_files(data["files"])
 
                     self._logger.info("Command to be executed.")
-                    self._logger.info(data["cmd"])
+                    self._logger.info(json.dumps(data["cmd"],indent=4))
 
                     # Running Checks
                     checked_result = self._settings.plugins.check(

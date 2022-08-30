@@ -18,6 +18,7 @@ from os.path import isfile
 from socket import gethostname
 from typing import Optional
 
+import json
 import logging
 import pickle
 import re
@@ -629,7 +630,7 @@ class Globus(Plugin):
             tdata.add_item(source_file_path, dest_file_path)
 
             self._logger.info("Packet to be transferred by Globus.")
-            self._logger.info(tdata)
+            self._logger.info(json.dumps(dict(tdata),indent=4))
             transfer_result = {}
             if "synchronous" == transfer["type"].lower():
                 transfer_result = self.__tc.submit_transfer(tdata)
@@ -896,7 +897,7 @@ class Globus(Plugin):
         >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
         """
 
-        supported_source_path_types = ["globus relative"]
+        supported_source_path_types = ["globus"]
         supported_destination_path_types = ["file"]
 
         valid, msg = checkAllItemsHaveValidEndpoints(
@@ -922,8 +923,8 @@ class Globus(Plugin):
                                 are {self.__endpoints}."
                     return (False, error_msg)
 
-                file_sep_uri = fileURISeparator(item["destination"])
-                file_path = file_sep_uri[0] + file_sep_uri[1]
+                posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(globus_sep_uri[0])
+                file_path = posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
                 if not exists(file_path):
                     return False, f"Item does not exist {file_path}"
 
@@ -974,8 +975,7 @@ class Globus(Plugin):
         """
         self.__validConfig(config)
 
-        print("config is ")
-        print(config)
+        self._logger.debug(json.dumps(config,indent=4))
         if "authentication_flow" in config:
           if "client_id" in config["authentication_flow"]:
               self.__client_id = config["authentication_flow"]["client_id"]
