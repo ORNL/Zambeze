@@ -50,7 +50,7 @@ class Shell(Plugin):
         """Checks to see if the provided shell is supported
 
 
-        :Example" 
+        :Example"
 
         >>> arguments = [ {
         >>>   "bash": { }

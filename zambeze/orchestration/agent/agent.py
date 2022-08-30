@@ -46,7 +46,7 @@ class Agent:
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
-        print(f"Binding to: {self._settings.get_zmq_connection_uri()}")
+        self._logger.info(f"Binding to: {self._settings.get_zmq_connection_uri()}")
         self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
 
         while True:

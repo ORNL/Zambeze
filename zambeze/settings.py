@@ -56,24 +56,14 @@ class ZambezeSettings:
         default_conf = zambeze_folder.joinpath("agent.yaml")
         if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
             if not self._conf_file.exists():
-              self._conf_file.touch()
-              default_settings = {
-                "nats": {
-                  "host": "127.0.0.1",
-                  "port": 4222
-                },
-                "plugins": {
-                  "shell": {
-                    "config": {}
-                  }
-                },
-                "zmq": {
-                  "host": "localhost",
-                  "port": 5555
+                self._conf_file.touch()
+                default_settings = {
+                    "nats": {"host": "127.0.0.1", "port": 4222},
+                    "plugins": {"shell": {"config": {}}},
+                    "zmq": {"host": "127.0.0.1", "port": 5555},
                 }
-              }
-              with open(self._conf_file, 'w') as f:
-                yaml.dump(default_settings, f)
+                with open(self._conf_file, "w") as f:
+                    yaml.dump(default_settings, f)
 
         # if not self.settings:
         #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
@@ -82,9 +72,9 @@ class ZambezeSettings:
         with open(self._conf_file, "r") as cf:
             self.settings.update(yaml.safe_load(cf))
 
-        self.__set_default("host", "localhost", self.settings["nats"])
+        self.__set_default("host", "127.0.0.1", self.settings["nats"])
         self.__set_default("port", 4222, self.settings["nats"])
-        self.__set_default("host", "localhost", self.settings["zmq"])
+        self.__set_default("host", "127.0.0.1", self.settings["zmq"])
         self.__set_default("port", 5555, self.settings["zmq"])
         self.__set_default("plugins", {}, self.settings)
         self.__save()

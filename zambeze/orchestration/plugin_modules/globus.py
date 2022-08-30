@@ -461,7 +461,7 @@ class Globus(Plugin):
                     f" {config['default_endpoint']}"
                 )
 
-            # Make sure that default_endpoint is one of the endpoints that has 
+            # Make sure that default_endpoint is one of the endpoints that has
             # been configured
 
             if not localEndpointExists(
@@ -630,7 +630,7 @@ class Globus(Plugin):
             tdata.add_item(source_file_path, dest_file_path)
 
             self._logger.info("Packet to be transferred by Globus.")
-            self._logger.info(json.dumps(dict(tdata),indent=4))
+            self._logger.info(json.dumps(dict(tdata), indent=4))
             transfer_result = {}
             if "synchronous" == transfer["type"].lower():
                 transfer_result = self.__tc.submit_transfer(tdata)
@@ -923,8 +923,12 @@ class Globus(Plugin):
                                 are {self.__endpoints}."
                     return (False, error_msg)
 
-                posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(globus_sep_uri[0])
-                file_path = posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
+                posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(
+                    globus_sep_uri[0]
+                )
+                file_path = (
+                    posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
+                )
                 if not exists(file_path):
                     return False, f"Item does not exist {file_path}"
 
@@ -975,10 +979,10 @@ class Globus(Plugin):
         """
         self.__validConfig(config)
 
-        self._logger.debug(json.dumps(config,indent=4))
+        self._logger.debug(json.dumps(config, indent=4))
         if "authentication_flow" in config:
-          if "client_id" in config["authentication_flow"]:
-              self.__client_id = config["authentication_flow"]["client_id"]
+            if "client_id" in config["authentication_flow"]:
+                self.__client_id = config["authentication_flow"]["client_id"]
 
         # Detect hostname
         self.__hostname = gethostname()

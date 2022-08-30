@@ -53,17 +53,15 @@ class Processor(threading.Thread):
         self._logger.debug("Starting Agent Processor")
         asyncio.run(self.__process())
 
-    async def __disconnected():
+    async def __disconnected(self):
         self._logger.info(
             f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
         )
-        print(f"Disconnected from nats... {self._settings.get_nats_connection_uri()}")
 
-    async def __reconnected():
+    async def __reconnected(self):
         self._logger.info(
             f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
         )
-        print(f"Reconnected to nats... {self._settings.get_nats_connection_uri()}")
 
     async def __process(self):
         """
@@ -84,10 +82,10 @@ class Processor(threading.Thread):
         sub = await nc.subscribe(MessageType.COMPUTE.value)
         self._logger.debug("Waiting for messages")
 
-        default_working_dir = self._settings.settings['plugins']['All']['default_working_directory']
-        self._logger.debug(
-            f"Moving to working directory {default_working_dir}"
-        )
+        default_working_dir = self._settings.settings["plugins"]["All"][
+            "default_working_directory"
+        ]
+        self._logger.debug(f"Moving to working directory {default_working_dir}")
         os.chdir(default_working_dir)
 
         while True:
@@ -95,7 +93,7 @@ class Processor(threading.Thread):
                 msg = await sub.next_msg()
                 data = json.loads(msg.data)
                 self._logger.debug("Message received:")
-                self._logger.debug(json.dumps(data,indent=4))
+                self._logger.debug(json.dumps(data, indent=4))
 
                 if self._settings.is_plugin_configured(data["plugin"].lower()):
 
@@ -104,7 +102,7 @@ class Processor(threading.Thread):
                         await self.__process_files(data["files"])
 
                     self._logger.info("Command to be executed.")
-                    self._logger.info(json.dumps(data["cmd"],indent=4))
+                    self._logger.info(json.dumps(data["cmd"], indent=4))
 
                     # Running Checks
                     checked_result = self._settings.plugins.check(
@@ -161,7 +159,7 @@ class Processor(threading.Thread):
                     local_posix_uri = local_posix_uri + source_file_name
 
                     # Schedule the Globus transfer
-                    message1 = {
+                    transfer_args = {
                         "transfer": {
                             "type": "synchronous",
                             "items": [
@@ -174,14 +172,16 @@ class Processor(threading.Thread):
                     }
 
                     checked_result = self._settings.plugins.check(
-                        plugin_name="globus", arguments=message1
+                        plugin_name="globus", arguments=transfer_args
                     )
                     self._logger.debug(checked_result)
-                    self._settings.plugins.run(plugin_name="globus", arguments=message1)
+                    self._settings.plugins.run(
+                        plugin_name="globus", arguments=transfer_args
+                    )
 
                     # Move from the Globus collection to the default working
                     # directory
-                    message2 = {
+                    move_to_file_path_args = {
                         "move_from_globus_collection": {
                             "items": [
                                 {
@@ -192,10 +192,12 @@ class Processor(threading.Thread):
                         }
                     }
                     checked_result = self._settings.plugins.check(
-                        plugin_name="globus", arguments=message2
+                        plugin_name="globus", arguments=move_to_file_path_args
                     )
                     self._logger.debug(checked_result)
-                    self._settings.plugins.run(plugin_name="globus", arguments=message2)
+                    self._settings.plugins.run(
+                        plugin_name="globus", arguments=move_to_file_path_args
+                    )
                 else:
                     # If the local agent does not support Globus we will need to send a request to
                     # to nats for someone else to handle the transfer
