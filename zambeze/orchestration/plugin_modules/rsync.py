@@ -26,7 +26,8 @@ import subprocess
 # Assistant Functions
 #############################################################
 def requiredEndpointKeysExist(action_endpoint: dict) -> (bool, str):
-    """Returns true if action_endpoint contains "ip","user" and "path" keys
+    """Returns a tuple with the first element set to true if
+    action_endpoint contains "ip","user" and "path" keys
 
     :param action_endpoint: the object that is being checked
     :type action_endpoint: dict
@@ -39,14 +40,14 @@ def requiredEndpointKeysExist(action_endpoint: dict) -> (bool, str):
     >>>     "path": "/home/cades/folder1/out.txt"
     >>> }
     >>> fields_exist = requiredEndpointKeysExist( action_endpoint)
-    >>> assert fields_exist
+    >>> assert fields_exist[0]
     >>> action_endpoint = {
     >>>     "ip": "138.131.32.5",
     >>>     "path": "/home/cades/folder1/out.txt"
     >>> }
     >>> # Should fail because missing "user"
     >>> fields_exist = requiredEndpointKeysExist( action_endpoint)
-    >>> assert not fields_exist
+    >>> assert not fields_exist[0]
     """
     if "ip" not in action_endpoint:
         return (False, "Missing 'ip' field")
@@ -58,8 +59,8 @@ def requiredEndpointKeysExist(action_endpoint: dict) -> (bool, str):
 
 
 def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
-    """Returns true if both source and destination endpoints contain the
-    correct fields
+    """Returns a tuple, with first element a bool that is set to true
+    if both source and destination endpoints contain the correct fields
 
     Note this function does not check that the fields make since so you could have
     a completely bogus ip address and this will function will return true.
@@ -79,7 +80,7 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
     >>>     }
     >>> }
     >>> keys_exist = requiredSourceAndDestinationKeysExist(action_inst)
-    >>> assert keys_exist
+    >>> assert keys_exist[0]
     """
 
     if "source" in action_inst:
@@ -119,7 +120,7 @@ def requiredSourceAndDestinationValuesValid(
     >>>     }
     >>> }
     >>> values_valid = requiredSourceAndDestinationValuesValid(action_inst, "source")
-    >>> assert values_valid
+    >>> assert values_valid[0]
 
     Extra checks are run on the source or destination
     values depending on which machine this code is running on.
@@ -303,7 +304,13 @@ class Rsync(Plugin):
         >>> ]
         >>> instance = Rsync()
         >>> instance.configure(config)
-        >>> assert instance.check(arguments)
+        >>> checked_arguments = instance.check(arguments)
+        >>> # If there is no problem will return the following
+        >>> # checked_arguments = [
+        >>> # {
+        >>> #   "transfer": (True, "")
+        >>> # }]
+        >>> assert checked_arguments[0]["transfer"][0]
         """
 
         checks = []
