@@ -7,7 +7,7 @@ test-zambeze:
   tags:
     - cades
   script:
-    - source /opt/zambeze-py39-env/bin/activate
+    - source /opt/zambeze/zambeze-py39-env/bin/activate
     - /usr/bin/python3.9 -m pip install -r requirements.txt
     - chmod 600 $ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
     - /usr/bin/python3.9 -m pytest -m unit -sv
