@@ -1065,7 +1065,7 @@ class Globus(Plugin):
         information["configured"] = self.__configured
         return information
 
-    def check(self, arguments: list[dict]) -> dict:
+    def check(self, arguments: list[dict]) -> list[dict]:
         """Checks the input argument for errors
 
         Cycle through the items in the argument and checks if this instance
@@ -1126,37 +1126,39 @@ class Globus(Plugin):
         >>>   }
         >>> ]
         """
-        checks = {}
+        checks = []
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
                 # Check if the action is supported
                 if self.__supported_actions[action] is False:
-                    checks[action] = (False, "action is not supported.")
+                    checks.append( {action: (False, "action is not supported.") })
                     continue
 
                 if action == "transfer":
                     # Any agent with the globus plugin can submit a job to globus if it
                     # has access to the globus cloud
-                    checks[action] = self.__runTransferSanityCheck(
+                    checks.append( {action: self.__runTransferSanityCheck(
                         arguments[index][action]
-                    )
+                    )})
 
                 elif action == "move_to_globus_collection":
-                    checks[action] = self.__runMoveToGlobusSanityCheck(
+                    checks.append( {action: self.__runMoveToGlobusSanityCheck(
                         arguments[index][action]
+                        ) }
                     )
 
                 elif action == "move_from_globus_collection":
-                    checks[action] = self.__runMoveFromGlobusSanityCheck(
+                    checks.append( {action: self.__runMoveFromGlobusSanityCheck(
                         arguments[index][action]
-                    )
+                    ) })
                 elif action == "get_task_status":
-                    checks[action] = self.__runGetTaskStatusSanityCheck(
+                    checks.append( {action: self.__runGetTaskStatusSanityCheck(
                         arguments[index][action]
+                        ) }
                     )
                 else:
-                    checks[action] = (False, "Unrecognized action keyword")
+                    checks.append( {action: (False, "Unrecognized action keyword") })
         return checks
 
     def process(self, arguments: list[dict]) -> dict:

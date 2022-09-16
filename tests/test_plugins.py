@@ -81,7 +81,12 @@ def test_rsync_plugin_info():
 @pytest.mark.gitlab_runner
 def test_rsync_plugin_check():
     plugins = Plugins()
-    plugins.configure({"shell": {}})
+    plugins.configure({
+        "shell": {},
+        "rsync": {}
+        })
+        #,
+        #"rsync": {}})
 
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
@@ -89,6 +94,7 @@ def test_rsync_plugin_check():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
+    neighbor_vm_ip=os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
     arguments = {
         "transfer": {
             "source": {
@@ -97,26 +103,25 @@ def test_rsync_plugin_check():
                 "path": current_valid_path,
             },
             "destination": {
-                "ip": "172.22.1.69",
+                "ip": neighbor_vm_ip,
                 "user": "cades",
-                "path": "/home/cades/josh-testing",
+                "path": "/tmp",
             },
             "arguments": ["-a"],
         }
     }
 
     checked_actions = plugins.check("rsync", arguments)
-    assert checked_actions["rsync"]["transfer"]
-
+    assert checked_actions["rsync"][0]["transfer"][0]
     arguments_faulty_ip = copy.deepcopy(arguments)
     arguments_faulty_ip["transfer"]["destination"]["ip"] = "172.22."
     checked_actions = plugins.check("rsync", arguments_faulty_ip)
-    assert not checked_actions["rsync"]["transfer"]
+    assert not checked_actions["rsync"][0]["transfer"][0]
 
     arguments_faulty_user = copy.deepcopy(arguments)
     arguments_faulty_user["transfer"]["source"]["user"] = "user_that_does_not_exist"
     checked_actions = plugins.check("rsync", arguments_faulty_user)
-    assert not checked_actions["rsync"]["transfer"]
+    assert not checked_actions["rsync"][0]["transfer"][0]
 
 
 @pytest.mark.gitlab_runner
@@ -124,22 +129,27 @@ def test_rsync_plugin_run():
     """This test is designed to test the rsync plugin plugin
 
     A few special points, there are a few environmental variables that
-    must be defiend to run this test successfully:
+    must be defined to run this test successfully:
 
     ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
 
     This represents the path to the private ssh key that the test has
     access to. For the test to work the public key must have already
-    been copied over to the other machine used in the test with ip
-    address "172.22.1.69" and added to that machines authorized_keys
-    file
+    been copied over to the other machine.
 
-    If you want to run the test interactively you can log into the
-    machine at ip address 172.22.1.68 and run
+    ZAMBEZE_CI_TEST_RSYNC_IP
+
+    This env variable contains the ip address of the machine that rsync
+    is being tested with. The public rsa key must have already been
+    added to that machines authorized_keys.
+
+    Once those env variables are defined the tests can be run with.
 
     python3 -m pytest -m gitlab_runner
     """
     plugins = Plugins()
+
+    neighbor_vm_ip=os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
@@ -161,9 +171,9 @@ def test_rsync_plugin_run():
         "transfer": {
             "source": {"ip": local_ip, "user": current_user, "path": file_path},
             "destination": {
-                "ip": "172.22.1.69",
+                "ip": neighbor_vm_ip,
                 "user": "cades",
-                "path": "/home/cades/josh-testing",
+                "path": "/tmp",
             },
             "arguments": ["-a"],
         }
@@ -171,7 +181,8 @@ def test_rsync_plugin_run():
 
     print("Arguments: Initial transfer to remote machine")
     print(arguments)
-    assert plugins.check("rsync", arguments)
+    checks = plugins.check("rsync", arguments)
+    assert checks["rsync"][0]["transfer"][0] 
     plugins.run("rsync", arguments)
 
     file_path_return = current_valid_path + "/demofile_return.txt"
@@ -188,9 +199,9 @@ def test_rsync_plugin_run():
                 "path": file_path_return,
             },
             "source": {
-                "ip": "172.22.1.69",
+                "ip": neighbor_vm_ip,
                 "user": "cades",
-                "path": "/home/cades/josh-testing" + "/" + file_name,
+                "path": "/tmp" + "/" + file_name,
             },
             "arguments": ["-a"],
         }
@@ -199,7 +210,7 @@ def test_rsync_plugin_run():
     print("Arguments: Second transfer back to host machine")
     print(arguments_return)
     checked_actions = plugins.check("rsync", arguments_return)
-    assert checked_actions["rsync"]["transfer"]
+    assert checked_actions["rsync"][0]["transfer"][0]
     plugins.run("rsync", arguments_return)
     # This will verify that copying from a remote machine to the local
     # machine was a success

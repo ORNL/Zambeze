@@ -72,14 +72,14 @@ class Plugin(ABC):
         raise NotImplementedError("returns information about the plugin.")
 
     @abstractmethod
-    def check(self, arguments: list[dict]) -> dict:
+    def check(self, arguments: list[dict]) -> list[dict]:
         """Determine if the proposed arguments can be executed by this instance.
 
         :param arguments: The arguments are checked to ensure their types and
         formats are valid
         :type arguments: list[dict]
         :return: Returns the list of actions that are vaid
-        :rtype: dict with the actions valid actions listed with bool set to
+        :rtype: list[dict] with the actions valid actions listed with bool set to
         True and invalid ones False, along with a message.
 
         :Example:
