@@ -7,10 +7,10 @@ test-zambeze:
   tags:
     - cades
   script:
-    - /opt/anaconda3/bin/python3 -m pip install -r requirements.txt
+    - /usr/bin/python3.9 -m pip install -r requirements.txt
     - chmod 600 $ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
-    - /opt/anaconda3/bin/python3 -m pytest -m unit -sv
-    - /opt/anaconda3/bin/python3 -m pytest -m gitlab_runner -sv
+    - /usr/bin/python3.9 -m pytest -m unit -sv
+    - /usr/bin/python3.9 -m pytest -m gitlab_runner -sv
 
 # Ideally this job would use a virtual environment that was provisioned by 
 # Ansible, as it is, if the VM goes down this venv disappears
