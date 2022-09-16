@@ -81,12 +81,9 @@ def test_rsync_plugin_info():
 @pytest.mark.gitlab_runner
 def test_rsync_plugin_check():
     plugins = Plugins()
-    plugins.configure({
-        "shell": {},
-        "rsync": {}
-        })
-        #,
-        #"rsync": {}})
+    plugins.configure({"shell": {}, "rsync": {}})
+    # ,
+    # "rsync": {}})
 
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
@@ -94,7 +91,7 @@ def test_rsync_plugin_check():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
-    neighbor_vm_ip=os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
     arguments = {
         "transfer": {
             "source": {
@@ -149,7 +146,7 @@ def test_rsync_plugin_run():
     """
     plugins = Plugins()
 
-    neighbor_vm_ip=os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
@@ -182,7 +179,7 @@ def test_rsync_plugin_run():
     print("Arguments: Initial transfer to remote machine")
     print(arguments)
     checks = plugins.check("rsync", arguments)
-    assert checks["rsync"][0]["transfer"][0] 
+    assert checks["rsync"][0]["transfer"][0]
     plugins.run("rsync", arguments)
 
     file_path_return = current_valid_path + "/demofile_return.txt"

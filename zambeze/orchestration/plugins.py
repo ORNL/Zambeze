@@ -243,12 +243,22 @@ class Plugins:
         """
         print(self._plugins.keys())
         print(plugin_name)
-        check_results = {} 
+        check_results = {}
         if plugin_name not in self._plugins.keys():
-            check_results[plugin_name] = [{ "configured": (False, f"{plugin_name} is not configured.") } ]
+            check_results[plugin_name] = [
+                {"configured": (False, f"{plugin_name} is not configured.")}
+            ]
             if plugin_name not in self.__module_names:
-                known_module_names = ' '.join(str(mod) for mod in self.__module_names)
-                check_results[plugin_name].append({ "registered": (False, f"{plugin_name} is not a known module. Known modules are: {known_module_names}") } )
+                known_module_names = " ".join(str(mod) for mod in self.__module_names)
+                check_results[plugin_name].append(
+                    {
+                        "registered": (
+                            False,
+                            f"{plugin_name} is not a known module. "
+                            + f"Known modules are: {known_module_names}",
+                        )
+                    }
+                )
         else:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return check_results

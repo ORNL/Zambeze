@@ -85,21 +85,23 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
     if "source" in action_inst:
         field_check = requiredEndpointKeysExist(action_inst["source"])
         if not field_check[0]:
-            return (False, field_check[1] + f"\nRequired by 'source'")
+            return (False, field_check[1] + "\nRequired by 'source'")
     else:
         return (False, "Missing required 'source' field")
 
     if "destination" in action_inst:
         field_check = requiredEndpointKeysExist(action_inst["destination"])
         if not field_check[0]:
-            return (False, field_check[1] + f"\nRequired by 'destination'")
+            return (False, field_check[1] + "\nRequired by 'destination'")
     else:
         return (False, "Missing required 'destination' field")
 
-    return (True,"")
+    return (True, "")
 
 
-def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> (bool, str):
+def requiredSourceAndDestinationValuesValid(
+    action_inst: dict, match_host
+) -> (bool, str):
     """Determines if the values are valid
 
     :Example:
@@ -123,19 +125,32 @@ def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> (b
     values depending on which machine this code is running on.
     """
     if not isAddressValid(action_inst["source"]["ip"]):
-        return (False, f"Invalid 'source' ip address detected: {action_inst['source']['ip']}")
+        return (
+            False,
+            f"Invalid 'source' ip address detected: {action_inst['source']['ip']}",
+        )
 
     if not isAddressValid(action_inst["destination"]["ip"]):
-        return (False, f"Invalid 'destination' ip address detected: {action_inst['source']['ip']}")
+        return (
+            False,
+            f"Invalid 'destination' ip address detected: {action_inst['source']['ip']}",
+        )
 
     if match_host is None:
-        return (False, "rsync requires running on either the source or destination machine you are running from neither")
+        return (
+            False,
+            "rsync requires running on either the source or destination machine you "
+            + "are running from neither",
+        )
     # If make sure that paths defined on the host exist
     if not pathlib.Path(action_inst[match_host]["path"]).exists():
         # If it is the destination it doesn't matter as much because
         # we will try to create it
         if match_host == "source":
-            return (False, f"Source path does not exist: {action_inst[match_host]['path']}")
+            return (
+                False,
+                f"Source path does not exist: {action_inst[match_host]['path']}",
+            )
 
     if not userExists(action_inst[match_host]["user"]):
         return (False, f"User does not exist: {action_inst[match_host]['user']}")
@@ -297,15 +312,24 @@ class Rsync(Plugin):
             for action in arguments[index]:
                 # Check if the action is supported
                 if self._supported_actions[action] is False:
-                    checks.append( {action: (False, "action is not supported.") })
+                    checks.append({action: (False, "action is not supported.")})
                     continue
 
                 if action == "transfer":
 
                     # Start by checking that all the files have been provided
-                    check = requiredSourceAndDestinationKeysExist(arguments[index][action])
+                    check = requiredSourceAndDestinationKeysExist(
+                        arguments[index][action]
+                    )
                     if not check[0]:
-                        checks.append( {action: (False, f"Error detected for {action}. " + check[1]) })
+                        checks.append(
+                            {
+                                action: (
+                                    False,
+                                    f"Error detected for {action}. " + check[1],
+                                )
+                            }
+                        )
                         continue
 
                     match_host = isTheHostTheSourceOrDestination(
@@ -315,60 +339,28 @@ class Rsync(Plugin):
                     # Now that we know the fields exist ensure that they are valid
                     # Ensure that at either the source or destination ip addresses
                     # are associated with the local machine
-                    check = requiredSourceAndDestinationValuesValid(arguments[index][action], match_host)
+                    check = requiredSourceAndDestinationValuesValid(
+                        arguments[index][action], match_host
+                    )
                     if not check[0]:
-                        checks.append( {action: (False, f"Error detected while running {action}. " + check[1])})
+                        checks.append(
+                            {
+                                action: (
+                                    False,
+                                    f"Error detected while running {action}. "
+                                    + check[1],
+                                )
+                            }
+                        )
                         continue
                 else:
-                    checks.append( {action: (False, f"{action} unsupported action\n")})
+                    checks.append({action: (False, f"{action} unsupported action\n")})
                     continue
 
-                checks.append( {action: (True, "")})
+                checks.append({action: (True, "")})
 
-        return checks 
-#        message = ""
-#        supported_actions = {}
-#        for action in arguments:
-#            if "transfer" in action.keys():
-#                action_key = "transfer"
-#                action_inst = action[action_key]
-#                # Start by checking that all the files have been provided
-#
-#                if not requiredSourceAndDestinationKeysExist(action_inst):
-#                    supported_actions[action_key] = False
-#                    message = (
-#                        message
-#                        + f"{action}: required source and destination "
-#                        + "keys exist - False\n"
-#                    )
-#                    continue
-#
-#                match_host = isTheHostTheSourceOrDestination(
-#                    action_inst, self._local_ip
-#                )
-#
-#                # Now that we know the fields exist ensure that they are valid
-#                # Ensure that at either the source or destination ip addresses
-#                # are associated with the local machine
-#
-#                if not requiredSourceAndDestinationValuesValid(action_inst, match_host):
-#                    supported_actions[action_key] = False
-#                    message = (
-#                        message
-#                        + f"{action}: required {match_host} values are invalid\n"
-#                    )
-#                    continue
-#
-#            # If the action is not "transfer"
-#            else:
-#                supported_actions[action_key] = False
-#                message = message + f"{action} unsupported action\n"
-#                continue
-#
-#            supported_actions[action_key] = (True, message)
-#
-#        return supported_actions
-#
+        return checks
+
     def process(self, arguments: list[dict]):
         """Equivalent to running the plugin after it has been set up
 

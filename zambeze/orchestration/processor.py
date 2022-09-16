@@ -199,22 +199,23 @@ class Processor(threading.Thread):
                         plugin_name="globus", arguments=move_to_file_path_args
                     )
                 else:
-                    # If the local agent does not support Globus we will need to send a request to
-                    # to nats for someone else to handle the transfer
-                    #                    await self.send(
-                    #                        MessageType.COMPUTE.value,
-                    #                        {
-                    #                            "plugin": "globus",
-                    #                            "cmd": [
-                    #                                {
-                    #                                    "transfer": {
-                    #                                        "type": "synchronous",
-                    #                                        "items": [file_url],
-                    #                                    }
-                    #                                },
-                    #                            ],
-                    #                        },
-                    #                    )
+                    # If the local agent does not support Globus we will need to
+                    # send a request to to nats for someone else to handle the
+                    # transfer
+                    # await self.send(
+                    #     MessageType.COMPUTE.value,
+                    #     {
+                    #         "plugin": "globus",
+                    #         "cmd": [
+                    #             {
+                    #                 "transfer": {
+                    #                     "type": "synchronous",
+                    #                     "items": [file_url],
+                    #                 }
+                    #             },
+                    #         ],
+                    #     },
+                    # )
                     raise Exception("Needs to be implemented.")
 
             elif file_url.scheme == "rsync":

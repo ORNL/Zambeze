@@ -64,19 +64,36 @@ class Shell(Plugin):
                 # Check if the action is supported
 
                 if which(arguments[action]) is None:
-                    checks.append({action: (False, f"Unrecognized shell: {arguments[action]}")})
+                    checks.append(
+                        {action: (False, f"Unrecognized shell: {arguments[action]}")}
+                    )
                     continue
 
                 if "program" not in arguments[action]:
-                    checks.append({action: (False, f"A program has not been defined to run in the shell, required 'program' field is missing.")})
+                    checks.append(
+                        {
+                            action: (
+                                False,
+                                "A program has not been defined to run in the shell,"
+                                + " required 'program' field is missing.",
+                            )
+                        }
+                    )
                     continue
 
                 if which(arguments[action]["program"]) is None:
-                    checks.append({action: (False, f"Unable to locate program: {arguments[action]['program']}")})
+                    checks.append(
+                        {
+                            action: (
+                                False,
+                                "Unable to locate program: "
+                                + f"{arguments[action]['program']}",
+                            )
+                        }
+                    )
 
-                checks.append( {action, (True, "")})
+                checks.append({action, (True, "")})
         return checks
-
 
     def process(self, arguments: list[dict]):
         """

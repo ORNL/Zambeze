@@ -7,7 +7,6 @@
 # it under the terms of the MIT License.
 
 import logging
-import os
 import pathlib
 import yaml
 
