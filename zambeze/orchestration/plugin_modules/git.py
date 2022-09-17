@@ -716,14 +716,14 @@ class Git(Plugin):
         information["actions"] = supported_actions
         return information
 
-    def check(self, arguments: list[dict]) -> dict:
+    def check(self, arguments: list[dict]) -> list[dict]:
         """Determine if the proposed arguments can be executed by this instance.
 
         :param arguments: The arguments are checked to ensure their types and
         formats are valid
         :type arguments: list[dict]
         :return: Returns the list of actions that are vaid
-        :rtype: dict with the actions valid actions listed with bool set to
+        :rtype: list[dict] with the actions valid actions listed with bool set to
         True and invalid ones False
 
         :Example:
@@ -758,27 +758,31 @@ class Git(Plugin):
         >>> ]
         >>> checked_actions = git_plugin.check(arguments)
         >>>
-        >>> for action in checked_actions:
-        >>>     print(f"{action}: {checked_actions[action]}")
+        >>> for item in checked_actions:
+        >>>     for action in item:
+        >>>         print(f"{action}: {item['action']}")
         >>> # Should print
         >>> # commit (True,"")
-
         """
-        supported_actions = {}
-        for action_obj in arguments:
-            # Make sure that the action is supported
 
-            for key in action_obj:
-                if key not in self.__supported_actions:
-                    supported_actions[key] = (False, f"{key} is not supported.")
+        checks = []
+        for index in range(len(arguments)):
+            for action in arguments[index]:
+
+                if action not in self.__supported_actions:
+                    checks.append({action: (False, "action is not supported.")})
                     continue
 
-                if key == "commit":
-                    supported_actions[key] = self.__checkCommit(action_obj[key])
-                elif key == "download":
-                    supported_actions[key] = self.__checkDownload(action_obj[key])
+                if action == "commit":
+                    checks.append(
+                        {action: self.__checkCommit(arguments[index][action])}
+                    )
+                elif action == "download":
+                    checks.append(
+                        {action: self.__checkDownload(arguments[index][action])}
+                    )
 
-        return supported_actions
+        return checks
 
     def process(self, arguments: list[dict]) -> dict:
         """Run actions
