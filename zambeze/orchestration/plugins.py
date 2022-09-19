@@ -241,8 +241,6 @@ class Plugins:
         >>> #   "rsync": { "transfer": True }
         >>> # {
         """
-        print(self._plugins.keys())
-        print(plugin_name)
         check_results = {}
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
