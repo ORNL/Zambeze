@@ -32,6 +32,48 @@ def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
     return False
 
 
+def localEndpointConfigCheck(config: dict):
+    # Check that the UUIDs are correct
+    if "local_endpoints" in config:
+        for local_endpoint in config["local_endpoints"]:
+            if not validUUID(local_endpoint["uuid"]):
+                raise Exception(
+                    f"Invalid uuid detected in plugin: {local_endpoint['uuid']}"
+                )
+            if not exists(local_endpoint["path"]):
+                # Check that the collection path is correct and exists on the local
+                # POSIX filesystem
+                raise Exception(
+                    f"Invalid path detected in plugin: {local_endpoint['path']}"
+                )
+
+        if "default_endpoint" not in config:
+            raise Exception(
+                "'default_endpoint' key value missing from config"
+                " config must have 'default_endpoint' specified if"
+                " local_endpoints are configured."
+            )
+
+        if not validUUID(config["default_endpoint"]):
+            raise Exception(
+                "Invalid uuid detected in plugin for default endpoint: "
+                f" {config['default_endpoint']}"
+            )
+
+        # Make sure that default_endpoint is one of the endpoints that has
+        # been configured
+
+        if not localEndpointExists(
+            config["default_endpoint"], config["local_endpoints"]
+        ):
+            error_msg = f"Invalid default endpoint {config['default_endpoint']}"
+            error_msg = error_msg + " not one of the 'local_endpoints'"
+            error_msg = error_msg + " check your "
+            error_msg = error_msg + " agent.yaml file. Local endpoints are:"
+            error_msg = error_msg + f"\n{config['local_endpoints']}"
+            raise Exception(error_msg)
+
+
 def globusURISeparator(uri: str, default_uuid) -> dict:
     """Will take a globus URI and break it into its components
 
@@ -79,7 +121,7 @@ def globusURISeparator(uri: str, default_uuid) -> dict:
         error_msg = error_msg + "globus://"
         return ("", "", "", error_msg)
 
-    UUID_and_path = uri[len(globus_uri_tag):]
+    UUID_and_path = uri[len(globus_uri_tag) :]
     # Replace multiple occurances of // with single /
     UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
@@ -139,7 +181,7 @@ def fileURISeparator(uri: str) -> dict:
         error_msg = error_msg + "file://"
         return ("", "", "", error_msg)
 
-    file_and_path = uri[len(file_uri_tag):]
+    file_and_path = uri[len(file_uri_tag) :]
     path = dirname(file_and_path)
 
     if not path.startswith(os.sep):
@@ -433,46 +475,6 @@ class Globus(Plugin):
                 "Unsupported authentication flow detected "
                 f"{config['authentication_flow']['type']}"
             )
-
-        # Check that the UUIDs are correct
-        if "local_endpoints" in config:
-            for local_endpoint in config["local_endpoints"]:
-                if not validUUID(local_endpoint["uuid"]):
-                    raise Exception(
-                        f"Invalid uuid detected in plugin: {local_endpoint['uuid']}"
-                    )
-                if not exists(local_endpoint["path"]):
-                    # Check that the collection path is correct and exists on the local
-                    # POSIX filesystem
-                    raise Exception(
-                        f"Invalid path detected in plugin: {local_endpoint['path']}"
-                    )
-
-            if "default_endpoint" not in config:
-                raise Exception(
-                    "'default_endpoint' key value missing from config"
-                    " config must have 'default_endpoint' specified if"
-                    " local_endpoints are configured."
-                )
-
-            if not validUUID(config["default_endpoint"]):
-                raise Exception(
-                    "Invalid uuid detected in plugin for default endpoint: "
-                    f" {config['default_endpoint']}"
-                )
-
-            # Make sure that default_endpoint is one of the endpoints that has
-            # been configured
-
-            if not localEndpointExists(
-                config["default_endpoint"], config["local_endpoints"]
-            ):
-                error_msg = f"Invalid default endpoint {config['default_endpoint']}"
-                error_msg = error_msg + " not one of the 'local_endpoints'"
-                error_msg = error_msg + " check your "
-                error_msg = error_msg + " agent.yaml file. Local endpoints are:"
-                error_msg = error_msg + f"\n{config['local_endpoints']}"
-                raise Exception(error_msg)
 
     def __validEndPoints(self, config: dict):
         """This method can only be run after the authentication flow has been run
@@ -1065,7 +1067,7 @@ class Globus(Plugin):
         information["configured"] = self.__configured
         return information
 
-    def check(self, arguments: list[dict]) -> dict:
+    def check(self, arguments: list[dict]) -> list[dict]:
         """Checks the input argument for errors
 
         Cycle through the items in the argument and checks if this instance
@@ -1126,37 +1128,53 @@ class Globus(Plugin):
         >>>   }
         >>> ]
         """
-        checks = {}
+        checks = []
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
                 # Check if the action is supported
                 if self.__supported_actions[action] is False:
-                    checks[action] = (False, "action is not supported.")
+                    checks.append({action: (False, "action is not supported.")})
                     continue
 
                 if action == "transfer":
                     # Any agent with the globus plugin can submit a job to globus if it
                     # has access to the globus cloud
-                    checks[action] = self.__runTransferSanityCheck(
-                        arguments[index][action]
+                    checks.append(
+                        {
+                            action: self.__runTransferSanityCheck(
+                                arguments[index][action]
+                            )
+                        }
                     )
 
                 elif action == "move_to_globus_collection":
-                    checks[action] = self.__runMoveToGlobusSanityCheck(
-                        arguments[index][action]
+                    checks.append(
+                        {
+                            action: self.__runMoveToGlobusSanityCheck(
+                                arguments[index][action]
+                            )
+                        }
                     )
 
                 elif action == "move_from_globus_collection":
-                    checks[action] = self.__runMoveFromGlobusSanityCheck(
-                        arguments[index][action]
+                    checks.append(
+                        {
+                            action: self.__runMoveFromGlobusSanityCheck(
+                                arguments[index][action]
+                            )
+                        }
                     )
                 elif action == "get_task_status":
-                    checks[action] = self.__runGetTaskStatusSanityCheck(
-                        arguments[index][action]
+                    checks.append(
+                        {
+                            action: self.__runGetTaskStatusSanityCheck(
+                                arguments[index][action]
+                            )
+                        }
                     )
                 else:
-                    checks[action] = (False, "Unrecognized action keyword")
+                    checks.append({action: (False, "Unrecognized action keyword")})
         return checks
 
     def process(self, arguments: list[dict]) -> dict:

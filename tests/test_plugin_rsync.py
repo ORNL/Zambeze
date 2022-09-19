@@ -21,22 +21,22 @@ def test_rsync_requiredEndpointKeysExist():
     package = {"ip": "something", "user": "a user", "path": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package)
-    assert fields_exist
+    assert fields_exist[0]
 
     package2 = {"ip2": "something", "user": "a user", "path": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package2)
-    assert fields_exist is False
+    assert fields_exist[0] is False
 
     package3 = {"ip": "something", "user_s": "a user", "path": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package3)
-    assert fields_exist is False
+    assert fields_exist[0] is False
 
     package4 = {"ip": "something", "user": "a user", "pat": "a path to a file"}
 
     fields_exist = rsync.requiredEndpointKeysExist(package4)
-    assert fields_exist is False
+    assert fields_exist[0] is False
 
 
 @pytest.mark.unit
@@ -56,21 +56,21 @@ def test_rsync_requiredSourceAndDestinationKeysExist():
     }
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
-    assert fields_exist
+    assert fields_exist[0]
 
     package = {
         "destination": {"ip": "something", "user": "a user", "path": "a path to a file"}
     }
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
-    assert fields_exist is False
+    assert fields_exist[0] is False
 
     package = {
         "source": {"ip": "something", "user": "a user", "path": "a path to a file"}
     }
 
     fields_exist = rsync.requiredSourceAndDestinationKeysExist(package)
-    assert fields_exist is False
+    assert fields_exist[0] is False
 
 
 @pytest.mark.unit
@@ -99,7 +99,7 @@ def test_rsync_requiredSourceAndDestinationValuesValid():
     host = "destination"
 
     fields_valid = rsync.requiredSourceAndDestinationValuesValid(package, host)
-    assert fields_valid
+    assert fields_valid[0]
 
     # Lets pass in an invalid ip address
     package = {
@@ -111,7 +111,7 @@ def test_rsync_requiredSourceAndDestinationValuesValid():
         },
     }
     fields_valid = rsync.requiredSourceAndDestinationValuesValid(package, host)
-    assert fields_valid is False
+    assert fields_valid[0] is False
 
 
 @pytest.mark.unit

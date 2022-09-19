@@ -46,7 +46,7 @@ class Shell(Plugin):
     def info(self) -> dict:
         return {}
 
-    def check(self, arguments: list[dict]) -> dict:
+    def check(self, arguments: list[dict]) -> list[dict]:
         """Checks to see if the provided shell is supported
 
 
@@ -57,23 +57,42 @@ class Shell(Plugin):
         >>> }]
 
         """
-        checks = {}
-        for item in arguments:
-            for shell in item.keys():
-                if which(shell) is None:
-                    return {shell: (False, "Unrecognized shell")}
+        checks = []
+        for index in range(len(arguments)):
+            for action in arguments[index]:
 
-                if "program" in item:
-                    if which(shell["program"]) is None:
-                        return {
-                            shell: (
+                # Check if the action is supported
+
+                if which(arguments[action]) is None:
+                    checks.append(
+                        {action: (False, f"Unrecognized shell: {arguments[action]}")}
+                    )
+                    continue
+
+                if "program" not in arguments[action]:
+                    checks.append(
+                        {
+                            action: (
                                 False,
-                                f"Unable to locate program: {shell['program']}",
+                                "A program has not been defined to run in the shell,"
+                                + " required 'program' field is missing.",
                             )
                         }
+                    )
+                    continue
 
-                checks[shell] = ("True", "")
+                if which(arguments[action]["program"]) is None:
+                    checks.append(
+                        {
+                            action: (
+                                False,
+                                "Unable to locate program: "
+                                + f"{arguments[action]['program']}",
+                            )
+                        }
+                    )
 
+                checks.append({action, (True, "")})
         return checks
 
     def process(self, arguments: list[dict]):

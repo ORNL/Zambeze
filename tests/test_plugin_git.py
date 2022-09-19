@@ -49,7 +49,7 @@ def test_git_checkCommitSuccess():
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
     print(checked_actions)
-    assert checked_actions["commit"][0]
+    assert checked_actions[0]["commit"][0]
 
 
 @pytest.mark.gitlab_runner
@@ -86,7 +86,7 @@ def test_git_checkCommitFailure1():
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
-    assert not checked_actions["commit"][0]
+    assert not checked_actions[0]["commit"][0]
 
 
 @pytest.mark.gitlab_runner
@@ -125,7 +125,7 @@ def test_git_checkCommitFailure2():
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
-    assert not checked_actions["commit"][0]
+    assert not checked_actions[0]["commit"][0]
 
 
 @pytest.mark.gitlab_runner
@@ -160,7 +160,7 @@ def test_git_checkCommitFailure3():
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
-    assert not checked_actions["commit"][0]
+    assert not checked_actions[0]["commit"][0]
 
 
 @pytest.mark.gitlab_runner
@@ -193,7 +193,7 @@ def test_git_checkCommitFailure4():
     git_plugin = git.Git()
     git_plugin.configure({})
     checked_actions = git_plugin.check(package)
-    assert not checked_actions["commit"][0]
+    assert not checked_actions[0]["commit"][0]
 
 
 @pytest.mark.gitlab_runner

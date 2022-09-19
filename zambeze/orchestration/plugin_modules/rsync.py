@@ -25,8 +25,9 @@ import subprocess
 #############################################################
 # Assistant Functions
 #############################################################
-def requiredEndpointKeysExist(action_endpoint: dict) -> bool:
-    """Returns true if action_endpoint contains "ip","user" and "path" keys
+def requiredEndpointKeysExist(action_endpoint: dict) -> (bool, str):
+    """Returns a tuple with the first element set to true if
+    action_endpoint contains "ip","user" and "path" keys
 
     :param action_endpoint: the object that is being checked
     :type action_endpoint: dict
@@ -39,27 +40,27 @@ def requiredEndpointKeysExist(action_endpoint: dict) -> bool:
     >>>     "path": "/home/cades/folder1/out.txt"
     >>> }
     >>> fields_exist = requiredEndpointKeysExist( action_endpoint)
-    >>> assert fields_exist
+    >>> assert fields_exist[0]
     >>> action_endpoint = {
     >>>     "ip": "138.131.32.5",
     >>>     "path": "/home/cades/folder1/out.txt"
     >>> }
     >>> # Should fail because missing "user"
     >>> fields_exist = requiredEndpointKeysExist( action_endpoint)
-    >>> assert not fields_exist
+    >>> assert not fields_exist[0]
     """
     if "ip" not in action_endpoint:
-        return False
+        return (False, "Missing 'ip' field")
     if "user" not in action_endpoint:
-        return False
+        return (False, "Missing 'user' field")
     if "path" not in action_endpoint:
-        return False
-    return True
+        return (False, "Missing 'path' field")
+    return (True, "")
 
 
-def requiredSourceAndDestinationKeysExist(action_inst: dict) -> bool:
-    """Returns true if both source and destination endpoints contain the
-    correct fields
+def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
+    """Returns a tuple, with first element a bool that is set to true
+    if both source and destination endpoints contain the correct fields
 
     Note this function does not check that the fields make since so you could have
     a completely bogus ip address and this will function will return true.
@@ -79,25 +80,29 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> bool:
     >>>     }
     >>> }
     >>> keys_exist = requiredSourceAndDestinationKeysExist(action_inst)
-    >>> assert keys_exist
+    >>> assert keys_exist[0]
     """
 
     if "source" in action_inst:
-        if not requiredEndpointKeysExist(action_inst["source"]):
-            return False
+        field_check = requiredEndpointKeysExist(action_inst["source"])
+        if not field_check[0]:
+            return (False, field_check[1] + "\nRequired by 'source'")
     else:
-        return False
+        return (False, "Missing required 'source' field")
 
     if "destination" in action_inst:
-        if not requiredEndpointKeysExist(action_inst["destination"]):
-            return False
+        field_check = requiredEndpointKeysExist(action_inst["destination"])
+        if not field_check[0]:
+            return (False, field_check[1] + "\nRequired by 'destination'")
     else:
-        return False
+        return (False, "Missing required 'destination' field")
 
-    return True
+    return (True, "")
 
 
-def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bool:
+def requiredSourceAndDestinationValuesValid(
+    action_inst: dict, match_host
+) -> (bool, str):
     """Determines if the values are valid
 
     :Example:
@@ -115,30 +120,43 @@ def requiredSourceAndDestinationValuesValid(action_inst: dict, match_host) -> bo
     >>>     }
     >>> }
     >>> values_valid = requiredSourceAndDestinationValuesValid(action_inst, "source")
-    >>> assert values_valid
+    >>> assert values_valid[0]
 
     Extra checks are run on the source or destination
     values depending on which machine this code is running on.
     """
     if not isAddressValid(action_inst["source"]["ip"]):
-        return False
+        return (
+            False,
+            f"Invalid 'source' ip address detected: {action_inst['source']['ip']}",
+        )
 
     if not isAddressValid(action_inst["destination"]["ip"]):
-        return False
+        return (
+            False,
+            f"Invalid 'destination' ip address detected: {action_inst['source']['ip']}",
+        )
 
     if match_host is None:
-        return False
+        return (
+            False,
+            "rsync requires running on either the source or destination machine you "
+            + "are running from neither",
+        )
     # If make sure that paths defined on the host exist
     if not pathlib.Path(action_inst[match_host]["path"]).exists():
         # If it is the destination it doesn't matter as much because
         # we will try to create it
         if match_host == "source":
-            return False
+            return (
+                False,
+                f"Source path does not exist: {action_inst[match_host]['path']}",
+            )
 
     if not userExists(action_inst[match_host]["user"]):
-        return False
+        return (False, f"User does not exist: {action_inst[match_host]['user']}")
 
-    return True
+    return (True, "")
 
 
 def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
@@ -254,7 +272,7 @@ class Rsync(Plugin):
             "ssh_key": self._ssh_key,
         }
 
-    def check(self, arguments: list[dict]) -> dict:
+    def check(self, arguments: list[dict]) -> list[dict]:
         """Check the arguments are supported.
 
         :param arguments: arguments needed to run the rsync plugin
@@ -286,50 +304,69 @@ class Rsync(Plugin):
         >>> ]
         >>> instance = Rsync()
         >>> instance.configure(config)
-        >>> assert instance.check(arguments)
+        >>> checked_arguments = instance.check(arguments)
+        >>> # If there is no problem will return the following
+        >>> # checked_arguments = [
+        >>> # {
+        >>> #   "transfer": (True, "")
+        >>> # }]
+        >>> assert checked_arguments[0]["transfer"][0]
         """
-        message = ""
-        supported_actions = {}
-        for action in arguments:
-            if "transfer" in action.keys():
-                action_key = "transfer"
-                action_inst = action[action_key]
-                # Start by checking that all the files have been provided
 
-                if not requiredSourceAndDestinationKeysExist(action_inst):
-                    supported_actions[action_key] = False
-                    message = (
-                        message
-                        + f"{action}: required source and destination "
-                        + "keys exist - False\n"
-                    )
+        checks = []
+        # Here we are cycling a list of dicts
+        for index in range(len(arguments)):
+            for action in arguments[index]:
+                # Check if the action is supported
+                if self._supported_actions[action] is False:
+                    checks.append({action: (False, "action is not supported.")})
                     continue
 
-                match_host = isTheHostTheSourceOrDestination(
-                    action_inst, self._local_ip
-                )
+                if action == "transfer":
 
-                # Now that we know the fields exist ensure that they are valid
-                # Ensure that at either the source or destination ip addresses
-                # are associated with the local machine
-
-                if not requiredSourceAndDestinationValuesValid(action_inst, match_host):
-                    supported_actions[action_key] = False
-                    message = (
-                        message
-                        + f"{action}: required {match_host} values are invalid\n"
+                    # Start by checking that all the files have been provided
+                    check = requiredSourceAndDestinationKeysExist(
+                        arguments[index][action]
                     )
+                    if not check[0]:
+                        checks.append(
+                            {
+                                action: (
+                                    False,
+                                    f"Error detected for {action}. " + check[1],
+                                )
+                            }
+                        )
+                        continue
+
+                    match_host = isTheHostTheSourceOrDestination(
+                        arguments[index][action], self._local_ip
+                    )
+
+                    # Now that we know the fields exist ensure that they are valid
+                    # Ensure that at either the source or destination ip addresses
+                    # are associated with the local machine
+                    check = requiredSourceAndDestinationValuesValid(
+                        arguments[index][action], match_host
+                    )
+                    if not check[0]:
+                        checks.append(
+                            {
+                                action: (
+                                    False,
+                                    f"Error detected while running {action}. "
+                                    + check[1],
+                                )
+                            }
+                        )
+                        continue
+                else:
+                    checks.append({action: (False, f"{action} unsupported action\n")})
                     continue
 
-            # If the action is not "transfer"
-            else:
-                supported_actions[action_key] = False
-                message = message + f"{action} unsupported action\n"
-                continue
+                checks.append({action: (True, "")})
 
-            supported_actions[action_key] = (True, message)
-
-        return supported_actions
+        return checks
 
     def process(self, arguments: list[dict]):
         """Equivalent to running the plugin after it has been set up
