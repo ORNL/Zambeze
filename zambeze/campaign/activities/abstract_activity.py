@@ -6,11 +6,16 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+import json
 import logging
+import nats
+import uuid
 
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Optional
+# from ...settings import ZambezeSettings
+
 
 
 class ActivityStatus(Enum):
@@ -55,6 +60,7 @@ class Activity(ABC):
         self.arguments: list[str] = arguments
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
+        # self.activity_id = uuid.uuid4()
 
     def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.
@@ -103,6 +109,35 @@ class Activity(ABC):
         :rtype: ActivityStatus
         """
         return self.status
+
+    def generate_response_dict(self, origin_agent_id, last_agent_id, activity_id, data=None, next_activity_id=None):
+        """ Create a response to send back to NATS after processing. Should include the following information:
+
+        :param origin_agent_id: (str) the agent that launched the campaign containing this activity.
+        :param last_agent_id: (str) the agent that completed the activity of ID... (next line)
+        :param activity_id: (str) the ID of the activity created by the origin_agent
+        :param data: (str) any data that needs to be sent back to host
+        :param next_activity_id: (str) ID of next activity in workflow.
+        """
+
+        # Check if we are JSON serializable.  # TODO: Remove JSON requirement.
+        try:
+            response_data = {'data': data, 'serialize_error': False}
+            json.dumps(response_data)
+        except (TypeError, OverflowError):  # If we are not
+            response_data = {'data': None, 'serialize_error': True}
+
+        # Grab the status
+        exec_status = self.get_status()
+
+        response = {'origin_agent_id': origin_agent_id,
+                    'last_agent_id': last_agent_id,
+                    'activity_id': activity_id,
+                    'data': response_data,
+                    'exit_status': exec_status,
+                    'next_activity_id': next_activity_id}
+
+        return response
 
     @abstractmethod
     def generate_message(self) -> dict:

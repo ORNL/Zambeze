@@ -27,6 +27,7 @@ class MessageType(Enum):
     COMPUTE = "z_compute"
     DATA = "z_data"
     STATUS = "z_status"
+    RESPONSE = "z_response"
 
 
 class Processor(threading.Thread):
@@ -50,17 +51,17 @@ class Processor(threading.Thread):
 
     def run(self):
         """Start the Processor thread."""
-        self._logger.debug("Starting Agent Processor")
+        self._logger.debug("[processor] Starting Agent Processor")
         asyncio.run(self.__process())
 
     async def __disconnected(self):
         self._logger.info(
-            f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
+            f"[processor] Disconnected from nats... {self._settings.get_nats_connection_uri()}"
         )
 
     async def __reconnected(self):
         self._logger.info(
-            f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
+            f"[processor] Reconnected to nats... {self._settings.get_nats_connection_uri()}"
         )
 
     async def __process(self):
@@ -68,9 +69,9 @@ class Processor(threading.Thread):
         Evaluate and process messages if requested activity is supported.
         """
         self._logger.debug(
-            f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
+            f"[processor] Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
         )
-        print(f"Connecting to {self._settings.get_nats_connection_uri()}")
+        print(f"[processor] Connecting to {self._settings.get_nats_connection_uri()}")
 
         nc = await nats.connect(
             self._settings.get_nats_connection_uri(),
@@ -80,8 +81,10 @@ class Processor(threading.Thread):
         )
 
         sub = await nc.subscribe(MessageType.COMPUTE.value)
-        self._logger.debug("Waiting for messages")
+        self._logger.debug("[processor] Waiting for messages B")
 
+        self._logger.debug("[processor] About to get default working dir")
+        self._logger.debug(self._settings.settings)
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
         ]
@@ -92,7 +95,7 @@ class Processor(threading.Thread):
             try:
                 msg = await sub.next_msg()
                 data = json.loads(msg.data)
-                self._logger.debug("Message received:")
+                self._logger.debug("[processor] Message received:")
                 self._logger.debug(json.dumps(data, indent=4))
 
                 if self._settings.is_plugin_configured(data["plugin"].lower()):
@@ -101,21 +104,32 @@ class Processor(threading.Thread):
                     if "files" in data and data["files"]:
                         await self.__process_files(data["files"])
 
-                    self._logger.info("Command to be executed.")
+                    self._logger.info("[processor] Command to be executed.")
                     self._logger.info(json.dumps(data["cmd"], indent=4))
 
+                    self._logger.info("[processor] ARE WE STUCK???.")
                     # Running Checks
-                    checked_result = self._settings.plugins.check(
-                        plugin_name=data["plugin"].lower(), arguments=data["cmd"]
-                    )
-                    self._logger.debug(checked_result)
+                    # checked_result = self._settings.plugins.check(
+                    #     plugin_name=data["plugin"].lower(), arguments=data["cmd"]
+                    # )
 
+                    self._logger.info("[processor] I DELETED CHECKED RESULT!")
+                    # self._logger.debug(f"[processor] checked result {checked_result}")
+
+                    self._logger.debug("[processor] PRE PLUGIN RUN")
                     # perform compute action
                     self._settings.plugins.run(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
 
-                self._logger.debug("Waiting for messages")
+                    # self.return_response_to_nats({'hi': 'bye', 'activity_id': 'hello1'})
+
+                    # TODO: Tyler -- BRING BACK THIS RESULT RETURN.
+                    await self.send(type=MessageType.RESPONSE.value, body={'status': 'completed'})
+
+                    self._logger.debug("[processor] POST PLUGIN RUN")
+
+                self._logger.debug("[processor] Waiting for messages A")
 
             except TimeoutError:
                 pass
@@ -260,3 +274,46 @@ class Processor(threading.Thread):
         nc = await nats.connect(self._settings.get_nats_connection_uri())
         await nc.publish(type, json.dumps(body).encode())
         await nc.drain()
+
+    # def return_response_to_nats(self, resp_data):
+    #     """Send response back upstream to all relevant NATS servers.
+    #
+    #     :param resp_data: (dict) response object created by generate_response_dict().
+    #
+    #     :return None
+    #     """
+    #
+    #     self._logger.info("A1")
+    #
+    #     channels = []
+    #
+    #     # Step 1. Select the proper NATS channels.
+    #     # --- First NATS channel is the 'status' for the origin_agent.
+    #     origin_channel = f"update.origin.{resp_data['activity_id']}"
+    #     channels.append(origin_channel)
+    #
+    #     self._logger.info("A2")
+    #
+    #     # --- Second NATS channel is one awaiting the 'activity_id'.
+    #     if resp_data['next_activity_id'] is not None:
+    #         next_in_wf_channel = f"update.workflow.{resp_data['activity_id']}"
+    #         channels.append(next_in_wf_channel)
+    #         self._logger.info("A3")
+    #
+    #     # Step 2. Send to the proper NATS channels.
+    #     self._logger.info(
+    #         f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
+    #     )
+    #
+    #     self._logger.info("A4")
+    #
+    #     self._logger.info(f"Sending a 'magoo' message on channels: {channels}")
+    #     nc = await nats.connect(self._settings.get_nats_connection_uri())
+    #
+    #     for channel in channels:
+    #         await nc.publish(channel, json.dumps(resp_data).encode())
+    #         await nc.drain()
+    #     self._logger.info(f"Sent all messageseses")
+
+
+
