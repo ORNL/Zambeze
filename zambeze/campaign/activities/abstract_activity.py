@@ -60,7 +60,7 @@ class Activity(ABC):
         self.arguments: list[str] = arguments
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
-        # self.activity_id = uuid.uuid4()
+        self.activity_id = uuid.uuid4()
 
     def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.
