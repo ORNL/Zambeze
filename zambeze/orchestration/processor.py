@@ -275,45 +275,45 @@ class Processor(threading.Thread):
         await nc.publish(type, json.dumps(body).encode())
         await nc.drain()
 
-    # def return_response_to_nats(self, resp_data):
-    #     """Send response back upstream to all relevant NATS servers.
-    #
-    #     :param resp_data: (dict) response object created by generate_response_dict().
-    #
-    #     :return None
-    #     """
-    #
-    #     self._logger.info("A1")
-    #
-    #     channels = []
-    #
-    #     # Step 1. Select the proper NATS channels.
-    #     # --- First NATS channel is the 'status' for the origin_agent.
-    #     origin_channel = f"update.origin.{resp_data['activity_id']}"
-    #     channels.append(origin_channel)
-    #
-    #     self._logger.info("A2")
-    #
-    #     # --- Second NATS channel is one awaiting the 'activity_id'.
-    #     if resp_data['next_activity_id'] is not None:
-    #         next_in_wf_channel = f"update.workflow.{resp_data['activity_id']}"
-    #         channels.append(next_in_wf_channel)
-    #         self._logger.info("A3")
-    #
-    #     # Step 2. Send to the proper NATS channels.
-    #     self._logger.info(
-    #         f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
-    #     )
-    #
-    #     self._logger.info("A4")
-    #
-    #     self._logger.info(f"Sending a 'magoo' message on channels: {channels}")
-    #     nc = await nats.connect(self._settings.get_nats_connection_uri())
-    #
-    #     for channel in channels:
-    #         await nc.publish(channel, json.dumps(resp_data).encode())
-    #         await nc.drain()
-    #     self._logger.info(f"Sent all messageseses")
+    def return_response_to_nats(self, resp_data):
+        """Send response back upstream to all relevant NATS servers.
+
+        :param resp_data: (dict) response object created by generate_response_dict().
+
+        :return None
+        """
+
+        self._logger.info("A1")
+
+        channels = []
+
+        # Step 1. Select the proper NATS channels.
+        # --- First NATS channel is the 'status' for the origin_agent.
+        origin_channel = f"update.origin.{resp_data['activity_id']}"
+        channels.append(origin_channel)
+
+        self._logger.info("A2")
+
+        # --- Second NATS channel is one awaiting the 'activity_id'.
+        if resp_data['next_activity_id'] is not None:
+            next_in_wf_channel = f"update.workflow.{resp_data['activity_id']}"
+            channels.append(next_in_wf_channel)
+            self._logger.info("A3")
+
+        # Step 2. Send to the proper NATS channels.
+        self._logger.info(
+            f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
+        )
+
+        self._logger.info("A4")
+
+        self._logger.info(f"Sending a 'magoo' message on channels: {channels}")
+        nc = await nats.connect(self._settings.get_nats_connection_uri())
+
+        for channel in channels:
+            await nc.publish(channel, json.dumps(resp_data).encode())
+            await nc.drain()
+        self._logger.info(f"Sent all messageseses")
 
 
 
