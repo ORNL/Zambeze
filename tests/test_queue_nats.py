@@ -5,10 +5,8 @@ from zambeze.orchestration.queue.queue_factory import QueueType
 
 # Standard imports
 import os
-import pwd
 import pytest
 import random
-import socket
 
 
 @pytest.mark.unit
