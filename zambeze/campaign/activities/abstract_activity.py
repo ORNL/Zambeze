@@ -21,6 +21,16 @@ class ActivityStatus(Enum):
     FAILED = auto()
 
 
+class AttributeType(Enum):
+    FILE = auto()
+    FILES = auto()
+    DATA_URI = auto()
+    DATA_URIS = auto()
+    COMMAND = auto()
+    ARGUMENT = auto()
+    ARGUMENTS = auto()
+    TRANSFER_ITEMS = auto()
+
 class Activity(ABC):
     """An abstract class of a scientific campaign activity.
 
@@ -42,6 +52,7 @@ class Activity(ABC):
         files: Optional[list[str]] = [],
         command: Optional[str] = None,
         arguments: Optional[list[str]] = [],
+        supported_attributes: Optional[list[Attribute]] = [],
         logger: Optional[logging.Logger] = None,
         **kwargs
     ) -> None:
@@ -54,47 +65,86 @@ class Activity(ABC):
         self.command: str = command
         self.arguments: list[str] = arguments
         self.status: ActivityStatus = ActivityStatus.CREATED
+        self._supported_attributes = supported_attributes
         self.__dict__.update(kwargs)
 
-    def add_files(self, files: list[str]) -> None:
-        """Add a list of files to the dataset.
+    def add(self, attr_type: AttributeType, attribute) -> None:
 
-        :param files: List of file URIs.
-        :type files: list[str]
-        """
-        self.files.extend(files)
+        if attr_type not in self._supported_attribute_types:
+            raise Exception(f"Activity {self.name} does not support the provided type {attr_type}")
 
-    def add_file(self, file: str) -> None:
-        """Add a file to the dataset.
+        if attr_type == FILES:
+            """Add a list of files to the dataset.
 
-        :param file: A URI to a single file.
-        :type file: str
-        """
-        self.files.append(file)
+            :param files: List of file URIs.
+            :type files: list[str]
+            """
+            self.files.extend(attribute)
+        elif attr_type == FILE:
+            """Add a file to the dataset.
 
-    def add_arguments(self, args: list[str]) -> None:
-        """Add a list of arguments to the action.
+            :param file: A URI to a single file.
+            :type file: str
+            """
+            self.files.append(attribute)
+        elif attr_type == ARGUMENT:
+            """Add an argument to the action.
 
-        :param args: List of arguments.
-        :type args: list[str]
-        """
-        self.arguments.extend(args)
+            :param arg: An argument.
+            :type arg: str
+            """
+            self.arguments.append(attribute)
+        elif attr_type == ARGUMENTS:
+            """Add a list of arguments to the action.
 
-    def add_argument(self, arg: str) -> None:
-        """Add an argument to the action.
+            :param args: List of arguments.
+            :type args: list[str]
+            """
+            self.arguments.extend(attribute)
 
-        :param arg: An argument.
-        :type arg: str
-        """
-        self.arguments.append(arg)
+    def set(self, attr_type: Attribute, attribute) -> None: 
+        
+        if attr_type not in self._supported_attribute_types:
+            raise Exception(f"Activity {self.name} does not support the provided type {attr_type}")
 
-    def set_command(self, command: str) -> None:
-        """Set the action's command.
+        if attr_type == FILES:
+            """Set the list of files.
 
-        :param command: A command.
-        :type command: str
-        """
-        self.command = command
+            :param files: List of file URIs.
+            :type files: list[str]
+            """
+            self.files = attribute
+        elif attr_type == FILE:
+            """Set files to a single file.
+
+            :param file: A URI to a single file.
+            :type file: str
+            """
+            self.files = attribute
+        elif attr_type == ARGUMENT:
+            """Set an argument to the action.
+
+            :param arg: An argument.
+            :type arg: str
+            """
+            self.arguments = attribute
+        elif attr_type == ARGUMENTS:
+            """Set a list of arguments to the action.
+
+            :param args: List of arguments.
+            :type args: list[str]
+            """
+            self.arguments = attribute
+        elif attr_type == COMMAND:
+            """Set a command to the action.
+
+            :param command: A command.
+            :type command: str
+            """
+            self.command = attribute
+
+    def supported_attributes(self) -> list[Attribute]:
+        return self._supported_attribute_types
 
     def get_status(self) -> ActivityStatus:
         """Get current activity status.
