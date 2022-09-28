@@ -5,7 +5,7 @@ from .queue_factory import QueueType, MessageType
 from typing import Optional
 
 
-class Queue(ABC):
+class AbstractQueue(ABC):
 
     @property
     @abstractmethod
