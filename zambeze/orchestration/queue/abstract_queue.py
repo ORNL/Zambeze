@@ -1,19 +1,17 @@
 
 import logging
 from abc import ABC, abstractmethod
-from queue_factory import QueueType, MessageType
+from .queue_factory import QueueType, MessageType
 from typing import Optional
 
 
 class Queue(ABC):
-    def __init_(
-            self, queue_type: QueueType,
-            logger: Optional[logging.Logger] = None) -> None:
-        self._queue_type = queue_type
 
     @property
+    @abstractmethod
     def type(self) -> QueueType:
-        return self._queue_type
+        raise NotImplementedError("type - method does not exist for:"
+                                  f"{self._queue_type.value}")
 
     @property
     @abstractmethod

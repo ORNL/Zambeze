@@ -1,5 +1,5 @@
 # Local imports
-from zambeze.orchestration.queue.queue_nats import QueueNats
+from zambeze.orchestration.queue.queue_nats import QueueNATS
 from zambeze.orchestration.queue.queue_factory import MessageType
 from zambeze.orchestration.queue.queue_factory import QueueType
 
@@ -13,32 +13,33 @@ import socket
 
 @pytest.mark.unit
 def test_queue_nats_type():
-    queue = QueueNats()
+    queue = QueueNATS({})
     assert queue.type == QueueType.NATS
+
 
 @pytest.mark.unit
 def test_queue_nats_uri():
 
-    queue = QueueNats({})
+    queue = QueueNATS({})
     assert queue.uri == "nats://127.0.0.1:4222"
 
     config = {}
     config["ip"] = "127.0.0.1"
     config["port"] = "4222"
-    queue = QueueNats(config)
+    queue = QueueNATS(config)
     assert queue.uri == f"nats://{config['ip']}:{config['port']}"
 
 
 @pytest.mark.unit
 def test_queue_nats_connected():
 
-    queue = QueueNats({})
+    queue = QueueNATS({})
     assert queue.uri == "nats://127.0.0.1:4222"
 
     config = {}
     config["ip"] = "127.0.0.1"
     config["port"] = "4222"
-    queue = QueueNats(config)
+    queue = QueueNATS(config)
     assert queue.connected is False
 
 
@@ -49,9 +50,9 @@ def test_queue_nats_connect_close():
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
 
-    queue = QueueNats(config)
+    queue = QueueNATS(config)
 
-    queue = QueueNats(config)
+    queue = QueueNATS(config)
     assert queue.connected is False
     queue.connect()
     assert queue.connected
@@ -66,7 +67,7 @@ def test_queue_nats_subscribe():
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
 
-    queue = QueueNats(config)
+    queue = QueueNATS(config)
 
     assert len(queue.subscriptions) == 0
     queue.subscribe(MessageType.TEST)
@@ -86,7 +87,7 @@ def test_queue_nats_send_subscribe_nextMsg():
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
 
-    queue = QueueNats(config)
+    queue = QueueNATS(config)
 
     queue.connect()
     original_number = random.randint(0, 100000000000)

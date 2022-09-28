@@ -16,7 +16,7 @@ class QueueType(Enum):
 
 
 class QueueFactory:
-    def __init__(self, logger: Optional[logging.logger] = None):
+    def __init__(self, logger: Optional[logging.Logger] = None):
         self._builders = {}
 
     def create(self, queue_type: QueueType, args: dict):
