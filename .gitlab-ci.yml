@@ -7,11 +7,12 @@ test-zambeze:
   tags:
     - cades
   script:
+    - python3.9 -m venv /opt/zambeze/zambeze-py39-env
     - source /opt/zambeze/zambeze-py39-env/bin/activate
-    - /opt/zambeze/zambeze-py39-env/bin/python3.9 -m pip install -r requirements.txt
+    - python3.9 -m pip install -r requirements.txt
     - chmod 600 $ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
-    - /opt/zambeze/zambeze-py39-env/bin/python3.9 -m pytest -m unit -sv
-    - /opt/zambeze/zambeze-py39-env/bin/python3.9 -m pytest -m gitlab_runner -sv
+    - python3.9 -m pytest -m unit -sv
+    - python3.9 -m pytest -m gitlab_runner -sv
 
 # Ideally this job would use a virtual environment that was provisioned by 
 # Ansible, as it is, if the VM goes down this venv disappears
