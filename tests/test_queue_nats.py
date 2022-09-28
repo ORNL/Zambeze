@@ -54,9 +54,9 @@ def test_queue_nats_connect_close():
 
     queue = QueueNATS(config)
     assert queue.connected is False
-    queue.connect()
+    await queue.connect()
     assert queue.connected
-    queue.close()
+    await queue.close()
     assert queue.connected is False
 
 
@@ -70,12 +70,12 @@ def test_queue_nats_subscribe():
     queue = QueueNATS(config)
 
     assert len(queue.subscriptions) == 0
-    queue.subscribe(MessageType.TEST)
+    await queue.subscribe(MessageType.TEST)
     assert len(queue.subscriptions) == 1
     assert queue.subscriptions[0] == MessageType.TEST
-    queue.subscribe(MessageType.ACTIVITY)
+    await queue.subscribe(MessageType.ACTIVITY)
     assert len(queue.subscriptions) == 2
-    queue.unsubscribe(MessageType.TEST)
+    await queue.unsubscribe(MessageType.TEST)
     assert len(queue.subscriptions) == 1
     assert queue.subscriptions[0] == MessageType.ACTIVITY
 
@@ -89,10 +89,10 @@ def test_queue_nats_send_subscribe_nextMsg():
 
     queue = QueueNATS(config)
 
-    queue.connect()
+    await queue.connect()
     original_number = random.randint(0, 100000000000)
-    queue.send(MessageType.TEST, {"value": original_number})
-    queue.subscribe(MessageType.TEST)
-    returned_msg = queue.nextMsg(MessageType.TEST)
+    await queue.send(MessageType.TEST, {"value": original_number})
+    await queue.subscribe(MessageType.TEST)
+    returned_msg = await queue.nextMsg(MessageType.TEST)
     assert returned_msg["value"] == original_number
-    queue.close()
+    await queue.close()
