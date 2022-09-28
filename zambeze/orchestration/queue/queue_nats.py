@@ -1,18 +1,15 @@
-
 import json
 import logging
 import nats
 from .abstract_queue import AbstractQueue
 from .queue_factory import MessageType, QueueType
-from nats.errors import TimeoutError
 from typing import Optional
 
 
 class QueueNATS(AbstractQueue):
     def __init__(
-            self,
-            queue_config: dict,
-            logger: Optional[logging.Logger] = None) -> None:
+        self, queue_config: dict, logger: Optional[logging.Logger] = None
+    ) -> None:
 
         self._queue_type = QueueType.NATS
         self._logger = logger
@@ -41,12 +38,13 @@ class QueueNATS(AbstractQueue):
         return self._queue_type
 
     @property
-    def uri(self):
-        """
-        Get the NATS connection URI.
+    def uri(self) -> str:
+        """Get the NATS connection URI.
 
-        :return: NATS connection URI
+        :returns: NATS connection URI
         :rtype: str
+        :raises Exception: if no ip address to NATS is provided
+        :raises Exception: if no port for NATS is provided
         """
         if self._ip is None:
             raise Exception("No ip specified for NATS queue")
@@ -100,11 +98,15 @@ class QueueNATS(AbstractQueue):
 
     async def nextMsg(self, msg_type: MessageType) -> dict:
         if self._sub is None:
-            raise Exception("Cannot get next message client is not subscribed \
-                    to any NATS topic")
+            raise Exception(
+                "Cannot get next message client is not subscribed \
+                    to any NATS topic"
+            )
         if msg_type.value not in self._sub:
-            raise Exception("Cannot get next message client is not subscribed \
-                    to any NATS topic")
+            raise Exception(
+                "Cannot get next message client is not subscribed \
+                    to any NATS topic"
+            )
         msg = await self._sub[msg_type].next_msg()
         data = json.loads(msg.data)
         return data
@@ -121,4 +123,3 @@ class QueueNATS(AbstractQueue):
         await self._nc.drain()
         self._nc = None
         self._sub = None
-
