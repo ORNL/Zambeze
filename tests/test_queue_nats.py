@@ -4,6 +4,7 @@ from zambeze.orchestration.queue.queue_factory import MessageType
 from zambeze.orchestration.queue.queue_factory import QueueType
 
 # Standard imports
+import asyncio
 import os
 import pytest
 import random
@@ -41,6 +42,17 @@ def test_queue_nats_connected():
     assert queue.connected is False
 
 
+async def queue_nats_connect_close(config):
+    queue = QueueNATS(config)
+    assert queue.connected is False
+    loop = asyncio.get_event_loop()
+    result = await queue.connect()
+    print(result)
+    assert queue.connected
+    await queue.close()
+    assert queue.connected is False
+
+
 @pytest.mark.gitlab_runner
 def test_queue_nats_connect_close():
 
@@ -48,14 +60,21 @@ def test_queue_nats_connect_close():
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
 
-    queue = QueueNATS(config)
+    asyncio.run(queue_nats_connect_close(config))
 
+
+async def queue_nats_subscribe(config):
     queue = QueueNATS(config)
-    assert queue.connected is False
-    queue.connect()
-    assert queue.connected
-    queue.close()
-    assert queue.connected is False
+    assert len(queue.subscriptions) == 0
+    await queue.connect()
+    await queue.subscribe(MessageType.TEST)
+    assert len(queue.subscriptions) == 1
+    assert queue.subscriptions[0] == MessageType.TEST
+    await queue.subscribe(MessageType.ACTIVITY)
+    assert len(queue.subscriptions) == 2
+    await queue.unsubscribe(MessageType.TEST)
+    assert len(queue.subscriptions) == 1
+    assert queue.subscriptions[0] == MessageType.ACTIVITY
 
 
 @pytest.mark.gitlab_runner
@@ -64,19 +83,17 @@ def test_queue_nats_subscribe():
     config = {}
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
+    asyncio.run(queue_nats_subscribe(config))
 
+
+async def queue_nats_send_subscribe_nextMsg(config, original_number):
     queue = QueueNATS(config)
-
-    assert len(queue.subscriptions) == 0
-    queue.subscribe(MessageType.TEST)
-    assert len(queue.subscriptions) == 1
-    assert queue.subscriptions[0] == MessageType.TEST
-    queue.subscribe(MessageType.ACTIVITY)
-    assert len(queue.subscriptions) == 2
-    queue.unsubscribe(MessageType.TEST)
-    assert len(queue.subscriptions) == 1
-    assert queue.subscriptions[0] == MessageType.ACTIVITY
-
+    await queue.connect()
+    await queue.subscribe(MessageType.TEST)
+    await queue.send(MessageType.TEST, {"value": original_number})
+    returned_msg = await queue.nextMsg(MessageType.TEST)
+    assert returned_msg["value"] == original_number
+    await queue.close()
 
 @pytest.mark.gitlab_runner
 def test_queue_nats_send_subscribe_nextMsg():
@@ -84,13 +101,6 @@ def test_queue_nats_send_subscribe_nextMsg():
     config = {}
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
-
-    queue = QueueNATS(config)
-
-    queue.connect()
     original_number = random.randint(0, 100000000000)
-    queue.send(MessageType.TEST, {"value": original_number})
-    queue.subscribe(MessageType.TEST)
-    returned_msg = queue.nextMsg(MessageType.TEST)
-    assert returned_msg["value"] == original_number
-    queue.close()
+
+    asyncio.run(queue_nats_send_subscribe_nextMsg(config, original_number))

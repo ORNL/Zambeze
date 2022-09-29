@@ -16,7 +16,7 @@ class QueueNATS(AbstractQueue):
         self._ip = "127.0.0.1"
         self._port = "4222"
         self._nc = None
-        self._sub = None
+        self._sub = {}
 
         if "ip" in queue_config:
             self._ip = queue_config["ip"]
@@ -24,14 +24,16 @@ class QueueNATS(AbstractQueue):
             self._port = queue_config["port"]
 
     async def __disconnected(self):
-        self._logger.info(
-            f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
-        )
+        if self._logger:
+            self._logger.info(
+                f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
+            )
 
     async def __reconnected(self):
-        self._logger.info(
-            f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
-        )
+        if self._logger:
+            self._logger.info(
+                f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
+            )
 
     @property
     def type(self) -> QueueType:
@@ -57,17 +59,20 @@ class QueueNATS(AbstractQueue):
     def connected(self) -> bool:
         return self._nc is not None
 
-    async def connect(self):
+    async def connect(self) -> (bool,str):
         self._nc = await nats.connect(
-            self._settings.get_nats_connection_uri(),
+            self.uri,
             reconnected_cb=self.__reconnected,
             disconnected_cb=self.__disconnected,
             connect_timeout=1,
         )
+        if self.connected:
+            return (True,f"Able to connect to NATS machine at {self.uri}")
+        return (False,f"Connection attempt timed out while tryint to connect to NATS at {self.uri}")
 
     @property
     def subscribed(self, msg_type: MessageType) -> bool:
-        if self._sub is not None:
+        if self._sub:
             if msg_type in self._sub:
                 if self._sub[msg_type] is not None:
                     return True
@@ -76,50 +81,53 @@ class QueueNATS(AbstractQueue):
     @property
     def subscriptions(self) -> list[MessageType]:
         active_subscriptions = []
-        if self._sub is None:
+        if not self._sub:
             return active_subscriptions
-        for subscription in self._sub:
-            if subscription is not None:
+        for subscription in self._sub.keys():
+            if self._sub[subscription] is not None:
                 active_subscriptions.append(subscription)
         return active_subscriptions
 
     async def subscribe(self, msg_type: MessageType):
+        if self._nc is None:
+            raise Exception("Cannot subscribe to topic, client is not connected to a NATS queue")
         self._sub[msg_type] = await self._nc.subscribe(msg_type.value)
 
     async def unsubscribe(self, msg_type: MessageType):
-        if self._sub is None:
+        if not self._sub:
             return
         if msg_type not in self._sub:
             return
-        if self._sub[msg_type] is None:
+        if not self._sub[msg_type]:
             return
         await self._sub[msg_type].unsubscribe()
         self._sub[msg_type] = None
 
     async def nextMsg(self, msg_type: MessageType) -> dict:
-        if self._sub is None:
+        if not self._sub:
             raise Exception(
                 "Cannot get next message client is not subscribed \
                     to any NATS topic"
             )
-        if msg_type.value not in self._sub:
+        if msg_type not in self._sub:
             raise Exception(
-                "Cannot get next message client is not subscribed \
-                    to any NATS topic"
+                f"Cannot get next message client is not subscribed \
+                        to any NATS topic: {msg_type.value}"
             )
-        msg = await self._sub[msg_type].next_msg()
+        msg = await self._sub[msg_type].next_msg(timeout=1)
         data = json.loads(msg.data)
         return data
 
     async def send(self, msg_type: MessageType, body: dict):
         if self._nc is None:
-            self.connect()
-        await self._nc.publish(msg_type, json.dumps(body).encode())
+            raise Exception("Cannot send message to NATS, client is not connected to a NATS queue")
+        await self._nc.publish(msg_type.value, json.dumps(body).encode())
 
     async def close(self):
-        for subscription in self._sub:
-            if subscription is not None:
-                subscription.unsubscribe()
+        if self._sub:
+            for subscription in self._sub:
+                if subscription is not None:
+                    await self._sub[subscription].unsubscribe()
         await self._nc.drain()
         self._nc = None
-        self._sub = None
+        self._sub = {}

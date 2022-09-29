@@ -25,7 +25,7 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    def connect(self):
+    def connect(self) -> (bool, str):
         raise NotImplementedError(
             "connect - method does not exist for:" f"{self._queue_type.value}"
         )
@@ -55,6 +55,9 @@ class AbstractQueue(ABC):
         raise NotImplementedError(
             "nextMsg - method does not exist for:" f"{self._queue_type.value}"
         )
+
+    def ackMsg(self) -> dict:
+        """Probably need to pass in a handle to check acknowlegement"""
 
     @abstractmethod
     def send(self, msg_type: MessageType, body: dict):
