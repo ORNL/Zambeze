@@ -17,16 +17,16 @@ import socket
 import threading
 
 from enum import Enum
-from nats.errors import TimeoutError
+# from nats.errors import TimeoutError
 from typing import Optional
 from urllib.parse import urlparse
 from ..settings import ZambezeSettings
-
-
-class MessageType(Enum):
-    COMPUTE = "z_compute"
-    DATA = "z_data"
-    STATUS = "z_status"
+from .zambeze_types import ChannelType, QueueType
+from queue.queue_factory import QueueFactory
+# class MessageType(Enum):
+#    COMPUTE = "z_compute"
+#    DATA = "z_data"
+#    STATUS = "z_status"
 
 
 class Processor(threading.Thread):
@@ -48,21 +48,28 @@ class Processor(threading.Thread):
             logging.getLogger(__name__) if logger is None else logger
         )
 
+        factory = QueueFactory()
+        args = {
+            "ip": self.settings["nats"]["host"],
+            "port": self.settings["nats"]["port"]
+        }
+        self._queue_client = factory.create(QueueType.NATS, args)
+
     def run(self):
         """Start the Processor thread."""
         self._logger.debug("Starting Agent Processor")
         asyncio.run(self.__process())
 
-    async def __disconnected(self):
-        self._logger.info(
-            f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
-        )
-
-    async def __reconnected(self):
-        self._logger.info(
-            f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
-        )
-
+#    async def __disconnected(self):
+#        self._logger.info(
+#            f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
+#        )
+#
+#    async def __reconnected(self):
+#        self._logger.info(
+#            f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
+#        )
+#
     async def __process(self):
         """
         Evaluate and process messages if requested activity is supported.
@@ -72,14 +79,17 @@ class Processor(threading.Thread):
         )
         print(f"Connecting to {self._settings.get_nats_connection_uri()}")
 
-        nc = await nats.connect(
-            self._settings.get_nats_connection_uri(),
-            reconnected_cb=self.__reconnected,
-            disconnected_cb=self.__disconnected,
-            connect_timeout=1,
-        )
+        await self._queue_client.connect()
+#        nc = await nats.connect(
+#            self._settings.get_nats_connection_uri(),
+#            reconnected_cb=self.__reconnected,
+#            disconnected_cb=self.__disconnected,
+#            connect_timeout=1,
+#        )
 
-        sub = await nc.subscribe(MessageType.COMPUTE.value)
+        await self._queue_client.subscribe(ChannelType.ACTIVITY)
+
+#        sub = await nc.subscribe(MessageType.COMPUTE.value)
         self._logger.debug("Waiting for messages")
 
         default_working_dir = self._settings.settings["plugins"]["All"][
@@ -117,8 +127,8 @@ class Processor(threading.Thread):
 
                 self._logger.debug("Waiting for messages")
 
-            except TimeoutError:
-                pass
+            # except TimeoutError:
+            #    pass
             except Exception as e:
                 print(e)
                 exit(1)
