@@ -45,6 +45,8 @@ class QueueNATS(AbstractQueue):
 
         :returns: NATS connection URI
         :rtype: str
+
+        Raises:
         :raises Exception: if no ip address to NATS is provided
         :raises Exception: if no port for NATS is provided
         """
@@ -127,7 +129,7 @@ class QueueNATS(AbstractQueue):
         if self._sub:
             if channel in self._sub:
                 await self._sub[channel].ack()
-         
+
     async def nackMsg(self, channel: ChannelType):
         if self._sub:
             if channel in self._sub:
