@@ -8,6 +8,7 @@ import pytest
 import os
 import random
 
+
 async def factory_nats(queue):
     await queue.connect()
     await queue.subscribe(ChannelType.TEST)
@@ -25,7 +26,6 @@ def test_factory_nats():
     config = {}
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
-   
+
     queue = factory.create(QueueType.NATS, config)
     asyncio.run(factory_nats(queue))
-

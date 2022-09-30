@@ -45,6 +45,8 @@ class QueueNATS(AbstractQueue):
 
         :returns: NATS connection URI
         :rtype: str
+
+        Raises:
         :raises Exception: if no ip address to NATS is provided
         :raises Exception: if no port for NATS is provided
         """
@@ -93,7 +95,9 @@ class QueueNATS(AbstractQueue):
 
     async def subscribe(self, channel: ChannelType):
         if self._nc is None:
-            raise Exception("Cannot subscribe to topic, client is not connected to a NATS queue")
+            raise Exception(
+                "Cannot subscribe to topic, client is not connected to a NATS queue"
+            )
         self._sub[channel] = await self._nc.subscribe(channel.value)
 
     async def unsubscribe(self, channel: ChannelType):
@@ -125,7 +129,7 @@ class QueueNATS(AbstractQueue):
         if self._sub:
             if channel in self._sub:
                 await self._sub[channel].ack()
-         
+
     async def nackMsg(self, channel: ChannelType):
         if self._sub:
             if channel in self._sub:
@@ -133,7 +137,9 @@ class QueueNATS(AbstractQueue):
 
     async def send(self, channel: ChannelType, body: dict):
         if self._nc is None:
-            raise Exception("Cannot send message to NATS, client is not connected to a NATS queue")
+            raise Exception(
+                "Cannot send message to NATS, client is not connected to a NATS queue"
+            )
         await self._nc.publish(channel.value, json.dumps(body).encode())
 
     async def close(self):

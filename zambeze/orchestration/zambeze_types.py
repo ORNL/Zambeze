@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class ChannelType(Enum):
     ACTIVITY = "ACTIVITY"
     STATUS = "STATUS"
@@ -9,4 +10,3 @@ class ChannelType(Enum):
 class QueueType(Enum):
     RABBITMQ = "RabbitMQ"
     NATS = "NATS"
-
