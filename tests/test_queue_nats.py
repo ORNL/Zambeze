@@ -44,7 +44,6 @@ def test_queue_nats_connected():
 async def queue_nats_connect_close(config):
     queue = QueueNATS(config)
     assert queue.connected is False
-    loop = asyncio.get_event_loop()
     result = await queue.connect()
     print(result)
     assert queue.connected
@@ -93,6 +92,7 @@ async def queue_nats_send_subscribe_nextMsg(config, original_number):
     returned_msg = await queue.nextMsg(ChannelType.TEST)
     assert returned_msg["value"] == original_number
     await queue.close()
+
 
 @pytest.mark.gitlab_runner
 def test_queue_nats_send_subscribe_nextMsg():

@@ -59,7 +59,7 @@ class QueueNATS(AbstractQueue):
     def connected(self) -> bool:
         return self._nc is not None
 
-    async def connect(self) -> (bool,str):
+    async def connect(self) -> (bool, str):
         self._nc = await nats.connect(
             self.uri,
             reconnected_cb=self.__reconnected,
@@ -67,8 +67,11 @@ class QueueNATS(AbstractQueue):
             connect_timeout=1,
         )
         if self.connected:
-            return (True,f"Able to connect to NATS machine at {self.uri}")
-        return (False,f"Connection attempt timed out while tryint to connect to NATS at {self.uri}")
+            return (True, f"Able to connect to NATS machine at {self.uri}")
+        return (
+            False,
+            f"Connection attempt timed out while tryint to connect to NATS at {self.uri}",
+        )
 
     @property
     def subscribed(self, channel: ChannelType) -> bool:
