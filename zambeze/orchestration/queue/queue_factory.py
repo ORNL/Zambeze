@@ -1,5 +1,4 @@
 import logging
-from enum import Enum
 from typing import Optional
 
 from .queue_nats import QueueNATS

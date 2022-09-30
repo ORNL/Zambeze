@@ -70,7 +70,8 @@ class QueueNATS(AbstractQueue):
             return (True, f"Able to connect to NATS machine at {self.uri}")
         return (
             False,
-            f"Connection attempt timed out while tryint to connect to NATS at {self.uri}",
+            "Connection attempt timed out while tryint to connect to NATS "
+            f"at {self.uri}",
         )
 
     @property
@@ -93,7 +94,8 @@ class QueueNATS(AbstractQueue):
 
     async def subscribe(self, channel: ChannelType):
         if self._nc is None:
-            raise Exception("Cannot subscribe to topic, client is not connected to a NATS queue")
+            raise Exception("Cannot subscribe to topic, client is not "
+                            "connected to a NATS queue")
         self._sub[channel] = await self._nc.subscribe(channel.value)
 
     async def unsubscribe(self, channel: ChannelType):
@@ -133,7 +135,8 @@ class QueueNATS(AbstractQueue):
 
     async def send(self, channel: ChannelType, body: dict):
         if self._nc is None:
-            raise Exception("Cannot send message to NATS, client is not connected to a NATS queue")
+            raise Exception("Cannot send message to NATS, client is "
+                            "not connected to a NATS queue")
         await self._nc.publish(channel.value, json.dumps(body).encode())
 
     async def close(self):
