@@ -1,7 +1,6 @@
 # Local imports
 from zambeze.orchestration.queue.queue_nats import QueueNATS
-from zambeze.orchestration.queue.queue_factory import MessageType
-from zambeze.orchestration.queue.queue_factory import QueueType
+from zambeze.orchestration.zambeze_types import ChannelType, QueueType
 
 # Standard imports
 import asyncio
@@ -67,14 +66,14 @@ async def queue_nats_subscribe(config):
     queue = QueueNATS(config)
     assert len(queue.subscriptions) == 0
     await queue.connect()
-    await queue.subscribe(MessageType.TEST)
+    await queue.subscribe(ChannelType.TEST)
     assert len(queue.subscriptions) == 1
-    assert queue.subscriptions[0] == MessageType.TEST
-    await queue.subscribe(MessageType.ACTIVITY)
+    assert queue.subscriptions[0] == ChannelType.TEST
+    await queue.subscribe(ChannelType.ACTIVITY)
     assert len(queue.subscriptions) == 2
-    await queue.unsubscribe(MessageType.TEST)
+    await queue.unsubscribe(ChannelType.TEST)
     assert len(queue.subscriptions) == 1
-    assert queue.subscriptions[0] == MessageType.ACTIVITY
+    assert queue.subscriptions[0] == ChannelType.ACTIVITY
 
 
 @pytest.mark.gitlab_runner
@@ -89,9 +88,9 @@ def test_queue_nats_subscribe():
 async def queue_nats_send_subscribe_nextMsg(config, original_number):
     queue = QueueNATS(config)
     await queue.connect()
-    await queue.subscribe(MessageType.TEST)
-    await queue.send(MessageType.TEST, {"value": original_number})
-    returned_msg = await queue.nextMsg(MessageType.TEST)
+    await queue.subscribe(ChannelType.TEST)
+    await queue.send(ChannelType.TEST, {"value": original_number})
+    returned_msg = await queue.nextMsg(ChannelType.TEST)
     assert returned_msg["value"] == original_number
     await queue.close()
 

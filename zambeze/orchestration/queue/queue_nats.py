@@ -2,7 +2,7 @@ import json
 import logging
 import nats
 from .abstract_queue import AbstractQueue
-from .queue_factory import MessageType, QueueType
+from ..zambeze_types import ChannelType, QueueType
 from typing import Optional
 
 
@@ -71,15 +71,15 @@ class QueueNATS(AbstractQueue):
         return (False,f"Connection attempt timed out while tryint to connect to NATS at {self.uri}")
 
     @property
-    def subscribed(self, msg_type: MessageType) -> bool:
+    def subscribed(self, channel: ChannelType) -> bool:
         if self._sub:
-            if msg_type in self._sub:
-                if self._sub[msg_type] is not None:
+            if channel in self._sub:
+                if self._sub[channel] is not None:
                     return True
         return False
 
     @property
-    def subscriptions(self) -> list[MessageType]:
+    def subscriptions(self) -> list[ChannelType]:
         active_subscriptions = []
         if not self._sub:
             return active_subscriptions
@@ -88,40 +88,50 @@ class QueueNATS(AbstractQueue):
                 active_subscriptions.append(subscription)
         return active_subscriptions
 
-    async def subscribe(self, msg_type: MessageType):
+    async def subscribe(self, channel: ChannelType):
         if self._nc is None:
             raise Exception("Cannot subscribe to topic, client is not connected to a NATS queue")
-        self._sub[msg_type] = await self._nc.subscribe(msg_type.value)
+        self._sub[channel] = await self._nc.subscribe(channel.value)
 
-    async def unsubscribe(self, msg_type: MessageType):
+    async def unsubscribe(self, channel: ChannelType):
         if not self._sub:
             return
-        if msg_type not in self._sub:
+        if channel not in self._sub:
             return
-        if not self._sub[msg_type]:
+        if not self._sub[channel]:
             return
-        await self._sub[msg_type].unsubscribe()
-        self._sub[msg_type] = None
+        await self._sub[channel].unsubscribe()
+        self._sub[channel] = None
 
-    async def nextMsg(self, msg_type: MessageType) -> dict:
+    async def nextMsg(self, channel: ChannelType) -> dict:
         if not self._sub:
             raise Exception(
                 "Cannot get next message client is not subscribed \
                     to any NATS topic"
             )
-        if msg_type not in self._sub:
+        if channel not in self._sub:
             raise Exception(
                 f"Cannot get next message client is not subscribed \
-                        to any NATS topic: {msg_type.value}"
+                        to any NATS topic: {channel.value}"
             )
-        msg = await self._sub[msg_type].next_msg(timeout=1)
+        msg = await self._sub[channel].next_msg(timeout=1)
         data = json.loads(msg.data)
         return data
 
-    async def send(self, msg_type: MessageType, body: dict):
+    async def ackMsg(self, channel: ChannelType):
+        if self._sub:
+            if channel in self._sub:
+                await self._sub[channel].ack()
+         
+    async def nackMsg(self, channel: ChannelType):
+        if self._sub:
+            if channel in self._sub:
+                await self._sub[channel].nack()
+
+    async def send(self, channel: ChannelType, body: dict):
         if self._nc is None:
             raise Exception("Cannot send message to NATS, client is not connected to a NATS queue")
-        await self._nc.publish(msg_type.value, json.dumps(body).encode())
+        await self._nc.publish(channel.value, json.dumps(body).encode())
 
     async def close(self):
         if self._sub:

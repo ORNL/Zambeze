@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .queue_factory import QueueType, MessageType
+from ..zambeze_types import QueueType, ChannelType
 
 
 class AbstractQueue(ABC):
@@ -25,7 +25,7 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    def connect(self) -> (bool, str):
+    async def connect(self) -> (bool, str):
         raise NotImplementedError(
             "connect - method does not exist for:" f"{self._queue_type.value}"
         )
@@ -38,35 +38,42 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    def subscribe(self, msg_type: MessageType):
+    async def subscribe(self, channel: ChannelType):
         raise NotImplementedError(
             "subscribe - method does not exist for:" f"{self._queue_type.value}"
         )
 
     @property
     @abstractmethod
-    def subscriptions(self) -> list[MessageType]:
+    def subscriptions(self) -> list[ChannelType]:
         raise NotImplementedError(
             "subscriptions - method does not exist for:" f"{self._queue_type.value}"
         )
 
     @abstractmethod
-    def nextMsg(self, msg_type: MessageType) -> dict:
+    async def nextMsg(self, channel: ChannelType) -> dict:
         raise NotImplementedError(
             "nextMsg - method does not exist for:" f"{self._queue_type.value}"
         )
 
-    def ackMsg(self) -> dict:
-        """Probably need to pass in a handle to check acknowlegement"""
+    async def ackMsg(self):
+        raise NotImplementedError(
+            "ackMsg - method does not exist for:" f"{self._queue_type.value}"
+        )
+
+    async def nackMsg(self):
+        raise NotImplementedError(
+            "nackMsg - method does not exist for:" f"{self._queue_type.value}"
+        )
 
     @abstractmethod
-    def send(self, msg_type: MessageType, body: dict):
+    async def send(self, channel: ChannelType, body: dict):
         raise NotImplementedError(
             "send - method does not exist for:" f"{self._queue_type.value}"
         )
 
     @abstractmethod
-    def close(self):
+    async def close(self):
         raise NotImplementedError(
             "close - method does not exist for:" f"{self._queue_type.value}"
         )
