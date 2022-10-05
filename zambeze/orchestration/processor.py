@@ -49,10 +49,11 @@ class Processor(threading.Thread):
             logging.getLogger(__name__) if logger is None else logger
         )
 
+        print(self._settings.settings)
         factory = QueueFactory()
         args = {
-            "ip": self.settings["nats"]["host"],
-            "port": self.settings["nats"]["port"]
+            "ip": self._settings.settings["nats"]["host"],
+            "port": self._settings.settings["nats"]["port"]
         }
         self._queue_client = factory.create(QueueType.NATS, args)
 
