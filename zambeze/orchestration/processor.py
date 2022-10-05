@@ -49,8 +49,7 @@ class Processor(threading.Thread):
             logging.getLogger(__name__) if logger is None else logger
         )
 
-        print(self._settings.settings)
-        factory = QueueFactory()
+        factory = QueueFactory(logger=self._logger)
         args = {
             "ip": self._settings.settings["nats"]["host"],
             "port": self._settings.settings["nats"]["port"]
@@ -59,19 +58,8 @@ class Processor(threading.Thread):
 
     def run(self):
         """Start the Processor thread."""
-        self._logger.debug("Starting Agent Processor")
         asyncio.run(self.__process())
 
-#    async def __disconnected(self):
-#        self._logger.info(
-#            f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
-#        )
-#
-#    async def __reconnected(self):
-#        self._logger.info(
-#            f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
-#        )
-#
     async def __process(self):
         """
         Evaluate and process messages if requested activity is supported.
@@ -79,20 +67,10 @@ class Processor(threading.Thread):
         self._logger.debug(
             f"Connecting to Queue ({self._queue_client.type}) server: {self._queue_client.type}"
         )
-        print(f"Connecting to {self._queue_client.type}")
 
         await self._queue_client.connect()
-#        nc = await nats.connect(
-#            self._settings.get_nats_connection_uri(),
-#            reconnected_cb=self.__reconnected,
-#            disconnected_cb=self.__disconnected,
-#            connect_timeout=1,
-#        )
 
         await self._queue_client.subscribe(ChannelType.ACTIVITY)
-
-#        sub = await nc.subscribe(MessageType.COMPUTE.value)
-        self._logger.debug("Waiting for messages")
 
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
@@ -103,7 +81,6 @@ class Processor(threading.Thread):
         while True:
             try:
                 msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
-                #msg = await sub.next_msg()
                 data = json.loads(msg.data)
                 self._logger.debug("Message received:")
                 self._logger.debug(json.dumps(data, indent=4))
@@ -271,7 +248,7 @@ class Processor(threading.Thread):
         self._logger.debug(
             f"Connecting to Queue ({self._queue_client.type}) server: {self._queue_client.uri}"
         )
-        self._logger.debug(f"Sending a '{type}' message")
+        self._logger.debug(f"Sending a 'channel_type.value}' message")
 
         await self._queue_client.connect()
         await self._queue_client.send(channel_type, body)

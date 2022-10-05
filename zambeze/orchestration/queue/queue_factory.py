@@ -47,7 +47,7 @@ class QueueFactory:
         >>>     await client.connect()
         """
         if queue_type == QueueType.NATS:
-            return QueueNATS(args, self._logger)
+            return QueueNATS(args, logger=self._logger)
         elif queue_type == QueueType.RABBITMQ:
             raise Exception(
                 "RabbitMQ queue client has not yet been implemented: "

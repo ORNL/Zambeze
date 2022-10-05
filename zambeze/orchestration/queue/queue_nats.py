@@ -62,17 +62,28 @@ class QueueNATS(AbstractQueue):
         return self._nc is not None
 
     async def connect(self) -> (bool, str):
-        self._nc = await nats.connect(
-            self.uri,
-            reconnected_cb=self.__reconnected,
-            disconnected_cb=self.__disconnected,
-            connect_timeout=1,
-        )
+        try:
+            self._nc = await nats.connect(
+                self.uri,
+                reconnected_cb=self.__reconnected,
+                disconnected_cb=self.__disconnected,
+                connect_timeout=1,
+            )
+        except:
+            self._logger.debug(
+                f"Unable to connect to nats server at {self.uri}"
+                "1. Make sure your firewall ports are open.\n"
+                "2. That the nats service is up and running.\n"
+                "3. The correct ip address and port have been specified.\n"
+                "4. That an agent.yaml file exists for the zambeze agent.\n"
+            )
+            self._nc = None
+
         if self.connected:
             return (True, f"Able to connect to NATS machine at {self.uri}")
         return (
             False,
-            "Connection attempt timed out while tryint to connect to NATS "
+            "Connection attempt timed out while trying to connect to NATS "
             f"at {self.uri}",
         )
 
