@@ -11,7 +11,7 @@ import getpass
 import json
 import logging
 import pathlib
-import nats
+#import nats
 import os
 import socket
 import threading
@@ -22,7 +22,8 @@ from typing import Optional
 from urllib.parse import urlparse
 from ..settings import ZambezeSettings
 from .zambeze_types import ChannelType, QueueType
-from queue.queue_factory import QueueFactory
+from .queue.queue_factory import QueueFactory
+
 # class MessageType(Enum):
 #    COMPUTE = "z_compute"
 #    DATA = "z_data"
@@ -75,9 +76,9 @@ class Processor(threading.Thread):
         Evaluate and process messages if requested activity is supported.
         """
         self._logger.debug(
-            f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
+            f"Connecting to Queue ({self._queue_client.type}) server: {self._queue_client.type}"
         )
-        print(f"Connecting to {self._settings.get_nats_connection_uri()}")
+        print(f"Connecting to {self._queue_client.type}")
 
         await self._queue_client.connect()
 #        nc = await nats.connect(
@@ -100,7 +101,8 @@ class Processor(threading.Thread):
 
         while True:
             try:
-                msg = await sub.next_msg()
+                msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
+                #msg = await sub.next_msg()
                 data = json.loads(msg.data)
                 self._logger.debug("Message received:")
                 self._logger.debug(json.dumps(data, indent=4))
@@ -229,8 +231,10 @@ class Processor(threading.Thread):
                     raise Exception("Needs to be implemented.")
 
             elif file_url.scheme == "rsync":
-                await self.send(
-                    MessageType.COMPUTE.value,
+                #await self.send(
+                #    MessageType.COMPUTE.value,
+                await self._queue_client.send(
+                        ChannelType.ACTIVITY,
                     {
                         "plugin": "rsync",
                         "cmd": [
@@ -254,7 +258,7 @@ class Processor(threading.Thread):
                     },
                 )
 
-    async def send(self, type: MessageType, body: dict) -> None:
+    async def send(self, channel_type: ChannelType, body: dict) -> None:
         """
         Publish an activity message to the queue.
 
@@ -264,9 +268,13 @@ class Processor(threading.Thread):
         :type body: dict
         """
         self._logger.debug(
-            f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
+            f"Connecting to Queue ({self._queue_client.type}) server: {self._queue_client.uri}"
         )
         self._logger.debug(f"Sending a '{type}' message")
-        nc = await nats.connect(self._settings.get_nats_connection_uri())
-        await nc.publish(type, json.dumps(body).encode())
-        await nc.drain()
+
+        await self._queue_client.connect()
+        await self._queue_client.send(channel_type, body)
+        #await self._queue_client.close()
+        #nc = await nats.connect(self._settings.get_nats_connection_uri())
+        #await nc.publish(type, json.dumps(body).encode())
+        #await nc.drain()
