@@ -9,6 +9,7 @@
 import logging
 import zmq
 import pickle
+import uuid
 
 from .activities.abstract_activity import Activity
 
@@ -45,7 +46,10 @@ class Campaign:
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
         self._zmq_socket.connect("tcp://localhost:5555")
 
-        agent_start(self._logger)
+        # Create random uuid.
+        self.campaign_id = uuid.uuid4()
+
+        agent_start(self._logger, self.campaign_id)
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
@@ -54,6 +58,7 @@ class Campaign:
         :type activity: Activity
         """
         self._logger.debug(f"Adding activity: {activity.name}")
+        activity.campaign_id = self.campaign_id
         self.activities.append(activity)
 
     def dispatch(self) -> None:

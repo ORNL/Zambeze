@@ -61,6 +61,7 @@ class Activity(ABC):
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
         self.activity_id = uuid.uuid4()
+        self.campaign_id = None  # incoming at *add activity* from campaign.
 
     def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.

@@ -11,6 +11,7 @@ class MessageType(Enum):
     STATUS = "z_status"
     RESPONSE = "z_response"
 
+
 async def do_a_thing():
     async def __disconnected(self):
         self._logger.info(
