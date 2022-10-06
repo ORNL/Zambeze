@@ -35,14 +35,7 @@ activity = ShellActivity(
         for i in range(1, 11)
     ],
     command="convert",
-    arguments=[
-        "-delay",
-        "20",
-        "-loop",
-        "0",
-        "/tmp/*.jpg",
-        "a.gif",
-    ],
+    arguments=["-delay", "20", "-loop", "0", "/tmp/*.jpg", "a.gif"],
     logger=logger,
     # Uncomment if running on M1 Mac.
     env_vars=[("PATH", "$PATH:/opt/homebrew/bin")],

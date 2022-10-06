@@ -69,7 +69,7 @@ class QueueNATS(AbstractQueue):
                 disconnected_cb=self.__disconnected,
                 connect_timeout=1,
             )
-        except:
+        except Exception:
             self._logger.debug(
                 f"Unable to connect to nats server at {self.uri}"
                 "1. Make sure your firewall ports are open.\n"
@@ -107,8 +107,9 @@ class QueueNATS(AbstractQueue):
 
     async def subscribe(self, channel: ChannelType):
         if self._nc is None:
-            raise Exception("Cannot subscribe to topic, client is not "
-                            "connected to a NATS queue")
+            raise Exception(
+                "Cannot subscribe to topic, client is not " "connected to a NATS queue"
+            )
         self._sub[channel] = await self._nc.subscribe(channel.value)
 
     async def unsubscribe(self, channel: ChannelType):
@@ -148,8 +149,10 @@ class QueueNATS(AbstractQueue):
 
     async def send(self, channel: ChannelType, body: dict):
         if self._nc is None:
-            raise Exception("Cannot send message to NATS, client is "
-                            "not connected to a NATS queue")
+            raise Exception(
+                "Cannot send message to NATS, client is "
+                "not connected to a NATS queue"
+            )
         await self._nc.publish(channel.value, json.dumps(body).encode())
 
     async def close(self):

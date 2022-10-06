@@ -11,23 +11,16 @@ import getpass
 import json
 import logging
 import pathlib
-#import nats
+
 import os
 import socket
 import threading
 
-from enum import Enum
-# from nats.errors import TimeoutError
 from typing import Optional
 from urllib.parse import urlparse
 from ..settings import ZambezeSettings
 from .zambeze_types import ChannelType, QueueType
 from .queue.queue_factory import QueueFactory
-
-# class MessageType(Enum):
-#    COMPUTE = "z_compute"
-#    DATA = "z_data"
-#    STATUS = "z_status"
 
 
 class Processor(threading.Thread):
@@ -52,7 +45,7 @@ class Processor(threading.Thread):
         factory = QueueFactory(logger=self._logger)
         args = {
             "ip": self._settings.settings["nats"]["host"],
-            "port": self._settings.settings["nats"]["port"]
+            "port": self._settings.settings["nats"]["port"],
         }
         self._queue_client = factory.create(QueueType.NATS, args)
 
@@ -65,7 +58,8 @@ class Processor(threading.Thread):
         Evaluate and process messages if requested activity is supported.
         """
         self._logger.debug(
-            f"Connecting to Queue ({self._queue_client.type}) server: {self._queue_client.type}"
+            f"Connecting to Queue ({self._queue_client.type}) server: "
+            f"{self._queue_client.type}"
         )
 
         await self._queue_client.connect()
@@ -107,8 +101,6 @@ class Processor(threading.Thread):
 
                 self._logger.debug("Waiting for messages")
 
-            # except TimeoutError:
-            #    pass
             except Exception as e:
                 print(e)
                 exit(1)
@@ -209,10 +201,8 @@ class Processor(threading.Thread):
                     raise Exception("Needs to be implemented.")
 
             elif file_url.scheme == "rsync":
-                #await self.send(
-                #    MessageType.COMPUTE.value,
                 await self._queue_client.send(
-                        ChannelType.ACTIVITY,
+                    ChannelType.ACTIVITY,
                     {
                         "plugin": "rsync",
                         "cmd": [
@@ -246,13 +236,10 @@ class Processor(threading.Thread):
         :type body: dict
         """
         self._logger.debug(
-            f"Connecting to Queue ({self._queue_client.type}) server: {self._queue_client.uri}"
+            f"Connecting to Queue ({self._queue_client.type}) "
+            f"server: {self._queue_client.uri}"
         )
-        self._logger.debug(f"Sending a 'channel_type.value}' message")
+        self._logger.debug(f"Sending a '{channel_type.value}' message")
 
         await self._queue_client.connect()
         await self._queue_client.send(channel_type, body)
-        #await self._queue_client.close()
-        #nc = await nats.connect(self._settings.get_nats_connection_uri())
-        #await nc.publish(type, json.dumps(body).encode())
-        #await nc.drain()
