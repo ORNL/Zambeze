@@ -99,11 +99,7 @@ def test_rsync_plugin_check():
                 "user": current_user,
                 "path": current_valid_path,
             },
-            "destination": {
-                "ip": neighbor_vm_ip,
-                "user": "cades",
-                "path": "/tmp",
-            },
+            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
             "arguments": ["-a"],
         }
     }
@@ -167,11 +163,7 @@ def test_rsync_plugin_run():
     arguments = {
         "transfer": {
             "source": {"ip": local_ip, "user": current_user, "path": file_path},
-            "destination": {
-                "ip": neighbor_vm_ip,
-                "user": "cades",
-                "path": "/tmp",
-            },
+            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
             "arguments": ["-a"],
         }
     }

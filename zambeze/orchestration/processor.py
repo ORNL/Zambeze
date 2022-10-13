@@ -11,22 +11,16 @@ import getpass
 import json
 import logging
 import pathlib
-import nats
+
 import os
 import socket
 import threading
 
-from enum import Enum
-from nats.errors import TimeoutError
 from typing import Optional
 from urllib.parse import urlparse
 from ..settings import ZambezeSettings
-
-
-class MessageType(Enum):
-    COMPUTE = "z_compute"
-    DATA = "z_data"
-    STATUS = "z_status"
+from .zambeze_types import ChannelType, QueueType
+from .queue.queue_factory import QueueFactory
 
 
 class Processor(threading.Thread):
@@ -48,39 +42,29 @@ class Processor(threading.Thread):
             logging.getLogger(__name__) if logger is None else logger
         )
 
+        factory = QueueFactory(logger=self._logger)
+        args = {
+            "ip": self._settings.settings["nats"]["host"],
+            "port": self._settings.settings["nats"]["port"],
+        }
+        self._queue_client = factory.create(QueueType.NATS, args)
+
     def run(self):
         """Start the Processor thread."""
-        self._logger.debug("Starting Agent Processor")
         asyncio.run(self.__process())
-
-    async def __disconnected(self):
-        self._logger.info(
-            f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
-        )
-
-    async def __reconnected(self):
-        self._logger.info(
-            f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
-        )
 
     async def __process(self):
         """
         Evaluate and process messages if requested activity is supported.
         """
         self._logger.debug(
-            f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
-        )
-        print(f"Connecting to {self._settings.get_nats_connection_uri()}")
-
-        nc = await nats.connect(
-            self._settings.get_nats_connection_uri(),
-            reconnected_cb=self.__reconnected,
-            disconnected_cb=self.__disconnected,
-            connect_timeout=1,
+            f"Connecting to Queue ({self._queue_client.type}) server: "
+            f"{self._queue_client.type}"
         )
 
-        sub = await nc.subscribe(MessageType.COMPUTE.value)
-        self._logger.debug("Waiting for messages")
+        await self._queue_client.connect()
+
+        await self._queue_client.subscribe(ChannelType.ACTIVITY)
 
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
@@ -90,7 +74,7 @@ class Processor(threading.Thread):
 
         while True:
             try:
-                msg = await sub.next_msg()
+                msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
                 data = json.loads(msg.data)
                 self._logger.debug("Message received:")
                 self._logger.debug(json.dumps(data, indent=4))
@@ -117,8 +101,6 @@ class Processor(threading.Thread):
 
                 self._logger.debug("Waiting for messages")
 
-            except TimeoutError:
-                pass
             except Exception as e:
                 print(e)
                 exit(1)
@@ -219,8 +201,8 @@ class Processor(threading.Thread):
                     raise Exception("Needs to be implemented.")
 
             elif file_url.scheme == "rsync":
-                await self.send(
-                    MessageType.COMPUTE.value,
+                await self._queue_client.send(
+                    ChannelType.ACTIVITY,
                     {
                         "plugin": "rsync",
                         "cmd": [
@@ -244,7 +226,7 @@ class Processor(threading.Thread):
                     },
                 )
 
-    async def send(self, type: MessageType, body: dict) -> None:
+    async def send(self, channel_type: ChannelType, body: dict) -> None:
         """
         Publish an activity message to the queue.
 
@@ -254,9 +236,10 @@ class Processor(threading.Thread):
         :type body: dict
         """
         self._logger.debug(
-            f"Connecting to NATS server: {self._settings.get_nats_connection_uri()}"
+            f"Connecting to Queue ({self._queue_client.type}) "
+            f"server: {self._queue_client.uri}"
         )
-        self._logger.debug(f"Sending a '{type}' message")
-        nc = await nats.connect(self._settings.get_nats_connection_uri())
-        await nc.publish(type, json.dumps(body).encode())
-        await nc.drain()
+        self._logger.debug(f"Sending a '{channel_type.value}' message")
+
+        await self._queue_client.connect()
+        await self._queue_client.send(channel_type, body)

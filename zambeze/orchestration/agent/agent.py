@@ -14,7 +14,8 @@ import zmq
 
 from typing import Optional
 from uuid import uuid4
-from ..processor import Processor, MessageType
+from ..processor import Processor
+from ..zambeze_types import ChannelType
 from ...campaign.activities.abstract_activity import Activity, ActivityStatus
 from ...settings import ZambezeSettings
 
@@ -78,6 +79,6 @@ class Agent:
         """
         self._logger.error("Received activity for dispatch...")
         asyncio.run(
-            self.processor.send(MessageType.COMPUTE.value, activity.generate_message())
+            self.processor.send(ChannelType.ACTIVITY, activity.generate_message())
         )
         activity.status = ActivityStatus.QUEUED

@@ -1,9 +1,10 @@
+datetime
 globus_sdk>=3.9
 nats-py>=2.1.0
-requests
 pytest>=6.2.4
+pytest-asyncio>=0.19.0
 pyyaml>=5.4.1
 pyzmq>=23.2.0
+requests
 setuptools>=49.3.1
 typer>=0.4.2
-pytest-asyncio>=0.19.0

@@ -7,6 +7,7 @@
 # it under the terms of the MIT License.
 
 import logging
+import os
 import pathlib
 import yaml
 
@@ -58,7 +59,10 @@ class ZambezeSettings:
                 self._conf_file.touch()
                 default_settings = {
                     "nats": {"host": "127.0.0.1", "port": 4222},
-                    "plugins": {"shell": {"config": {}}},
+                    "plugins": {
+                        "shell": {"config": {}},
+                        "All": {"default_working_directory": os.path.expanduser("~")},
+                    },
                     "zmq": {"host": "127.0.0.1", "port": 5555},
                 }
                 with open(self._conf_file, "w") as f:
@@ -71,11 +75,19 @@ class ZambezeSettings:
         with open(self._conf_file, "r") as cf:
             self.settings.update(yaml.safe_load(cf))
 
+        # Ideally the plugin modules would have the default settings located
+        # in their files and they could just be asked here.
         self.__set_default("host", "127.0.0.1", self.settings["nats"])
         self.__set_default("port", 4222, self.settings["nats"])
         self.__set_default("host", "127.0.0.1", self.settings["zmq"])
         self.__set_default("port", 5555, self.settings["zmq"])
-        self.__set_default("plugins", {}, self.settings)
+        self.__set_default("plugins", {"All": {}}, self.settings)
+        self.__set_default("All", {}, self.settings["plugins"])
+        self.__set_default(
+            "default_working_directory",
+            os.path.expanduser("~"),
+            self.settings["plugins"]["All"],
+        )
         self.__save()
 
         self.__configure_plugins()
@@ -94,16 +106,16 @@ class ZambezeSettings:
 
         self.plugins.configure(config=config)
 
-    def get_nats_connection_uri(self) -> str:
-        """
-        Get the NATS connection URI.
-
-        :return: NATS connection URI
-        :rtype: str
-        """
-        host = self.settings["nats"]["host"]
-        port = self.settings["nats"]["port"]
-        return f"nats://{host}:{port}"
+    #    def get_nats_connection_uri(self) -> str:
+    #        """
+    #        Get the NATS connection URI.
+    #
+    #        :return: NATS connection URI
+    #        :rtype: str
+    #        """
+    #        host = self.settings["nats"]["host"]
+    #        port = self.settings["nats"]["port"]
+    #        return f"nats://{host}:{port}"
 
     def get_zmq_connection_uri(self) -> str:
         """
