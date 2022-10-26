@@ -141,7 +141,7 @@ class QueueNATS(AbstractQueue):
             print(msg)
             data = json.loads(msg.data.decode())
 
-        except nats.errors.TimeoutError as e:
+        except nats.errors.TimeoutError:
             raise QueueTimeoutException("nextMsg call - checking NATS")
 
         print(data)

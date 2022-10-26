@@ -91,18 +91,20 @@ class Processor(threading.Thread):
                     self._logger.info(json.dumps(data["cmd"], indent=4))
 
                     # Running Checks
-                    # Returned results should be double nested dict with a tuple of the form
+                    # Returned results should be double nested dict with a tuple of
+                    # the form
                     #
                     # "plugin": { "action": (bool, message) }
                     #
-                    # The bool is a true or false which indicates if the action for the plugin
-                    # is a problem, the message is an error message or a success statement
+                    # The bool is a true or false which indicates if the action
+                    # for the plugin is a problem, the message is an error message
+                    # or a success statement
                     checked_result = self._settings.plugins.check(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
                     self._logger.debug(checked_result)
 
-                    if checked_result.errorDetected() == False:
+                    if checked_result.errorDetected() is False:
                         self._settings.plugins.run(
                             plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                         )

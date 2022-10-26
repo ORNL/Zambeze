@@ -34,7 +34,7 @@ class PluginChecks(dict):
         for key in self.keys():
             for item in self[key]:
                 for key2 in item.keys():
-                    if item[key2][0] == False:
+                    if item[key2][0] is False:
                         return True
         return False
 
