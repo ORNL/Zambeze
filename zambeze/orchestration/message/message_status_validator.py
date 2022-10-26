@@ -4,6 +4,19 @@ from .abstract_message_validator import AbstractMessageValidator
 from typing import Optional
 
 
+def createStatusTemplate() -> dict:
+    return {
+        "message_id": "",
+        "submission_time": "",
+        "type": "",
+        "activity_id": "",
+        "target_id": "",
+        "campaign_id": "",
+        "agent_id": "",
+        "body": {}
+    }
+
+
 class MessageStatusValidator(AbstractMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self._required_keys = [

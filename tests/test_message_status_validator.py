@@ -19,4 +19,3 @@ def test_message_status_validator():
     result = validator.check(status_message)
     assert result[0] is False
 
-

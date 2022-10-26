@@ -4,6 +4,20 @@ from .abstract_message_validator import AbstractMessageValidator
 from typing import Optional
 
 
+def createActivityTemplate() -> dict:
+    return {
+        "message_id": "",
+        "type": "",
+        "activity_id": "",
+        "agent_id": "",
+        "campaign_id": "",
+        "credential": {},
+        "submission_time": "",
+        "body": {},
+        "needs": []
+    }
+
+
 class MessageActivity(AbstractMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self._required_keys = [
