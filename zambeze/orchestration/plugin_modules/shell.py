@@ -59,17 +59,16 @@ class Shell(Plugin):
         """
         checks = []
         for index in range(len(arguments)):
-            for action in arguments[index]:
+            for action in arguments[index].keys():
 
                 # Check if the action is supported
-
-                if which(arguments[action]) is None:
+                if which(action) is None:
                     checks.append(
-                        {action: (False, f"Unrecognized shell: {arguments[action]}")}
+                        {action: (False, f"Unrecognized shell: {action}")}
                     )
                     continue
 
-                if "program" not in arguments[action]:
+                if "program" not in arguments[index][action]:
                     checks.append(
                         {
                             action: (
@@ -81,7 +80,7 @@ class Shell(Plugin):
                     )
                     continue
 
-                if which(arguments[action]["program"]) is None:
+                if which(arguments[index][action]["program"]) is None:
                     checks.append(
                         {
                             action: (
@@ -92,7 +91,7 @@ class Shell(Plugin):
                         }
                     )
 
-                checks.append({action, (True, "")})
+                checks.append({action: (True, "")})
         return checks
 
     def process(self, arguments: list[dict]):

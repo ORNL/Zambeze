@@ -2,6 +2,7 @@ import json
 import logging
 import nats
 from .abstract_queue import AbstractQueue
+from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 from typing import Optional
 
@@ -133,9 +134,19 @@ class QueueNATS(AbstractQueue):
                 f"Cannot get next message client is not subscribed \
                         to any NATS topic: {channel.value}"
             )
-        msg = await self._sub[channel].next_msg(timeout=1)
-        data = json.loads(msg.data)
+
+        try:
+            msg = await self._sub[channel].next_msg(timeout=1)
+            print("Message is")
+            print(msg)
+            data = json.loads(msg.data.decode())
+
+        except nats.errors.TimeoutError as e:
+            raise QueueTimeoutException("nextMsg call - checking NATS")
+
+        print(data)
         return data
+
 
     async def ackMsg(self, channel: ChannelType):
         if self._sub:
