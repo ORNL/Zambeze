@@ -13,7 +13,7 @@ import yaml
 
 from typing import Optional, Union
 from .orchestration.plugins import Plugins
-
+from .conf import HOST, NATS_HOST, NATS_PORT
 
 class ZambezeSettings:
     """
@@ -58,7 +58,7 @@ class ZambezeSettings:
             if not self._conf_file.exists():
                 self._conf_file.touch()
                 default_settings = {
-                    "nats": {"host": "127.0.0.1", "port": 4222},
+                    "nats": {"host": NATS_HOST, "port": NATS_PORT},
                     "plugins": {
                         "shell": {"config": {}},
                         "All": {"default_working_directory": os.path.expanduser("~")},
@@ -77,8 +77,8 @@ class ZambezeSettings:
 
         # Ideally the plugin modules would have the default settings located
         # in their files and they could just be asked here.
-        self.__set_default("host", "127.0.0.1", self.settings["nats"])
-        self.__set_default("port", 4222, self.settings["nats"])
+        self.__set_default("host", NATS_HOST, self.settings["nats"])
+        self.__set_default("port", NATS_PORT, self.settings["nats"])
         self.__set_default("host", "127.0.0.1", self.settings["zmq"])
         self.__set_default("port", 5555, self.settings["zmq"])
         self.__set_default("plugins", {"All": {}}, self.settings)
