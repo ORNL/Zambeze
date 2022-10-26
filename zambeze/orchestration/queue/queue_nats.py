@@ -147,7 +147,6 @@ class QueueNATS(AbstractQueue):
         print(data)
         return data
 
-
     async def ackMsg(self, channel: ChannelType):
         if self._sub:
             if channel in self._sub:

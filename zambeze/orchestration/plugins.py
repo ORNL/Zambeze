@@ -24,7 +24,6 @@ import pkgutil
 
 
 class PluginChecks(dict):
-
     def __init__(self, val: dict = None):
         if val is None:
             val = {}

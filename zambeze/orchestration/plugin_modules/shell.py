@@ -63,9 +63,7 @@ class Shell(Plugin):
 
                 # Check if the action is supported
                 if which(action) is None:
-                    checks.append(
-                        {action: (False, f"Unrecognized shell: {action}")}
-                    )
+                    checks.append({action: (False, f"Unrecognized shell: {action}")})
                     continue
 
                 if "program" not in arguments[index][action]:

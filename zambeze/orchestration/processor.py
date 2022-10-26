@@ -77,7 +77,7 @@ class Processor(threading.Thread):
             try:
 
                 msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
-                data = msg #json.loads(msg)
+                data = msg  # json.loads(msg)
                 self._logger.debug("Message received:")
                 self._logger.debug(json.dumps(data, indent=4))
 
@@ -94,7 +94,7 @@ class Processor(threading.Thread):
                     # Returned results should be double nested dict with a tuple of the form
                     #
                     # "plugin": { "action": (bool, message) }
-                    # 
+                    #
                     # The bool is a true or false which indicates if the action for the plugin
                     # is a problem, the message is an error message or a success statement
                     checked_result = self._settings.plugins.check(
@@ -107,7 +107,9 @@ class Processor(threading.Thread):
                             plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                         )
                     else:
-                        self._logger.debug("Skipping run - error detected when running plugin check")
+                        self._logger.debug(
+                            "Skipping run - error detected when running plugin check"
+                        )
 
                 self._logger.debug("Waiting for messages")
 
