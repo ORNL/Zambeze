@@ -15,6 +15,7 @@ from typing import Optional, Union
 from .orchestration.plugins import Plugins
 from .conf import HOST, NATS_HOST, NATS_PORT
 
+
 class ZambezeSettings:
     """
     Zambeze Settings
