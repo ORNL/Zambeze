@@ -18,7 +18,7 @@ def createActivityTemplate() -> dict:
     }
 
 
-class MessageActivity(AbstractMessageValidator):
+class MessageActivityValidator(AbstractMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self._required_keys = [
                 "message_id",
@@ -49,4 +49,5 @@ class MessageActivity(AbstractMessageValidator):
         unsupported_items = set(optional_items).difference(self._optional_keys)
         if len(unsupported_items):
             return (False, f"Unsupported keys detected {unsupported_items}")
+
         return (True, "")

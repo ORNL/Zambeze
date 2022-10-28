@@ -12,18 +12,25 @@ from ..zambeze_types import MessageType
 
 
 class MessageFactory:
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, plugins, logger: Optional[logging.Logger] = None):
         self._logger = logger
+        self._plugins = plugins
 
-    def createTemplate(message_type: MessageType) -> tuple:
+    def createTemplate(
+            self,
+            message_type: MessageType,
+            plugin_name=None,
+            args=None) -> tuple:
         """
         Will create a tuple with all the fields needed to built a message
         """
         if message_type == MessageType.ACTIVITY:
             activity = createActivityTemplate()
+            if plugin_name is not None:
+                activity["body"] = self._plugins.messageTemplate(plugin_name, args)
             return (message_type, activity)
         elif message_type == MessageType.STATUS:
-            status = createStatusTemplate()
+            status = createStatusTemplate
             return (message_type, status)
         else:
             raise Exception(
@@ -48,6 +55,12 @@ class MessageFactory:
             validator = MessageActivityValidator()
             result = validator.check(args[1])
             if result[0]:
+                if "plugin" in args[1]["body"]:
+                    plugin_name = args[1]["plugin"]
+                    results = self._plugins.check(plugin_name, args[1]["body"])
+                    if results[0] is False:
+                        raise Exception("Invalid plugin message body"
+                                        f"{results[1]}")
                 return MessageActivity(self._logger, args[1])
             else:
                 raise Exception("Invalid activity message: {result[1]}")

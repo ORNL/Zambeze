@@ -53,6 +53,11 @@ class Plugins:
                 self.__module_names.append(module_name)
         self.__logger.debug(f"Registered Plugins: {', '.join(self.__module_names)}")
 
+    def messageTemplate(self, plugin_name: str, args) -> dict:
+        """Will return a template of the message body that is needed to execute
+        an activity using the plugin"""
+        return self._plugins[plugin_name].messageTemplate(args)
+
     @property
     def registered(self) -> list[Plugin]:
         """List all plugins that have been registered.

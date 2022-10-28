@@ -27,6 +27,10 @@ class Plugin(ABC):
         )
         self._name = name
 
+    def messageTemplate(self, args) -> dict:
+        """Returns the message Template that can be attached to an activity"""
+        raise NotImplementedError("messageTemplate method has not been created.")
+
     @property
     def name(self) -> str:
         """Returns the name of the plugin.

@@ -198,6 +198,30 @@ class Rsync(Plugin):
         self._local_ip = socket.gethostbyname(self._hostname)
         self._ssh_key = pathlib.Path.home().joinpath(".ssh/id_rsa")
 
+    def messageTemplate(self, args) -> dict:
+        """Args can be used to generate a more flexible template. Say for
+        instance you wanted to transfer several different items.
+        """
+        return {
+                "plugin": self._name,
+                "cmd": [
+                    {
+                        "transfer": {
+                            "source": {
+                                "ip": "",
+                                "path": "",
+                                "user": "",
+                                },
+                            "destination": {
+                                "ip": "",
+                                "path": "",
+                                "user": "",
+                                },
+                            }
+                        }
+                    ],
+                }
+
     def configure(self, config: dict) -> None:
         """Configure rsync
 
