@@ -56,7 +56,10 @@ class Plugins:
     def messageTemplate(self, plugin_name: str, args) -> dict:
         """Will return a template of the message body that is needed to execute
         an activity using the plugin"""
-        return self._plugins[plugin_name].messageTemplate(args)
+
+        message_template = self._plugins[plugin_name].messageTemplate(args)
+        message_template["plugin"] = plugin_name
+        return message_template
 
     @property
     def registered(self) -> list[Plugin]:
@@ -198,6 +201,74 @@ class Plugins:
             for plugin_inst in plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
+
+    def validateMessage(self, plugin_name: str, arguments: dict) -> dict:
+        """Check that the arguments passed to the plugin "plugin_name" are valid
+
+        :parameter plugin_name: the name of the plugin to validate against
+        :type plugin_name: str
+        :parameter arguments: the arguments to be validated for plugin "plugin_name"
+        :type arguments: dict
+        :return: What is returned are a list of the plugins and their actions
+            along with an indication on whether there was a problem with them
+
+        :Example: Using rsync
+
+        For the rsync plugin to be useful, both the local and remote host
+        ssh keys must have been configured. By default the rsync plugin will
+        look for the private key located at ~/.ssh/id_rsa. If the private key
+        is different then it must be specified with the "private_ssh_key" key
+        value pair.
+
+        >>> plugins = Plugins()
+        >>> config = {
+        >>>     "rsync": {
+        >>>         "private_ssh_key": "path to private ssh key"
+        >>>     }
+        >>> }
+        >>> plugins.configure(config)
+        >>> arguments = {
+        >>>     "transfer": {
+        >>>         "source": {
+        >>>             "ip": local_ip,
+        >>>             "user": current_user,
+        >>>             "path": current_valid_path,
+        >>>         },
+        >>>         "destination": {
+        >>>             "ip": "172.22.1.69",
+        >>>             "user": "cades",
+        >>>             "path": "/home/cades/josh-testing",
+        >>>         },
+        >>>         "arguments": ["-a"],
+        >>>     }
+        >>> }
+        >>> checked_args = plugins.check("rsync", arguments)
+        >>> print(checked_args)
+        >>> # Should print
+        >>> # {
+        >>> #   "rsync": { "transfer": True }
+        >>> # {
+        """
+        check_results = {}
+        if plugin_name not in self._plugins.keys():
+            check_results[plugin_name] = [
+                {"configured": (False, f"{plugin_name} is not configured.")}
+            ]
+            if plugin_name not in self.__module_names:
+                known_module_names = " ".join(str(mod) for mod in self.__module_names)
+                check_results[plugin_name].append(
+                    {
+                        "registered": (
+                            False,
+                            f"{plugin_name} is not a known module. "
+                            + f"Known modules are: {known_module_names}",
+                        )
+                    }
+                )
+        else:
+            check_results[plugin_name] = \
+                self._plugins[plugin_name].validateMessage([arguments])
+        return check_results
 
     def check(self, plugin_name: str, arguments: dict) -> dict:
         """Check that the arguments passed to the plugin "plugin_name" are valid

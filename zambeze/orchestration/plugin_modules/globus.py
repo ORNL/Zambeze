@@ -31,7 +31,6 @@ def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
             return True
     return False
 
-
 def localEndpointConfigCheck(config: dict):
     # Check that the UUIDs are correct
     if "local_endpoints" in config:
@@ -780,6 +779,43 @@ class Globus(Plugin):
 
             shutil.copyfile(source_path, destination_path)
 
+
+    def __runTransferValidationCheck(self, action_package: dict) -> (bool, str):
+        """Checks to ensure that the action_package has the right format and
+        checks for errors.
+
+        :Example:
+
+        >>> {
+        >>>     "type": "synchronous",
+        >>>     "items": [
+        >>>         {
+        >>>             "source": "globus://XXXXXXXX-XX...X-XXXXXXXXXXXX/file1.txt",
+        >>>             "destination": "globus://YYYYYY...-YYYYYYYYYYYY/dest/file1.txt"
+        >>>         },
+        >>>         {
+        >>>             "source": "globus://XXXXXXXX-...XXX-XXXXXXXXXXXX/file2.txt",
+        >>>             "destination": "globus://YYYY...Y-YYYYYYYYYYYY/dest/file2.txt"
+        >>>         }
+        >>>     ]
+        >>> }
+        """
+
+        required_keys = ["type", "items"]
+        for required in required_keys:
+            if required not in action_package:
+                return False, f"{required} key missing from 'transfer' action."
+
+        if action_package["type"] != "synchronous":
+            if action_package["type"] != "asynchronous":
+                return (
+                    False,
+                    "Unsupported 'type' detected. Supported types are \
+            synchronous and asynchronous you have specified {action_package['type']}",
+                )
+
+        return checkTransferEndpoint(action_package)
+
     def __runTransferSanityCheck(self, action_package: dict) -> (bool, str):
         """Checks to ensure that the action_package has the right format and
         checks for errors.
@@ -806,22 +842,9 @@ class Globus(Plugin):
         if not self.__access_to_globus_cloud:
             return False, "No access to Globus Service to conduct 'transfer'."
 
-        required_keys = ["type", "items"]
-        for required in required_keys:
-            if required not in action_package:
-                return False, f"{required} key missing from 'transfer' action."
+        return True, ""
 
-        if action_package["type"] != "synchronous":
-            if action_package["type"] != "asynchronous":
-                return (
-                    False,
-                    "Unsupported 'type' detected. Supported types are \
-            synchronous and asynchronous you have specified {action_package['type']}",
-                )
-
-        return checkTransferEndpoint(action_package)
-
-    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveToGlobusValidationCheck(self, action_package: dict) -> (bool, str):
         supported_source_path_types = ["file"]
         supported_destination_path_types = ["globus"]
 
@@ -841,21 +864,29 @@ class Globus(Plugin):
                                 'move_from_globus_collection' item: {item} \nuuid: \
                                 {globus_sep_uri[0]}"
                     return (False, error_msg)
-                if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
-                    error_msg = f"Invalid source endpoint uuid dectected in \
-                                'move_from_globus_collection' item: {item} \nuuid: \
-                                {globus_sep_uri[0]}\nRecognized endpoints \
-                                are {self.__endpoints}."
-                    return (False, error_msg)
-
-                file_sep_uri = fileURISeparator(item["source"])
-                file_path = file_sep_uri[0] + file_sep_uri[1]
-                if not exists(file_path):
-                    return False, f"Item does not exist {file_path}"
 
         return (valid, msg)
 
-    def __runGetTaskStatusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+        for item in action_package["items"]:
+            globus_sep_uri = globusURISeparator(
+                item["destination"], self.__default_endpoint
+            )
+            if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
+                error_msg = f"Invalid source endpoint uuid dectected in \
+                            'move_from_globus_collection' item: {item} \nuuid: \
+                            {globus_sep_uri[0]}\nRecognized endpoints \
+                            are {self.__endpoints}."
+                return (False, error_msg)
+
+            file_sep_uri = fileURISeparator(item["source"])
+            file_path = file_sep_uri[0] + file_sep_uri[1]
+            if not exists(file_path):
+                return False, f"Item does not exist {file_path}"
+
+        return (True, "")
+
+    def __runGetTaskStatusValidationCheck(self, action_package: dict) -> (bool, str):
         """Checks that the get_task_status action is correctly configured
 
         :Example:
@@ -875,7 +906,7 @@ class Globus(Plugin):
             )
         return (True, "")
 
-    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveFromGlobusValidationCheck(self, action_package: dict) -> (bool, str):
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
@@ -918,23 +949,53 @@ class Globus(Plugin):
                                 'move_from_globus_collection' item: {item} \nuuid: \
                                 {globus_sep_uri[0]}"
                     return (False, error_msg)
-                if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
-                    error_msg = f"Invalid source endpoint uuid dectected in \
-                                'move_from_globus_collection' item: {item} \nuuid: \
-                                {globus_sep_uri[0]}\nRecognized endpoints \
-                                are {self.__endpoints}."
-                    return (False, error_msg)
-
-                posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(
-                    globus_sep_uri[0]
-                )
-                file_path = (
-                    posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
-                )
-                if not exists(file_path):
-                    return False, f"Item does not exist {file_path}"
 
         return (valid, msg)
+
+    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+        """Run a sanity check for the action "move_from_globus_collection"
+
+        return: Will return true if the sanity check passes false otherwise
+
+        Example:
+
+        >>> action_package = {
+        >>>    "source_host_name": "",
+        >>>    "destination_collection_UUID": "",
+        >>>    "items": [
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-...X-XXXXXXXXXXXX/file1.txt"
+        >>>               "destination": "file://file1.txt",
+        >>>           },
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-X...XXX-XXXXXXXXXXXX/file2.txt"
+        >>>               "destination": "file://file2.txt",
+        >>>           }
+        >>>    ]
+        >>> }
+        >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
+        """
+        for item in action_package["items"]:
+            globus_sep_uri = globusURISeparator(
+                item["source"], self.__default_endpoint
+            )
+            if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
+                error_msg = f"Invalid source endpoint uuid dectected in \
+                            'move_from_globus_collection' item: {item} \nuuid: \
+                            {globus_sep_uri[0]}\nRecognized endpoints \
+                            are {self.__endpoints}."
+                return (False, error_msg)
+
+            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(
+                globus_sep_uri[0]
+            )
+            file_path = (
+                posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
+            )
+            if not exists(file_path):
+                return False, f"Item does not exist {file_path}"
+
+        return (True, "")
 
     def __checkAccessToGlobusCloud(self):
         """Will check if we can reach the internet and caches access to globus
@@ -1116,6 +1177,116 @@ class Globus(Plugin):
         information["configured"] = self.__configured
         return information
 
+    def validateMessage(self, arguments: list[dict]) -> list:
+        """Checks the input argument for errors
+
+        Cycle through the items in the argument and checks if this instance
+        can execute them. This method should be called before process with
+        the same argument.
+
+        Example 1
+
+        >>> arguments = [
+        >>>   { "transfer":
+        >>>       {
+        >>>           "type": "synchronous",
+        >>>           "items": [
+        >>>                 {
+        >>>                     "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
+        >>>                     "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
+        >>>                 },
+        >>>                 {
+        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
+        >>>                     "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
+        >>>                 }
+        >>>           ]
+        >>>       }
+        >>>   }
+        >>> ]
+
+        Example 2
+
+        >>> arguments = [
+        >>>   { "move_to_globus_collection": {
+        >>>       "items": [
+        >>>           {
+        >>>               "source": "file://file1.txt",
+        >>>               "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt"
+        >>>           },
+        >>>           {
+        >>>               "source": "file://file2.txt",
+        >>>               "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt"
+        >>>           }
+        >>>       ]
+        >>>   }
+        >>> ]
+
+        Example 3
+
+        >>> arguments = [
+        >>>   { "move_from_globus_collection": {
+        >>>       "items": [
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt"
+        >>>               "destination": "file://file1.txt",
+        >>>           },
+        >>>           {
+        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt"
+        >>>               "destination": "file://file2.txt",
+        >>>           }
+        >>>       ]
+        >>>   }
+        >>> ]
+        """
+        checks = []
+        # Here we are cycling a list of dicts
+        for index in range(len(arguments)):
+            for action in arguments[index]:
+                # Check if the action is supported
+                if self.__supported_actions[action] is False:
+                    checks.append({action: (False, "action is not supported.")})
+                    continue
+
+                if action == "transfer":
+                    # Any agent with the globus plugin can submit a job to globus if it
+                    # has access to the globus cloud
+                    checks.append(
+                        {
+                            action: self.__runTransferValidationCheck(
+                                arguments[index][action]
+                            )
+                        }
+                    )
+
+                elif action == "move_to_globus_collection":
+                    checks.append(
+                        {
+                            action: self.__runMoveToGlobusValidationCheck(
+                                arguments[index][action]
+                            )
+                        }
+                    )
+
+                elif action == "move_from_globus_collection":
+                    checks.append(
+                        {
+                            action: self.__runMoveFromGlobusValidationCheck(
+                                arguments[index][action]
+                            )
+                        }
+                    )
+                elif action == "get_task_status":
+                    checks.append(
+                        {
+                            action: self.__runGetTaskStatusValidationCheck(
+                                arguments[index][action]
+                            )
+                        }
+                    )
+                else:
+                    checks.append({action: (False, "Unrecognized action keyword")})
+        return checks
+
     def check(self, arguments: list[dict]) -> list[dict]:
         """Checks the input argument for errors
 
@@ -1215,13 +1386,7 @@ class Globus(Plugin):
                         }
                     )
                 elif action == "get_task_status":
-                    checks.append(
-                        {
-                            action: self.__runGetTaskStatusSanityCheck(
-                                arguments[index][action]
-                            )
-                        }
-                    )
+                    checks.append({action: (True, "")})
                 else:
                     checks.append({action: (False, "Unrecognized action keyword")})
         return checks

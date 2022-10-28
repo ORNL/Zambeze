@@ -36,6 +36,36 @@ class Shell(Plugin):
                     }
                 }
 
+    def validateMessage(self, arguments: list[dict]) -> list:
+        """Checks to see if the message contains the right fields
+
+
+        :Example"
+
+        >>> arguments = [ {
+        >>>   "bash": { }
+        >>> }]
+
+        """
+        checks = []
+        for index in range(len(arguments)):
+            for action in arguments[index]:
+
+                if "program" not in arguments[action]:
+                    checks.append(
+                        {
+                            action: (
+                                False,
+                                "A program has not been defined to run in the shell,"
+                                + " required 'program' field is missing.",
+                            )
+                        }
+                    )
+                    continue
+
+                checks.append({action, (True, "")})
+        return checks
+
     def configure(self, config: dict) -> None:
         """Configure shell."""
         self._logger.debug(f"Configuring {self._name} plugin")
@@ -60,8 +90,7 @@ class Shell(Plugin):
     def check(self, arguments: list[dict]) -> list[dict]:
         """Checks to see if the provided shell is supported
 
-
-        :Example"
+        :Example:
 
         >>> arguments = [ {
         >>>   "bash": { }
@@ -77,18 +106,6 @@ class Shell(Plugin):
                 if which(arguments[action]) is None:
                     checks.append(
                         {action: (False, f"Unrecognized shell: {arguments[action]}")}
-                    )
-                    continue
-
-                if "program" not in arguments[action]:
-                    checks.append(
-                        {
-                            action: (
-                                False,
-                                "A program has not been defined to run in the shell,"
-                                + " required 'program' field is missing.",
-                            )
-                        }
                     )
                     continue
 

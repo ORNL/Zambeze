@@ -31,6 +31,24 @@ class Plugin(ABC):
         """Returns the message Template that can be attached to an activity"""
         raise NotImplementedError("messageTemplate method has not been created.")
 
+    def validateMessage(self, args: list[dict]) -> list:
+        """Return whether the content of the message is valid.
+
+        This is similar to the "check" method but the "check" command will run
+        additional tests because it is assuming that it is about to run the
+        plugin on the same agent that the "check" is being called from. The
+        validateMessage method is to ensure that the message fields and keys
+        are appropriate but does not make any assumptions about what agent
+        the message will be executed on.
+
+        So for instance calling the "check" method with the globus plugin will
+        fail if the agent cannot connect to the Globus Service. Wheras,
+        the "validateMessage" will not fail if it does not have access to
+        the Globus service. It just ensures the message content makes sense and
+        contains the correct schema.
+        """
+        raise NotImplementedError("validateMessage method has not been created.")
+
     @property
     def name(self) -> str:
         """Returns the name of the plugin.
