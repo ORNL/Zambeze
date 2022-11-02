@@ -100,7 +100,7 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
     return (True, "")
 
 
-def requiredSourceAndDestinationValuesValid(
+def validateRequiredSourceAndDestinationValuesValid(
     action_inst: dict, match_host
 ) -> (bool, str):
     """Determines if the values are valid
@@ -137,6 +137,34 @@ def requiredSourceAndDestinationValuesValid(
             f"Invalid 'destination' ip address detected: {action_inst['source']['ip']}",
         )
 
+    return (True, "")
+
+
+def requiredSourceAndDestinationValuesValid(
+    action_inst: dict, match_host
+) -> (bool, str):
+    """Determines if the values are valid
+
+    :Example:
+
+    >>> action_inst = {
+    >>>     "source": {
+    >>>         "ip": "172.198.43.14",
+    >>>         "user": "cades",
+    >>>         "path": "/home/cades/Folder1/in.txt"
+    >>>     },
+    >>>     "destination": {
+    >>>         "ip": "198.128.243.15",
+    >>>         "user": "jeff",
+    >>>         "path": "/home/jeff/local/out.txt"
+    >>>     }
+    >>> }
+    >>> values_valid = requiredSourceAndDestinationValuesValid(action_inst, "source")
+    >>> assert values_valid[0]
+
+    Extra checks are run on the source or destination
+    values depending on which machine this code is running on.
+    """
     if match_host is None:
         return (
             False,
@@ -198,7 +226,7 @@ class Rsync(Plugin):
         self._local_ip = socket.gethostbyname(self._hostname)
         self._ssh_key = pathlib.Path.home().joinpath(".ssh/id_rsa")
 
-    def messageTemplate(self, args) -> dict:
+    def messageTemplate(self, args=None) -> dict:
         """Args can be used to generate a more flexible template. Say for
         instance you wanted to transfer several different items.
         """
@@ -348,7 +376,7 @@ class Rsync(Plugin):
                         continue
 
                     # Start by checking that all the files have been provided
-                    check = requiredSourceAndDestinationKeysExist(
+                    check = validateRequiredSourceAndDestinationValuesValid(
                         arguments[index][action]
                     )
                     if not check[0]:

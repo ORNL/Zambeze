@@ -25,7 +25,7 @@ class Shell(Plugin):
         super().__init__("shell", logger=logger)
         self._configured = False
 
-    def messageTemplate(self, args) -> dict:
+    def messageTemplate(self, args=None) -> dict:
         """Args can be used to generate a more flexible template. Say for
         instance you wanted to transfer several different items.
         """
