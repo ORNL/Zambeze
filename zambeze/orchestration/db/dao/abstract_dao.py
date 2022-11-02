@@ -14,12 +14,12 @@ class AbstractDAO(object, metaclass=ABCMeta):
 
     @abstractmethod
     def insert(self, entity):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def insert_returning_id(self, entity):
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def update(self, entity):
-        pass
+        raise NotImplementedError()
