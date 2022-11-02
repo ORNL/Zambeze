@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  nats:
+    container_name: nats
+    image: nats
+    command: -V
+    ports:
+      - 4222:4222
+      - 6222:6222
+      - 8222:8222
+    
+
+  zambeze_agent1:
+    container_name: zambeze1
+    image: zambeze/zambeze:latest
+    command: bash deployment/run.sh
+    depends_on:
+      -  nats
+    environment:
+      NATS_HOST: nats
+      NATS_PORT: 4222
+
+  zambeze_agent2:
+    container_name: zambeze2
+    image: zambeze/zambeze:latest
+    command: tail -f /dev/null
+    environment:
+      NATS_HOST: nats
+      NATS_PORT: 4222
+
