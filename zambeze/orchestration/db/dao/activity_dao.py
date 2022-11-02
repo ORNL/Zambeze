@@ -8,7 +8,7 @@ class ActivityDAO(AbstractDAO):
 
     def insert(self, activity: Activity) -> None:
         values = activity.get_all_values()
-        insert_stmt = get_insert_stmt(Activity.ENTITY_NAME, Activity.FIELD_NAMES)
+        insert_stmt = get_insert_stmt(activity)
         self._logger.debug(f"Saving activity: {insert_stmt}")
         self._logger.debug(f"\t Values: {values}")
         try:
@@ -20,7 +20,7 @@ class ActivityDAO(AbstractDAO):
 
     def insert_returning_id(self, activity: Activity):
         values = activity.get_all_values()
-        insert_stmt = get_insert_stmt(Activity.ENTITY_NAME, Activity.FIELD_NAMES)
+        insert_stmt = get_insert_stmt(activity)
         self._logger.debug(f"Saving activity: {insert_stmt}")
         self._logger.debug(f"\t Values: {values}")
         try:

@@ -23,7 +23,3 @@ class AbstractDAO(object, metaclass=ABCMeta):
     @abstractmethod
     def update(self, entity):
         pass
-
-    # @abstractmethod
-    # def dict_based_update(self, new_values, id_value):
-    #     pass

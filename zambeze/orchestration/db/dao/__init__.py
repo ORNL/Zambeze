@@ -8,9 +8,7 @@ from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
 def create_local_db() -> None:
     conn = get_db_engine()
     with open(LOCAL_DB_SCHEMA) as f:
-        conn.execute(
-            text(f.read())
-        )
+        conn.execute(text(f.read()))
 
 
 def get_db_engine():
@@ -34,8 +32,8 @@ def get_update_stmt_from_entity_object(entity: AbstractEntity):
     return stmt
 
 
-def get_insert_stmt(entity_name: str, field_names):
-    number_of_fields = len(field_names.split(','))
+def get_insert_stmt(entity: AbstractEntity):
+    number_of_fields = len(entity.FIELD_NAMES.split(','))
     values_replacer = ",".join(['?' for _ in range(number_of_fields)])
-    return f"INSERT INTO {entity_name} " \
-           f"({field_names}) VALUES ({values_replacer}); "
+    return f"INSERT INTO {entity.ENTITY_NAME} " \
+           f"({entity.FIELD_NAMES}) VALUES ({values_replacer}); "
