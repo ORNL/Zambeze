@@ -17,7 +17,8 @@ class Activity(AbstractEntity):
         self.params = params
 
     def get_all_values(self) -> Tuple:
-        return self.activity_id, self.agent_id, self.created_at, self.started_at, self.ended_at, self.params
+        return (self.activity_id,) + self.get_values_without_id()
 
     def get_values_without_id(self) -> Tuple:
-        return self.agent_id, self.created_at, self.started_at, self.ended_at, self.params
+        return self.agent_id, self.created_at, self.started_at, self.ended_at,\
+               self.params

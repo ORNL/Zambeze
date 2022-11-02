@@ -1,6 +1,5 @@
-from typing import Dict
-
-from zambeze.orchestration.db.dao import get_insert_stmt, get_update_stmt_from_entity_object
+from zambeze.orchestration.db.dao import get_insert_stmt,\
+    get_update_stmt_from_entity_object
 from zambeze.orchestration.db.dao.abstract_dao import AbstractDAO
 from zambeze.orchestration.db.model.activity import Activity
 
@@ -46,13 +45,3 @@ class ActivityDAO(AbstractDAO):
             error_msg = f"Error while updating in the local db. The exception was\n {e}"
             self._logger.error(error_msg)
             raise Exception(error_msg)
-
-    # def dict_based_update(self, new_values: Dict, id_value):
-    #     update_stmt = get_update_stmt_from_dict(Activity.ENTITY_NAME, new_values, Activity.ID_FIELD_NAME, id_value)
-    #     try:
-    #         conn = self._engine.connect()
-    #         conn.execute(update_stmt, tuple(new_values.values()))
-    #     except Exception as e:
-    #         error_msg = f"Error while updating in the local db. The exception was\n {e}"
-    #         self._logger.error(error_msg)
-    #         raise Exception(error_msg)

@@ -19,13 +19,15 @@ class TestActivity(unittest.TestCase):
         self._dao.insert(activity)
 
     def test_insert_returning_id(self):
-        activity = Activity(agent_id='8ecd07db-e6a1-4462-b84c-8e3091738061', created_at=int(time() * 1000))
+        activity = Activity(agent_id='8ecd07db-e6a1-4462-b84c-8e3091738061',
+                            created_at=int(time() * 1000))
         activity_id = self._dao.insert_returning_id(activity)
         self.assert_(activity_id is not None)
         self.assertEqual(type(activity_id), int)
 
     def test_update(self):
-        activity = Activity(agent_id='8ecd07db-e6a1-4462-b84c-8e3091738061', created_at=int(time() * 1000))
+        activity = Activity(agent_id='8ecd07db-e6a1-4462-b84c-8e3091738061',
+                            created_at=int(time() * 1000))
         activity_id = self._dao.insert_returning_id(activity)
         self.assertEqual(type(activity_id), int)
         activity.activity_id = activity_id

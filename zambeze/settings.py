@@ -97,8 +97,6 @@ class ZambezeSettings:
 
         self.__configure_plugins()
 
-
-
     def __configure_plugins(self) -> None:
         """
         Load and configure Zambeze plugins.

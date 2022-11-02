@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Dict
+from typing import Optional
 import logging
 
 from zambeze.orchestration.db.dao import get_db_engine
