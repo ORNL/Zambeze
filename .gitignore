@@ -130,3 +130,7 @@ dmypy.json
 .pyre/
 
 .vscode
+.idea
+# Pytest generated files
+demofile*
+dummy*
