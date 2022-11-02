@@ -23,6 +23,22 @@ import logging
 import pkgutil
 
 
+class PluginChecks(dict):
+    def __init__(self, val: dict = None):
+        if val is None:
+            val = {}
+        super().__init__(val)
+
+    def errorDetected(self) -> bool:
+        """Detects if an error was found in the results of the plugin checks"""
+        for key in self.keys():
+            for item in self[key]:
+                for key2 in item.keys():
+                    if item[key2][0] is False:
+                        return True
+        return False
+
+
 class Plugins:
     """Plugins class takes care of managing all plugins.
 
@@ -270,7 +286,7 @@ class Plugins:
                 self._plugins[plugin_name].validateMessage([arguments])
         return check_results
 
-    def check(self, plugin_name: str, arguments: dict) -> dict:
+    def check(self, plugin_name: str, arguments: dict) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -314,7 +330,7 @@ class Plugins:
         >>> print(checked_args)
         >>> # Should print
         >>> # {
-        >>> #   "rsync": { "transfer": True }
+        >>> #   "rsync": { "transfer": (True, "") }
         >>> # {
         """
         check_results = {}
@@ -335,7 +351,7 @@ class Plugins:
                 )
         else:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
-        return check_results
+        return PluginChecks(check_results)
 
     def run(self, plugin_name: str, arguments: dict) -> None:
         """Run a specific plugins.
