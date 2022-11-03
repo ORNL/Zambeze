@@ -25,6 +25,24 @@ class ShellMessageHelper(PluginMessageHelper):
         """
         return {"bash": {"program": "", "args": [""]}}
 
+    def _validateAction(self, action: str, checks: list, arguments: dict):
+        if "program" not in arguments[action]:
+            checks.append(
+                {
+                    action: (
+                        False,
+                        "A program has not been defined to run in the shell,"
+                        + " required 'program' field is missing.",
+                    )
+                }
+            )
+            return checks
+        checks.append({action, (True, "")})
+
+    def validateAction(self, arguments: dict, action) -> list:
+        checks = []
+        return self._validateAction(action, checks, arguments)
+
     def validateMessage(self, arguments: list[dict]) -> list:
         """Checks to see if the message contains the right fields
 
@@ -39,18 +57,5 @@ class ShellMessageHelper(PluginMessageHelper):
         checks = []
         for index in range(len(arguments)):
             for action in arguments[index]:
-
-                if "program" not in arguments[action]:
-                    checks.append(
-                        {
-                            action: (
-                                False,
-                                "A program has not been defined to run in the shell,"
-                                + " required 'program' field is missing.",
-                            )
-                        }
-                    )
-                    continue
-
-                checks.append({action, (True, "")})
+                checks = self._validateAction(action, checks, arguments[index])
         return checks

@@ -142,6 +142,84 @@ class GlobusMessageHelper(PluginMessageHelper):
             )
         return (True, "")
 
+    def _validateAction(self, action: str, checks: list, arguments: dict):
+        # Check if the action is supported
+        if self.__supported_actions[action] is False:
+            checks.append({action: (False, "action is not supported.")})
+            return checks
+
+        if action == "transfer":
+            # Any agent with the globus plugin can submit a job to globus if it
+            # has access to the globus cloud
+            checks.append(
+                {
+                    action: self.__runTransferValidationCheck(
+                        arguments[action]
+                    )
+                }
+            )
+
+        elif action == "move_to_globus_collection":
+            checks.append(
+                {
+                    action: self.__runMoveToGlobusValidationCheck(
+                        arguments[action]
+                    )
+                }
+            )
+
+        elif action == "move_from_globus_collection":
+            checks.append(
+                {
+                    action: self.__runMoveFromGlobusValidationCheck(
+                        arguments[action]
+                    )
+                }
+            )
+        elif action == "get_task_status":
+            checks.append(
+                {
+                    action: self.__runGetTaskStatusValidationCheck(
+                        arguments[action]
+                    )
+                }
+            )
+        else:
+            checks.append({action: (False, "Unrecognized action keyword")})
+
+        checks.append({action: (True, "")})
+        return checks
+
+    def validateAction(self, arguments: dict, action) -> list:
+        """Checks the input argument for errors
+
+        Cycle through the items in the argument and checks if this instance
+        can execute them. This method should be called before process with
+        the same argument. Note this only validates a single action not a list
+        of actions
+
+        Example 1
+
+        >>> arguments = {
+        >>> "transfer":
+        >>>    {
+        >>>        "type": "synchronous",
+        >>>        "items": [
+        >>>              {
+        >>>                  "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
+        >>>                  "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
+        >>>              },
+        >>>              {
+        >>>                  "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
+        >>>                  "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
+        >>>              }
+        >>>        ]
+        >>>    }
+        >>> }
+        """
+        checks = []
+        return self._validateAction(action, checks, arguments)
+
     def validateMessage(self, arguments: list[dict]) -> list:
         """Checks the input argument for errors
 
@@ -207,49 +285,7 @@ class GlobusMessageHelper(PluginMessageHelper):
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
-                # Check if the action is supported
-                if self.__supported_actions[action] is False:
-                    checks.append({action: (False, "action is not supported.")})
-                    continue
-
-                if action == "transfer":
-                    # Any agent with the globus plugin can submit a job to globus if it
-                    # has access to the globus cloud
-                    checks.append(
-                        {
-                            action: self.__runTransferValidationCheck(
-                                arguments[index][action]
-                            )
-                        }
-                    )
-
-                elif action == "move_to_globus_collection":
-                    checks.append(
-                        {
-                            action: self.__runMoveToGlobusValidationCheck(
-                                arguments[index][action]
-                            )
-                        }
-                    )
-
-                elif action == "move_from_globus_collection":
-                    checks.append(
-                        {
-                            action: self.__runMoveFromGlobusValidationCheck(
-                                arguments[index][action]
-                            )
-                        }
-                    )
-                elif action == "get_task_status":
-                    checks.append(
-                        {
-                            action: self.__runGetTaskStatusValidationCheck(
-                                arguments[index][action]
-                            )
-                        }
-                    )
-                else:
-                    checks.append({action: (False, "Unrecognized action keyword")})
+                checks = self._validateAction(action, checks, arguments[index])
         return checks
 
     def messageTemplate(self, args=None) -> dict:

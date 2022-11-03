@@ -3,33 +3,33 @@ from .abstract_message_validator import AbstractMessageValidator
 from typing import Optional
 
 
+REQUIRED_ACTIVITY_COMPONENTS = {
+    "message_id": "",
+    "type": "",
+    "activity_id": "",
+    "agent_id": "",
+    "campaign_id": "",
+    "credential": {},
+    "submission_time": "",
+    "body": {},
+}
+
+OPTIONAL_ACTIVITY_COMPONENTS = {
+    "needs": [],
+}
+
+
 def createActivityTemplate() -> dict:
     return {
-        "message_id": "",
-        "type": "",
-        "activity_id": "",
-        "agent_id": "",
-        "campaign_id": "",
-        "credential": {},
-        "submission_time": "",
-        "body": {},
-        "needs": [],
-    }
+            **REQUIRED_ACTIVITY_COMPONENTS,
+            **OPTIONAL_ACTIVITY_COMPONENTS
+        }
 
 
 class MessageActivityValidator(AbstractMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self._required_keys = [
-            "message_id",
-            "type",
-            "activity_id",
-            "agent_id",
-            "campaign_id",
-            "credential",
-            "submission_time",
-            "body",
-        ]
-        self._optional_keys = ["needs"]
+        self._required_keys = REQUIRED_ACTIVITY_COMPONENTS.keys()
+        self._optional_keys = OPTIONAL_ACTIVITY_COMPONENTS.keys()
 
     @property
     def supportedKeys(self) -> list[str]:

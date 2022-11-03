@@ -7,6 +7,7 @@ from .globus_common import (
     getMappedCollections,
     getGlobusScopes,
 )
+from .globus_message_helper import GlobusMessageHelper
 from ...network import externalNetworkConnectionDetected
 
 # Third party imports
@@ -49,6 +50,7 @@ class Globus(Plugin):
             "move_from_globus_collection": False,
             "get_task_status": False,
         }
+        self._message_helper = GlobusMessageHelper(logger)
         pass
 
     ###################################################################################
@@ -686,6 +688,15 @@ class Globus(Plugin):
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
+
+                schema_checks = self._message_helper.validateAction(
+                    arguments[index], action
+                )
+
+                if len(schema_checks) > 0:
+                    checks.extend(schema_checks)
+                    continue
+            
                 # Check if the action is supported
                 if self.__supported_actions[action] is False:
                     checks.append({action: (False, "action is not supported.")})

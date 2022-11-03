@@ -2,9 +2,7 @@ import logging
 from .abstract_message_validator import AbstractMessageValidator
 from typing import Optional
 
-
-def createStatusTemplate() -> dict:
-    return {
+REQUIRED_ACTIVITY_COMPONENTS = {
         "message_id": "",
         "submission_time": "",
         "type": "",
@@ -13,21 +11,21 @@ def createStatusTemplate() -> dict:
         "campaign_id": "",
         "agent_id": "",
         "body": {},
-    }
+        }
+
+OPTIONAL_ACTIVITY_COMPONENTS = {}
+
+
+def createStatusTemplate() -> dict:
+    return {
+            **REQUIRED_ACTIVITY_COMPONENTS,
+            **OPTIONAL_ACTIVITY_COMPONENTS
+        }
 
 
 class MessageStatusValidator(AbstractMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self._required_keys = [
-            "message_id",
-            "submission_time",
-            "type",
-            "activity_id",
-            "target_id",
-            "campaign_id",
-            "agent_id",
-            "body",
-        ]
+        self._required_keys = REQUIRED_ACTIVITY_COMPONENTS.keys()
 
     @property
     def supportedKeys(self) -> list[str]:
