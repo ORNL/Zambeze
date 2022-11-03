@@ -6,6 +6,7 @@ from .globus_common import (
     fileURISeparator,
     getMappedCollections,
     getGlobusScopes,
+    SUPPORTED_ACTIONS
 )
 from .globus_message_helper import GlobusMessageHelper
 from ...network import externalNetworkConnectionDetected
@@ -44,12 +45,7 @@ class Globus(Plugin):
         self.__flow = "client credential"
         self.__hostname = None
         self.__default_endpoint = None
-        self.__supported_actions = {
-            "transfer": False,
-            "move_to_globus_collection": False,
-            "move_from_globus_collection": False,
-            "get_task_status": False,
-        }
+        self.__supported_actions = SUPPORTED_ACTIONS
         self._message_helper = GlobusMessageHelper(logger)
         pass
 
@@ -539,8 +535,11 @@ class Globus(Plugin):
 
         self._logger.debug(json.dumps(config, indent=4))
         if "authentication_flow" in config:
-            if "client_id" in config["authentication_flow"]:
-                self.__client_id = config["authentication_flow"]["client_id"]
+            if "client_id" in config:
+                self.__client_id = config["client_id"]
+
+        print("Client id is ")
+        print(self.__client_id)
 
         # Detect hostname
         self.__hostname = gethostname()
@@ -557,11 +556,12 @@ class Globus(Plugin):
                 self.__clientCredentialAuthFlow(config)
 
             self.__access_to_globus_cloud = True
-        except GlobusError:
+        except GlobusError as e:
             logging.exception(
                 "Error detected while attempting to authenticate and"
                 "communicate with the Globus API"
             )
+            raise e
 
         self.__validEndPoints(config)
         if "local_endpoints" in config:
