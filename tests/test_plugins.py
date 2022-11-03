@@ -105,15 +105,18 @@ def test_rsync_plugin_check():
     }
 
     checked_actions = plugins.check("rsync", arguments)
+    print(checked_actions)
     assert checked_actions["rsync"][0]["transfer"][0]
     arguments_faulty_ip = copy.deepcopy(arguments)
     arguments_faulty_ip["transfer"]["destination"]["ip"] = "172.22."
     checked_actions = plugins.check("rsync", arguments_faulty_ip)
+    print(checked_actions)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
     arguments_faulty_user = copy.deepcopy(arguments)
     arguments_faulty_user["transfer"]["source"]["user"] = "user_that_does_not_exist"
     checked_actions = plugins.check("rsync", arguments_faulty_user)
+    print(checked_actions)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
 
