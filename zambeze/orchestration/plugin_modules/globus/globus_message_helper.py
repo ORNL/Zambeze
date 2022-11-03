@@ -152,37 +152,21 @@ class GlobusMessageHelper(PluginMessageHelper):
             # Any agent with the globus plugin can submit a job to globus if it
             # has access to the globus cloud
             checks.append(
-                {
-                    action: self.__runTransferValidationCheck(
-                        arguments[action]
-                    )
-                }
+                {action: self.__runTransferValidationCheck(arguments[action])}
             )
 
         elif action == "move_to_globus_collection":
             checks.append(
-                {
-                    action: self.__runMoveToGlobusValidationCheck(
-                        arguments[action]
-                    )
-                }
+                {action: self.__runMoveToGlobusValidationCheck(arguments[action])}
             )
 
         elif action == "move_from_globus_collection":
             checks.append(
-                {
-                    action: self.__runMoveFromGlobusValidationCheck(
-                        arguments[action]
-                    )
-                }
+                {action: self.__runMoveFromGlobusValidationCheck(arguments[action])}
             )
         elif action == "get_task_status":
             checks.append(
-                {
-                    action: self.__runGetTaskStatusValidationCheck(
-                        arguments[action]
-                    )
-                }
+                {action: self.__runGetTaskStatusValidationCheck(arguments[action])}
             )
         else:
             checks.append({action: (False, "Unrecognized action keyword")})

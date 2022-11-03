@@ -14,16 +14,11 @@ REQUIRED_ACTIVITY_COMPONENTS = {
     "body": {},
 }
 
-OPTIONAL_ACTIVITY_COMPONENTS = {
-    "needs": [],
-}
+OPTIONAL_ACTIVITY_COMPONENTS = {"needs": []}
 
 
 def createActivityTemplate() -> dict:
-    return {
-            **REQUIRED_ACTIVITY_COMPONENTS,
-            **OPTIONAL_ACTIVITY_COMPONENTS
-        }
+    return {**REQUIRED_ACTIVITY_COMPONENTS, **OPTIONAL_ACTIVITY_COMPONENTS}
 
 
 class MessageActivityValidator(AbstractMessageValidator):

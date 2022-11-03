@@ -696,7 +696,7 @@ class Globus(Plugin):
                 if len(schema_checks) > 0:
                     checks.extend(schema_checks)
                     continue
-            
+
                 # Check if the action is supported
                 if self.__supported_actions[action] is False:
                     checks.append({action: (False, "action is not supported.")})

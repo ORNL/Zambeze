@@ -3,24 +3,21 @@ from .abstract_message_validator import AbstractMessageValidator
 from typing import Optional
 
 REQUIRED_ACTIVITY_COMPONENTS = {
-        "message_id": "",
-        "submission_time": "",
-        "type": "",
-        "activity_id": "",
-        "target_id": "",
-        "campaign_id": "",
-        "agent_id": "",
-        "body": {},
-        }
+    "message_id": "",
+    "submission_time": "",
+    "type": "",
+    "activity_id": "",
+    "target_id": "",
+    "campaign_id": "",
+    "agent_id": "",
+    "body": {},
+}
 
 OPTIONAL_ACTIVITY_COMPONENTS = {}
 
 
 def createStatusTemplate() -> dict:
-    return {
-            **REQUIRED_ACTIVITY_COMPONENTS,
-            **OPTIONAL_ACTIVITY_COMPONENTS
-        }
+    return {**REQUIRED_ACTIVITY_COMPONENTS, **OPTIONAL_ACTIVITY_COMPONENTS}
 
 
 class MessageStatusValidator(AbstractMessageValidator):
