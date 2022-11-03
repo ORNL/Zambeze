@@ -18,6 +18,8 @@ PLUGIN_NAME = "rsync"
 #############################################################
 # Assistant Functions
 #############################################################
+
+
 def requiredEndpointKeysExist(action_endpoint: dict) -> (bool, str):
     """Returns a tuple with the first element set to true if
     action_endpoint contains "ip","user" and "path" keys

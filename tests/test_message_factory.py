@@ -15,11 +15,11 @@ def test_factory_fail():
     msg_factory = MessageFactory(plugins)
 
     """Following should generate all the required and optional fields for
-    creating a status message, The returned tuple with have the 
+    creating a status message, The returned tuple with have the
     following form:
 
     :Example of Tuple:
-    
+
     (
         MessageType.STATUS,
         {
@@ -61,11 +61,11 @@ def test_factory_success():
     msg_factory = MessageFactory(plugins)
 
     """Following should generate all the required and optional fields for
-    creating a status message, The returned tuple with have the 
+    creating a status message, The returned tuple with have the
     following form:
 
     :Example of Tuple:
-    
+
     (
         MessageType.STATUS,
         {
