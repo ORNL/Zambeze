@@ -16,12 +16,12 @@ test-zambeze:
 
 # Ideally this job would use a virtual environment that was provisioned by 
 # Ansible, as it is, if the VM goes down this venv disappears
-#test-zambeze-globus:
-#  stage: test
-#  tags:
-#    - globus
-#  script:
-#    - source /home/gitlab-runner/py-venv-3.9/bin/activate
-#    - python3 -m pip install -r requirements.txt
-#    - python3 -m pytest -m unit -sv
-#    - python3 -m pytest -m globus -sv
+test-zambeze-globus:
+  stage: test
+  tags:
+    - globus
+  script:
+    - source /home/gitlab-runner/py-venv-3.9/bin/activate
+    - python3 -m pip install -r requirements.txt
+    - python3 -m pytest -m unit -sv
+    - python3 -m pytest -m globus -sv
