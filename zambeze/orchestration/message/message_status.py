@@ -1,6 +1,6 @@
 
 import logging
-from .abstract_message import AbstractMessage, AbstractMessageValidator
+from .abstract_message import AbstractMessage
 from ..zambeze_types import MessageType
 from typing import Optional
 from dataclasses import dataclass
@@ -8,14 +8,9 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class MessageStatus(AbstractMessage):
-    def __init__(self, message: dict, logger: Optional[logging.Logger] = None) -> None:
-        self._message_type = MessageType.STATUS
-        self._message = {}
-
-    @property
-    def type(self) -> MessageType:
-        return self._message_type
-
-    @property
-    def message(self) -> dict:
-        return self._message
+    def __init__(
+            self,
+            new_message: dict,
+            logger: Optional[logging.Logger] = None) -> None:
+        object.__setattr__(self, "type", MessageType.STATUS)
+        object.__setattr__(self, "message", new_message)

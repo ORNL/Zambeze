@@ -7,11 +7,11 @@
 # it under the terms of the MIT License.
 
 # Local imports
-from .abstract_plugin import Plugin
+from ..abstract_plugin import Plugin
 
-from ..system_utils import isExecutable
-from ..system_utils import userExists
-from ..network import isAddressValid
+from ...system_utils import isExecutable
+from ...system_utils import userExists
+from ...network import isAddressValid
 
 # Standard imports
 from typing import Optional

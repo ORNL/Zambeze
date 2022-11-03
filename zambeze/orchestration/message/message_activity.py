@@ -8,14 +8,9 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class MessageActivity(AbstractMessage):
-    def __init__(self, message: dict, logger: Optional[logging.Logger] = None) -> None:
-        self._message_type = MessageType.ACTIVITY
-        self._message = message
-
-    @property
-    def type(self) -> MessageType:
-        return self._message_type
-
-    @property
-    def message(self) -> dict:
-        return self._message
+    def __init__(
+            self, new_message: dict,
+            logger: Optional[logging.Logger] = None) -> None:
+        super().__init__()
+        object.__setattr__(self, "type", MessageType.ACTIVITY)
+        object.__setattr__(self, "message", new_message)

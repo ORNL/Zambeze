@@ -12,10 +12,10 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 
-class Plugin(ABC):
+class PluginMessageHelper(ABC):
     """
-    Abstract base class for ensuring that all registered plugins have the
-    same interface
+    Abstract base class for ensuring that all registered plugins have a
+    valid message helper
 
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
@@ -48,6 +48,23 @@ class Plugin(ABC):
         contains the correct schema.
         """
         raise NotImplementedError("validateMessage method has not been created.")
+
+
+class Plugin(ABC):
+    """
+    Abstract base class for ensuring that all registered plugins have the
+    same interface
+
+    :param logger: The logger where to log information/warning or errors.
+    :type logger: Optional[logging.Logger]
+    """
+
+    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
+        self._logger: logging.Logger = (
+            logging.getLogger(__name__) if logger is None else logger
+        )
+        self._name = name
+
 
     @property
     def name(self) -> str:

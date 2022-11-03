@@ -7,7 +7,7 @@ from .message_activity_validator import (MessageActivityValidator,
                                          createActivityTemplate)
 from .message_status_validator import (MessageStatusValidator,
                                        createStatusTemplate)
-from .abstract_queue import AbstractMessage
+from .abstract_message import AbstractMessage
 from ..zambeze_types import MessageType
 
 
@@ -82,7 +82,7 @@ class MessageFactory:
                 activity["body"] = self._plugins.messageTemplate(plugin_name, args)
             return (message_type, activity)
         elif message_type == MessageType.STATUS:
-            status = createStatusTemplate
+            status = createStatusTemplate()
             return (message_type, status)
         else:
             raise Exception(
@@ -113,7 +113,8 @@ class MessageFactory:
             if result[0]:
                 if "plugin" in args[1]["body"]:
                     plugin_name = args[1]["plugin"]
-                    results = self._plugins.validateMessage(plugin_name, args[1]["body"])
+                    results = self._plugins.validateMessage(plugin_name,
+                                                            args[1]["body"])
                     if results[0] is False:
                         raise Exception("Invalid plugin message body"
                                         f"{results[1]}")
@@ -122,7 +123,7 @@ class MessageFactory:
                 raise Exception("Invalid activity message: {result[1]}")
         elif args[0] == MessageType.STATUS:
             validator = MessageStatusValidator()
-            result = validator.validateMessage(args[1])
+            result = validator.check(args[1])
             if result[0]:
                 return MessageStatus(args[1])
             else:

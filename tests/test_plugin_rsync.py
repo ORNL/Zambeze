@@ -1,5 +1,5 @@
 # Local imports
-import zambeze.orchestration.plugin_modules.rsync as rsync
+import zambeze.orchestration.plugin_modules.rsync.rsync as rsync
 
 # Standard imports
 import os
@@ -110,7 +110,50 @@ def test_rsync_requiredSourceAndDestinationValuesValid():
             "path": current_valid_path,
         },
     }
+    # This method does not check the ip address only that the fields are present
     fields_valid = rsync.requiredSourceAndDestinationValuesValid(package, host)
+    assert fields_valid[0] is True
+
+
+@pytest.mark.unit
+def test_rsync_validateRequiredSourceAndDestinationValuesValid():
+    """Tests one of the assistant functions
+
+    The test ensures that the values passed in are valid. If they are present
+    returns True if they aren't it returns False. Either the "source" or
+    "destination" endpoint must refer to the host machine.
+    """
+
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+
+    current_valid_path = os.getcwd()
+    current_user = pwd.getpwuid(os.geteuid())[0]
+    package = {
+        "source": {"ip": "127.0.0.1", "user": "john", "path": "/home/john/folder1"},
+        "destination": {
+            "ip": local_ip,
+            "user": current_user,
+            "path": current_valid_path,
+        },
+    }
+
+    host = "destination"
+
+    fields_valid = rsync.validateRequiredSourceAndDestinationValuesValid(package, host)
+    assert fields_valid[0]
+
+    # Lets pass in an invalid ip address
+    package = {
+        "source": {"ip": "127.0..1", "user": "john", "path": "/home/john/folder1"},
+        "destination": {
+            "ip": local_ip,
+            "user": current_user,
+            "path": current_valid_path,
+        },
+    }
+    # This method does not check the ip address only that the fields are present
+    fields_valid = rsync.validateRequiredSourceAndDestinationValuesValid(package, host)
     assert fields_valid[0] is False
 
 
@@ -133,7 +176,7 @@ def test_rsync_messageTemplate_and_validate():
 
     instance = rsync.Rsync()
     rsync_template = instance.messageTemplate()
-    checks = instance.validateMessage(rsync_template)
+    checks = instance.validateMessage(rsync_template["cmd"])
     assert len(checks) == 1
     assert checks[0]["transfer"] 
 

@@ -7,7 +7,7 @@
 # it under the terms of the MIT License.
 
 # Local imports
-from .abstract_plugin import Plugin
+from ..abstract_plugin import Plugin
 
 # Third party imports
 import base64

@@ -11,10 +11,10 @@ import os
 import subprocess
 
 # Local imports
-from .abstract_plugin import Plugin
-from shutil import which
+from ..abstract_plugin import Plugin
 
 # Standard imports
+from shutil import which
 from typing import Optional
 
 
