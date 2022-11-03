@@ -13,7 +13,8 @@ from ...network import isAddressValid
 # Standard imports
 import pathlib
 
-
+SUPPORTED_ACTIONS = {"transfer": False}
+PLUGIN_NAME = "rsync"
 #############################################################
 # Assistant Functions
 #############################################################
@@ -92,9 +93,7 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
     return (True, "")
 
 
-def validateRequiredSourceAndDestinationValuesValid(
-    action_inst: dict, match_host
-) -> (bool, str):
+def validateRequiredSourceAndDestinationValuesValid(action_inst: dict) -> (bool, str):
     """Determines if the values are valid
 
     :Example:
@@ -202,5 +201,3 @@ def buildRemotePath(action_endpoint: dict) -> str:
     path = action_endpoint["user"]
     path = path + "@" + action_endpoint["ip"]
     return path + ":" + action_endpoint["path"]
-
-

@@ -1,5 +1,5 @@
 # Local imports
-import zambeze.orchestration.plugin_modules.git as git
+import zambeze.orchestration.plugin_modules.git.git as git
 
 # Standard imports
 import os

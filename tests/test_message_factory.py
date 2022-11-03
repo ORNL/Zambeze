@@ -1,6 +1,5 @@
 # Local imports
-from zambeze.orchestration.message.message_factory \
-        import MessageFactory
+from zambeze.orchestration.message.message_factory import MessageFactory
 
 from zambeze.orchestration.zambeze_types import MessageType
 from zambeze.orchestration.plugins import Plugins

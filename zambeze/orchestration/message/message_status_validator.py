@@ -1,4 +1,3 @@
-
 import logging
 from .abstract_message_validator import AbstractMessageValidator
 from typing import Optional
@@ -13,21 +12,22 @@ def createStatusTemplate() -> dict:
         "target_id": "",
         "campaign_id": "",
         "agent_id": "",
-        "body": {}
+        "body": {},
     }
 
 
 class MessageStatusValidator(AbstractMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self._required_keys = [
-                "message_id",
-                "submission_time",
-                "type",
-                "activity_id",
-                "target_id",
-                "campaign_id",
-                "agent_id",
-                "body"]
+            "message_id",
+            "submission_time",
+            "type",
+            "activity_id",
+            "target_id",
+            "campaign_id",
+            "agent_id",
+            "body",
+        ]
 
     @property
     def supportedKeys(self) -> list[str]:
@@ -46,5 +46,5 @@ class MessageStatusValidator(AbstractMessageValidator):
         unsupported_items = set(message.keys()).difference(self._required_keys)
         if len(unsupported_items):
             return (False, f"Unsupported keys detected {unsupported_items}")
-       
+
         return (True, "")

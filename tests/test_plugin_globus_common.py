@@ -1,11 +1,11 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.globus.globus_common import (
-        checkAllItemsHaveValidEndpoints,
-        fileURISeparator,
-        getGlobusScopes,
-        getMappedCollections,
-        globusURISeparator,
-        )
+    checkAllItemsHaveValidEndpoints,
+    fileURISeparator,
+    getGlobusScopes,
+    getMappedCollections,
+    globusURISeparator,
+)
 
 # Standard imports
 import os

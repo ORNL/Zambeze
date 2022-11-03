@@ -16,7 +16,6 @@ import logging
 
 
 class ShellMessageHelper(PluginMessageHelper):
-
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
 
@@ -24,12 +23,7 @@ class ShellMessageHelper(PluginMessageHelper):
         """Args can be used to generate a more flexible template. Say for
         instance you wanted to transfer several different items.
         """
-        return {
-                "bash": {
-                    "program": "",
-                    "args": [""]
-                    }
-                }
+        return {"bash": {"program": "", "args": [""]}}
 
     def validateMessage(self, arguments: list[dict]) -> list:
         """Checks to see if the message contains the right fields

@@ -1,12 +1,12 @@
 # Local imports
 from ..abstract_plugin import Plugin
 from .globus_common import (
-        localEndpointExists,
-        globusURISeparator,
-        fileURISeparator,
-        getMappedCollections,
-        getGlobusScopes,
-        )
+    localEndpointExists,
+    globusURISeparator,
+    fileURISeparator,
+    getMappedCollections,
+    getGlobusScopes,
+)
 from ...network import externalNetworkConnectionDetected
 
 # Third party imports
@@ -475,9 +475,7 @@ class Globus(Plugin):
         >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
         """
         for item in action_package["items"]:
-            globus_sep_uri = globusURISeparator(
-                item["source"], self.__default_endpoint
-            )
+            globus_sep_uri = globusURISeparator(item["source"], self.__default_endpoint)
             if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
                 error_msg = f"Invalid source endpoint uuid dectected in \
                             'move_from_globus_collection' item: {item} \nuuid: \
@@ -485,12 +483,8 @@ class Globus(Plugin):
                             are {self.__endpoints}."
                 return (False, error_msg)
 
-            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(
-                globus_sep_uri[0]
-            )
-            file_path = (
-                posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
-            )
+            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(globus_sep_uri[0])
+            file_path = posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
             if not exists(file_path):
                 return False, f"Item does not exist {file_path}"
 
@@ -575,8 +569,6 @@ class Globus(Plugin):
         self.__validActions()
 
         self.__configured = True
-
-
 
     @property
     def supportedActions(self) -> list[str]:

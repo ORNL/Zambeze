@@ -1,5 +1,5 @@
 # Local imports
-import zambeze.orchestration.plugin_modules.globus as globus
+import zambeze.orchestration.plugin_modules.globus.globus as globus
 
 # Standard imports
 import os

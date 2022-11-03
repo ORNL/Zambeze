@@ -1,10 +1,10 @@
 # Local imports
-from ..abstract_plugin import PluginMessageHelper
+from ..abstract_plugin_message_helper import PluginMessageHelper
 from .globus_common import (
-        globusURISeparator,
-        checkTransferEndpoint,
-        checkAllItemsHaveValidEndpoints
-        )
+    globusURISeparator,
+    checkTransferEndpoint,
+    checkAllItemsHaveValidEndpoints,
+)
 from ...identity import validUUID
 
 # Standard imports
@@ -14,7 +14,6 @@ import logging
 
 
 class GlobusMessageHelper(PluginMessageHelper):
-
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
 
@@ -256,49 +255,52 @@ class GlobusMessageHelper(PluginMessageHelper):
     def messageTemplate(self, args=None) -> dict:
 
         if args is None or args == "transfer":
-            return {"transfer": {
-                        "type": "synchronous",
-                        "items": [
-                            {
-                                "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-                                "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
-                            },
-                            {
-                                "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-                                "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
-                            }
-                        ]
-                        }
-                    }
-        elif args == "move_to_globus_collection":
-            return {"move_to_globus_collection": {
-                "items": [
-                    {
-                        "source": "file://file1.txt",
-                        "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt"
+            return {
+                "transfer": {
+                    "type": "synchronous",
+                    "items": [
+                        {
+                            "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
+                            "destination": "globus://YYY...YYYYYYYY/dest/file1.txt",
                         },
-                    {
-                        "source": "file://file2.txt",
-                        "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt"
-                        }
+                        {
+                            "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
+                            "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt",
+                        },
+                    ],
+                }
+            }
+        elif args == "move_to_globus_collection":
+            return {
+                "move_to_globus_collection": {
+                    "items": [
+                        {
+                            "source": "file://file1.txt",
+                            "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt",
+                        },
+                        {
+                            "source": "file://file2.txt",
+                            "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt",
+                        },
                     ]
                 }
             }
         elif args == "move_from_globus_collection":
-            return {"move_from_globus_collection": {
-                "items": [
-                    {
-                        "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt",
-                        "destination": "file://file1.txt",
+            return {
+                "move_from_globus_collection": {
+                    "items": [
+                        {
+                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt",
+                            "destination": "file://file1.txt",
                         },
-                    {
-                        "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt",
-                        "destination": "file://file2.txt",
-                        }
+                        {
+                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt",
+                            "destination": "file://file2.txt",
+                        },
                     ]
                 }
             }
         else:
-            raise Exception("Unrecognized argument provided, cannot generate "
-                            "messageTemplate")
-
+            raise Exception(
+                "Unrecognized argument provided, cannot generate " "messageTemplate"
+            )

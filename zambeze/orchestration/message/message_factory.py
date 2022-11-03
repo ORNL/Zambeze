@@ -3,10 +3,8 @@ from typing import Optional
 
 from .message_activity import MessageActivity
 from .message_status import MessageStatus
-from .message_activity_validator import (MessageActivityValidator,
-                                         createActivityTemplate)
-from .message_status_validator import (MessageStatusValidator,
-                                       createStatusTemplate)
+from .message_activity_validator import MessageActivityValidator, createActivityTemplate
+from .message_status_validator import MessageStatusValidator, createStatusTemplate
 from .abstract_message import AbstractMessage
 from ..zambeze_types import MessageType
 
@@ -17,10 +15,8 @@ class MessageFactory:
         self._plugins = plugins
 
     def createTemplate(
-            self,
-            message_type: MessageType,
-            plugin_name=None,
-            args=None) -> tuple:
+        self, message_type: MessageType, plugin_name=None, args=None
+    ) -> tuple:
         """
         Will create a tuple with all the fields needed to built a message
 
@@ -104,8 +100,9 @@ class MessageFactory:
         """
 
         if len(args) != 2:
-            raise Exception("Malformed input, create method expects tuple of"
-                            "length 2")
+            raise Exception(
+                "Malformed input, create method expects tuple of" "length 2"
+            )
 
         if args[0] == MessageType.ACTIVITY:
             validator = MessageActivityValidator()
@@ -113,11 +110,11 @@ class MessageFactory:
             if result[0]:
                 if "plugin" in args[1]["body"]:
                     plugin_name = args[1]["plugin"]
-                    results = self._plugins.validateMessage(plugin_name,
-                                                            args[1]["body"])
+                    results = self._plugins.validateMessage(
+                        plugin_name, args[1]["body"]
+                    )
                     if results[0] is False:
-                        raise Exception("Invalid plugin message body"
-                                        f"{results[1]}")
+                        raise Exception("Invalid plugin message body" f"{results[1]}")
                 return MessageActivity(self._logger, args[1])
             else:
                 raise Exception("Invalid activity message: {result[1]}")

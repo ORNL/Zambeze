@@ -65,7 +65,6 @@ class Plugin(ABC):
         )
         self._name = name
 
-
     @property
     def name(self) -> str:
         """Returns the name of the plugin.

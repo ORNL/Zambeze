@@ -1,7 +1,8 @@
 import pytest
 
-from zambeze.orchestration.message.message_activity_validator \
-        import MessageActivityValidator
+from zambeze.orchestration.message.message_activity_validator import (
+    MessageActivityValidator,
+)
 
 
 ###############################################################################
@@ -32,7 +33,7 @@ def test_message_activity_validator2():
         "campaign_id": "",
         "credential": {},
         "submission_time": "",
-        "body": {}
+        "body": {},
     }
     validator = MessageActivityValidator()
     result = validator.check(activity_message)
@@ -52,7 +53,7 @@ def test_message_activity_validator3():
         "credential": {},
         "submission_time": "",
         "body": {},
-        "needs": []
+        "needs": [],
     }
     validator = MessageActivityValidator()
     result = validator.check(activity_message)
@@ -70,7 +71,7 @@ def test_message_activity_validator_required():
         "campaign_id",
         "credential",
         "submission_time",
-        "body"
+        "body",
     ]
 
     validator = MessageActivityValidator()
@@ -92,7 +93,7 @@ def test_message_activity_validator_supported():
         "credential",
         "submission_time",
         "body",
-        "needs"
+        "needs",
     ]
 
     validator = MessageActivityValidator()
@@ -100,4 +101,3 @@ def test_message_activity_validator_supported():
 
     for item in all_fields:
         assert item in validator.supportedKeys
-

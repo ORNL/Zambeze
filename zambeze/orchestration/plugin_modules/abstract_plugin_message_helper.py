@@ -27,6 +27,17 @@ class PluginMessageHelper(ABC):
         )
         self._name = name
 
+    @property
+    def name(self) -> str:
+        """Returns the name of the plugin.
+
+        The name of the plugin, should be lower case
+
+        :return: Name of the plugin
+        :rtype: string
+        """
+        return self._name
+
     def messageTemplate(self, args) -> dict:
         """Returns the message Template that can be attached to an activity"""
         raise NotImplementedError("messageTemplate method has not been created.")

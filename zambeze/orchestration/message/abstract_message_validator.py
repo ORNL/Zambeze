@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 
 class AbstractMessageValidator(ABC):
-
     @property
     @abstractmethod
     def supportedKeys(self) -> list[str]:

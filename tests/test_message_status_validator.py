@@ -1,7 +1,8 @@
 import pytest
 
-from zambeze.orchestration.message.message_status_validator \
-        import MessageStatusValidator
+from zambeze.orchestration.message.message_status_validator import (
+    MessageStatusValidator,
+)
 
 
 ###############################################################################
@@ -32,7 +33,7 @@ def test_message_status_validator2():
         "target_id": "",
         "campaign_id": "",
         "agent_id": "",
-        "body": {}
+        "body": {},
     }
     validator = MessageStatusValidator()
     result = validator.check(status_message)
@@ -50,7 +51,8 @@ def test_message_status_validator_required():
         "target_id",
         "campaign_id",
         "agent_id",
-        "body"]
+        "body",
+    ]
 
     validator = MessageStatusValidator()
     assert len(required_fields) == len(validator.requiredKeys)
@@ -70,12 +72,11 @@ def test_message_status_validator_supported():
         "target_id",
         "campaign_id",
         "agent_id",
-        "body"]
+        "body",
+    ]
 
     validator = MessageStatusValidator()
     assert len(required_fields) >= len(validator.supportedKeys)
 
     for item in required_fields:
         assert item in validator.supportedKeys
-
-

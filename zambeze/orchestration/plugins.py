@@ -68,9 +68,11 @@ class Plugins:
         """Will register all the plugins provided in the plugin_modules folder"""
         plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
-            if module_name != "abstract_plugin" and \
-               module_name != "__init__" and \
-               module_name != "abstract_plugin_message_helper":
+            if (
+                module_name != "abstract_plugin"
+                and module_name != "__init__"
+                and module_name != "abstract_plugin_message_helper"
+            ):
                 self.__module_names.append(module_name)
         self.__logger.debug(f"Registered Plugins: {', '.join(self.__module_names)}")
 
@@ -88,18 +90,17 @@ class Plugins:
                         issubclass(potential_plugin_message_helper, PluginMessageHelper)
                         and attribute_name != "PluginMessageHelper"
                     ):
-                        self._plugin_message_helpers[attribute_name.lower()] = \
-                                potential_plugin_message_helper(
-                            logger=self.__logger
-                        )
-
+                        self._plugin_message_helpers[
+                            attribute_name.lower()
+                        ] = potential_plugin_message_helper(logger=self.__logger)
 
     def messageTemplate(self, plugin_name: str, args) -> dict:
         """Will return a template of the message body that is needed to execute
         an activity using the plugin"""
 
-        message_template = \
-                self._plugin_message_helpers[plugin_name].messageTemplate(args)
+        message_template = self._plugin_message_helpers[plugin_name].messageTemplate(
+            args
+        )
         message_template["plugin"] = plugin_name
         return message_template
 
@@ -309,8 +310,9 @@ class Plugins:
                     }
                 )
         else:
-            check_results[plugin_name] = \
-                self._plugin_message_helpers[plugin_name].validateMessage([arguments])
+            check_results[plugin_name] = self._plugin_message_helpers[
+                plugin_name
+            ].validateMessage([arguments])
         return check_results
 
     def check(self, plugin_name: str, arguments: dict) -> PluginChecks:
