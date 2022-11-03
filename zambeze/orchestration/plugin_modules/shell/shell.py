@@ -103,8 +103,9 @@ class Shell(Plugin):
                 )
 
                 if len(schema_checks) > 0:
-                    checks.extend(schema_checks)
-                    continue
+                    if schema_checks[0][action][0] is False:
+                        checks.extend(schema_checks)
+                        continue
 
                 # Check if the action is supported
                 if which(action) is None:
