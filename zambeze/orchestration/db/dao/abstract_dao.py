@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 import logging
 
-from zambeze.orchestration.db.dao import get_db_engine
+from zambeze.orchestration.db.dao.dao_utils import get_db_engine
 
 
 class AbstractDAO(object, metaclass=ABCMeta):
@@ -17,7 +17,7 @@ class AbstractDAO(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def insert_returning_id(self, entity):
+    def insert_and_return_id(self, entity):
         raise NotImplementedError()
 
     @abstractmethod

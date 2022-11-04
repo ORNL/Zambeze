@@ -15,7 +15,7 @@ from typing import Optional, Union
 from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
 from .orchestration.plugins import Plugins
 
-from zambeze.orchestration.db.dao import create_local_db
+from .orchestration.db.dao.dao_utils import create_local_db
 
 
 class ZambezeSettings:

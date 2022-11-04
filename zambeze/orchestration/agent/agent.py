@@ -17,7 +17,7 @@ from typing import Optional
 from uuid import uuid4
 
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
-from zambeze.orchestration.db.model.activity import Activity as ActivityModel
+from zambeze.orchestration.db.model.activity_model import ActivityModel
 
 from ..processor import Processor
 from ..zambeze_types import ChannelType

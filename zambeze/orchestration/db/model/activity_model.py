@@ -2,7 +2,7 @@ from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
 from typing import Tuple
 
 
-class Activity(AbstractEntity):
+class ActivityModel(AbstractEntity):
     ID_FIELD_NAME = "activity_id"
     FIELD_NAMES = "activity_id, agent_id, created_at, started_at, ended_at, params"
     ENTITY_NAME = "Activity"
