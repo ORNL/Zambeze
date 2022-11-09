@@ -264,7 +264,7 @@ def test_git_processCommitAndDownload():
     git_plugin.check(package)
 
     attempts = 10
-    number_from_repo = 'NA'
+    number_from_repo = "NA"
     while True:
         git_plugin.process(package)
 

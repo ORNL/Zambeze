@@ -150,7 +150,7 @@ def test_rsync_plugin_run():
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
-    # Attaching a timestamp to avoid concurrent runs overwriting files 
+    # Attaching a timestamp to avoid concurrent runs overwriting files
     file_name = "demofile-" + str(time.time_ns()) + ".txt"
     f = open(file_name, "w")
     random.seed(time.time())
@@ -181,7 +181,7 @@ def test_rsync_plugin_run():
     plugins.run("rsync", arguments)
 
     file_name_return = "demofile_return-" + str(time.time_ns()) + ".txt"
-    file_path_return = current_valid_path + "/" + file_name_return 
+    file_path_return = current_valid_path + "/" + file_name_return
 
     # Remove local copy of file if it already exists
     if os.path.exists(file_path_return):
