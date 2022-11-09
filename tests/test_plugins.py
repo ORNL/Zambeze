@@ -156,7 +156,7 @@ def test_rsync_plugin_run():
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
-
+    print(f"\nOriginal number is {original_number}")
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
@@ -206,7 +206,7 @@ def test_rsync_plugin_run():
     checked_actions = plugins.check("rsync", arguments_return)
     assert checked_actions["rsync"][0]["transfer"][0]
 
-    time.sleep(2)
+    time.sleep(10)
     plugins.run("rsync", arguments_return)
     # This will verify that copying from a remote machine to the local
     # machine was a success
