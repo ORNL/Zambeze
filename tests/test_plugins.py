@@ -9,6 +9,7 @@ import pytest
 
 import random
 import socket
+import time
 
 
 @pytest.mark.unit
@@ -151,6 +152,7 @@ def test_rsync_plugin_run():
 
     file_name = "demofile.txt"
     f = open(file_name, "w")
+    random.seed(time.time())
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()

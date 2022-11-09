@@ -259,7 +259,7 @@ class Rsync(Plugin):
                 action_inst = action["transfer"]
 
                 command_list = ["rsync"]
-                ssh_commands = ["-e", "ssh -i " + self._ssh_key]
+                ssh_commands = ["-e", "ssh -i " + self._ssh_key, "--blocking-io"]
                 for argument in ssh_commands:
                     command_list.append(argument)
 
