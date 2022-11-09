@@ -134,7 +134,7 @@ def test_globus_move_check():
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
-    file_name = "demofile_for_globus1.txt"
+    file_name = "demofile_for_globus1-" + str(time.time_ns()) + ".txt"
     f = open(file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -166,7 +166,7 @@ def test_globus_move_check():
     ]
 
     checked_actions = globus_plugin.check(package)
-    assert checked_actions["move_to_globus_collection"][0]
+    assert checked_actions[0]["move_to_globus_collection"][0]
 
 
 @pytest.mark.globus
@@ -208,7 +208,7 @@ def test_globus_transfer_check():
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
-    file_name = "demofile_for_globus1.txt"
+    file_name = "demofile_for_globus1-" + str(time.time_ns()) + ".txt"
     f = open(file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -257,8 +257,8 @@ def test_globus_transfer_check():
 
     output = globus_plugin.check(package)
 
-    for item in output:
-        assert output[item][0]
+    for item in output[0].keys():
+        assert output[0][item][0]
 
 
 @pytest.mark.globus
@@ -269,6 +269,8 @@ def test_globus_process():
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
+        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_COLLECTION_PATH",
+        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_GUEST_COLLECTION_PATH",
     ]
 
     for env_var in required_env_variables:
@@ -280,8 +282,8 @@ def test_globus_process():
                 " set up."
             )
 
-    path_to_endpoint = "/home/cades/Collections/default"
-    path_to_endpoint_shared = "/home/cades/Collections/default/shared"
+    path_to_endpoint = os.getenv(required_env_variables[4])
+    path_to_endpoint_shared = os.getenv(required_env_variables[5])
 
     configuration = {
         "client_id": os.getenv(required_env_variables[0]),
@@ -308,7 +310,7 @@ def test_globus_process():
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
-    file_name = "demofile_for_globus1.txt"
+    file_name = "demofile_for_globus1-" + str(time.time_ns()) + ".txt"
     f = open(file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -370,7 +372,7 @@ def test_globus_process():
     abs_path_destination_shared = (
         path_to_endpoint
         + relative_destination_file_path
-        + "shared/"
+        + "guest/"
         + sub_folder
         + os.path.basename(file_path)
     )
@@ -382,111 +384,17 @@ def test_globus_process():
     checked_items = globus_plugin.check(package)
     all_checks_pass = True
     for item in checked_items:
-        if not checked_items[item][0]:
-            print("Something went wrong.")
-            print(checked_items[item][1])
-            all_checks_pass = False
+        for action in item.keys():
+            if not item[action][0]:
+                print("Something went wrong.")
+                print(item[action][1])
+                all_checks_pass = False
 
     if all_checks_pass:
         globus_plugin.process(package)
 
     # After processing we should verify that the file exists at the final location
     assert os.path.exists(abs_path_destination_shared)
-
-
-@pytest.mark.globus
-def test_globus_process_from_esnet():
-    """NOTE
-
-    We cannot simply download to a collection, we have to download to
-    a folder that is owned by the user running the this test. I.e. if
-    the GitLab Runner is being used then we have to specify a folder that
-    the GitLab Runner can actually access from the POSIX side.
-    """
-    required_env_variables = [
-        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
-        "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
-        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
-        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
-    ]
-
-    for env_var in required_env_variables:
-        if env_var not in os.environ:
-            raise Exception(
-                "Globus test cannot be run if the env variable"
-                f" {env_var} is not defined and a local "
-                "globus-connect-server and endpoint have not been"
-                " set up."
-            )
-
-    path_to_endpoint = "/home/cades/Collections/default"
-    path_to_endpoint_shared = "/home/cades/Collections/default/shared"
-
-    configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
-        "authentication_flow": {
-            "type": "client credential",
-            "secret": os.getenv(required_env_variables[1]),
-        },
-        "local_endpoints": [
-            {
-                "uuid": os.getenv(required_env_variables[2]),
-                "path": path_to_endpoint,
-                "type": "mapped",
-            },
-            {
-                "uuid": os.getenv(required_env_variables[3]),
-                "path": path_to_endpoint_shared,
-                "type": "guest",
-            },
-        ],
-        "default_endpoint": os.getenv(required_env_variables[3]),
-    }
-
-    globus_plugin = globus.Globus()
-    globus_plugin.configure(configuration)
-
-    # action items in the list should be executed in order
-    ESNET_GLOBUS_ENDPOINT_UUID = "ece400da-0182-4777-91d6-27a1808f8371"
-
-    # This is so that we can run the test both as a runner and as user
-    sub_folder = ""
-    if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
-        sub_folder = "/runner"
-
-    package = [
-        {
-            "transfer": {
-                "type": "synchronous",
-                "items": [
-                    {
-                        "source": "globus://" + ESNET_GLOBUS_ENDPOINT_UUID + "/1M.dat",
-                        "destination": "globus://"
-                        + os.getenv(required_env_variables[2])
-                        + sub_folder
-                        + "1M.dat",
-                    }
-                ],
-            }
-        }
-    ]
-
-    # This test is designed to move a file to the globus endpoint
-    # So before we get started we are going to make sure that a file
-    # does not already exist at that location
-    abs_path_destination = path_to_endpoint + sub_folder + "/1M.dat"
-
-    if os.path.exists(abs_path_destination):
-        os.remove(abs_path_destination)
-
-    checked_actions = globus_plugin.check(package)
-    for action in checked_actions:
-        assert action[0]
-
-    globus_plugin.process(package)
-
-    # After processing we should verify that the file exists at the final location
-    assert os.path.exists(abs_path_destination)
 
 
 @pytest.mark.globus
@@ -497,6 +405,8 @@ def test_globus_process_async():
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
+        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_COLLECTION_PATH",
+        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_GUEST_COLLECTION_PATH",
     ]
 
     for env_var in required_env_variables:
@@ -508,8 +418,8 @@ def test_globus_process_async():
                 " set up."
             )
 
-    path_to_endpoint = "/home/cades/Collections/default"
-    path_to_endpoint_shared = "/home/cades/Collections/default/shared"
+    path_to_endpoint = os.getenv(required_env_variables[4])
+    path_to_endpoint_shared = os.getenv(required_env_variables[5])
 
     configuration = {
         "client_id": os.getenv(required_env_variables[0]),
@@ -536,7 +446,7 @@ def test_globus_process_async():
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
-    file_name = "demofile_for_globus1.txt"
+    file_name = "demofile_for_globus2-" + str(time.time_ns()) + ".txt"
     f = open(file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -596,7 +506,7 @@ def test_globus_process_async():
     abs_path_destination_shared = (
         path_to_endpoint
         + relative_destination_file_path
-        + "shared/"
+        + "guest/"
         + sub_folder
         + os.path.basename(file_path)
     )
@@ -609,8 +519,9 @@ def test_globus_process_async():
         os.remove(abs_path_destination_shared)
 
     checked_actions = globus_plugin.check(package)
-    for action in checked_actions:
-        assert action[0]
+    for item in checked_actions:
+        for action in item.keys():
+            assert item[action][0]
 
     result = globus_plugin.process(package)
 
@@ -633,6 +544,8 @@ def test_globus_process_manual():
         "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
+        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_COLLECTION_PATH",
+        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_GUEST_COLLECTION_PATH",
     ]
 
     for env_var in required_env_variables:
@@ -644,8 +557,8 @@ def test_globus_process_manual():
                 " set up."
             )
 
-    path_to_endpoint = "/home/cades/Collections/default"
-    path_to_endpoint_shared = "/home/cades/Collections/default/shared"
+    path_to_endpoint = os.getenv(required_env_variables[3])
+    path_to_endpoint_shared = os.getenv(required_env_variables[4])
 
     configuration = {
         "client_id": os.getenv(required_env_variables[0]),
@@ -665,11 +578,13 @@ def test_globus_process_manual():
         "default_endpoint": os.getenv(required_env_variables[2]),
     }
 
+    print(configuration)
+
     globus_plugin = globus.Globus()
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
-    file_name = "demofile_for_globus1.txt"
+    file_name = "demofile_for_globus1-" + str(time.time_ns()) + ".txt"
     f = open(file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -731,7 +646,7 @@ def test_globus_process_manual():
     abs_path_destination_shared = (
         path_to_endpoint
         + relative_destination_file_path
-        + "shared/"
+        + "guest/"
         + sub_folder
         + os.path.basename(file_path)
     )
@@ -742,14 +657,16 @@ def test_globus_process_manual():
 
     checked_items = globus_plugin.check(package)
     all_checks_pass = True
+    print(checked_items)
     for item in checked_items:
-        if not checked_items[item][0]:
-            print("Something went wrong.")
-            print(checked_items[item][1])
-            all_checks_pass = False
+        for action in item.keys():
+            print(item[action])
+            if not item[action][0]:
+                all_checks_pass = False
 
     if all_checks_pass:
         globus_plugin.process(package)
 
     # After processing we should verify that the file exists at the final location
+    print(abs_path_destination_shared)
     assert os.path.exists(abs_path_destination_shared)

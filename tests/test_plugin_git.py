@@ -5,6 +5,7 @@ import zambeze.orchestration.plugin_modules.git.git as git
 import os
 import pytest
 import random
+import time
 
 
 @pytest.mark.gitlab_runner
@@ -18,7 +19,7 @@ def test_git_checkCommitSuccess():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -58,7 +59,7 @@ def test_git_checkCommitFailure1():
     key"""
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -96,7 +97,7 @@ def test_git_checkCommitFailure2():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -135,7 +136,7 @@ def test_git_checkCommitFailure3():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -169,7 +170,7 @@ def test_git_checkCommitFailure4():
     credentials key"""
 
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -207,7 +208,9 @@ def test_git_processCommitAndDownload():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+
+    time_stamp = str(time.time_ns())
+    file_name = "demofile_for_git_commit-" + time_stamp + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -239,7 +242,7 @@ def test_git_processCommitAndDownload():
     git_plugin.check(package)
     git_plugin.process(package)
 
-    file_name2 = "demofile_for_git_commit_download.txt"
+    file_name2 = "demofile_for_git_commit_download-" + time_stamp + ".txt"
     package = [
         {
             "download": {
@@ -259,9 +262,20 @@ def test_git_processCommitAndDownload():
     git_plugin = git.Git()
     git_plugin.configure({})
     git_plugin.check(package)
-    git_plugin.process(package)
 
-    with open(file_name2) as f:
-        number_from_repo = f.read()
+    attempts = 10
+    number_from_repo = "NA"
+    while True:
+        git_plugin.process(package)
+
+        with open(file_name2) as f:
+            number_from_repo = f.read()
+
+        if number_from_repo == str(original_number):
+            break
+        if attempts > 10:
+            break
+        attempts += 1
+        time.sleep(1)
 
     assert number_from_repo == str(original_number)

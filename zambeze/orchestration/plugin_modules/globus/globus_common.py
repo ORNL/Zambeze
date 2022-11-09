@@ -9,6 +9,13 @@ from os.path import exists
 
 import re
 
+SUPPORTED_ACTIONS = {
+    "transfer": False,
+    "move_to_globus_collection": False,
+    "move_from_globus_collection": False,
+    "get_task_status": False,
+}
+
 
 def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
     for item in endpoint_list:
@@ -59,7 +66,7 @@ def localEndpointConfigCheck(config: dict):
             raise Exception(error_msg)
 
 
-def globusURISeparator(uri: str, default_uuid) -> dict:
+def globusURISeparator(uri: str, default_uuid=None) -> dict:
     """Will take a globus URI and break it into its components
 
     :param uri: the globus uri globus://XXXXX...XXX/path/file.txt

@@ -1,9 +1,10 @@
 # Local imports
 from ..abstract_plugin_message_helper import PluginMessageHelper
 from .globus_common import (
-    globusURISeparator,
     checkTransferEndpoint,
     checkAllItemsHaveValidEndpoints,
+    globusURISeparator,
+    SUPPORTED_ACTIONS,
 )
 from ...identity import validUUID
 
@@ -16,6 +17,7 @@ import logging
 class GlobusMessageHelper(PluginMessageHelper):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
+        self.__known_actions = SUPPORTED_ACTIONS.keys()
 
     def __runTransferValidationCheck(self, action_package: dict) -> (bool, str):
         """Checks to ensure that the action_package has the right format and
@@ -65,14 +67,13 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(
-                    item["destination"], self.__default_endpoint
-                )
-                if not validUUID(globus_sep_uri[0]):
-                    error_msg = f"Invalid uuid dectected in \
-                                'move_from_globus_collection' item: {item} \nuuid: \
-                                {globus_sep_uri[0]}"
-                    return (False, error_msg)
+                globus_sep_uri = globusURISeparator(item["destination"])
+                if globus_sep_uri[0] is not None:
+                    if not validUUID(globus_sep_uri[0]):
+                        error_msg = f"Invalid uuid dectected in \
+                                    'move_from_globus_collection' item: {item} \nuuid: \
+                                    {globus_sep_uri[0]}"
+                        return (False, error_msg)
 
         return (valid, msg)
 
@@ -144,8 +145,8 @@ class GlobusMessageHelper(PluginMessageHelper):
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
         # Check if the action is supported
-        if self.__supported_actions[action] is False:
-            checks.append({action: (False, "action is not supported.")})
+        if action not in self.__known_actions:
+            checks.append({action: (False, "action is unknown.")})
             return checks
 
         if action == "transfer":
