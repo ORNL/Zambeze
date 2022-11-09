@@ -205,16 +205,25 @@ def test_rsync_plugin_run():
     print(arguments_return)
     checked_actions = plugins.check("rsync", arguments_return)
     assert checked_actions["rsync"][0]["transfer"][0]
+    attempts = 0
+    # Loop is needed because sometimes the initial transfer takes a while to
+    # finalize, this loop will make the test more robust.
+    while True:
+        plugins.run("rsync", arguments_return)
+        # This will verify that copying from a remote machine to the local
+        # machine was a success
+        assert os.path.exists(file_path_return)
 
-    time.sleep(10)
-    plugins.run("rsync", arguments_return)
-    # This will verify that copying from a remote machine to the local
-    # machine was a success
-    assert os.path.exists(file_path_return)
+        with open(file_path_return) as f:
+            # Now we will verify that it is the same file that was sent
+            lines = f.readlines()
+            # Should be a single line
+            random_int = int(lines[0])
 
-    with open(file_path_return) as f:
-        # Now we will verify that it is the same file that was sent
-        lines = f.readlines()
-        # Should be a single line
-        random_int = int(lines[0])
-        assert random_int == original_number
+        if random_int == original_number:
+            break
+        if attempts == 10:
+            break
+        attempts += 1
+        time.sleep(1)
+    assert random_int == original_number
