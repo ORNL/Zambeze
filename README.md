@@ -7,7 +7,7 @@
 [![CodeFactor][codefactor-badge]][codefactor-link]
 [![GitLab Main][gitlab-main-badge]][gitlab-main-link]
 
-# Zamb/eze
+# Zambeze
 
 Documentation for Zambeze can be found on
 [ReadTheDocs](https://docs.zambeze.org/en/latest/).
