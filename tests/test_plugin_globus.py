@@ -5,7 +5,7 @@ import zambeze.orchestration.plugin_modules.globus.globus as globus
 import os
 import pytest
 import random
-import time
+# import time
 
 GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 
