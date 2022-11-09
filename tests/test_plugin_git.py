@@ -262,9 +262,20 @@ def test_git_processCommitAndDownload():
     git_plugin = git.Git()
     git_plugin.configure({})
     git_plugin.check(package)
-    git_plugin.process(package)
 
-    with open(file_name2) as f:
-        number_from_repo = f.read()
+    attempts = 10
+    number_from_repo = 'NA'
+    while True:
+        git_plugin.process(package)
+
+        with open(file_name2) as f:
+            number_from_repo = f.read()
+
+        if number_from_repo == str(original_number):
+            break
+        if attempts > 10:
+            break
+        attempts += 1
+        time.sleep(1)
 
     assert number_from_repo == str(original_number)
