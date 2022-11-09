@@ -5,6 +5,7 @@ import zambeze.orchestration.plugin_modules.git.git as git
 import os
 import pytest
 import random
+import time
 
 
 @pytest.mark.gitlab_runner
@@ -18,7 +19,7 @@ def test_git_checkCommitSuccess():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -58,7 +59,7 @@ def test_git_checkCommitFailure1():
     key"""
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -96,7 +97,7 @@ def test_git_checkCommitFailure2():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -135,7 +136,7 @@ def test_git_checkCommitFailure3():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -169,7 +170,7 @@ def test_git_checkCommitFailure4():
     credentials key"""
 
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
