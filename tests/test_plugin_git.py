@@ -208,7 +208,9 @@ def test_git_processCommitAndDownload():
 
     access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
     current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit.txt"
+
+    time_stamp = str(time.time_ns())
+    file_name = "demofile_for_git_commit-" + time_stamp + ".txt"
     f = open(current_dir + "/" + file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
@@ -240,7 +242,7 @@ def test_git_processCommitAndDownload():
     git_plugin.check(package)
     git_plugin.process(package)
 
-    file_name2 = "demofile_for_git_commit_download.txt"
+    file_name2 = "demofile_for_git_commit_download-" + time_stamp + ".txt"
     package = [
         {
             "download": {
