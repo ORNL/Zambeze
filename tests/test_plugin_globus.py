@@ -545,7 +545,7 @@ def test_globus_process_async():
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
-    file_name = "demofile_for_globus1.txt"
+    file_name = "demofile_for_globus2.txt"
     f = open(file_name, "w")
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
