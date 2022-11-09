@@ -10,11 +10,11 @@ from os.path import exists
 import re
 
 SUPPORTED_ACTIONS = {
-        "transfer": False,
-        "move_to_globus_collection": False,
-        "move_from_globus_collection": False,
-        "get_task_status": False,
-        }
+    "transfer": False,
+    "move_to_globus_collection": False,
+    "move_from_globus_collection": False,
+    "get_task_status": False,
+}
 
 
 def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
@@ -113,7 +113,7 @@ def globusURISeparator(uri: str, default_uuid=None) -> dict:
         error_msg = error_msg + "globus://"
         return ("", "", "", error_msg)
 
-    UUID_and_path = uri[len(globus_uri_tag):]
+    UUID_and_path = uri[len(globus_uri_tag) :]
     # Replace multiple occurances of // with single /
     UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
@@ -173,7 +173,7 @@ def fileURISeparator(uri: str) -> dict:
         error_msg = error_msg + "file://"
         return ("", "", "", error_msg)
 
-    file_and_path = uri[len(file_uri_tag):]
+    file_and_path = uri[len(file_uri_tag) :]
     path = dirname(file_and_path)
 
     if not path.startswith(os.sep):

@@ -10,8 +10,8 @@ import time
 GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 
 
-#@pytest.mark.globus
-#def test_globus_basic1():
+# @pytest.mark.globus
+# def test_globus_basic1():
 #
 #    required_env_variables = [
 #        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
@@ -50,8 +50,8 @@ GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 #    assert "transfer" in globus_plugin.supportedActions
 #
 #
-#@pytest.mark.globus
-#def test_globus_basic2():
+# @pytest.mark.globus
+# def test_globus_basic2():
 #
 #    required_env_variables = [
 #        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
@@ -96,8 +96,8 @@ GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 #    assert len(globus_plugin.supportedActions) == 4
 #
 #
-#@pytest.mark.globus
-#def test_globus_move_check():
+# @pytest.mark.globus
+# def test_globus_move_check():
 #
 #    required_env_variables = [
 #        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
@@ -169,8 +169,8 @@ GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 #    assert checked_actions["move_to_globus_collection"][0]
 #
 #
-#@pytest.mark.globus
-#def test_globus_transfer_check():
+# @pytest.mark.globus
+# def test_globus_transfer_check():
 #
 #    required_env_variables = [
 #        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
@@ -261,8 +261,8 @@ GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 #        assert output[item][0]
 #
 #
-#@pytest.mark.globus
-#def test_globus_process():
+# @pytest.mark.globus
+# def test_globus_process():
 #
 #    required_env_variables = [
 #        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
@@ -396,8 +396,8 @@ GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 #    assert os.path.exists(abs_path_destination_shared)
 #
 #
-#@pytest.mark.globus
-#def test_globus_process_from_esnet():
+# @pytest.mark.globus
+# def test_globus_process_from_esnet():
 #    """NOTE
 #
 #    We cannot simply download to a collection, we have to download to
@@ -493,8 +493,8 @@ GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 #    assert os.path.exists(abs_path_destination)
 #
 #
-#@pytest.mark.globus
-#def test_globus_process_async():
+# @pytest.mark.globus
+# def test_globus_process_async():
 #
 #    required_env_variables = [
 #        "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
@@ -640,7 +640,7 @@ def test_globus_process_manual():
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
         "ZAMBEZE_CI_TEST_POSIX_GLOBUS_COLLECTION_PATH",
-        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_GUEST_COLLECTION_PATH"
+        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_GUEST_COLLECTION_PATH",
     ]
 
     for env_var in required_env_variables:

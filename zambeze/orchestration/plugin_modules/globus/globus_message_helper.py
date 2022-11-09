@@ -4,7 +4,7 @@ from .globus_common import (
     checkTransferEndpoint,
     checkAllItemsHaveValidEndpoints,
     globusURISeparator,
-    SUPPORTED_ACTIONS
+    SUPPORTED_ACTIONS,
 )
 from ...identity import validUUID
 
@@ -67,9 +67,7 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(
-                    item["destination"]
-                )
+                globus_sep_uri = globusURISeparator(item["destination"])
                 if globus_sep_uri[0] is not None:
                     if not validUUID(globus_sep_uri[0]):
                         error_msg = f"Invalid uuid dectected in \

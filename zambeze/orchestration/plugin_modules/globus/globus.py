@@ -6,7 +6,7 @@ from .globus_common import (
     fileURISeparator,
     getMappedCollections,
     getGlobusScopes,
-    SUPPORTED_ACTIONS
+    SUPPORTED_ACTIONS,
 )
 from .globus_message_helper import GlobusMessageHelper
 from ...network import externalNetworkConnectionDetected
