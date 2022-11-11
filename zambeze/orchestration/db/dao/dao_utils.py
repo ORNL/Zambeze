@@ -21,7 +21,7 @@ def get_db_engine():
 
 def get_update_stmt(entity: AbstractEntity):
     stmt = f"UPDATE {entity.ENTITY_NAME} SET \n"
-    for field_name in entity.FIELD_NAMES.split(','):
+    for field_name in entity.FIELD_NAMES.split(","):
         if field_name == entity.ID_FIELD_NAME:
             continue
         stmt += f"{field_name} = ?, "
@@ -32,7 +32,9 @@ def get_update_stmt(entity: AbstractEntity):
 
 
 def get_insert_stmt(entity: AbstractEntity):
-    number_of_fields = len(entity.FIELD_NAMES.split(','))
-    values_replacer = ",".join(['?' for _ in range(number_of_fields)])
-    return f"INSERT INTO {entity.ENTITY_NAME} " \
-           f"({entity.FIELD_NAMES}) VALUES ({values_replacer}); "
+    number_of_fields = len(entity.FIELD_NAMES.split(","))
+    values_replacer = ",".join(["?" for _ in range(number_of_fields)])
+    return (
+        f"INSERT INTO {entity.ENTITY_NAME} "
+        f"({entity.FIELD_NAMES}) VALUES ({values_replacer}); "
+    )

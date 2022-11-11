@@ -1,11 +1,9 @@
-from zambeze.orchestration.db.dao.dao_utils import get_update_stmt, \
-    get_insert_stmt
+from zambeze.orchestration.db.dao.dao_utils import get_update_stmt, get_insert_stmt
 from zambeze.orchestration.db.dao.abstract_dao import AbstractDAO
 from zambeze.orchestration.db.model.activity_model import ActivityModel
 
 
 class ActivityDAO(AbstractDAO):
-
     def insert(self, activity: ActivityModel) -> None:
         values = activity.get_all_values()
         insert_stmt = get_insert_stmt(activity)

@@ -67,8 +67,9 @@ class Agent:
         activity_message = pickle.loads((self._zmq_socket.recv()))
         self._logger.info(f"Received message from campaign: {activity_message}")
 
-        activity = ActivityModel(agent_id=str(self._agent_id),
-                                 created_at=int(time()*1000))
+        activity = ActivityModel(
+            agent_id=str(self._agent_id), created_at=int(time() * 1000)
+        )
         self._logger.info(f"Creating activity in the DB: {activity}")
         self._activity_dao.insert(activity)
         self._logger.info("Saved in the DB!")

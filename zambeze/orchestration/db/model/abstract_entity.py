@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 
 
 class AbstractEntity(object, metaclass=ABCMeta):
-
     @classmethod
     @property
     @abstractmethod

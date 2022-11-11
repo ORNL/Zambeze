@@ -8,7 +8,7 @@
 
 from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
+with open("requirements.txt") as f:
     requires = f.read().splitlines()
 
 with open("README.md", "r") as fh:
