@@ -242,6 +242,7 @@ class Processor(threading.Thread):
                     },
                 )
 
+    # body needs to be changed to AbstractMessage
     async def send(self, channel_type: ChannelType, body: dict) -> None:
         """
         Publish an activity message to the queue.

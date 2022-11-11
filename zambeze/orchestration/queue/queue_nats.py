@@ -137,14 +137,11 @@ class QueueNATS(AbstractQueue):
 
         try:
             msg = await self._sub[channel].next_msg(timeout=1)
-            print("Message is")
-            print(msg)
             data = json.loads(msg.data.decode())
 
         except nats.errors.TimeoutError:
             raise QueueTimeoutException("nextMsg call - checking NATS")
 
-        print(data)
         return data
 
     async def ackMsg(self, channel: ChannelType):

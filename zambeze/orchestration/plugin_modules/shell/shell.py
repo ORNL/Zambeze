@@ -6,16 +6,17 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+# Local imports
+from ..abstract_plugin import Plugin
+from .shell_message_helper import ShellMessageHelper
+
+# Standard imports
+from shutil import which
+from typing import Optional
+
 import logging
 import os
 import subprocess
-
-# Local imports
-from .abstract_plugin import Plugin
-from shutil import which
-
-# Standard imports
-from typing import Optional
 
 
 class Shell(Plugin):
@@ -24,6 +25,43 @@ class Shell(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
         self._configured = False
+        self._message_helper = ShellMessageHelper(logger)
+
+    def messageTemplate(self, args=None) -> dict:
+        """Args can be used to generate a more flexible template. Say for
+        instance you wanted to transfer several different items.
+        """
+        return {"bash": {"program": "", "args": [""]}}
+
+    def validateMessage(self, arguments: list[dict]) -> list:
+        """Checks to see if the message contains the right fields
+
+
+        :Example"
+
+        >>> arguments = [ {
+        >>>   "bash": { }
+        >>> }]
+
+        """
+        checks = []
+        for index in range(len(arguments)):
+            for action in arguments[index]:
+
+                if "program" not in arguments[action]:
+                    checks.append(
+                        {
+                            action: (
+                                False,
+                                "A program has not been defined to run in the shell,"
+                                + " required 'program' field is missing.",
+                            )
+                        }
+                    )
+                    continue
+
+                checks.append({action, (True, "")})
+        return checks
 
     def configure(self, config: dict) -> None:
         """Configure shell."""
@@ -49,8 +87,7 @@ class Shell(Plugin):
     def check(self, arguments: list[dict]) -> list[dict]:
         """Checks to see if the provided shell is supported
 
-
-        :Example"
+        :Example:
 
         >>> arguments = [ {
         >>>   "bash": { }
@@ -60,6 +97,15 @@ class Shell(Plugin):
         checks = []
         for index in range(len(arguments)):
             for action in arguments[index].keys():
+
+                schema_checks = self._message_helper.validateAction(
+                    arguments[index], action
+                )
+
+                if len(schema_checks) > 0:
+                    if schema_checks[0][action][0] is False:
+                        checks.extend(schema_checks)
+                        continue
 
                 # Check if the action is supported
                 if which(action) is None:
