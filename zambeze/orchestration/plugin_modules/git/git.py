@@ -7,7 +7,7 @@
 # it under the terms of the MIT License.
 
 # Local imports
-from .abstract_plugin import Plugin
+from ..abstract_plugin import Plugin
 
 # Third party imports
 import base64
@@ -491,8 +491,76 @@ class Git(Plugin):
 
         return True, response
 
+    def __GitHubAPICommitConflict(self, response: dict):
+        """Function for checking if the GitHub API throws a curve ball and
+        the commit requests returns with a non-ideal response.
+        """
+        # Check for the case where there is an API issue, possible
+        # conflicts caused by race condition to API, response body will
+        # look like this:
+        # {
+        #   'message': 'is at c72037af2b1ac70c2e7cdb539cd8bfe3d8ac353f
+        # but expected 7a82ba49bdfb1ad383b3cbd2dea32f6cedd776f8',
+        #   'documentation_url':
+        # 'https://docs.github.com/rest/reference/repos#create-or-update-file-contents'}
+        #
+        # A successful response should look something like this (values have been
+        # appreviated for clarity):
+        #
+        # {
+        #   'content': {
+        #      'name': 'file_name.txt',
+        #      'path': 'path_in_repo_to_file.txt',
+        #      'sha': 'e27944d6aeb1508de40bc9c2780104ae98204e9a',
+        #      'size': 11,
+        #      'url': 'https://api.github.com/repos/...2145601.txt?ref=main',
+        #      'html_url': 'https://github.com/...30112145601.txt',
+        #      'git_url': 'https://api.github.../blobs/e27944104ae98204e9a',
+        #      'download_url': 'https://raw.githubuserc...8630112145601.txt',
+        #      'type': 'file',
+        #      '_links': {
+        #         'self': 'https://api.github.com...668008630112145601.txt?ref=main',
+        #         'git': 'https://api.github.co...t/blobs/e27944d62780104ae98204e9a',
+        #         'html': 'https://github.com/Zambez...8008630112145601.txt'}},
+        #         'commit': {
+        #            'sha': 'c72037af2b1ac70c2e7cdb539cd8bfe3d8ac353f',
+        #            'node_id': 'C_kwDOHsdMdtoAK...1MzljZDhiZmUzZDhhYzM1M2Y',
+        #            'url': 'https://api.github.com/r...2e7cdb539cd8bfe3d8ac353f',
+        #            'html_url': 'https://github.com/Zambeze84...0b539cd8bfe3d8ac353f',
+        #            'author': {
+        #               'name': 'zambeze84',
+        #               'email': 'zambeze84@gmail.com',
+        #               'date': '2022-11-09T15:43:55Z'
+        #            },
+        #            'committer': {
+        #               'name': 'zambeze84',
+        #               'email': 'zambeze84@gmail.com',
+        #               'date': '2022-11-09T15:43:55Z'
+        #            },
+        #            'tree': {
+        #               'sha': 'f7e7a2a2ec6dac3fd5a22d582edcc3994e24c13e',
+        #               'url': 'https://api.github.com/repos/Za...2d582edcc3924c13e'},
+        #               'message': 'Adding a file',
+        #               'parents': [
+        #                  {'sha': '7a82ba49bdfb1ad383b3cbd2dea32f6cedd776f8',
+        #                   'url': 'https://api.github.com/repos/Zamb...a2f6cedd776f8',
+        #                   'html_url': 'https://github.com...3cbd2dea32f6cedd776f8'
+        #                  }],
+        #               'verification': {
+        #                  'verified': False,
+        #                  'reason': 'unsigned',
+        #                  'signature': None,
+        #                  'payload': None
+        #               }
+        #           }
+        #       }
+        if "message" in response:
+            if response["message"].startswith("is at "):
+                return True
+        return False
+
     def __commit(self, action_obj: dict):
-        """Function for commiting contents to GitHub
+        """Function for committing contents to GitHub
 
         :param action_obj: needed content to execute the action
         :type action_obj: dict
@@ -579,9 +647,21 @@ class Git(Plugin):
 
             print("Body of commit")
             print(body)
-            response = requests.put(url, data=json.dumps(body), headers=headers).json()
-            print("Response")
-            print(response)
+
+            attempts = 0
+            while True:
+                response = requests.put(
+                    url, data=json.dumps(body), headers=headers
+                ).json()
+                print("Response")
+                print(response)
+
+                if not self.__GitHubAPICommitConflict(response):
+                    break
+                if attempts > 10:
+                    break
+                attempts += 1
+
             return response
 
     #    def __clone(this, action_obj: dict):
