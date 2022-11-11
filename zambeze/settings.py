@@ -10,9 +10,12 @@ import logging
 import os
 import pathlib
 import yaml
-
 from typing import Optional, Union
+
+from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
 from .orchestration.plugins import Plugins
+
+from .orchestration.db.dao.dao_utils import create_local_db
 
 
 class ZambezeSettings:
@@ -58,12 +61,12 @@ class ZambezeSettings:
             if not self._conf_file.exists():
                 self._conf_file.touch()
                 default_settings = {
-                    "nats": {"host": "127.0.0.1", "port": 4222},
+                    "nats": {"host": NATS_HOST, "port": NATS_PORT},
                     "plugins": {
                         "shell": {"config": {}},
                         "All": {"default_working_directory": os.path.expanduser("~")},
                     },
-                    "zmq": {"host": "127.0.0.1", "port": 5555},
+                    "zmq": {"host": HOST, "port": ZMQ_PORT},
                 }
                 with open(self._conf_file, "w") as f:
                     yaml.dump(default_settings, f)
@@ -77,10 +80,10 @@ class ZambezeSettings:
 
         # Ideally the plugin modules would have the default settings located
         # in their files and they could just be asked here.
-        self.__set_default("host", "127.0.0.1", self.settings["nats"])
-        self.__set_default("port", 4222, self.settings["nats"])
-        self.__set_default("host", "127.0.0.1", self.settings["zmq"])
-        self.__set_default("port", 5555, self.settings["zmq"])
+        self.__set_default("host", NATS_HOST, self.settings["nats"])
+        self.__set_default("port", NATS_PORT, self.settings["nats"])
+        self.__set_default("host", HOST, self.settings["zmq"])
+        self.__set_default("port", ZMQ_PORT, self.settings["zmq"])
         self.__set_default("plugins", {"All": {}}, self.settings)
         self.__set_default("All", {}, self.settings["plugins"])
         self.__set_default(
@@ -89,6 +92,8 @@ class ZambezeSettings:
             self.settings["plugins"]["All"],
         )
         self.__save()
+
+        create_local_db()
 
         self.__configure_plugins()
 

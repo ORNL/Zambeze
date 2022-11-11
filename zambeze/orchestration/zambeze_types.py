@@ -7,6 +7,11 @@ class ChannelType(Enum):
     TEST = "TEST"
 
 
+class MessageType(Enum):
+    ACTIVITY = "ACTIVITY"
+    STATUS = "STATUS"
+
+
 class QueueType(Enum):
     RABBITMQ = "RabbitMQ"
     NATS = "NATS"

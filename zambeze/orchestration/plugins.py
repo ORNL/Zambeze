@@ -11,6 +11,7 @@ from __future__ import annotations
 
 # Local imports
 from .plugin_modules.abstract_plugin import Plugin
+from .plugin_modules.abstract_plugin_message_helper import PluginMessageHelper
 
 # Standard imports
 from copy import deepcopy
@@ -21,6 +22,22 @@ from typing import Optional
 
 import logging
 import pkgutil
+
+
+class PluginChecks(dict):
+    def __init__(self, val: dict = None):
+        if val is None:
+            val = {}
+        super().__init__(val)
+
+    def errorDetected(self) -> bool:
+        """Detects if an error was found in the results of the plugin checks"""
+        for key in self.keys():
+            for item in self[key]:
+                for key2 in item.keys():
+                    if item[key2][0] is False:
+                        return True
+        return False
 
 
 class Plugins:
@@ -43,15 +60,49 @@ class Plugins:
         )
         self.__module_names = []
         self._plugins = {}
+        self._plugin_message_helpers = {}
         self.__registerPlugins()
+        self.__registerPluginHelpers()
 
     def __registerPlugins(self) -> None:
         """Will register all the plugins provided in the plugin_modules folder"""
         plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
         for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
-            if module_name != "abstract_plugin" and module_name != "__init__":
+            if (
+                module_name != "abstract_plugin"
+                and module_name != "__init__"
+                and module_name != "abstract_plugin_message_helper"
+            ):
                 self.__module_names.append(module_name)
         self.__logger.debug(f"Registered Plugins: {', '.join(self.__module_names)}")
+
+    def __registerPluginHelpers(self) -> None:
+        for module_name in self.__module_names:
+            # Registering plugin message validators
+            module = import_module(
+                "zambeze.orchestration.plugin_modules."
+                f"{module_name}.{module_name}_message_helper"
+            )
+            for attribute_name in dir(module):
+                potential_plugin_message_helper = getattr(module, attribute_name)
+                if isclass(potential_plugin_message_helper):
+                    if (
+                        issubclass(potential_plugin_message_helper, PluginMessageHelper)
+                        and attribute_name != "PluginMessageHelper"
+                    ):
+                        self._plugin_message_helpers[
+                            attribute_name.lower()
+                        ] = potential_plugin_message_helper(logger=self.__logger)
+
+    def messageTemplate(self, plugin_name: str, args) -> dict:
+        """Will return a template of the message body that is needed to execute
+        an activity using the plugin"""
+
+        message_template = self._plugin_message_helpers[plugin_name].messageTemplate(
+            args
+        )
+        message_template["plugin"] = plugin_name
+        return message_template
 
     @property
     def registered(self) -> list[Plugin]:
@@ -114,9 +165,10 @@ class Plugins:
         This will just configure the "shell" plugin
         """
         for module_name in self.__module_names:
+            # Registering plugins
             if module_name in config.keys() and module_name in self.__module_names:
                 module = import_module(
-                    f"zambeze.orchestration.plugin_modules.{module_name}"
+                    f"zambeze.orchestration.plugin_modules.{module_name}.{module_name}"
                 )
                 for attribute_name in dir(module):
                     potential_plugin = getattr(module, attribute_name)
@@ -194,7 +246,7 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    def check(self, plugin_name: str, arguments: dict) -> dict:
+    def validateMessage(self, plugin_name: str, arguments: dict) -> dict:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -242,6 +294,75 @@ class Plugins:
         >>> # {
         """
         check_results = {}
+        if plugin_name not in self._plugin_message_helpers.keys():
+            check_results[plugin_name] = [
+                {"configured": (False, f"{plugin_name} is not configured.")}
+            ]
+            if plugin_name not in self.__module_names:
+                known_module_names = " ".join(str(mod) for mod in self.__module_names)
+                check_results[plugin_name].append(
+                    {
+                        "registered": (
+                            False,
+                            f"{plugin_name} is not a known module. "
+                            + f"Known modules are: {known_module_names}",
+                        )
+                    }
+                )
+        else:
+            check_results[plugin_name] = self._plugin_message_helpers[
+                plugin_name
+            ].validateMessage([arguments])
+        return check_results
+
+    def check(self, plugin_name: str, arguments: dict) -> PluginChecks:
+        """Check that the arguments passed to the plugin "plugin_name" are valid
+
+        :parameter plugin_name: the name of the plugin to validate against
+        :type plugin_name: str
+        :parameter arguments: the arguments to be validated for plugin "plugin_name"
+        :type arguments: dict
+        :return: What is returned are a list of the plugins and their actions
+            along with an indication on whether there was a problem with them
+
+        :Example: Using rsync
+
+        For the rsync plugin to be useful, both the local and remote host
+        ssh keys must have been configured. By default the rsync plugin will
+        look for the private key located at ~/.ssh/id_rsa. If the private key
+        is different then it must be specified with the "private_ssh_key" key
+        value pair.
+
+        >>> plugins = Plugins()
+        >>> config = {
+        >>>     "rsync": {
+        >>>         "private_ssh_key": "path to private ssh key"
+        >>>     }
+        >>> }
+        >>> plugins.configure(config)
+        >>> arguments = {
+        >>>     "transfer": {
+        >>>         "source": {
+        >>>             "ip": local_ip,
+        >>>             "user": current_user,
+        >>>             "path": current_valid_path,
+        >>>         },
+        >>>         "destination": {
+        >>>             "ip": "172.22.1.69",
+        >>>             "user": "cades",
+        >>>             "path": "/home/cades/josh-testing",
+        >>>         },
+        >>>         "arguments": ["-a"],
+        >>>     }
+        >>> }
+        >>> checked_args = plugins.check("rsync", arguments)
+        >>> print(checked_args)
+        >>> # Should print
+        >>> # {
+        >>> #   "rsync": { "transfer": (True, "") }
+        >>> # {
+        """
+        check_results = {}
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
                 {"configured": (False, f"{plugin_name} is not configured.")}
@@ -259,7 +380,7 @@ class Plugins:
                 )
         else:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
-        return check_results
+        return PluginChecks(check_results)
 
     def run(self, plugin_name: str, arguments: dict) -> None:
         """Run a specific plugins.
