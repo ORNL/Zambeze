@@ -22,6 +22,8 @@ jobs:
         python-version: [ "3.9", "3.10" ]
     steps:
       - uses: actions/checkout@v2
+      - name: Update ubuntu
+        run: sudo apt-get update
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:

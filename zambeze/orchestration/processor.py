@@ -21,6 +21,7 @@ from urllib.parse import urlparse
 from ..settings import ZambezeSettings
 from .zambeze_types import ChannelType, QueueType
 from .queue.queue_factory import QueueFactory
+from .queue.queue_exceptions import QueueTimeoutException
 
 
 class Processor(threading.Thread):
@@ -74,8 +75,9 @@ class Processor(threading.Thread):
 
         while True:
             try:
+
                 msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
-                data = json.loads(msg.data)
+                data = msg  # json.loads(msg)
                 self._logger.debug("Message received:")
                 self._logger.debug(json.dumps(data, indent=4))
 
@@ -89,18 +91,32 @@ class Processor(threading.Thread):
                     self._logger.info(json.dumps(data["cmd"], indent=4))
 
                     # Running Checks
+                    # Returned results should be double nested dict with a tuple of
+                    # the form
+                    #
+                    # "plugin": { "action": (bool, message) }
+                    #
+                    # The bool is a true or false which indicates if the action
+                    # for the plugin is a problem, the message is an error message
+                    # or a success statement
                     checked_result = self._settings.plugins.check(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
                     self._logger.debug(checked_result)
 
-                    # perform compute action
-                    self._settings.plugins.run(
-                        plugin_name=data["plugin"].lower(), arguments=data["cmd"]
-                    )
+                    if checked_result.errorDetected() is False:
+                        self._settings.plugins.run(
+                            plugin_name=data["plugin"].lower(), arguments=data["cmd"]
+                        )
+                    else:
+                        self._logger.debug(
+                            "Skipping run - error detected when running plugin check"
+                        )
 
                 self._logger.debug("Waiting for messages")
 
+            except QueueTimeoutException as e:
+                print(e)
             except Exception as e:
                 print(e)
                 exit(1)
@@ -114,8 +130,8 @@ class Processor(threading.Thread):
         :type files: list[str]
         """
         self._logger.debug("Processing files...")
-        for file in files:
-            file_url = urlparse(file)
+        for file_path in files:
+            file_url = urlparse(file_path)
             if file_url.scheme == "file":
                 if not pathlib.Path(file_url.path).exists():
                     raise Exception(f"Unable to find file: {file_url.path}")
@@ -226,6 +242,7 @@ class Processor(threading.Thread):
                     },
                 )
 
+    # body needs to be changed to AbstractMessage
     async def send(self, channel_type: ChannelType, body: dict) -> None:
         """
         Publish an activity message to the queue.

@@ -9,6 +9,7 @@ import pytest
 
 import random
 import socket
+import time
 
 
 @pytest.mark.unit
@@ -105,15 +106,18 @@ def test_rsync_plugin_check():
     }
 
     checked_actions = plugins.check("rsync", arguments)
+    print(checked_actions)
     assert checked_actions["rsync"][0]["transfer"][0]
     arguments_faulty_ip = copy.deepcopy(arguments)
     arguments_faulty_ip["transfer"]["destination"]["ip"] = "172.22."
     checked_actions = plugins.check("rsync", arguments_faulty_ip)
+    print(checked_actions)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
     arguments_faulty_user = copy.deepcopy(arguments)
     arguments_faulty_user["transfer"]["source"]["user"] = "user_that_does_not_exist"
     checked_actions = plugins.check("rsync", arguments_faulty_user)
+    print(checked_actions)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
 
@@ -146,12 +150,14 @@ def test_rsync_plugin_run():
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
-    file_name = "demofile.txt"
+    # Attaching a timestamp to avoid concurrent runs overwriting files
+    file_name = "demofile-" + str(time.time_ns()) + ".txt"
     f = open(file_name, "w")
+    random.seed(time.time())
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
-
+    print(f"\nOriginal number is {original_number}")
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
@@ -174,7 +180,8 @@ def test_rsync_plugin_run():
     assert checks["rsync"][0]["transfer"][0]
     plugins.run("rsync", arguments)
 
-    file_path_return = current_valid_path + "/demofile_return.txt"
+    file_name_return = "demofile_return-" + str(time.time_ns()) + ".txt"
+    file_path_return = current_valid_path + "/" + file_name_return
 
     # Remove local copy of file if it already exists
     if os.path.exists(file_path_return):
@@ -200,14 +207,25 @@ def test_rsync_plugin_run():
     print(arguments_return)
     checked_actions = plugins.check("rsync", arguments_return)
     assert checked_actions["rsync"][0]["transfer"][0]
-    plugins.run("rsync", arguments_return)
-    # This will verify that copying from a remote machine to the local
-    # machine was a success
-    assert os.path.exists(file_path_return)
+    attempts = 0
+    # Loop is needed because sometimes the initial transfer takes a while to
+    # finalize, this loop will make the test more robust.
+    while True:
+        plugins.run("rsync", arguments_return)
+        # This will verify that copying from a remote machine to the local
+        # machine was a success
+        assert os.path.exists(file_path_return)
 
-    with open(file_path_return) as f:
-        # Now we will verify that it is the same file that was sent
-        lines = f.readlines()
-        # Should be a single line
-        random_int = int(lines[0])
-        assert random_int == original_number
+        with open(file_path_return) as f:
+            # Now we will verify that it is the same file that was sent
+            lines = f.readlines()
+            # Should be a single line
+            random_int = int(lines[0])
+
+        if random_int == original_number:
+            break
+        if attempts == 10:
+            break
+        attempts += 1
+        time.sleep(1)
+    assert random_int == original_number
