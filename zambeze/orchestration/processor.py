@@ -50,7 +50,7 @@ class Processor(threading.Thread):
         }
         self._queue_client = factory.create(QueueType.NATS, args)
 
-    def run(self):
+    def start(self):
         """Start the Processor thread."""
         asyncio.run(self.__process())
 
