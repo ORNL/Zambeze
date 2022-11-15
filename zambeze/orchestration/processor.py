@@ -56,9 +56,7 @@ class Processor(threading.Thread):
         }
         self._queue_client = queue_factory.create(QueueType.NATS, args)
 
-        self._msg_factory = MessageFactory(
-                self._settings.plugins,
-                logger=self._logger)
+        self._msg_factory = MessageFactory(self._settings.plugins, logger=self._logger)
 
     def run(self):
         """Start the Processor thread."""
@@ -113,10 +111,10 @@ class Processor(threading.Thread):
 
                     if checked_result.errorDetected() is False:
                         self._settings.plugins.run(msg)
-#                        self._settings.plugins.run(
-#                            plugin_name=msg.data["plugin"].lower(),
-#                            arguments=msg.data["cmd"]
-#                        )
+                    #                        self._settings.plugins.run(
+                    #                            plugin_name=msg.data["plugin"].lower(),
+                    #                            arguments=msg.data["cmd"]
+                    #                        )
                     else:
                         self._logger.debug(
                             "Skipping run - error detected when running plugin check"
@@ -165,23 +163,22 @@ class Processor(threading.Thread):
                 local_posix_uri = local_posix_uri + source_file_name
 
                 msg_template = self._msg_factory.createTemplate(
-                    MessageType.ACTIVITY,
-                    "globus",
-                    "transfer")
+                    MessageType.ACTIVITY, "globus", "transfer"
+                )
 
                 msg_template[1]["body"]["cmd"] = [
-                            {
-                                "transfer": {
-                                    "type": "synchronous",
-                                    "items": [
-                                        {
-                                            "source": file_url.geturl(),
-                                            "destination": local_globus_uri,
-                                        }
-                                    ],
+                    {
+                        "transfer": {
+                            "type": "synchronous",
+                            "items": [
+                                {
+                                    "source": file_url.geturl(),
+                                    "destination": local_globus_uri,
                                 }
-                            }
-                        ]
+                            ],
+                        }
+                    }
+                ]
                 # Will validate the message fields and then make it immutable
                 immutable_msg = self._msg_factory.create(msg_template)
 
@@ -191,9 +188,8 @@ class Processor(threading.Thread):
                 # Move from the Globus collection to the default working
                 # directory
                 msg_template_move = self._msg_factory.createTemplate(
-                    MessageType.ACTIVITY,
-                    "globus",
-                    "move_from_globus_collection")
+                    MessageType.ACTIVITY, "globus", "move_from_globus_collection"
+                )
 
                 # Dependency on transfer needs to be defined
                 msg_template_move[1]["body"]["cmd"] = [
@@ -213,12 +209,8 @@ class Processor(threading.Thread):
                 checked_result = self._settings.plugins.check(immutable_msg_move)
                 self._logger.debug(checked_result)
 
-                await self._queue_client.send(
-                        ChannelType.ACTIVITY,
-                        immutable_msg)
-                await self._queue_client.send(
-                        ChannelType.ACTIVITY,
-                        immutable_msg_move)
+                await self._queue_client.send(ChannelType.ACTIVITY, immutable_msg)
+                await self._queue_client.send(ChannelType.ACTIVITY, immutable_msg_move)
 
                 # If the local agent does not support Globus we will need to
                 # send a request to to nats for someone else to handle the
@@ -242,28 +234,25 @@ class Processor(threading.Thread):
             elif file_url.scheme == "rsync":
 
                 msg_template = self._msg_factory.createTemplate(
-                        MessageType.ACTIVITY,
-                        "rsync",
-                        "transfer")
+                    MessageType.ACTIVITY, "rsync", "transfer"
+                )
 
                 msg_template[1]["body"]["cmd"] = [
-                            {
-                                "transfer": {
-                                    "source": {
-                                        "ip": file_url.netloc,
-                                        "path": file_url.path,
-                                        "user": file_url.username,
-                                    },
-                                    "destination": {
-                                        "ip": socket.gethostbyname(
-                                            socket.gethostname()
-                                        ),
-                                        "path": str(pathlib.Path().resolve()),
-                                        "user": getpass.getuser(),
-                                    },
-                                }
-                            }
-                        ]
+                    {
+                        "transfer": {
+                            "source": {
+                                "ip": file_url.netloc,
+                                "path": file_url.path,
+                                "user": file_url.username,
+                            },
+                            "destination": {
+                                "ip": socket.gethostbyname(socket.gethostname()),
+                                "path": str(pathlib.Path().resolve()),
+                                "user": getpass.getuser(),
+                            },
+                        }
+                    }
+                ]
                 # Will validate the message fields and then make it immutable
                 msg = self._msg_factory.create(msg_template)
                 await self._queue_client.send(ChannelType.ACTIVITY, msg)

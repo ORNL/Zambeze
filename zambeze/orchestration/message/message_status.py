@@ -7,8 +7,6 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class MessageStatus(AbstractMessage):
-    def __init__(
-        self, new_data: dict, logger: Optional[logging.Logger] = None
-    ) -> None:
+    def __init__(self, new_data: dict, logger: Optional[logging.Logger] = None) -> None:
         object.__setattr__(self, "type", MessageType.STATUS)
         object.__setattr__(self, "data", new_data)
