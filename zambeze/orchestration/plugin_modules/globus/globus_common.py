@@ -17,14 +17,14 @@ SUPPORTED_ACTIONS = {
 }
 
 
-def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
+def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> bool:
     for item in endpoint_list:
         if item["uuid"].lower() == globus_uuid.lower():
             return True
     return False
 
 
-def localEndpointConfigCheck(config: dict):
+def localEndpointConfigCheck(config: dict) -> None:
     # Check that the UUIDs are correct
     if "local_endpoints" in config:
         for local_endpoint in config["local_endpoints"]:
