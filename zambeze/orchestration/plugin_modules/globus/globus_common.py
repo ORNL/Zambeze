@@ -66,7 +66,7 @@ def localEndpointConfigCheck(config: dict):
             raise Exception(error_msg)
 
 
-def globusURISeparator(uri: str, default_uuid=None) -> dict:
+def globusURISeparator(uri: str, default_uuid=None) -> tuple[str, str, str, str]:
     """Will take a globus URI and break it into its components
 
     :param uri: the globus uri globus://XXXXX...XXX/path/file.txt
@@ -77,10 +77,10 @@ def globusURISeparator(uri: str, default_uuid=None) -> dict:
     >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
     >>> globus_uri = globus://XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX/path/file.txt
     >>> uri_components = globusURISeparator(globus_uri, default_uri)
-    >>> print( uri_components.UUID )
-    >>> print( uri_components.path )
-    >>> print( uri_components.file_name )
-    >>> print( uri_components.error_msg )
+    >>> print( uri_components[0] ) # UUID
+    >>> print( uri_components[1] ) # Path
+    >>> print( uri_components[2] ) # File name
+    >>> print( uri_components[3] ) # Error message
 
     The output should be
 
@@ -93,10 +93,10 @@ def globusURISeparator(uri: str, default_uuid=None) -> dict:
     >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
     >>> globus_uri = globus://path/file.txt
     >>> uri_components = globusURISeparator(globus_uri, default_uri)
-    >>> print( uri_components.UUID )
-    >>> print( uri_components.path )
-    >>> print( uri_components.file_name )
-    >>> print( uri_components.error_msg )
+    >>> print( uri_components[0] ) # UUID
+    >>> print( uri_components[1] ) # Path
+    >>> print( uri_components[2] ) # File name
+    >>> print( uri_components[3] ) # Error message
 
     The output should be
 
@@ -145,7 +145,7 @@ def globusURISeparator(uri: str, default_uuid=None) -> dict:
     return (valid_uuid, path, basename(file_and_path), "")
 
 
-def fileURISeparator(uri: str) -> dict:
+def fileURISeparator(uri: str) -> tuple[str, str, str]:
     """Will take a file URI and break it into its components
 
     :param uri: File uri should be like file://path/file.txt
@@ -155,9 +155,9 @@ def fileURISeparator(uri: str) -> dict:
 
     >>> file_uri = file://path/file.txt
     >>> uri_components = fileURISeparator(file_uri)
-    >>> print( uri_components.path )
-    >>> print( uri_components.file_name )
-    >>> print( uri_components.error_msg )
+    >>> print( uri_components[0] ) # Path
+    >>> print( uri_components[1] ) # File name
+    >>> print( uri_components[2] ) # Error message
 
     The output should be
 

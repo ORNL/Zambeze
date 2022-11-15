@@ -20,7 +20,7 @@ PLUGIN_NAME = "rsync"
 #############################################################
 
 
-def requiredEndpointKeysExist(action_endpoint: dict) -> (bool, str):
+def requiredEndpointKeysExist(action_endpoint: dict) -> tuple[bool, str]:
     """Returns a tuple with the first element set to true if
     action_endpoint contains "ip","user" and "path" keys
 
@@ -53,7 +53,7 @@ def requiredEndpointKeysExist(action_endpoint: dict) -> (bool, str):
     return (True, "")
 
 
-def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
+def requiredSourceAndDestinationKeysExist(action_inst: dict) -> tuple[bool, str]:
     """Returns a tuple, with first element a bool that is set to true
     if both source and destination endpoints contain the correct fields
 
@@ -95,7 +95,9 @@ def requiredSourceAndDestinationKeysExist(action_inst: dict) -> (bool, str):
     return (True, "")
 
 
-def validateRequiredSourceAndDestinationValuesValid(action_inst: dict) -> (bool, str):
+def validateRequiredSourceAndDestinationValuesValid(
+    action_inst: dict,
+) -> tuple[bool, str]:
     """Determines if the values are valid
 
     :Example:
@@ -135,7 +137,7 @@ def validateRequiredSourceAndDestinationValuesValid(action_inst: dict) -> (bool,
 
 def requiredSourceAndDestinationValuesValid(
     action_inst: dict, match_host
-) -> (bool, str):
+) -> tuple[bool, str]:
     """Determines if the values are valid
 
     :Example:
