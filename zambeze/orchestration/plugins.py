@@ -14,15 +14,12 @@ from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.abstract_plugin_message_helper import PluginMessageHelper
 
-# Third party imports
-from multimethod import multimethod
-
 # Standard imports
 from copy import deepcopy
 from importlib import import_module
 from inspect import isclass
 from pathlib import Path
-from typing import Optional, Type
+from typing import Optional, Type, overload
 
 import logging
 import pkgutil
@@ -319,11 +316,11 @@ class Plugins:
             ].validateMessage([arguments])
         return check_results
 
-    @multimethod
-    def check(self, msg: type[AbstractMessage]) -> type[PluginChecks]:
+    @overload
+    def check(self, msg: Type[AbstractMessage]) -> type[PluginChecks]:
         return self.check(msg.data["plugin"], msg.data["cmd"])
 
-    @multimethod
+    @overload
     def check(self, plugin_name: str, arguments: dict) -> type[PluginChecks]:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
@@ -391,11 +388,11 @@ class Plugins:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return PluginChecks(check_results)
 
-    @multimethod
-    def run(self, msg: type[AbstractMessage]) -> None:
+    @overload
+    def run(self, msg: Type[AbstractMessage]) -> None:
         self._plugins[msg.data["plugin"].lower()].process([msg.data["cmd"]])
 
-    @multimethod
+    @overload
     def run(self, plugin_name: str, arguments: dict) -> None:
         """Run a specific plugins.
 
