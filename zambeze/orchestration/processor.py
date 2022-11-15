@@ -154,13 +154,11 @@ class Processor(threading.Thread):
                     "default_working_directory"
                 ]
 
-                local_globus_uri = "globus://"
-                local_globus_uri = local_globus_uri + default_endpoint + os.sep
-                local_globus_uri = local_globus_uri + source_file_name
+                local_globus_uri = (f"globus://{default_endpoint}{os.sep}"
+                                    f"source_file_name")
 
-                local_posix_uri = "file://"
-                local_posix_uri = local_posix_uri + default_working_dir + os.sep
-                local_posix_uri = local_posix_uri + source_file_name
+                local_posix_uri = (f"file://{default_working_dir}{os.sep}"
+                                   f"{source_file_name}")
 
                 msg_template = self._msg_factory.createTemplate(
                     MessageType.ACTIVITY, "globus", "transfer"
