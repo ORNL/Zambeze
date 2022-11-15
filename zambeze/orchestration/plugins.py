@@ -320,7 +320,6 @@ class Plugins:
     def check(self, msg: Type[AbstractMessage]) -> type[PluginChecks]:
         return self.check(msg.data["plugin"], msg.data["cmd"])
 
-    @overload
     def check(self, plugin_name: str, arguments: dict) -> type[PluginChecks]:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
@@ -392,7 +391,6 @@ class Plugins:
     def run(self, msg: Type[AbstractMessage]) -> None:
         self._plugins[msg.data["plugin"].lower()].process([msg.data["cmd"]])
 
-    @overload
     def run(self, plugin_name: str, arguments: dict) -> None:
         """Run a specific plugins.
 
