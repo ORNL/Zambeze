@@ -10,11 +10,12 @@ import logging
 import os
 import pathlib
 import yaml
-
 from typing import Optional, Union
 
 from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
 from .orchestration.plugins import Plugins
+
+from .orchestration.db.dao.dao_utils import create_local_db
 
 
 class ZambezeSettings:
@@ -65,7 +66,7 @@ class ZambezeSettings:
                         "shell": {"config": {}},
                         "All": {"default_working_directory": os.path.expanduser("~")},
                     },
-                    "zmq": {"host": HOST, "port": 5555},
+                    "zmq": {"host": HOST, "port": ZMQ_PORT},
                 }
                 with open(self._conf_file, "w") as f:
                     yaml.dump(default_settings, f)
@@ -91,6 +92,8 @@ class ZambezeSettings:
             self.settings["plugins"]["All"],
         )
         self.__save()
+
+        create_local_db()
 
         self.__configure_plugins()
 
