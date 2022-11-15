@@ -15,14 +15,14 @@ from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.abstract_plugin_message_helper import PluginMessageHelper
 
 # Third party imports
-from multipledispatch import dispatch
+from multimethod import multimethod
 
 # Standard imports
 from copy import deepcopy
 from importlib import import_module
 from inspect import isclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Type
 
 import logging
 import pkgutil
@@ -319,12 +319,12 @@ class Plugins:
             ].validateMessage([arguments])
         return check_results
 
-    @dispatch(None, AbstractMessage)
-    def check(self, msg) -> PluginChecks:
+    @multimethod
+    def check(self, msg: type[AbstractMessage]) -> type[PluginChecks]:
         return self.check(msg.data["plugin"], msg.data["cmd"])
 
-    @dispatch(None, str, dict)
-    def check(self, plugin_name, arguments) -> PluginChecks:
+    @multimethod
+    def check(self, plugin_name: str, arguments: dict) -> type[PluginChecks]:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -391,12 +391,12 @@ class Plugins:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return PluginChecks(check_results)
 
-    @dispatch(None, AbstractMessage)
-    def run(self, msg) -> None:
+    @multimethod
+    def run(self, msg: type[AbstractMessage]) -> None:
         self._plugins[msg.data["plugin"].lower()].process([msg.data["cmd"]])
 
-    @dispatch(None, str, dict)
-    def run(self, plugin_name, arguments) -> None:
+    @multimethod
+    def run(self, plugin_name: str, arguments: dict) -> None:
         """Run a specific plugins.
 
         :parameter plugin_name: Plugin name
