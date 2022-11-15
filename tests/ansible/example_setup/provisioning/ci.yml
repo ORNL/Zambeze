@@ -1,0 +1,16 @@
+- name: Ensure that nats is running
+  hosts: nats-machine
+  remote_user: cades
+  become: yes
+  become_method: sudo
+  roles:
+    - ci-nats
+
+- name: Ensure that image magick "convert" command is present
+  hosts: image_magick_machine
+  remote_user: cades
+  become: yes
+  become_method: sudo
+  roles:
+    - ci-convert
+

@@ -1,0 +1,2 @@
+nats_machine ansible_ssh_host={{nats_ip}} ansible_ssh_user={{nats_user}}
+image_magick_machine ansible_ssh_host={{magick_ip}} ansible_ssh_user={{magick_user}}

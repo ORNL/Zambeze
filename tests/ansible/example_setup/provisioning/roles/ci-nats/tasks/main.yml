@@ -1,0 +1,23 @@
+---
+# This file will be used to install nats and run it in the background
+
+- name: Update apt cache
+  apt: update_cache=yes
+
+- name: Upgrade all apt packages
+  apt: upgrade=dist
+
+- name: Install dependencies
+  apt: 
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - golang-go
+
+- name: Install nats
+  command: GO111MODULE=on go get github.com/nats-io/nats-server/v2
+
+- name: Run nats server
+  command: nats-server -DV 

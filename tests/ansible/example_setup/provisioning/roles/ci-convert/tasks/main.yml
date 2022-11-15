@@ -1,0 +1,13 @@
+---
+# Will install image magick
+- name: Update apt cache
+  apt: update_cache=yes
+
+- name: Upgrade all apt packages
+  apt: upgrade=dist
+
+- name: Install imagemagick
+  apt: 
+    name: "imagemagick"
+    state: present
+    update_cache: yes
