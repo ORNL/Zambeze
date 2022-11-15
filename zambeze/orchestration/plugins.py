@@ -10,8 +10,12 @@
 from __future__ import annotations
 
 # Local imports
+from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.abstract_plugin_message_helper import PluginMessageHelper
+
+# Third party imports
+from multipledispatch import dispatch
 
 # Standard imports
 from copy import deepcopy
@@ -315,7 +319,12 @@ class Plugins:
             ].validateMessage([arguments])
         return check_results
 
-    def check(self, plugin_name: str, arguments: dict) -> PluginChecks:
+    @dispatch(None, AbstractMessage)
+    def check(self, msg) -> PluginChecks:
+        return self.check(msg.data["plugin"], msg.data["cmd"])
+
+    @dispatch(None, str, dict)
+    def check(self, plugin_name, arguments) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -382,7 +391,12 @@ class Plugins:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return PluginChecks(check_results)
 
-    def run(self, plugin_name: str, arguments: dict) -> None:
+    @dispatch(None, AbstractMessage)
+    def run(self, msg) -> None:
+        self._plugins[msg.data["plugin"].lower()].process([msg.data["cmd"]])
+
+    @dispatch(None, str, dict)
+    def run(self, plugin_name, arguments) -> None:
         """Run a specific plugins.
 
         :parameter plugin_name: Plugin name

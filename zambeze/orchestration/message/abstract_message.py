@@ -7,4 +7,4 @@ class AbstractMessage(ABC):
 
     type: MessageType
     """Returns the Message as a dict"""
-    message: dict
+    data: dict

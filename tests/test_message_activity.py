@@ -15,7 +15,7 @@ def test_message_activity_type():
 
 def test_message_activity_message():
     msg_activity = MessageActivity({"body": "testing"})
-    assert msg_activity.message["body"] == "testing"
+    assert msg_activity.data["body"] == "testing"
 
 
 def test_message_activity_immutability():
@@ -23,7 +23,7 @@ def test_message_activity_immutability():
     msg_activity = MessageActivity({"body": "testing"})
     failed = False
     try:
-        msg_activity.message["new_key"] == "should fail"
+        msg_activity.data["new_key"] == "should fail"
     except Exception:
         failed = True
         pass

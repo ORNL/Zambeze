@@ -15,7 +15,7 @@ def test_message_status_type():
 
 def test_message_status_message():
     msg_status = MessageStatus({"body": "testing"})
-    assert msg_status.message["body"] == "testing"
+    assert msg_status.data["body"] == "testing"
 
 
 def test_message_status_immutability():
@@ -23,7 +23,7 @@ def test_message_status_immutability():
     msg_status = MessageStatus({"body": "testing"})
     failed = False
     try:
-        msg_status.message["new_key"] == "should fail"
+        msg_status.data["new_key"] == "should fail"
     except Exception:
         failed = True
         pass
