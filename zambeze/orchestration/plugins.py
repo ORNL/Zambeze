@@ -95,14 +95,14 @@ class Plugins:
                             attribute_name.lower()
                         ] = potential_plugin_message_helper(logger=self.__logger)
 
-    def messageTemplate(self, plugin_name: str, args) -> dict:
+    def messageTemplate(self, plugin_name: str, args):
         """Will return a template of the message body that is needed to execute
         an activity using the plugin"""
 
         message_template = self._plugin_message_helpers[plugin_name].messageTemplate(
             args
         )
-        message_template["plugin"] = plugin_name
+        message_template.plugin = plugin_name
         return message_template
 
     @property

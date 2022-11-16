@@ -75,7 +75,7 @@ class MessageFactory:
         if message_type == MessageType.ACTIVITY:
             activity = createActivityTemplate()
             if plugin_name is not None:
-                activity["body"] = self._plugins.messageTemplate(plugin_name, args)
+                activity.body = self._plugins.messageTemplate(plugin_name, args)
             return (message_type, activity)
         elif message_type == MessageType.STATUS:
             status = createStatusTemplate()
@@ -106,15 +106,15 @@ class MessageFactory:
 
         if args[0] == MessageType.ACTIVITY:
             validator = MessageActivityValidator()
-            result = validator.validateMessage(args[1])
+            result = validator.check(args[1])
             if result[0]:
-                if "plugin" in args[1]["body"]:
-                    plugin_name = args[1]["plugin"]
-                    results = self._plugins.validateMessage(
-                        plugin_name, args[1]["body"]
-                    )
-                    if results[0] is False:
-                        raise Exception("Invalid plugin message body" f"{results[1]}")
+                # if "plugin" in args[1]["body"]:
+                plugin_name = args[1].plugin
+                results = self._plugins.validateMessage(
+                    plugin_name, args[1].body
+                )
+                if results[0] is False:
+                    raise Exception("Invalid plugin message body" f"{results[1]}")
                 return MessageActivity(self._logger, args[1])
             else:
                 raise Exception("Invalid activity message: {result[1]}")

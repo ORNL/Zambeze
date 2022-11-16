@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class AbstractMessageValidator(ABC):
@@ -19,7 +20,7 @@ class AbstractMessageValidator(ABC):
         )
 
     @abstractmethod
-    def check(self, message: dict) -> (bool, str):
+    def check(self, message: Any) -> (bool, str):
         """Return whether message is valid
 
         :return: if true return true and if false return false with an error
