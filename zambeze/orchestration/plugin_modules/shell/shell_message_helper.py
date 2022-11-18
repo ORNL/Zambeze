@@ -42,8 +42,6 @@ class ShellMessageHelper(PluginMessageHelper):
 
         return checks
 
-
-
     def validateAction(self, arguments: dict, action) -> list:
         checks = []
         return self._validateAction(action, checks, arguments)
