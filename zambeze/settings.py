@@ -39,8 +39,6 @@ class ZambezeSettings:
         )
         # set default values
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
-        print(self.settings)
-        print(self.settings["zmq"])
         self.load_settings(conf_file)
 
     def load_settings(self, conf_file: Optional[pathlib.Path] = None) -> None:
