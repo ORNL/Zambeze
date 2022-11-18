@@ -36,8 +36,13 @@ class ShellMessageHelper(PluginMessageHelper):
                     )
                 }
             )
-            return checks
-        checks.append({action, (True, "")})
+
+        else:
+            checks.append({action: (True, "")})
+
+        return checks
+
+
 
     def validateAction(self, arguments: dict, action) -> list:
         checks = []
