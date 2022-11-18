@@ -99,10 +99,14 @@ class Processor(threading.Thread):
                     # The bool is a true or false which indicates if the action
                     # for the plugin is a problem, the message is an error message
                     # or a success statement
+
+                    self._logger.info("proc.py Riiiiight here...")
+                    self._logger.info(f"plugin info: {json.dumps(data)}")
+
                     checked_result = self._settings.plugins.check(
                         plugin_name=data["plugin"].lower(), arguments=data["cmd"]
                     )
-                    self._logger.debug(checked_result)
+                    self._logger.info(checked_result)
 
                     if checked_result.errorDetected() is False:
                         self._settings.plugins.run(
