@@ -27,8 +27,6 @@ class ZambezeSettings:
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
-    plugins: Plugins
-
     def __init__(
         self,
         conf_file: Optional[pathlib.Path] = None,
@@ -42,6 +40,7 @@ class ZambezeSettings:
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
         print(self.settings)
         print(self.settings["zmq"])
+        self.plugins = Plugins(logger=self._logger)
         self.load_settings(conf_file)
 
     def load_settings(self, conf_file: Optional[pathlib.Path] = None) -> None:
@@ -102,7 +101,6 @@ class ZambezeSettings:
         """
         Load and configure Zambeze plugins.
         """
-        self.plugins = Plugins(logger=self._logger)
         config = {}
 
         for plugin_name in self.plugins.registered:
