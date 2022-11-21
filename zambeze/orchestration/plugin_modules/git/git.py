@@ -20,7 +20,7 @@ from typing import Optional
 import logging
 
 
-def check_path(path_name: str, path: str, msg: str, success: bool) -> (bool, str):
+def check_path(path_name: str, path: str, msg: str, success: bool) -> tuple(bool, str):
     """Takes a path string and ensures it is correctly formatted.
 
     :param path_name: The name of the type of the file path i.e. "source"
@@ -45,7 +45,7 @@ def check_path(path_name: str, path: str, msg: str, success: bool) -> (bool, str
 
 def contains_subkey(
     action_name: str, obj: dict, key: str, subkey: str, is_success: bool, msg: str
-) -> (bool, str):
+) -> tuple(bool, str):
     """Checks if the the object contains a subkey
 
     :param action_name: Describes what action is being called for better logging
@@ -73,7 +73,7 @@ def contains_subkey(
     return is_success, msg
 
 
-def checkEndpoint(endpoint_obj: dict, allowed_types) -> (bool, str):
+def checkEndpoint(endpoint_obj: dict, allowed_types) -> tuple(bool, str):
     """Will make sure that the endpoint is a valid type and checks the path if
     possible.
 
@@ -144,7 +144,7 @@ class Git(Plugin):
             return False, error_msg
         return True, ""
 
-    def __checkRepoOwnerExists(self, repo_owner: str, access_token=None) -> (bool, str):
+    def __checkRepoOwnerExists(self, repo_owner: str, access_token=None) -> tuple(bool, str):
         """Will check that the repo owner exists on GitHub
 
         :param repo_owner: The GitHub repository owner
@@ -175,7 +175,7 @@ class Git(Plugin):
             return False, error_msg
         return True, ""
 
-    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> (bool, str):
+    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> tuple(bool, str):
         """Will check that the repo exists on GitHub
 
         By default will check that the repo exists if it is public. If you would
@@ -224,7 +224,7 @@ class Git(Plugin):
             return (False, msg)
         return (True, "")
 
-    def __checkDownload(self, action_obj: dict) -> (bool, str):
+    def __checkDownload(self, action_obj: dict) -> tuple(bool, str):
         """Function ensures that the action_obj is provided with the right fields
 
         :param action_obj: json paramters needed to commit an object to a GitHub repo
@@ -312,7 +312,7 @@ class Git(Plugin):
 
         return success, msg
 
-    def __checkCommit(self, action_obj: dict) -> (bool, str):
+    def __checkCommit(self, action_obj: dict) -> tuple(bool, str):
         """Function ensures that the action_obj is provided with the right fields
 
         :param action_obj: json paramters needed to commit an object to a GitHub repo
@@ -437,7 +437,7 @@ class Git(Plugin):
 
         return success, msg
 
-    def __fileExistsOnRepo(self, action_obj, file_obj) -> (bool, dict):
+    def __fileExistsOnRepo(self, action_obj, file_obj) -> tuple(bool, dict):
         """Function for getting file if it exists
 
         :param action_obj: needed content to execute the action

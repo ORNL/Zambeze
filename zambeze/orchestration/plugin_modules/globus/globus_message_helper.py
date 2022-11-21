@@ -19,7 +19,7 @@ class GlobusMessageHelper(PluginMessageHelper):
         super().__init__("globus", logger=logger)
         self.__known_actions = SUPPORTED_ACTIONS.keys()
 
-    def __runTransferValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runTransferValidationCheck(self, action_package: dict) -> tuple(bool, str):
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
@@ -55,7 +55,7 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         return checkTransferEndpoint(action_package)
 
-    def __runMoveToGlobusValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveToGlobusValidationCheck(self, action_package: dict) -> tuple(bool, str):
         supported_source_path_types = ["file"]
         supported_destination_path_types = ["globus"]
 
@@ -77,7 +77,7 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         return (valid, msg)
 
-    def __runMoveFromGlobusValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveFromGlobusValidationCheck(self, action_package: dict) -> tuple(bool, str):
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
@@ -123,7 +123,7 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         return (valid, msg)
 
-    def __runGetTaskStatusValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runGetTaskStatusValidationCheck(self, action_package: dict) -> tuple(bool, str):
         """Checks that the get_task_status action is correctly configured
 
         :Example:

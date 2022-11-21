@@ -402,7 +402,7 @@ class Globus(Plugin):
 
             shutil.copyfile(source_path, destination_path)
 
-    def __runTransferSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runTransferSanityCheck(self, action_package: dict) -> tuple(bool, str):
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
@@ -430,7 +430,7 @@ class Globus(Plugin):
 
         return True, ""
 
-    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> tuple(bool, str):
         for item in action_package["items"]:
             globus_sep_uri = globusURISeparator(
                 item["destination"], self.__default_endpoint
@@ -449,7 +449,7 @@ class Globus(Plugin):
 
         return (True, "")
 
-    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> tuple(bool, str):
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
