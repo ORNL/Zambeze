@@ -185,7 +185,7 @@ def fileURISeparator(uri: str) -> tuple[str, str, str]:
     return (path, basename(file_and_path), "")
 
 
-def checkTransferEndpoint(action_package: dict) -> (bool, str):
+def checkTransferEndpoint(action_package: dict) -> tuple[bool, str]:
     """Makes sure each item to be transferred has the correct format
 
     :param action_package: the package that contains instructions for
@@ -301,7 +301,7 @@ def getGlobusScopes(mapped_collections: list[str]) -> str:
     return scopes
 
 
-def checkEndpoint(item: str, supported_types: list[str]) -> (bool, str):
+def checkEndpoint(item: str, supported_types: list[str]) -> tuple[bool, str]:
     """Check that the approprite keys and values exist in the endpoint
 
     :param item: uri
@@ -336,7 +336,7 @@ def checkAllItemsHaveValidEndpoints(
     items: list[dict],
     supported_source_path_types: list[str],
     supported_destination_path_types: list[str],
-) -> (bool, str):
+) -> tuple[bool, str]:
     """Check that all items that are too be moved are schematically correct
 
     :return: Returns true if the schema of the items is valid and false otherwise

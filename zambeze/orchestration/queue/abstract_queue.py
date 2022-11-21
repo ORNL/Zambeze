@@ -29,12 +29,12 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    async def connect(self) -> (bool, str):
+    async def connect(self) -> tuple[bool, str]:
         """This method will attempt to connect the client to the Queue.
 
         :return: if able to connect will return True with a string saying as
         much, if unable to connect will return False with an error message.
-        :rtype: tuple(bool, str)
+        :rtype: tuple[bool, str]
 
         Example:
 

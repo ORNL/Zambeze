@@ -19,7 +19,7 @@ class AbstractMessageValidator(ABC):
         )
 
     @abstractmethod
-    def check(self, message: dict) -> (bool, str):
+    def check(self, message: dict) -> tuple[bool, str]:
         """Return whether message is valid
 
         :return: if true return true and if false return false with an error

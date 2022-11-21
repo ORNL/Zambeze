@@ -62,7 +62,7 @@ class QueueNATS(AbstractQueue):
     def connected(self) -> bool:
         return self._nc is not None
 
-    async def connect(self) -> (bool, str):
+    async def connect(self) -> tuple[bool, str]:
         try:
             self._nc = await nats.connect(
                 self.uri,
