@@ -10,7 +10,7 @@ import logging
 import os
 import pathlib
 import yaml
-from typing import Optional, Union
+from typing import Optional, Union, Final
 
 from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
 from .orchestration.plugins import Plugins
@@ -27,6 +27,7 @@ class ZambezeSettings:
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
+    plugins: Plugins
 
     def __init__(
         self,
