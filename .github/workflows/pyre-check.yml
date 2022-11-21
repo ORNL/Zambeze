@@ -21,5 +21,4 @@ jobs:
         pip install -r requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pyre -n init
         pyre --source-directory . check
