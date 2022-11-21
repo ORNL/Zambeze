@@ -19,6 +19,7 @@ from typing import Optional
 
 import logging
 
+
 class RsyncMessageHelper(PluginMessageHelper):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)

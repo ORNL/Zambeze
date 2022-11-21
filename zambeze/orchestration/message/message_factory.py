@@ -110,21 +110,19 @@ class MessageFactory:
             if result[0]:
                 # if "plugin" in args[1]["body"]:
                 plugin_name = args[1].plugin
-                results = self._plugins.validateMessage(
-                    plugin_name, args[1].body
-                )
+                results = self._plugins.validateMessage(plugin_name, args[1].body)
                 if results[0] is False:
                     raise Exception("Invalid plugin message body" f"{results[1]}")
                 return MessageActivity(self._logger, args[1])
             else:
-                raise Exception("Invalid activity message: {result[1]}")
+                raise Exception(f"Invalid activity message: {result[1]}")
         elif args[0] == MessageType.STATUS:
             validator = MessageStatusValidator()
             result = validator.check(args[1])
             if result[0]:
                 return MessageStatus(args[1])
             else:
-                raise Exception("Invalid status message: {result[1]}")
+                raise Exception(f"Invalid status message: {result[1]}")
         else:
             raise Exception(
                 "Unrecognized message type cannot instantiate: " f"{args[0].value}"

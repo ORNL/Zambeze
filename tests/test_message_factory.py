@@ -85,6 +85,12 @@ def test_factory_success():
     to exceute the message after it is sent"""
     status_tuple[1].message_id = 1
     status_tuple[1].submission_time = time.time()
+    status_tuple[1].type = ""
+    status_tuple[1].activity_id = ""
+    status_tuple[1].target_id = ""
+    status_tuple[1].campaign_id = ""
+    status_tuple[1].agent_id = ""
+    status_tuple[1].body = {}
 
     """Should generate an immutable Status message, it will also verify that
     the correct fields have been included."""

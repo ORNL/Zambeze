@@ -20,11 +20,13 @@ REQUIRED_ACTIVITY_COMPONENTS = {
 
 OPTIONAL_ACTIVITY_COMPONENTS = {}
 
+StatusTemplate = make_dataclass(
+    "StatusTemplate", {**REQUIRED_ACTIVITY_COMPONENTS, **OPTIONAL_ACTIVITY_COMPONENTS}
+)
 
-def createStatusTemplate() -> dict:
-    return make_dataclass('ActivityTemplate',
-                          {**REQUIRED_ACTIVITY_COMPONENTS,
-                           **OPTIONAL_ACTIVITY_COMPONENTS})
+
+def createStatusTemplate() -> StatusTemplate:
+    return StatusTemplate(None, None, None, None, None, None, None, None)
 
 
 class MessageStatusValidator(AbstractMessageValidator):
@@ -39,14 +41,23 @@ class MessageStatusValidator(AbstractMessageValidator):
     def requiredKeys(self) -> list[str]:
         return self._required_keys
 
-    def check(self, message: Any) -> (bool, str):
+    def check(self, message: StatusTemplate) -> tuple[bool, str]:
 
-        missing_items = set(self._required_keys).difference(message.keys())
-        if len(missing_items):
-            return (False, f"Missing required keys from message {missing_items}")
+        print(type(message))
+        print(type(StatusTemplate))
+        if not isinstance(message, StatusTemplate):
+            return (
+                False,
+                (
+                    f"Unsupported argument type dectected {type[message]}"
+                    " can only create an status message with an "
+                    "StatusTemplate"
+                ),
+            )
 
-        unsupported_items = set(message.keys()).difference(self._required_keys)
-        if len(unsupported_items):
-            return (False, f"Unsupported keys detected {unsupported_items}")
+        for attribute in REQUIRED_ACTIVITY_COMPONENTS:
+            att = getattr(message, attribute)
+            if att is None:
+                return (False, f"Required attribute is not defined: {attribute}")
 
         return (True, "")

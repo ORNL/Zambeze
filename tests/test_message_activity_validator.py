@@ -2,6 +2,7 @@ import pytest
 
 from zambeze.orchestration.message.message_activity_validator import (
     MessageActivityValidator,
+    createActivityTemplate,
 )
 
 
@@ -10,12 +11,16 @@ from zambeze.orchestration.message.message_activity_validator import (
 ###############################################################################
 @pytest.mark.unit
 def test_message_activity_validator1():
-    """This check should fail missing required fields"""
+    """This check should fail because it is a dict"""
     activity_message = {
         "message_id": "",
         "submission_time": "",
         "type": "",
         "activity_id": "",
+        "campaign_id": "",
+        "credential": {},
+        "submission_time": "",
+        "body": {},
     }
     validator = MessageActivityValidator()
     result = validator.check(activity_message)
@@ -24,38 +29,48 @@ def test_message_activity_validator1():
 
 @pytest.mark.unit
 def test_message_activity_validator2():
-    """This test should be true all required fields are included"""
-    activity_message = {
-        "message_id": "",
-        "type": "",
-        "activity_id": "",
-        "agent_id": "",
-        "campaign_id": "",
-        "credential": {},
-        "submission_time": "",
-        "body": {},
-    }
+    """This test should be true all required fields are included
+
+    The following attributes should exist
+    message_id: "",
+    type: "",
+    activity_id: "",
+    agent_id: "",
+    campaign_id: "",
+    credential: {},
+    submission_time: "",
+    body: {},
+    """
     validator = MessageActivityValidator()
+    activity_message = createActivityTemplate()
+    activity_message.message_id = ""
+    activity_message.type = ""
+    activity_message.activity_id = ""
+    activity_message.agent_id = ""
+    activity_message.campaign_id = ""
+    activity_message.credential = {}
+    activity_message.submission_time = ""
+    activity_message.body = {}
+
     result = validator.check(activity_message)
     assert result[0] is True
 
 
 @pytest.mark.unit
 def test_message_activity_validator3():
-    """This test should be true all required fields are included as well as all
+    """This test should be true all required fields are defined as well as all
     optional fields"""
-    activity_message = {
-        "message_id": "",
-        "type": "",
-        "activity_id": "",
-        "agent_id": "",
-        "campaign_id": "",
-        "credential": {},
-        "submission_time": "",
-        "body": {},
-        "needs": [],
-    }
     validator = MessageActivityValidator()
+    activity_message = createActivityTemplate()
+    activity_message.message_id = ""
+    activity_message.type = ""
+    activity_message.activity_id = ""
+    activity_message.agent_id = ""
+    activity_message.campaign_id = ""
+    activity_message.credential = {}
+    activity_message.submission_time = ""
+    activity_message.body = {}
+    activity_message.needs = []
     result = validator.check(activity_message)
     assert result[0] is True
 
