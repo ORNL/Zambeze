@@ -10,7 +10,7 @@ import logging
 import os
 import pathlib
 import yaml
-from typing import Optional, Union, Final
+from typing import Optional, Union
 
 from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
 from .orchestration.plugins import Plugins
