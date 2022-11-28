@@ -171,7 +171,7 @@ def fileURISeparator(uri: str) -> tuple[str, str, str]:
     if not uri.startswith(file_uri_tag):
         error_msg = f"Incompatible file URI format {uri} must start with "
         error_msg = error_msg + "file://"
-        return ("", "", "", error_msg)
+        return ("", "", error_msg)
 
     file_and_path = uri[len(file_uri_tag):]
     path = dirname(file_and_path)

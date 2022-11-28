@@ -3,6 +3,8 @@ from ..zambeze_types import QueueType, ChannelType
 
 
 class AbstractQueue(ABC):
+    _queue_type: QueueType
+
     @property
     @abstractmethod
     def type(self) -> QueueType:

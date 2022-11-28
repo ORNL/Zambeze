@@ -32,6 +32,9 @@ import shutil
 
 
 class Globus(Plugin):
+    __tc: globus_sdk.TransferResponse
+    __scopes: str
+
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "globus"
         super().__init__(self.__name, logger=logger)
