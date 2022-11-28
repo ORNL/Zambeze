@@ -14,7 +14,6 @@ from ...network import externalNetworkConnectionDetected
 # Third party imports
 from globus_sdk import GlobusError
 from globus_sdk.authorizers import GlobusAuthorizer
-from globus_sdk.transfer.response.base import TransferResponse
 
 import globus_sdk
 
@@ -26,7 +25,7 @@ from os.path import exists
 from os.path import isdir
 from os.path import isfile
 from socket import gethostname
-from typing import Optional
+from typing import Optional, Any
 
 import json
 import logging
@@ -35,7 +34,7 @@ import shutil
 
 
 class Globus(Plugin):
-    __tc: TransferResponse
+    __tc: Any
     __scopes: str = ""
     __authorizer: GlobusAuthorizer
 
