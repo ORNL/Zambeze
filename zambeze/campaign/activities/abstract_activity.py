@@ -35,11 +35,12 @@ class Activity(ABC):
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
+
     files: Optional[list[str]]
     command: Optional[str]
     arguments: Optional[list[str]]
     logger: Optional[logging.Logger]
- 
+
     def __init__(
         self,
         name: str,
@@ -50,9 +51,7 @@ class Activity(ABC):
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
-        self.logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        self.logger = logging.getLogger(__name__) if logger is None else logger
         self.name: str = name
         self.files = files
         self.command = command
