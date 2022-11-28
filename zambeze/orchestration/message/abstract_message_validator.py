@@ -6,17 +6,13 @@ class AbstractMessageValidator(ABC):
     @abstractmethod
     def supportedKeys(self) -> list[str]:
         """Returns a list of supported keys"""
-        raise NotImplementedError(
-            "supportedKeys - method does not exist."
-        )
+        raise NotImplementedError("supportedKeys - method does not exist.")
 
     @property
     @abstractmethod
     def requiredKeys(self) -> list[str]:
         """Return a list of the keys that are required"""
-        raise NotImplementedError(
-            "requiredKeys - method does not exist."
-        )
+        raise NotImplementedError("requiredKeys - method does not exist.")
 
     @abstractmethod
     def check(self, message: dict) -> tuple[bool, str]:
@@ -26,6 +22,4 @@ class AbstractMessageValidator(ABC):
         message
         :rtype: tuple(bool, str)
         """
-        raise NotImplementedError(
-            "checkMessage - method does not exist."
-        )
+        raise NotImplementedError("checkMessage - method does not exist.")

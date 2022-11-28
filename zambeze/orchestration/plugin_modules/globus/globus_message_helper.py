@@ -116,9 +116,7 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(
-                    item["source"]
-                )
+                globus_sep_uri = globusURISeparator(item["source"])
                 if not validUUID(globus_sep_uri[0]):
                     error_msg = f"Invalid uuid dectected in \
                                 'move_from_globus_collection' item: {item} \nuuid: \
