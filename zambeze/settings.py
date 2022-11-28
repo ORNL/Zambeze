@@ -13,8 +13,7 @@ import yaml
 from typing import Optional, Union
 
 from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
-from .orchestration.plugins import Plugins
-
+from .orchestration.plugins import 
 from .orchestration.db.dao.dao_utils import create_local_db
 
 
@@ -39,8 +38,6 @@ class ZambezeSettings:
         )
         # set default values
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
-        print(self.settings)
-        print(self.settings["zmq"])
         self.plugins = Plugins(logger=self._logger)
         self.load_settings(conf_file)
 
