@@ -2,12 +2,14 @@ from abc import ABC, abstractmethod
 
 
 class AbstractMessageValidator(ABC):
+    _message_type: 
+
     @property
     @abstractmethod
     def supportedKeys(self) -> list[str]:
         """Returns a list of supported keys"""
         raise NotImplementedError(
-            "supportedKeys - method does not exist for:" f"{self._message_type.value}"
+            "supportedKeys - method does not exist."
         )
 
     @property
@@ -15,7 +17,7 @@ class AbstractMessageValidator(ABC):
     def requiredKeys(self) -> list[str]:
         """Return a list of the keys that are required"""
         raise NotImplementedError(
-            "requiredKeys - method does not exist for:" f"{self._message_type.value}"
+            "requiredKeys - method does not exist."
         )
 
     @abstractmethod
@@ -27,5 +29,5 @@ class AbstractMessageValidator(ABC):
         :rtype: tuple(bool, str)
         """
         raise NotImplementedError(
-            "checkMessage - method does not exist for:" f"{self._message_type.value}"
+            "checkMessage - method does not exist."
         )

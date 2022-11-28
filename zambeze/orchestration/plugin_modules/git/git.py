@@ -73,17 +73,6 @@ def contains_subkey(
     return is_success, msg
 
 
-def checkEndpoint(endpoint_obj: dict, allowed_types) -> tuple[bool, str]:
-    """Will make sure that the endpoint is a valid type and checks the path if
-    possible.
-
-    >>> {
-    >>>    "type": "posix absolute",
-    >>>    "path": "path to file local"
-    >>> }
-    """
-
-
 class Git(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "git"
@@ -113,7 +102,7 @@ class Git(Plugin):
             requests.get(api_url)
         except Exception as e:
             error_msg = "Unable to connect to GitHub API\n"
-            error_msg = error_msg + e
+            error_msg = error_msg + repr(e)
             return False, error_msg
 
         return True, ""
@@ -742,7 +731,7 @@ class Git(Plugin):
 
             f.write(content)
 
-    def configure(self, config: dict) -> str:
+    def configure(self, config: dict) -> None:
         """Configuration to set up the plugin.
 
         :parameter config: Configuration for the plugin
@@ -764,8 +753,6 @@ class Git(Plugin):
             # If we cannot connect any longer to the GitHub repo we are no
             # longer correctly configured
             self.__configured = False
-
-        return message
 
     @property
     def configured(self) -> bool:

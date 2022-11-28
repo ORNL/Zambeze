@@ -32,8 +32,9 @@ import shutil
 
 
 class Globus(Plugin):
-    __tc: globus_sdk.TransferResponse
-    __scopes: str
+    __tc: globus_sdk.transfer.response.base.TransferResponse
+    __scopes: str = ""
+    __authorizer: globus_sdk.authorizers.base.GlobusAuthorizer
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "globus"
