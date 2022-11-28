@@ -48,7 +48,7 @@ class AbstractQueue(ABC):
 
     @property
     @abstractmethod
-    def subscribed(self, channel: ChannelType = None) -> bool:
+    def subscribed(self, channel: ChannelType) -> bool:
         """Checks to see if the client is subscribed to a particular channel.
 
         :param channel: This is the channel that we are checking to see if
