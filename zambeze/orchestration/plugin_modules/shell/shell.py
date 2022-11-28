@@ -94,7 +94,11 @@ class Shell(Plugin):
         >>> }]
 
         """
+
+        self._logger.debug("[shell.py] In SHELL check function!")
+
         checks = []
+
         for index in range(len(arguments)):
             for action in arguments[index].keys():
 
@@ -134,7 +138,6 @@ class Shell(Plugin):
                             )
                         }
                     )
-
                 checks.append({action: (True, "")})
         return checks
 
