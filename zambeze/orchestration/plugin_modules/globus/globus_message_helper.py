@@ -1,5 +1,11 @@
 # Local imports
 from ..abstract_plugin_message_helper import PluginMessageHelper
+from ..common_dataclasses import (
+        Items,
+        Move,
+        TransferTemplateInner,
+        TransferTemplate
+)
 from .globus_common import (
     checkTransferEndpoint,
     checkAllItemsHaveValidEndpoints,
@@ -7,7 +13,6 @@ from .globus_common import (
     SUPPORTED_ACTIONS,
 )
 from ...identity import validUUID
-
 # Standard imports
 from dataclasses import dataclass
 from typing import Optional
@@ -274,23 +279,8 @@ class GlobusMessageHelper(PluginMessageHelper):
         return checks
 
     def messageTemplate(self, args=None):
-        @dataclass
-        class Item:
-            source: str
-            destination: str
-
         if args is None or args == "transfer":
-
-            @dataclass
-            class TransferTemplateInner:
-                type: str
-                items: []
-
-            @dataclass
-            class TransferTemplate:
-                transfer: TransferTemplateInner
-
-            return TransferTemplate(TransferTemplate("synchronous", [Item()]))
+            return TransferTemplate(TransferTemplateInner("synchronous", [Move("", "")]))
         #
         #            return {
         #                "transfer": {
@@ -308,16 +298,11 @@ class GlobusMessageHelper(PluginMessageHelper):
         #                }
         #            }
         elif args == "move_to_globus_collection":
-
-            @dataclass
-            class MoveToGlobusTemplateInner:
-                items: []
-
             @dataclass
             class MoveToGlobusTemplate:
-                move_to_globus_collection: MoveToGlobusTemplateInner
+                move_to_globus_collection: Items
 
-            return MoveToGlobusTemplate(MoveToGlobusTemplateInner([Item()]))
+            return MoveToGlobusTemplate(Items([Move()]))
         #            return {
         #                "move_to_globus_collection": {
         #                    "items": [
@@ -335,14 +320,10 @@ class GlobusMessageHelper(PluginMessageHelper):
         elif args == "move_from_globus_collection":
 
             @dataclass
-            class MoveFromGlobusTemplateInner:
-                items: []
-
-            @dataclass
             class MoveFromGlobusTemplate:
-                move_from_globus_collection: MoveFromGlobusTemplateInner
+                move_from_globus_collection: Items
 
-            return MoveFromGlobusTemplate(MoveFromGlobusTemplateInner([Item()]))
+            return MoveFromGlobusTemplate(Items([Move()]))
         #
         #
         #            return {

@@ -91,8 +91,12 @@ class Plugins:
                         issubclass(potential_plugin_message_helper, PluginMessageHelper)
                         and attribute_name != "PluginMessageHelper"
                     ):
+                        print(" - Registering plugin helper:"
+                              f" {attribute_name.lower()}")
+                        plugin_name = \
+                            attribute_name.lower().replace('messagehelper', '')
                         self._plugin_message_helpers[
-                            attribute_name.lower()
+                            plugin_name
                         ] = potential_plugin_message_helper(logger=self.__logger)
 
     def messageTemplate(self, plugin_name: str, args):

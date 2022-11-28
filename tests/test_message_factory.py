@@ -56,6 +56,35 @@ def test_factory_fail():
 
 
 @pytest.mark.unit
+def test_factory_activity_template():
+    """This test should be true all required fields are defined as well as all
+    optional fields"""
+    plugins = Plugins()
+    msg_factory = MessageFactory(plugins)
+    activity_template = msg_factory.createTemplate(
+        MessageType.ACTIVITY, "globus", "transfer"
+    )[1]
+    print(activity_template)
+    no_fail = True
+    try:
+        activity_template.message_id = ""
+        activity_template.type = ""
+        activity_template.activity_id = ""
+        activity_template.agent_id = ""
+        activity_template.campaign_id = ""
+        activity_template.credential = {}
+        activity_template.submission_time = ""
+        assert activity_template.body.transfer.type == "synchronous"
+        activity_template.body.transfer.items[0].source = ""
+        activity_template.body.transfer.items[0].destination = ""
+        activity_template.needs = []
+    except Exception as e:
+        print(e)
+        no_fail = False
+    assert no_fail
+
+
+@pytest.mark.unit
 def test_factory_success():
     plugins = Plugins()
     msg_factory = MessageFactory(plugins)
