@@ -13,6 +13,9 @@ from ...network import externalNetworkConnectionDetected
 
 # Third party imports
 from globus_sdk import GlobusError
+from globus_sdk.authorizers import GlobusAuthorizer
+from globus_sdk.transfer.response.base import TransferResponse
+
 import globus_sdk
 
 # Standard imports
@@ -32,9 +35,9 @@ import shutil
 
 
 class Globus(Plugin):
-    __tc: globus_sdk.transfer.response.base.TransferResponse
+    __tc: TransferResponse
     __scopes: str = ""
-    __authorizer: globus_sdk.authorizers.base.GlobusAuthorizer
+    __authorizer: GlobusAuthorizer
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "globus"
