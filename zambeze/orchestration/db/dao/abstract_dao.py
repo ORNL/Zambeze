@@ -3,6 +3,7 @@ from typing import Optional, Any
 import logging
 
 from zambeze.orchestration.db.dao.dao_utils import get_db_engine
+from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
 
 
 class AbstractDAO(object, metaclass=ABCMeta):
@@ -15,13 +16,13 @@ class AbstractDAO(object, metaclass=ABCMeta):
         self._engine = get_db_engine()
 
     @abstractmethod
-    def insert(self, entity):
+    def insert(self, entity: AbstractEntity):
         raise NotImplementedError()
 
     @abstractmethod
-    def insert_and_return_id(self, entity):
+    def insert_and_return_id(self, entity: AbstractEntity):
         raise NotImplementedError()
 
     @abstractmethod
-    def update(self, entity):
+    def update(self, entity: AbstractEntity):
         raise NotImplementedError()
