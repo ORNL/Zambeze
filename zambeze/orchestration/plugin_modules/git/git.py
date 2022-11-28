@@ -144,7 +144,9 @@ class Git(Plugin):
             return False, error_msg
         return True, ""
 
-    def __checkRepoOwnerExists(self, repo_owner: str, access_token=None) -> tuple[bool, str]:
+    def __checkRepoOwnerExists(
+        self, repo_owner: str, access_token=None
+    ) -> tuple[bool, str]:
         """Will check that the repo owner exists on GitHub
 
         :param repo_owner: The GitHub repository owner

@@ -27,6 +27,7 @@ class ZambezeSettings:
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
+
     def __init__(
         self,
         conf_file: Optional[pathlib.Path] = None,

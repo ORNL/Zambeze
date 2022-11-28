@@ -21,7 +21,7 @@ def externalNetworkConnectionDetected() -> bool:
         connection.close()
 
 
-def isAddressValid(address: str, version: str="IPv4") -> bool:
+def isAddressValid(address: str, version: str = "IPv4") -> bool:
     if version == "IPv4":
         try:
             ipaddress.ip_address(address)
