@@ -60,6 +60,7 @@ class ZambezeSettings:
             zambeze_folder.mkdir(parents=True, exist_ok=True)
 
         default_conf = zambeze_folder.joinpath("agent.yaml")
+        # pyre-ignore[6]
         if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
             # pyre-ignore[16]
             if not self._conf_file.exists():
