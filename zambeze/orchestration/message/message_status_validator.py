@@ -1,6 +1,6 @@
 # Standard imports
 from dataclasses import make_dataclass
-from typing import Optional, Any
+from typing import Optional, Any, overload
 
 import logging
 
@@ -42,7 +42,11 @@ class MessageStatusValidator(AbstractMessageValidator):
     def requiredKeys(self) -> list[str]:
         return self._required_keys
 
+    @overload
     def check(self, message: Any) -> tuple[bool, str]:
+        ...
+
+    def check(self, message) -> tuple[bool, str]:
 
         print(type(message))
         print(type(StatusTemplate))

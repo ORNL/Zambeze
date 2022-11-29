@@ -265,28 +265,42 @@ class Processor(threading.Thread):
                     MessageType.ACTIVITY, "rsync", "transfer"
                 )
 
-                msg_template[1]["body"]["cmd"] = [
-                    {
-                        "transfer": {
-                            "source": {
-                                "ip": file_url.netloc,
-                                "path": file_url.path,
-                                "user": file_url.username,
-                            },
-                            "destination": {
-                                "ip": socket.gethostbyname(socket.gethostname()),
-                                "path": str(pathlib.Path().resolve()),
-                                "user": getpass.getuser(),
-                            },
-                        }
-                    }
-                ]
+                msg_template[1].body.transfer.items[0].source.ip = file_url.netloc
+                msg_template[1].body.transfer.items[0].source.path = file_url.path
+                msg_template[1].body.transfer.items[
+                    0
+                ].source.username = file_url.username
+                msg_template[1].body.transfer.items[
+                    0
+                ].destination.ip = socket.gethostbyname(socket.gethostname())
+                msg_template[1].body.transfer.items[0].destination.path = str(
+                    pathlib.Path().resolve()
+                )
+                msg_template[1].body.transfer.items[
+                    0
+                ].destination.username = getpass.getuser()
+                #                msg_template[1]["body"]["cmd"] = [
+                #                    {
+                #                        "transfer": {
+                #                            "source": {
+                #                                "ip": file_url.netloc,
+                #                                "path": file_url.path,
+                #                                "user": file_url.username,
+                #                            },
+                #                            "destination": {
+                #               "ip": socket.gethostbyname(socket.gethostname()),
+                #               "path": str(pathlib.Path().resolve()),
+                #               "user": getpass.getuser(),
+                #                            },
+                #                        }
+                #                    }
+                #                ]
                 # Will validate the message fields and then make it immutable
                 msg = self._msg_factory.create(msg_template)
                 await self._queue_client.send(ChannelType.ACTIVITY, msg)
 
     # body needs to be changed to AbstractMessage
-    async def send(self, channel_type: ChannelType, body: dict) -> None:
+    async def send(self, channel_type: ChannelType, body: tuple) -> None:
         """
         Publish an activity message to the queue.
 

@@ -8,6 +8,13 @@
 
 # Local imports
 from ..abstract_plugin_message_helper import PluginMessageHelper
+from ..common_dataclasses import (
+    Items,
+    Move,
+    RsyncMove,
+    TransferTemplateInner,
+    TransferTemplate,
+)
 from .rsync_common import (
     PLUGIN_NAME,
     SUPPORTED_ACTIONS,
@@ -52,17 +59,23 @@ class RsyncMessageHelper(PluginMessageHelper):
         """Args can be used to generate a more flexible template. Say for
         instance you wanted to transfer several different items.
         """
-        return {
-            "plugin": self._name,
-            "cmd": [
-                {
-                    "transfer": {
-                        "source": {"ip": "", "path": "", "user": ""},
-                        "destination": {"ip": "", "path": "", "user": ""},
-                    }
-                }
-            ],
-        }
+        return TransferTemplate(
+            TransferTemplateInner(
+                "synchronous", [Move(RsyncMove("", "", ""), RsyncMove("", "", ""))]
+            )
+        )
+
+    #        return {
+    #            "plugin": self._name,
+    #            "cmd": [
+    #                {
+    #                    "transfer": {
+    #                        "source": {"ip": "", "path": "", "user": ""},
+    #                        "destination": {"ip": "", "path": "", "user": ""},
+    #                    }
+    #                }
+    #            ],
+    #        }
 
     def validateAction(self, arguments: dict, action) -> list:
         """Check the arguments are supported.

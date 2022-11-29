@@ -328,10 +328,10 @@ class Plugins:
         ...
 
     @overload
-    def check(self, plugin_name: str, arguments: dict = {}) -> PluginChecks:
+    def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
         ...
 
-    def check(self, plugin_name, arguments) -> PluginChecks:
+    def check(self, msg, arguments) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -378,9 +378,11 @@ class Plugins:
         >>> #   "rsync": { "transfer": (True, "") }
         >>> # {
         """
-        if isinstance(plugin_name, AbstractMessage):
-            arguments = plugin_name.data["cmd"]
-            plugin_name = plugin_name.data["plugin"]
+        if isinstance(msg, AbstractMessage):
+            arguments = msg.data["cmd"]
+            plugin_name = msg.data["plugin"]
+        else:
+            plugin_name = msg
 
         if not isinstance(plugin_name, str):
             raise ValueError("Unsupported plugin_name type detected in check.")
@@ -411,10 +413,10 @@ class Plugins:
     def run(self, msg: Type[AbstractMessage], arguments: Optional[dict] = None) -> None:
         ...
 
-    @overload
-    def run(self, plugin_name: str, arguments: dict) -> None:
-        ...
-
+    #    @overload
+    #    def run(self, plugin_name: str, arguments: dict) -> None:
+    #        ...
+    #
     def run(self, plugin_name, arguments) -> None:
         """Run a specific plugins.
 

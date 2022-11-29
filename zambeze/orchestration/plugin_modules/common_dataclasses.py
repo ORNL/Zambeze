@@ -8,6 +8,13 @@ class Move:
 
 
 @dataclass
+class RsyncMove:
+    ip: str
+    path: str
+    user: str
+
+
+@dataclass
 class TransferTemplateInner:
     """Type can be synchronous or asynchronous"""
 
