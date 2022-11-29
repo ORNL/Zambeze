@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -12,12 +12,12 @@ class TransferTemplateInner:
     """Type can be synchronous or asynchronous"""
 
     type: str
-    items: list = []
+    items: list = field(default_factory=list)
 
 
 @dataclass
 class Items:
-    items: list = []
+    items: list = field(default_factory=list)
 
 
 @dataclass
