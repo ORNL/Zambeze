@@ -113,7 +113,7 @@ def globusURISeparator(uri: str, default_uuid=None) -> tuple[str, str, str, str]
         error_msg = error_msg + "globus://"
         return ("", "", "", error_msg)
 
-    UUID_and_path = uri[len(globus_uri_tag) :]
+    UUID_and_path = uri[len(globus_uri_tag):]
     # Replace multiple occurances of // with single /
     UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
@@ -173,7 +173,7 @@ def fileURISeparator(uri: str) -> tuple[str, str, str]:
         error_msg = error_msg + "file://"
         return ("", "", error_msg)
 
-    file_and_path = uri[len(file_uri_tag) :]
+    file_and_path = uri[len(file_uri_tag):]
     path = dirname(file_and_path)
 
     if not path.startswith(os.sep):

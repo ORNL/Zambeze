@@ -8,13 +8,6 @@ class Move:
 
 
 @dataclass
-class RsyncMove:
-    ip: str
-    path: str
-    user: str
-
-
-@dataclass
 class TransferTemplateInner:
     """Type can be synchronous or asynchronous"""
 
@@ -29,4 +22,28 @@ class Items:
 
 @dataclass
 class TransferTemplate:
+    transfer: TransferTemplateInner
+
+
+@dataclass
+class RsyncItem:
+    ip: str
+    path: str
+    user: str
+
+
+@dataclass
+class Endpoints:
+    source: RsyncItem
+    destination: RsyncItem
+
+
+@dataclass
+class RsyncTransferTemplateInner:
+    type: str
+    items: list = field(default_factory=list)
+
+
+@dataclass
+class RsyncTransferTemplate:
     transfer: TransferTemplateInner

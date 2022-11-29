@@ -11,9 +11,12 @@ from ..abstract_plugin_message_helper import PluginMessageHelper
 from ..common_dataclasses import (
     Items,
     Move,
-    RsyncMove,
     TransferTemplateInner,
     TransferTemplate,
+    RsyncItem,
+    Endpoints,
+    RsyncTransferTemplateInner,
+    RsyncTransferTemplate,
 )
 from .rsync_common import (
     PLUGIN_NAME,
@@ -41,12 +44,14 @@ class RsyncMessageHelper(PluginMessageHelper):
                 return checks
 
             # Start by checking that all the files have been provided
-            check = validateRequiredSourceAndDestinationValuesValid(arguments[action])
-            if not check[0]:
-                checks.append(
-                    {action: (False, f"Error detected for {action}. " + check[1])}
-                )
-                return checks
+            for item in arguments.transfer.items:
+                check = validateRequiredSourceAndDestinationValuesValid(item)
+
+                if not check[0]:
+                    checks.append(
+                        {action: (False, f"Error detected for {action}. " + check[1])}
+                    )
+            return checks
 
         else:
             checks.append({action: (False, f"{action} unsupported action\n")})
@@ -55,27 +60,15 @@ class RsyncMessageHelper(PluginMessageHelper):
         checks.append({action: (True, "")})
         return checks
 
-    def messageTemplate(self, args=None) -> dict:
+    def messageTemplate(self, args=None):
         """Args can be used to generate a more flexible template. Say for
         instance you wanted to transfer several different items.
         """
-        return TransferTemplate(
-            TransferTemplateInner(
-                "synchronous", [Move(RsyncMove("", "", ""), RsyncMove("", "", ""))]
+        return RsyncTransferTemplate(
+            RsyncTransferTemplateInner(
+                "synchronous", [Endpoints(RsyncItem("", "", ""), RsyncItem("", "", ""))]
             )
         )
-
-    #        return {
-    #            "plugin": self._name,
-    #            "cmd": [
-    #                {
-    #                    "transfer": {
-    #                        "source": {"ip": "", "path": "", "user": ""},
-    #                        "destination": {"ip": "", "path": "", "user": ""},
-    #                    }
-    #                }
-    #            ],
-    #        }
 
     def validateAction(self, arguments: dict, action) -> list:
         """Check the arguments are supported.
@@ -165,7 +158,7 @@ class RsyncMessageHelper(PluginMessageHelper):
 
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
-            for action in arguments[index]:
-                checks = self._validateAction(action, checks, arguments[index])
+            if hasattr(arguments[index], "transfer"):
+                checks = self._validateAction("transfer", checks, arguments[index])
 
         return checks

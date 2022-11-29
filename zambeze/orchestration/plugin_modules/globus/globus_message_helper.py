@@ -283,22 +283,6 @@ class GlobusMessageHelper(PluginMessageHelper):
             return TransferTemplate(
                 TransferTemplateInner("synchronous", [Move("", "")])
             )
-        #
-        #            return {
-        #                "transfer": {
-        #                    "type": "synchronous",
-        #                    "items": [
-        #                        {
-        #                            "source": "globus://XXXXXXXX...XXXXXX/file1.txt",
-        #                            "destination": "globus://YYY...YY/dest/file1.txt",
-        #                        },
-        #                        {
-        #                            "source": "globus://XXXXXXXX-...XXXXX/file2.txt",
-        #                            "destination": "globus://YYYY...Y/dest/file2.txt",
-        #                        },
-        #                    ],
-        #                }
-        #            }
         elif args == "move_to_globus_collection":
 
             @dataclass
@@ -306,20 +290,6 @@ class GlobusMessageHelper(PluginMessageHelper):
                 move_to_globus_collection: Items
 
             return MoveToGlobusTemplate(Items([Move()]))
-        #            return {
-        #                "move_to_globus_collection": {
-        #                    "items": [
-        #                        {
-        #                            "source": "file://file1.txt",
-        #                            "destination": "globus://YYYYY...YYYYY/file1.txt",
-        #                        },
-        #                        {
-        #                            "source": "file://file2.txt",
-        #                            "destination": "globus://YYYYY...YYYY/file2.txt",
-        #                        },
-        #                    ]
-        #                }
-        #            }
         elif args == "move_from_globus_collection":
 
             @dataclass
@@ -327,22 +297,6 @@ class GlobusMessageHelper(PluginMessageHelper):
                 move_from_globus_collection: Items
 
             return MoveFromGlobusTemplate(Items([Move()]))
-        #
-        #
-        #            return {
-        #                "move_from_globus_collection": {
-        #                    "items": [
-        #                        {
-        #                            "source": "globus://XXXXXXXX-XX...X/file1.txt",
-        #                            "destination": "file://file1.txt",
-        #                        },
-        #                        {
-        #                            "source": "globus://XXXXXXXX-XX...XX/file2.txt",
-        #                            "destination": "file://file2.txt",
-        #                        },
-        #                    ]
-        #                }
-        #            }
         else:
             raise Exception(
                 "Unrecognized argument provided, cannot generate " "messageTemplate"
