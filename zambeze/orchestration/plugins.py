@@ -322,7 +322,9 @@ class Plugins:
         return check_results
 
     @overload
-    def check(self, msg: AbstractMessage) -> PluginChecks:
+    def check(
+        self, msg: AbstractMessage, arguments: Optional[dict] = None
+    ) -> PluginChecks:
         ...
 
     @overload
@@ -406,10 +408,14 @@ class Plugins:
         return PluginChecks(check_results)
 
     @overload
-    def run(self, msg: Type[AbstractMessage]) -> None:
-        self._plugins[msg.data["plugin"].lower()].process([msg.data["cmd"]])
+    def run(self, msg: Type[AbstractMessage], arguments: Optional[dict] = None) -> None:
+        ...
 
+    @overload
     def run(self, plugin_name: str, arguments: dict) -> None:
+        ...
+
+    def run(self, plugin_name, arguments) -> None:
         """Run a specific plugins.
 
         :parameter plugin_name: Plugin name
@@ -447,4 +453,13 @@ class Plugins:
         >>> # Should print { "rsync": { "transfer": True } }
         >>> plugins.run('rsync', arguments)
         """
+        if isinstance(plugin_name, AbstractMessage):
+            arguments = plugin_name.data["cmd"]
+            plugin_name = plugin_name.data["plugin"].lower()
+
+        if not isinstance(plugin_name, str):
+            raise ValueError("Unsupported plugin_name type detected in check.")
+        if not isinstance(arguments, dict):
+            raise ValueError("Unsupported arguments type detected in check.")
+
         self._plugins[plugin_name].process([arguments])

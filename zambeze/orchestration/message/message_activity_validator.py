@@ -20,12 +20,12 @@ REQUIRED_ACTIVITY_COMPONENTS = {
 
 OPTIONAL_ACTIVITY_COMPONENTS = {"needs": []}
 
-ActivityTemplate = TypeVar("ActivityTemplate")
 ActivityTemplate = make_dataclass(
     "ActivityTemplate", {**REQUIRED_ACTIVITY_COMPONENTS, **OPTIONAL_ACTIVITY_COMPONENTS}
 )
 
 
+# pyre-ignore[11]
 def createActivityTemplate() -> ActivityTemplate:
     return ActivityTemplate(None, None, None, None, None, None, None, None, None)
 
