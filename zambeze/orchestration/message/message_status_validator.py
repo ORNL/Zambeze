@@ -41,7 +41,7 @@ class MessageStatusValidator(AbstractMessageValidator):
     def requiredKeys(self) -> list[str]:
         return self._required_keys
 
-    def check(self, message: StatusTemplate) -> tuple[bool, str]:
+    def check(self, message: Any) -> tuple[bool, str]:
 
         print(type(message))
         print(type(StatusTemplate))

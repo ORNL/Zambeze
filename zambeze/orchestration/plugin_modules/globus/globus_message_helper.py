@@ -289,12 +289,12 @@ class GlobusMessageHelper(PluginMessageHelper):
         #                    "type": "synchronous",
         #                    "items": [
         #                        {
-        #                            "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-        #                            "destination": "globus://YYY...YYYYYYYY/dest/file1.txt",
+        #                            "source": "globus://XXXXXXXX...XXXXXX/file1.txt",
+        #                            "destination": "globus://YYY...YY/dest/file1.txt",
         #                        },
         #                        {
-        #                            "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-        #                            "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt",
+        #                            "source": "globus://XXXXXXXX-...XXXXX/file2.txt",
+        #                            "destination": "globus://YYYY...Y/dest/file2.txt",
         #                        },
         #                    ],
         #                }
@@ -311,11 +311,11 @@ class GlobusMessageHelper(PluginMessageHelper):
         #                    "items": [
         #                        {
         #                            "source": "file://file1.txt",
-        #                            "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt",
+        #                            "destination": "globus://YYYYY...YYYYY/file1.txt",
         #                        },
         #                        {
         #                            "source": "file://file2.txt",
-        #                            "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt",
+        #                            "destination": "globus://YYYYY...YYYY/file2.txt",
         #                        },
         #                    ]
         #                }
@@ -333,11 +333,11 @@ class GlobusMessageHelper(PluginMessageHelper):
         #                "move_from_globus_collection": {
         #                    "items": [
         #                        {
-        #                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt",
+        #                            "source": "globus://XXXXXXXX-XX...X/file1.txt",
         #                            "destination": "file://file1.txt",
         #                        },
         #                        {
-        #                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt",
+        #                            "source": "globus://XXXXXXXX-XX...XX/file2.txt",
         #                            "destination": "file://file2.txt",
         #                        },
         #                    ]

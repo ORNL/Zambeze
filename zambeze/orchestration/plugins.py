@@ -321,10 +321,7 @@ class Plugins:
         return check_results
 
     @overload
-    def check(self, msg: Type[AbstractMessage]) -> type[PluginChecks]:
-        return self.check(msg.data["plugin"], msg.data["cmd"])
-
-    def check(self, plugin_name: str, arguments: dict) -> type[PluginChecks]:
+    def check(self, plugin_name: str, arguments: dict) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -390,6 +387,9 @@ class Plugins:
         else:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return PluginChecks(check_results)
+
+    def check(self, msg: AbstractMessage) -> PluginChecks:
+        return self.check(msg.data["plugin"], msg.data["cmd"])
 
     @overload
     def run(self, msg: Type[AbstractMessage]) -> None:

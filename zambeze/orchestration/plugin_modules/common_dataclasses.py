@@ -12,12 +12,12 @@ class TransferTemplateInner:
     """Type can be synchronous or asynchronous"""
 
     type: str
-    items: []
+    items: list = []
 
 
 @dataclass
 class Items:
-    items: []
+    items: list = []
 
 
 @dataclass

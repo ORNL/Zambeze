@@ -43,9 +43,7 @@ class MessageActivityValidator(AbstractMessageValidator):
     def requiredKeys(self) -> list[str]:
         return self._required_keys
 
-    def check(self, message: ActivityTemplate) -> tuple[bool, str]:
-        print(type(message))
-        print(type(ActivityTemplate))
+    def check(self, message: Any) -> tuple[bool, str]:
         if not isinstance(message, ActivityTemplate):
             return (
                 False,
