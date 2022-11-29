@@ -25,9 +25,7 @@ import pkgutil
 
 
 class PluginChecks(dict):
-    def __init__(self, val: dict = None):
-        if val is None:
-            val = {}
+    def __init__(self, val: dict = {}):
         super().__init__(val)
 
     def errorDetected(self) -> bool:
@@ -105,7 +103,7 @@ class Plugins:
         return message_template
 
     @property
-    def registered(self) -> list[Plugin]:
+    def registered(self) -> list[str]:
         """List all plugins that have been registered.
 
         This method can be called at any time and is meant to simply display which

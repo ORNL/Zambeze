@@ -3,6 +3,8 @@ from ..zambeze_types import QueueType, ChannelType
 
 
 class AbstractQueue(ABC):
+    _queue_type: QueueType
+
     @property
     @abstractmethod
     def type(self) -> QueueType:
@@ -29,12 +31,12 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    async def connect(self) -> (bool, str):
+    async def connect(self) -> tuple[bool, str]:
         """This method will attempt to connect the client to the Queue.
 
         :return: if able to connect will return True with a string saying as
         much, if unable to connect will return False with an error message.
-        :rtype: tuple(bool, str)
+        :rtype: tuple[bool, str]
 
         Example:
 
@@ -46,7 +48,7 @@ class AbstractQueue(ABC):
 
     @property
     @abstractmethod
-    def subscribed(self, channel: ChannelType = None) -> bool:
+    def subscribed(self, channel: ChannelType) -> bool:
         """Checks to see if the client is subscribed to a particular channel.
 
         :param channel: This is the channel that we are checking to see if

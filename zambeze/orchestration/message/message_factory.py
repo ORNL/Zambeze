@@ -106,7 +106,7 @@ class MessageFactory:
 
         if args[0] == MessageType.ACTIVITY:
             validator = MessageActivityValidator()
-            result = validator.validateMessage(args[1])
+            result = validator.check(args[1])
             if result[0]:
                 if "plugin" in args[1]["body"]:
                     plugin_name = args[1]["plugin"]
@@ -115,7 +115,7 @@ class MessageFactory:
                     )
                     if results[0] is False:
                         raise Exception("Invalid plugin message body" f"{results[1]}")
-                return MessageActivity(self._logger, args[1])
+                return MessageActivity(args[1], self._logger)
             else:
                 raise Exception("Invalid activity message: {result[1]}")
         elif args[0] == MessageType.STATUS:

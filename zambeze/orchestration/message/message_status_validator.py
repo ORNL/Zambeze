@@ -32,7 +32,7 @@ class MessageStatusValidator(AbstractMessageValidator):
     def requiredKeys(self) -> list[str]:
         return self._required_keys
 
-    def check(self, message: dict) -> (bool, str):
+    def check(self, message: dict) -> tuple[bool, str]:
 
         missing_items = set(self._required_keys).difference(message.keys())
         if len(missing_items):

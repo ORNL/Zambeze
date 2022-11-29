@@ -20,7 +20,7 @@ from typing import Optional
 import logging
 
 
-def check_path(path_name: str, path: str, msg: str, success: bool) -> (bool, str):
+def check_path(path_name: str, path: str, msg: str, success: bool) -> tuple[bool, str]:
     """Takes a path string and ensures it is correctly formatted.
 
     :param path_name: The name of the type of the file path i.e. "source"
@@ -45,7 +45,7 @@ def check_path(path_name: str, path: str, msg: str, success: bool) -> (bool, str
 
 def contains_subkey(
     action_name: str, obj: dict, key: str, subkey: str, is_success: bool, msg: str
-) -> (bool, str):
+) -> tuple[bool, str]:
     """Checks if the the object contains a subkey
 
     :param action_name: Describes what action is being called for better logging
@@ -73,17 +73,6 @@ def contains_subkey(
     return is_success, msg
 
 
-def checkEndpoint(endpoint_obj: dict, allowed_types) -> (bool, str):
-    """Will make sure that the endpoint is a valid type and checks the path if
-    possible.
-
-    >>> {
-    >>>    "type": "posix absolute",
-    >>>    "path": "path to file local"
-    >>> }
-    """
-
-
 class Git(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "git"
@@ -102,25 +91,25 @@ class Git(Plugin):
         self.__configured = False
         self.__api_base = "https://api.github.com/"
 
-    def __testConnectionToGitHubAPI(self) -> (bool, str):
+    def __testConnectionToGitHubAPI(self) -> tuple[bool, str]:
         """Will test the connection to the GitHub API
 
         :return: True if able to connect, False otherwise with error message
-        :rtype: (bool, str)
+        :rtype: tuple[bool, st])
         """
         api_url = self.__api_base + "users/octocat"
         try:
             requests.get(api_url)
         except Exception as e:
             error_msg = "Unable to connect to GitHub API\n"
-            error_msg = error_msg + e
+            error_msg = error_msg + repr(e)
             return False, error_msg
 
         return True, ""
 
     def __checkBranchExists(
         self, repo_name, repo_owner, branch="main", access_token=None
-    ) -> (bool, str):
+    ) -> tuple[bool, str]:
         """Will check if the branch exists on the remote repository"""
         api_url = self.__api_base
         api_url = api_url + f"repos/{repo_owner}/{repo_name}/branches/{branch}"
@@ -144,7 +133,9 @@ class Git(Plugin):
             return False, error_msg
         return True, ""
 
-    def __checkRepoOwnerExists(self, repo_owner: str, access_token=None) -> (bool, str):
+    def __checkRepoOwnerExists(
+        self, repo_owner: str, access_token=None
+    ) -> tuple[bool, str]:
         """Will check that the repo owner exists on GitHub
 
         :param repo_owner: The GitHub repository owner
@@ -175,7 +166,7 @@ class Git(Plugin):
             return False, error_msg
         return True, ""
 
-    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> (bool, str):
+    def __checkRepoExists(self, repo_name, repo_owner, token=None) -> tuple[bool, str]:
         """Will check that the repo exists on GitHub
 
         By default will check that the repo exists if it is public. If you would
@@ -224,14 +215,14 @@ class Git(Plugin):
             return (False, msg)
         return (True, "")
 
-    def __checkDownload(self, action_obj: dict) -> (bool, str):
+    def __checkDownload(self, action_obj: dict) -> tuple[bool, str]:
         """Function ensures that the action_obj is provided with the right fields
 
         :param action_obj: json paramters needed to commit an object to a GitHub repo
         :type action_obj: dict
         :return: True if the action_obj has the required components, False
         otherwise, if there is an error a string is also returned
-        :rtype: (bool, str)
+        :rtype: tuple[bool, str]
 
         Required parameters include:
 
@@ -312,14 +303,14 @@ class Git(Plugin):
 
         return success, msg
 
-    def __checkCommit(self, action_obj: dict) -> (bool, str):
+    def __checkCommit(self, action_obj: dict) -> tuple[bool, str]:
         """Function ensures that the action_obj is provided with the right fields
 
         :param action_obj: json paramters needed to commit an object to a GitHub repo
         :type action_obj: dict
         :return: True if the action_obj has the required components, False
         otherwise, if there is an error a string is also returned
-        :rtype: (bool, str)
+        :rtype: tuple[bool, str]
 
         Required parameters include:
 
@@ -437,7 +428,7 @@ class Git(Plugin):
 
         return success, msg
 
-    def __fileExistsOnRepo(self, action_obj, file_obj) -> (bool, dict):
+    def __fileExistsOnRepo(self, action_obj, file_obj) -> tuple[bool, dict]:
         """Function for getting file if it exists
 
         :param action_obj: needed content to execute the action
@@ -740,7 +731,7 @@ class Git(Plugin):
 
             f.write(content)
 
-    def configure(self, config: dict) -> str:
+    def configure(self, config: dict) -> None:
         """Configuration to set up the plugin.
 
         :parameter config: Configuration for the plugin
@@ -762,8 +753,6 @@ class Git(Plugin):
             # If we cannot connect any longer to the GitHub repo we are no
             # longer correctly configured
             self.__configured = False
-
-        return message
 
     @property
     def configured(self) -> bool:
