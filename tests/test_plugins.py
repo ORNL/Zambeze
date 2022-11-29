@@ -93,30 +93,39 @@ def test_rsync_plugin_check():
     local_ip = socket.gethostbyname(hostname)
 
     neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
-    arguments = {
-        "transfer": {
-            "source": {
-                "ip": local_ip,
-                "user": current_user,
-                "path": current_valid_path,
-            },
-            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-            "arguments": ["-a"],
-        }
-    }
 
-    checked_actions = plugins.check("rsync", arguments)
+    msg_template = plugins.messageTemplate("rsync", "transfer")
+
+    msg_template.transfer.items[0].source.ip = local_ip
+    msg_template.transfer.items[0].source.user = current_user
+    msg_template.transfer.items[0].source.path = current_valid_path
+    msg_template.transfer.items[0].destination.ip = neighbor_vm_ip
+    msg_template.transfer.items[0].destination.user = "cades"
+    msg_template.transfer.items[0].destination.path = "/tmp"
+#    arguments = {
+#        "transfer": {
+#            "source": {
+#                "ip": local_ip,
+#                "user": current_user,
+#                "path": current_valid_path,
+#            },
+#            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
+#            "arguments": ["-a"],
+#        }
+#    }
+
+    checked_actions = plugins.check(msg_template)
     print(checked_actions)
     assert checked_actions["rsync"][0]["transfer"][0]
-    arguments_faulty_ip = copy.deepcopy(arguments)
-    arguments_faulty_ip["transfer"]["destination"]["ip"] = "172.22."
-    checked_actions = plugins.check("rsync", arguments_faulty_ip)
+    msg_faulty_ip = copy.deepcopy(msg_template)
+    msg_faulty_ip.transfer.destination.ip = "172.22."
+    checked_actions = plugins.check(msg_faulty_ip)
     print(checked_actions)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
-    arguments_faulty_user = copy.deepcopy(arguments)
-    arguments_faulty_user["transfer"]["source"]["user"] = "user_that_does_not_exist"
-    checked_actions = plugins.check("rsync", arguments_faulty_user)
+    msg_faulty_user = copy.deepcopy(msg_template)
+    msg_faulty_user.transfer.source.user = "user_that_does_not_exist"
+    checked_actions = plugins.check("rsync", msg_faulty_user)
     print(checked_actions)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
@@ -166,19 +175,28 @@ def test_rsync_plugin_run():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
-    arguments = {
-        "transfer": {
-            "source": {"ip": local_ip, "user": current_user, "path": file_path},
-            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-            "arguments": ["-a"],
-        }
-    }
+    msg_template = plugins.messageTemplate("rsync", "transfer")
+
+    msg_template.transfer.items[0].source.ip = local_ip
+    msg_template.transfer.items[0].source.user = current_user
+    msg_template.transfer.items[0].source.path = file_path
+    msg_template.transfer.items[0].destination.ip = neighbor_vm_ip
+    msg_template.transfer.items[0].destination.user = "cades"
+    msg_template.transfer.items[0].destination.path = "/tmp"
+
+#    arguments = {
+#        "transfer": {
+#            "source": {"ip": local_ip, "user": current_user, "path": file_path},
+#            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
+#            "arguments": ["-a"],
+#        }
+#    }
 
     print("Arguments: Initial transfer to remote machine")
-    print(arguments)
-    checks = plugins.check("rsync", arguments)
+    print(msg_template)
+    checks = plugins.check(msg_template)
     assert checks["rsync"][0]["transfer"][0]
-    plugins.run("rsync", arguments)
+    plugins.run(msg_template)
 
     file_name_return = "demofile_return-" + str(time.time_ns()) + ".txt"
     file_path_return = current_valid_path + "/" + file_name_return
@@ -187,31 +205,40 @@ def test_rsync_plugin_run():
     if os.path.exists(file_path_return):
         os.remove(file_path_return)
 
-    arguments_return = {
-        "transfer": {
-            "destination": {
-                "ip": local_ip,
-                "user": current_user,
-                "path": file_path_return,
-            },
-            "source": {
-                "ip": neighbor_vm_ip,
-                "user": "cades",
-                "path": "/tmp" + "/" + file_name,
-            },
-            "arguments": ["-a"],
-        }
-    }
+    msg_template_return = plugins.messageTemplate("rsync", "transfer")
+
+    msg_template_return.transfer.items[0].source.ip = local_ip
+    msg_template_return.transfer.items[0].source.user = current_user
+    msg_template_return.transfer.items[0].source.path = file_path_return
+    msg_template_return.transfer.items[0].destination.ip = neighbor_vm_ip
+    msg_template_return.transfer.items[0].destination.user = "cades"
+    msg_template_return.transfer.items[0].destination.path = "/tmp/" + file_name
+
+#    arguments_return = {
+#        "transfer": {
+#            "destination": {
+#                "ip": local_ip,
+#                "user": current_user,
+#                "path": file_path_return,
+#            },
+#            "source": {
+#                "ip": neighbor_vm_ip,
+#                "user": "cades",
+#                "path": "/tmp" + "/" + file_name,
+#            },
+#            "arguments": ["-a"],
+#        }
+#    }
 
     print("Arguments: Second transfer back to host machine")
-    print(arguments_return)
-    checked_actions = plugins.check("rsync", arguments_return)
+    print(msg_template_return)
+    checked_actions = plugins.check(msg_template_return)
     assert checked_actions["rsync"][0]["transfer"][0]
     attempts = 0
     # Loop is needed because sometimes the initial transfer takes a while to
     # finalize, this loop will make the test more robust.
     while True:
-        plugins.run("rsync", arguments_return)
+        plugins.run(msg_template_return)
         # This will verify that copying from a remote machine to the local
         # machine was a success
         assert os.path.exists(file_path_return)
