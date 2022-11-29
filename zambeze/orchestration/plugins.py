@@ -322,7 +322,14 @@ class Plugins:
         return check_results
 
     @overload
-    def check(self, plugin_name: str, arguments: dict) -> PluginChecks:
+    def check(self, msg: AbstractMessage) -> PluginChecks:
+        ...
+
+    @overload
+    def check(self, plugin_name: str, arguments: dict = {}) -> PluginChecks:
+        ...
+
+    def check(self, plugin_name, arguments) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -369,6 +376,15 @@ class Plugins:
         >>> #   "rsync": { "transfer": (True, "") }
         >>> # {
         """
+        if isinstance(plugin_name, AbstractMessage):
+            arguments = plugin_name.data["cmd"]
+            plugin_name = plugin_name.data["plugin"]
+
+        if not isinstance(plugin_name, str):
+            raise ValueError("Unsupported plugin_name type detected in check.")
+        elif not isinstance(arguments, dict):
+            raise ValueError("Unsupported argument type detected in check.")
+
         check_results = {}
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
@@ -388,9 +404,6 @@ class Plugins:
         else:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return PluginChecks(check_results)
-
-    def check(self, msg: AbstractMessage) -> PluginChecks:
-        return self.check(msg.data["plugin"], msg.data["cmd"])
 
     @overload
     def run(self, msg: Type[AbstractMessage]) -> None:
