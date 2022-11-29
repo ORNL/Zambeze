@@ -34,8 +34,9 @@ import shutil
 
 
 class Globus(Plugin):
-    __tc: Any
+    __tc: Any = None
     __scopes: str = ""
+    # pyre-ignore[13]
     __authorizer: GlobusAuthorizer
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
@@ -119,6 +120,7 @@ class Globus(Plugin):
                 # Check that the collection id is recognized by Globus and is a
                 # valid globus collection UUID
                 try:
+                    # pyre-ignore[6]
                     self.__tc.get_endpoint(local_collection["uuid"])
                 except globus_sdk.GlobusAPIError as e:
                     if e.http_status == 404:
