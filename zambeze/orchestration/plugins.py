@@ -71,6 +71,7 @@ class Plugins:
                 module_name != "abstract_plugin"
                 and module_name != "__init__"
                 and module_name != "abstract_plugin_message_helper"
+                and module_name != "common_dataclasses"
             ):
                 self.__module_names.append(module_name)
         self.__logger.debug(f"Registered Plugins: {', '.join(self.__module_names)}")
