@@ -27,6 +27,10 @@ class ZambezeSettings:
     :type logger: Optional[logging.Logger]
     """
 
+    _conf_file: Optional[pathlib.Path] = (
+        pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml")
+    )
+
     def __init__(
         self,
         conf_file: Optional[pathlib.Path] = None,
@@ -48,7 +52,8 @@ class ZambezeSettings:
         :param conf_file: Path to configuration file
         :type conf_file: Optional[pathlib.Path]
         """
-        self._conf_file = pathlib.Path(conf_file)
+        if conf_file:
+            self._conf_file = pathlib.Path(conf_file)
 
         zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
         if not zambeze_folder.exists():

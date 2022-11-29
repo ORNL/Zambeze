@@ -160,7 +160,7 @@ def requiredSourceAndDestinationValuesValid(
     Extra checks are run on the source or destination
     values depending on which machine this code is running on.
     """
-    if match_host is None:
+    if match_host == "":
         return (
             False,
             "rsync requires running on either the source or destination machine you "
@@ -197,7 +197,7 @@ def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
         if action_inst["destination"]["ip"] == host_ip:
             return "destination"
 
-    return None
+    return ""
 
 
 def buildRemotePath(action_endpoint: dict) -> str:
