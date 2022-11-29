@@ -31,7 +31,7 @@ class Campaign:
     def __init__(
         self,
         name: str,
-        activities: Optional[list[Activity]] = [],
+        activities: list[Activity] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign."""

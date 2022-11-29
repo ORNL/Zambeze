@@ -1,10 +1,10 @@
 from zambeze.orchestration.db.dao.dao_utils import get_update_stmt, get_insert_stmt
 from zambeze.orchestration.db.dao.abstract_dao import AbstractDAO
-from zambeze.orchestration.db.model.activity_model import ActivityModel
+from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
 
 
 class ActivityDAO(AbstractDAO):
-    def insert(self, activity: ActivityModel) -> None:
+    def insert(self, activity: AbstractEntity) -> None:
         values = activity.get_all_values()
         insert_stmt = get_insert_stmt(activity)
         self._logger.debug(f"Saving activity: {insert_stmt}")
@@ -16,7 +16,7 @@ class ActivityDAO(AbstractDAO):
             self._logger.error(error_msg)
             raise Exception(error_msg)
 
-    def insert_and_return_id(self, activity: ActivityModel):
+    def insert_and_return_id(self, activity: AbstractEntity):
         values = activity.get_all_values()
         insert_stmt = get_insert_stmt(activity)
         self._logger.debug(f"Saving activity: {insert_stmt}")
@@ -34,7 +34,7 @@ class ActivityDAO(AbstractDAO):
             self._logger.error(error_msg)
             raise Exception(error_msg)
 
-    def update(self, activity: ActivityModel):
+    def update(self, activity: AbstractEntity):
         update_stmt = get_update_stmt(activity)
         try:
             conn = self._engine.connect()

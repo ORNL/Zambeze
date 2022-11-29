@@ -71,14 +71,16 @@ class QueueNATS(AbstractQueue):
                 connect_timeout=1,
             )
         except Exception:
-            self._logger.debug(
-                f"Unable to connect to nats server at {self.uri}"
-                "1. Make sure your firewall ports are open.\n"
-                "2. That the nats service is up and running.\n"
-                "3. The correct ip address and port have been specified.\n"
-                "4. That an agent.yaml file exists for the zambeze agent.\n"
-            )
-            self._nc = None
+            if self._logger:
+                logger: logging.Logger = self._logger
+                logger.debug(
+                    f"Unable to connect to nats server at {self.uri}"
+                    "1. Make sure your firewall ports are open.\n"
+                    "2. That the nats service is up and running.\n"
+                    "3. The correct ip address and port have been specified.\n"
+                    "4. That an agent.yaml file exists for the zambeze agent.\n"
+                )
+                self._nc = None
 
         if self.connected:
             return (True, f"Able to connect to NATS machine at {self.uri}")
