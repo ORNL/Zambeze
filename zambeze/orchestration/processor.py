@@ -165,20 +165,20 @@ class Processor(threading.Thread):
                 msg_template_transfer = self._msg_factory.createTemplate(
                     MessageType.ACTIVITY, "globus", "transfer"
                 )
-#
-#                msg_template[1]["body"]["cmd"] = [
-#                    {
-#                        "transfer": {
-#                            "type": "synchronous",
-#                            "items": [
-#                                {
-#                                    "source": file_url.geturl(),
-#                                    "destination": local_globus_uri,
-#                                }
-#                            ],
-#                        }
-#                    }
-#                ]
+                #
+                #                msg_template[1]["body"]["cmd"] = [
+                #                    {
+                #                        "transfer": {
+                #                            "type": "synchronous",
+                #                            "items": [
+                #                                {
+                #                                    "source": file_url.geturl(),
+                #                                    "destination": local_globus_uri,
+                #                                }
+                #                            ],
+                #                        }
+                #                    }
+                #                ]
                 msg_template_transfer[1].message_id = ""
                 msg_template_transfer[1].type = ""
                 msg_template_transfer[1].activity_id = ""
@@ -187,8 +187,12 @@ class Processor(threading.Thread):
                 msg_template_transfer[1].credential = {}
                 msg_template_transfer[1].submission_time = ""
                 msg_template_transfer[1].body.transfer.type = "synchronous"
-                msg_template_transfer[1].body.transfer.items[0].source = file_url.geturl()
-                msg_template_transfer[1].body.transfer.items[0].destination = local_globus_uri,
+                msg_template_transfer[1].body.transfer.items[
+                    0
+                ].source = file_url.geturl()
+                msg_template_transfer[1].body.transfer.items[0].destination = (
+                    local_globus_uri,
+                )
                 # Will validate the message fields and then make it immutable
                 immutable_msg = self._msg_factory.create(msg_template_transfer)
 
@@ -202,18 +206,18 @@ class Processor(threading.Thread):
                 )
 
                 # Dependency on transfer needs to be defined
-#                msg_template_move[1]["body"]["cmd"] = [
-#                    {
-#                        "move_from_globus_collection": {
-#                            "items": [
-#                                {
-#                                    "source": local_globus_uri,
-#                                    "destination": local_posix_uri,
-#                                }
-#                            ]
-#                        }
-#                    }
-#                ]
+                #                msg_template_move[1]["body"]["cmd"] = [
+                #                    {
+                #                        "move_from_globus_collection": {
+                #                            "items": [
+                #                                {
+                #                                    "source": local_globus_uri,
+                #                                    "destination": local_posix_uri,
+                #                                }
+                #                            ]
+                #                        }
+                #                    }
+                #                ]
                 msg_template_move[1].message_id = ""
                 msg_template_move[1].type = ""
                 msg_template_move[1].activity_id = ""
@@ -221,8 +225,12 @@ class Processor(threading.Thread):
                 msg_template_move[1].campaign_id = ""
                 msg_template_move[1].credential = {}
                 msg_template_move[1].submission_time = ""
-                msg_template_move[1].body.move_to_globus_collection.items[0].source = local_globus_uri
-                msg_template_move[1].body.move_to_globus_collection.items[0].destination = local_posix_uri,
+                msg_template_move[1].body.move_to_globus_collection.items[
+                    0
+                ].source = local_globus_uri
+                msg_template_move[1].body.move_to_globus_collection.items[
+                    0
+                ].destination = (local_posix_uri,)
 
                 # Will validate the message fields and then make it immutable
                 immutable_msg_move = self._msg_factory.create(msg_template_move)

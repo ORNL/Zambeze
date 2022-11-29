@@ -36,23 +36,26 @@ class Activity(ABC):
     :type logger: Optional[logging.Logger]
     """
 
+    files: list[str]
+    command: Optional[str]
+    arguments: list[str]
+    logger: Optional[logging.Logger]
+
     def __init__(
         self,
         name: str,
-        files: Optional[list[str]] = [],
+        files: list[str] = [],
         command: Optional[str] = None,
-        arguments: Optional[list[str]] = [],
+        arguments: list[str] = [],
         logger: Optional[logging.Logger] = None,
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
-        self.logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        self.logger = logging.getLogger(__name__) if logger is None else logger
         self.name: str = name
-        self.files: list[str] = files
-        self.command: str = command
-        self.arguments: list[str] = arguments
+        self.files = files
+        self.command = command
+        self.arguments = arguments
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
 

@@ -33,9 +33,9 @@ class ShellActivity(Activity):
     def __init__(
         self,
         name: str,
-        files: Optional[list[str]] = [],
+        files: list[str] = [],
         command: Optional[str] = None,
-        arguments: Optional[list[str]] = [],
+        arguments: list[str] = [],
         logger: Optional[logging.Logger] = None,
         **kwargs
     ) -> None:

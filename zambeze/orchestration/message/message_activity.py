@@ -7,6 +7,9 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class MessageActivity(AbstractMessage):
+    type = MessageType.ACTIVITY
+    data = {}
+
     def __init__(self, new_data: dict, logger: Optional[logging.Logger] = None) -> None:
         super().__init__()
         object.__setattr__(self, "type", MessageType.ACTIVITY)

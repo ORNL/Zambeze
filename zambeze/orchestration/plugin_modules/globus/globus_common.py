@@ -17,14 +17,14 @@ SUPPORTED_ACTIONS = {
 }
 
 
-def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> str:
+def localEndpointExists(globus_uuid: str, endpoint_list: list[dict]) -> bool:
     for item in endpoint_list:
         if item["uuid"].lower() == globus_uuid.lower():
             return True
     return False
 
 
-def localEndpointConfigCheck(config: dict):
+def localEndpointConfigCheck(config: dict) -> None:
     # Check that the UUIDs are correct
     if "local_endpoints" in config:
         for local_endpoint in config["local_endpoints"]:
@@ -66,7 +66,7 @@ def localEndpointConfigCheck(config: dict):
             raise Exception(error_msg)
 
 
-def globusURISeparator(uri: str, default_uuid=None) -> dict:
+def globusURISeparator(uri: str, default_uuid=None) -> tuple[str, str, str, str]:
     """Will take a globus URI and break it into its components
 
     :param uri: the globus uri globus://XXXXX...XXX/path/file.txt
@@ -77,10 +77,10 @@ def globusURISeparator(uri: str, default_uuid=None) -> dict:
     >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
     >>> globus_uri = globus://XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX/path/file.txt
     >>> uri_components = globusURISeparator(globus_uri, default_uri)
-    >>> print( uri_components.UUID )
-    >>> print( uri_components.path )
-    >>> print( uri_components.file_name )
-    >>> print( uri_components.error_msg )
+    >>> print( uri_components[0] ) # UUID
+    >>> print( uri_components[1] ) # Path
+    >>> print( uri_components[2] ) # File name
+    >>> print( uri_components[3] ) # Error message
 
     The output should be
 
@@ -93,10 +93,10 @@ def globusURISeparator(uri: str, default_uuid=None) -> dict:
     >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
     >>> globus_uri = globus://path/file.txt
     >>> uri_components = globusURISeparator(globus_uri, default_uri)
-    >>> print( uri_components.UUID )
-    >>> print( uri_components.path )
-    >>> print( uri_components.file_name )
-    >>> print( uri_components.error_msg )
+    >>> print( uri_components[0] ) # UUID
+    >>> print( uri_components[1] ) # Path
+    >>> print( uri_components[2] ) # File name
+    >>> print( uri_components[3] ) # Error message
 
     The output should be
 
@@ -145,7 +145,7 @@ def globusURISeparator(uri: str, default_uuid=None) -> dict:
     return (valid_uuid, path, basename(file_and_path), "")
 
 
-def fileURISeparator(uri: str) -> dict:
+def fileURISeparator(uri: str) -> tuple[str, str, str]:
     """Will take a file URI and break it into its components
 
     :param uri: File uri should be like file://path/file.txt
@@ -155,9 +155,9 @@ def fileURISeparator(uri: str) -> dict:
 
     >>> file_uri = file://path/file.txt
     >>> uri_components = fileURISeparator(file_uri)
-    >>> print( uri_components.path )
-    >>> print( uri_components.file_name )
-    >>> print( uri_components.error_msg )
+    >>> print( uri_components[0] ) # Path
+    >>> print( uri_components[1] ) # File name
+    >>> print( uri_components[2] ) # Error message
 
     The output should be
 
@@ -171,7 +171,7 @@ def fileURISeparator(uri: str) -> dict:
     if not uri.startswith(file_uri_tag):
         error_msg = f"Incompatible file URI format {uri} must start with "
         error_msg = error_msg + "file://"
-        return ("", "", "", error_msg)
+        return ("", "", error_msg)
 
     file_and_path = uri[len(file_uri_tag):]
     path = dirname(file_and_path)
@@ -185,7 +185,7 @@ def fileURISeparator(uri: str) -> dict:
     return (path, basename(file_and_path), "")
 
 
-def checkTransferEndpoint(action_package: dict) -> (bool, str):
+def checkTransferEndpoint(action_package: dict) -> tuple[bool, str]:
     """Makes sure each item to be transferred has the correct format
 
     :param action_package: the package that contains instructions for
@@ -301,7 +301,7 @@ def getGlobusScopes(mapped_collections: list[str]) -> str:
     return scopes
 
 
-def checkEndpoint(item: str, supported_types: list[str]) -> (bool, str):
+def checkEndpoint(item: str, supported_types: list[str]) -> tuple[bool, str]:
     """Check that the approprite keys and values exist in the endpoint
 
     :param item: uri
@@ -336,7 +336,7 @@ def checkAllItemsHaveValidEndpoints(
     items: list[dict],
     supported_source_path_types: list[str],
     supported_destination_path_types: list[str],
-) -> (bool, str):
+) -> tuple[bool, str]:
     """Check that all items that are too be moved are schematically correct
 
     :return: Returns true if the schema of the items is valid and false otherwise

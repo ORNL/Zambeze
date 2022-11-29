@@ -26,9 +26,7 @@ import pkgutil
 
 
 class PluginChecks(dict):
-    def __init__(self, val: dict = None):
-        if val is None:
-            val = {}
+    def __init__(self, val: dict = {}):
         super().__init__(val)
 
     def errorDetected(self) -> bool:
@@ -91,10 +89,12 @@ class Plugins:
                         issubclass(potential_plugin_message_helper, PluginMessageHelper)
                         and attribute_name != "PluginMessageHelper"
                     ):
-                        print(" - Registering plugin helper:"
-                              f" {attribute_name.lower()}")
-                        plugin_name = \
-                            attribute_name.lower().replace('messagehelper', '')
+                        print(
+                            " - Registering plugin helper:" f" {attribute_name.lower()}"
+                        )
+                        plugin_name = attribute_name.lower().replace(
+                            "messagehelper", ""
+                        )
                         self._plugin_message_helpers[
                             plugin_name
                         ] = potential_plugin_message_helper(logger=self.__logger)
@@ -110,7 +110,7 @@ class Plugins:
         return message_template
 
     @property
-    def registered(self) -> list[Plugin]:
+    def registered(self) -> list[str]:
         """List all plugins that have been registered.
 
         This method can be called at any time and is meant to simply display which

@@ -1,3 +1,5 @@
+# pyre-ignore-all-errors[13]
+# pyre-ignore-all-errors[6]
 # Local imports
 from ..abstract_plugin import Plugin
 from .globus_common import (
@@ -13,6 +15,8 @@ from ...network import externalNetworkConnectionDetected
 
 # Third party imports
 from globus_sdk import GlobusError
+from globus_sdk.authorizers import GlobusAuthorizer
+
 import globus_sdk
 
 # Standard imports
@@ -23,7 +27,7 @@ from os.path import exists
 from os.path import isdir
 from os.path import isfile
 from socket import gethostname
-from typing import Optional
+from typing import Optional, Any
 
 import json
 import logging
@@ -32,6 +36,10 @@ import shutil
 
 
 class Globus(Plugin):
+    __tc: Any = None
+    __scopes: str = ""
+    __authorizer: GlobusAuthorizer
+
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "globus"
         super().__init__(self.__name, logger=logger)
@@ -402,7 +410,7 @@ class Globus(Plugin):
 
             shutil.copyfile(source_path, destination_path)
 
-    def __runTransferSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runTransferSanityCheck(self, action_package: dict) -> tuple[bool, str]:
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
@@ -430,7 +438,7 @@ class Globus(Plugin):
 
         return True, ""
 
-    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> tuple[bool, str]:
         for item in action_package["items"]:
             globus_sep_uri = globusURISeparator(
                 item["destination"], self.__default_endpoint
@@ -449,7 +457,7 @@ class Globus(Plugin):
 
         return (True, "")
 
-    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> tuple[bool, str]:
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
