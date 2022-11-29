@@ -16,13 +16,13 @@ class AbstractDAO(object, metaclass=ABCMeta):
         self._engine = get_db_engine()
 
     @abstractmethod
-    def insert(self, entity: AbstractEntity):
+    def insert(self, entity: AbstractEntity) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def insert_and_return_id(self, entity: AbstractEntity):
+    def insert_and_return_id(self, entity: AbstractEntity) -> int:
         raise NotImplementedError()
 
     @abstractmethod
-    def update(self, entity: AbstractEntity):
+    def update(self, entity: AbstractEntity) -> None:
         raise NotImplementedError()
