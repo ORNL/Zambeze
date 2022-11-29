@@ -61,7 +61,9 @@ class ZambezeSettings:
 
         default_conf = zambeze_folder.joinpath("agent.yaml")
         if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
+            # pyre-ignore[16]
             if not self._conf_file.exists():
+                # pyre-ignore[16]
                 self._conf_file.touch()
                 default_settings = {
                     "nats": {"host": NATS_HOST, "port": NATS_PORT},
@@ -71,6 +73,7 @@ class ZambezeSettings:
                     },
                     "zmq": {"host": HOST, "port": ZMQ_PORT},
                 }
+                # pyre-ignore[6]
                 with open(self._conf_file, "w") as f:
                     yaml.dump(default_settings, f)
 
@@ -78,6 +81,7 @@ class ZambezeSettings:
         #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
 
         self._logger.info(f"Loading settings from config file: {self._conf_file}")
+        # pyre-ignore[6]
         with open(self._conf_file, "r") as cf:
             self.settings.update(yaml.safe_load(cf))
 
@@ -166,5 +170,6 @@ class ZambezeSettings:
         """
         Save properties file.
         """
+        # pyre-ignore[6]
         with open(self._conf_file, "w") as file:
             yaml.dump(self.settings, file)

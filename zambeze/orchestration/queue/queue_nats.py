@@ -72,8 +72,8 @@ class QueueNATS(AbstractQueue):
             )
         except Exception:
             if self._logger:
-                logger: logging.Logger = self._logger
-                logger.debug(
+                # pyre-ignore[16]
+                self._logger.debug(
                     f"Unable to connect to nats server at {self.uri}"
                     "1. Make sure your firewall ports are open.\n"
                     "2. That the nats service is up and running.\n"
