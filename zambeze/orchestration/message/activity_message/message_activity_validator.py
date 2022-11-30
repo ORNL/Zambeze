@@ -1,20 +1,19 @@
 # Standard imports
 from dataclasses import make_dataclass
-from typing import Optional, Any, TypeVar, overload
+from typing import Optional, Any, overload
 
 import logging
 
 # Local imports
-from .abstract_message_validator import AbstractMessageValidator
+from ..abstract_message_validator import AbstractMessageValidator
+from ..general_message_components import REQUIRED_GENERAL_COMPONENTS
 
 REQUIRED_ACTIVITY_COMPONENTS = {
-    "message_id": "",
-    "type": "",
+    **REQUIRED_GENERAL_COMPONENTS,
     "activity_id": "",
     "agent_id": "",
     "campaign_id": "",
     "credential": {},
-    "submission_time": "",
     "body": {},
 }
 
@@ -57,15 +56,9 @@ class MessageActivityValidator(AbstractMessageValidator):
                     "ActivityTemplate"
                 ),
             )
-        # Change this to checking if the default required values have been set
-        # missing_items = set(self._required_keys).difference(message.keys())
-        # if len(missing_items):
-        #    return (False, f"Missing required keys from message {missing_items}")
+
         for attribute in REQUIRED_ACTIVITY_COMPONENTS:
             att = getattr(message, attribute)
             if att is None:
                 return (False, f"Required attribute is not defined: {attribute}")
-        #        optional_items = set(message.keys()).difference(self._required_keys)
-        #        unsupported_items = set(optional_items).difference(self._optional_keys)
-        #        if len(unsupported_items):
         return (True, "")

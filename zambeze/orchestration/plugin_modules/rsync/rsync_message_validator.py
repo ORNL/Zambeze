@@ -7,7 +7,7 @@
 # it under the terms of the MIT License.
 
 # Local imports
-from ..abstract_plugin_message_helper import PluginMessageHelper
+from ..abstract_plugin_message_validator import PluginMessageValidator
 from ..common_dataclasses import (
     Items,
     Move,
@@ -30,7 +30,7 @@ from typing import Optional
 import logging
 
 
-class RsyncMessageHelper(PluginMessageHelper):
+class RsyncMessageHelper(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
         self._supported_actions = SUPPORTED_ACTIONS
@@ -59,16 +59,6 @@ class RsyncMessageHelper(PluginMessageHelper):
 
         checks.append({action: (True, "")})
         return checks
-
-    def messageTemplate(self, args=None):
-        """Args can be used to generate a more flexible template. Say for
-        instance you wanted to transfer several different items.
-        """
-        return RsyncTransferTemplate(
-            RsyncTransferTemplateInner(
-                "synchronous", [Endpoints(RsyncItem("", "", ""), RsyncItem("", "", ""))]
-            )
-        )
 
     def validateAction(self, arguments: dict, action) -> list:
         """Check the arguments are supported.

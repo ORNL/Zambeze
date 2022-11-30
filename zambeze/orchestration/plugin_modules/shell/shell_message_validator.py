@@ -7,36 +7,17 @@
 # it under the terms of the MIT License.
 
 # Local imports
-from ..abstract_plugin_message_helper import PluginMessageHelper
+from ..abstract_plugin_message_validator import PluginMessageValidator
 
 # Standard imports
-from dataclasses import dataclass
 from typing import Optional
 
 import logging
 
 
-class ShellMessageHelper(PluginMessageHelper):
+class ShellMessageHelper(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
-
-    def messageTemplate(self, args=None) -> dict:
-        """Args can be used to generate a more flexible template. Say for
-        instance you wanted to transfer several different items.
-        """
-
-        @dataclass
-        class Bash:
-            bash: {}
-
-        @dataclass
-        class Command:
-            program: str
-            args: list[str]
-
-        return Bash(Command("", []))
-
-    # return {"bash": {"program": "", "args": [""]}}
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
         if "program" not in arguments[action]:

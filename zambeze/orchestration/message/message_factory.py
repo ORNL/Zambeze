@@ -1,24 +1,40 @@
+# Local imports
+from .abstract_message import AbstractMessage
+from .activity_message.message_activity import MessageActivity
+from .activity_message.message_activity_validator import MessageActivityValidator
+from .activity_message.message_activity_template_generator import createActivityTemplate
+from .status_message.message_status import MessageStatus
+from .status_message.message_status_validator import MessageStatusValidator
+from .status_message.message_status_template_generator import createStatusTemplate
+from zambeze.orchestration.plugins_message_validator import (
+    PluginsMessageValidator
+)
+from zambeze.orchestration.plugins_message_template_generator import (
+    PluginsMessageTemplateGenerator
+)
+
+from ..zambeze_types import MessageType
+
+# Standard imports
 import logging
 from typing import Optional
 
-from .message_activity import MessageActivity
-from .message_status import MessageStatus
-from .message_activity_validator import MessageActivityValidator, createActivityTemplate
-from .message_status_validator import MessageStatusValidator, createStatusTemplate
-from .abstract_message import AbstractMessage
-from ..zambeze_types import MessageType
-
 
 class MessageFactory:
-    def __init__(self, plugins, logger: Optional[logging.Logger] = None):
+    def __init__(
+            self,
+            logger: Optional[logging.Logger] = None):
+
         self._logger = logger
-        self._plugins = plugins
+        self._plugins_message_template_generators = \
+            PluginsMessageTemplateGenerator(logger)
+        self._plugins_message_validators = PluginsMessageValidator(logger)
 
     def createTemplate(
         self, message_type: MessageType, plugin_name=None, args=None
     ) -> tuple:
         """
-        Will create a tuple with all the fields needed to built a message
+        Will create a tuple with all the fields needed to build a message
 
         :param message_type: there are currently two supported message types
         status and activity.
@@ -75,7 +91,9 @@ class MessageFactory:
         if message_type == MessageType.ACTIVITY:
             activity = createActivityTemplate()
             if plugin_name is not None:
-                activity.body = self._plugins.messageTemplate(plugin_name, args)
+                activity.body = \
+                    self._plugins_message_template_generators \
+                    .generate(plugin_name, args)
             return (message_type, activity)
         elif message_type == MessageType.STATUS:
             status = createStatusTemplate()
@@ -93,9 +111,22 @@ class MessageFactory:
 
         ( MessageType, {} )
 
+        The createTemplate method can be called to generate a suitable tuple
+        that the create method will accept.
+
         :Example:
 
         ( MessageType.ACTIVITY, activity_msg )
+
+        ```python
+        factory = MessageFactory()
+        msg_template = factory.createTemplate(
+                                MessageType.ACTIVITY,
+                                "rsync",
+                                "transfer")
+
+        msg = factory.create(msg_template)
+        ```
 
         """
 
@@ -109,7 +140,9 @@ class MessageFactory:
             result = validator.check(args[1])
             if result[0]:
                 plugin_name = args[1].plugin
-                results = self._plugins.validateMessage(plugin_name, args[1].body)
+                results = \
+                    self._plugins_message_validators \
+                    .validate(plugin_name, args[1].body)
                 if results[0] is False:
                     raise Exception("Invalid plugin message body" f"{results[1]}")
                 return MessageActivity(args[1], self._logger)

@@ -1,5 +1,5 @@
 # Local imports
-from ..abstract_plugin_message_helper import PluginMessageHelper
+from ..abstract_plugin_message_validator import PluginMessageValidator
 from ..common_dataclasses import Items, Move, TransferTemplateInner, TransferTemplate
 from .globus_common import (
     checkTransferEndpoint,
@@ -15,7 +15,7 @@ from typing import Optional
 import logging
 
 
-class GlobusMessageHelper(PluginMessageHelper):
+class GlobusMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
         self.__known_actions = SUPPORTED_ACTIONS.keys()
@@ -277,27 +277,3 @@ class GlobusMessageHelper(PluginMessageHelper):
             for action in arguments[index]:
                 checks = self._validateAction(action, checks, arguments[index])
         return checks
-
-    def messageTemplate(self, args=None):
-        if args is None or args == "transfer":
-            return TransferTemplate(
-                TransferTemplateInner("synchronous", [Move("", "")])
-            )
-        elif args == "move_to_globus_collection":
-
-            @dataclass
-            class MoveToGlobusTemplate:
-                move_to_globus_collection: Items
-
-            return MoveToGlobusTemplate(Items([Move()]))
-        elif args == "move_from_globus_collection":
-
-            @dataclass
-            class MoveFromGlobusTemplate:
-                move_from_globus_collection: Items
-
-            return MoveFromGlobusTemplate(Items([Move()]))
-        else:
-            raise Exception(
-                "Unrecognized argument provided, cannot generate " "messageTemplate"
-            )

@@ -1,6 +1,6 @@
 import logging
 from .abstract_message import AbstractMessage
-from ..zambeze_types import MessageType
+from zambeze.orchestration.zambeze_types import MessageType
 from typing import Optional
 from dataclasses import dataclass
 
