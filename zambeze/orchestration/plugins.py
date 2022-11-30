@@ -331,7 +331,7 @@ class Plugins:
     def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
         ...
 
-    def check(self, msg, arguments) -> PluginChecks:
+    def check(self, msg, arguments=None) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -378,7 +378,9 @@ class Plugins:
         >>> #   "rsync": { "transfer": (True, "") }
         >>> # {
         """
+        print("Checking if instance of abstract message")
         if isinstance(msg, AbstractMessage):
+            print("Abstract message detected")
             arguments = msg.data["cmd"]
             plugin_name = msg.data["plugin"]
         else:
