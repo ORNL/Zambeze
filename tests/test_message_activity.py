@@ -1,5 +1,5 @@
 # Local imports
-from zambeze.orchestration.message.message_activity import MessageActivity
+from zambeze.orchestration.message.activity_message.message_activity import MessageActivity
 
 from zambeze.orchestration.zambeze_types import MessageType
 

@@ -30,7 +30,7 @@ from typing import Optional
 import logging
 
 
-class RsyncMessageHelper(PluginMessageValidator):
+class RsyncMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
         self._supported_actions = SUPPORTED_ACTIONS

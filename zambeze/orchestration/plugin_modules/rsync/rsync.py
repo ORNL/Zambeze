@@ -15,7 +15,7 @@ from .rsync_common import (
     requiredSourceAndDestinationValuesValid,
     SUPPORTED_ACTIONS,
 )
-from .rsync_message_helper import RsyncMessageHelper
+from .rsync_message_validator import RsyncMessageValidator
 from ...system_utils import isExecutable
 
 # Standard imports
@@ -40,7 +40,7 @@ class Rsync(Plugin):
         self._hostname = socket.gethostname()
         self._local_ip = socket.gethostbyname(self._hostname)
         self._ssh_key = pathlib.Path.home().joinpath(".ssh/id_rsa")
-        self._message_helper = RsyncMessageHelper(logger)
+        self._message_validator = RsyncMessageValidator(logger)
 
     def messageTemplate(self, args=None) -> dict:
         """Args can be used to generate a more flexible template. Say for
@@ -178,7 +178,7 @@ class Rsync(Plugin):
         for index in range(len(arguments)):
             for action in arguments[index]:
 
-                schema_checks = self._message_helper.validateAction(
+                schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
 

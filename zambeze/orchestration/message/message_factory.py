@@ -9,8 +9,8 @@ from .status_message.message_status_template_generator import createStatusTempla
 from zambeze.orchestration.plugins_message_validator import (
     PluginsMessageValidator
 )
-from zambeze.orchestration.plugins_message_template_generator import (
-    PluginsMessageTemplateGenerator
+from zambeze.orchestration.plugins_message_template_engine import (
+    PluginsMessageTemplateEngine
 )
 
 from ..zambeze_types import MessageType
@@ -27,7 +27,7 @@ class MessageFactory:
 
         self._logger = logger
         self._plugins_message_template_generators = \
-            PluginsMessageTemplateGenerator(logger)
+            PluginsMessageTemplateEngine(logger)
         self._plugins_message_validators = PluginsMessageValidator(logger)
 
     def createTemplate(

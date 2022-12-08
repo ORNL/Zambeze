@@ -1,6 +1,6 @@
 # Local imports
-from zambeze.orchestration.plugin_modules.rsync.rsync_message_helper import (
-    RsyncMessageHelper,
+from zambeze.orchestration.plugin_modules.rsync.rsync_message_template_generator import (
+    RsyncMessageTemplateGenerator
 )
 
 # Standard imports
@@ -10,7 +10,7 @@ import pytest
 @pytest.mark.unit
 def test_rsync_messageTemplate():
 
-    instance = RsyncMessageHelper()
+    instance = RsyncMessageTemplateGenerator()
     rsync_template = instance.messageTemplate()
     print(rsync_template)
     # Rsync template should have all the following attributes
@@ -33,7 +33,7 @@ def test_rsync_messageTemplate():
 @pytest.mark.unit
 def test_rsync_messageTemplate_and_validate():
 
-    instance = RsyncMessageHelper()
+    instance = RsyncMessageValidator()
     rsync_template = instance.messageTemplate()
     checks = instance.validateMessage([rsync_template])
     assert len(checks) == 1

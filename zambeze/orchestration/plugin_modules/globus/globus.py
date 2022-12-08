@@ -10,7 +10,7 @@ from .globus_common import (
     getGlobusScopes,
     SUPPORTED_ACTIONS,
 )
-from .globus_message_helper import GlobusMessageHelper
+from .globus_message_validator import GlobusMessageValidator
 from ...network import externalNetworkConnectionDetected
 
 # Third party imports
@@ -54,7 +54,7 @@ class Globus(Plugin):
         self.__hostname = None
         self.__default_endpoint = None
         self.__supported_actions = SUPPORTED_ACTIONS
-        self._message_helper = GlobusMessageHelper(logger)
+        self._message_validator = GlobusMessageValidator(logger)
         pass
 
     ###################################################################################
@@ -697,7 +697,7 @@ class Globus(Plugin):
         for index in range(len(arguments)):
             for action in arguments[index]:
 
-                schema_checks = self._message_helper.validateAction(
+                schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
 

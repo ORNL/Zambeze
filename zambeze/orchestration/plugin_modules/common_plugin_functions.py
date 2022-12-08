@@ -1,10 +1,12 @@
 # Standard imports
 from pathlib import Path
+from typing import Optional
 
+import logging
 import pkgutil
 
 
-def registerPlugins(logger) -> None:
+def registerPlugins(logger: Optional[logging.Logger] = None) -> None:
     """Will register all the plugins provided in the plugin_modules folder
 
     :return: the names of all the plugins
@@ -18,12 +20,13 @@ def registerPlugins(logger) -> None:
         if (
             module_name != "abstract_plugin"
             and module_name != "__init__"
-            and module_name != "abstract_plugin_message_helper"
+            and module_name != "abstract_plugin_message_validator"
             and module_name != "common_dataclasses"
             and module_name != "common_plugin_functions"
         ):
             module_names.append(module_name)
-    logger.debug(f"Registered Plugins: {', '.join(module_names)}")
+    if logger:
+        logger.debug(f"Registered Plugins: {', '.join(module_names)}")
     return module_names
 
 

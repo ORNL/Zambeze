@@ -1,5 +1,5 @@
 # Local imports
-from zambeze.orchestration.message.message_status import MessageStatus
+from zambeze.orchestration.message.status_message.message_status import MessageStatus
 
 from zambeze.orchestration.zambeze_types import MessageType
 

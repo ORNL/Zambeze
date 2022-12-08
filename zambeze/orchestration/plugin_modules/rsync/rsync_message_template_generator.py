@@ -7,7 +7,7 @@
 # it under the terms of the MIT License.
 
 # Local imports
-from ..abstract_plugin_message_template_generator import (
+from zambeze.orchestration.plugin_modules.abstract_plugin_template_generator import (
     PluginMessageTemplateGenerator
 )
 from ..common_dataclasses import (

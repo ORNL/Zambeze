@@ -1,6 +1,6 @@
 import pytest
 
-from zambeze.orchestration.message.message_activity_validator import (
+from zambeze.orchestration.message.activity_message.message_activity_validator import (
     MessageActivityValidator,
     createActivityTemplate,
 )

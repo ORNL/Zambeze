@@ -17,10 +17,10 @@ class PluginsMessageTemplateEngine:
 
         self.__module_names = registerPlugins()
         self._plugin_message_template_generators = {}
-        self.__registerPluginHelpers()
+        self.__registerPluginTemplateGenerators()
 
 
-    def __registerPluginHelpers(self) -> None:
+    def __registerPluginTemplateGenerators(self) -> None:
         for module_name in self.__module_names:
             # Registering plugin message validators
             module = import_module(
@@ -33,12 +33,13 @@ class PluginsMessageTemplateEngine:
                     if (
                         issubclass(
                             potential_plugin_message_template_generator,
-                            PluginMessageTemplateGenerator)
-                        and attribute_name != "PluginMessageHelper"
+                            PluginMessageTemplateGenerator) and
+                        module_name != "abstract_plugin_template_generator"
                     ):
                         print(
-                            " - Registering plugin helper:" f" {attribute_name.lower()}"
+                            " - Registering plugin template generator:" f" {attribute_name.lower()}"
                         )
+                        print(f"Attribute nameis {attribute_name}")
                         plugin_name = attribute_name.lower().replace(
                             "messagehelper", ""
                         )

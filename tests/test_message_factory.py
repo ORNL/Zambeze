@@ -39,7 +39,7 @@ def test_factory_fail():
     to exceute the message after it is sent"""
     print(status_tuple)
     status_tuple[1].message_id = 1
-    status_tuple[1].ubmission_time = time.time()
+    status_tuple[1].submission_time = time.time()
 
     """This field should force failure"""
     status_tuple[1].unsupported_field = "should make fail"
