@@ -103,17 +103,17 @@ def test_rsync_plugin_check():
     msg_template.transfer.items[0].destination.ip = neighbor_vm_ip
     msg_template.transfer.items[0].destination.user = "cades"
     msg_template.transfer.items[0].destination.path = "/tmp"
-#    arguments = {
-#        "transfer": {
-#            "source": {
-#                "ip": local_ip,
-#                "user": current_user,
-#                "path": current_valid_path,
-#            },
-#            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-#            "arguments": ["-a"],
-#        }
-#    }
+    #    arguments = {
+    #        "transfer": {
+    #            "source": {
+    #                "ip": local_ip,
+    #                "user": current_user,
+    #                "path": current_valid_path,
+    #            },
+    #            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
+    #            "arguments": ["-a"],
+    #        }
+    #    }
 
     checked_actions = plugins.check(msg_template)
     print(checked_actions)
@@ -185,13 +185,13 @@ def test_rsync_plugin_run():
     msg_template.transfer.items[0].destination.user = "cades"
     msg_template.transfer.items[0].destination.path = "/tmp"
 
-#    arguments = {
-#        "transfer": {
-#            "source": {"ip": local_ip, "user": current_user, "path": file_path},
-#            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-#            "arguments": ["-a"],
-#        }
-#    }
+    #    arguments = {
+    #        "transfer": {
+    #            "source": {"ip": local_ip, "user": current_user, "path": file_path},
+    #            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
+    #            "arguments": ["-a"],
+    #        }
+    #    }
 
     print("Arguments: Initial transfer to remote machine")
     print(msg_template)
@@ -215,21 +215,21 @@ def test_rsync_plugin_run():
     msg_template_return.transfer.items[0].destination.user = "cades"
     msg_template_return.transfer.items[0].destination.path = "/tmp/" + file_name
 
-#    arguments_return = {
-#        "transfer": {
-#            "destination": {
-#                "ip": local_ip,
-#                "user": current_user,
-#                "path": file_path_return,
-#            },
-#            "source": {
-#                "ip": neighbor_vm_ip,
-#                "user": "cades",
-#                "path": "/tmp" + "/" + file_name,
-#            },
-#            "arguments": ["-a"],
-#        }
-#    }
+    #    arguments_return = {
+    #        "transfer": {
+    #            "destination": {
+    #                "ip": local_ip,
+    #                "user": current_user,
+    #                "path": file_path_return,
+    #            },
+    #            "source": {
+    #                "ip": neighbor_vm_ip,
+    #                "user": "cades",
+    #                "path": "/tmp" + "/" + file_name,
+    #            },
+    #            "arguments": ["-a"],
+    #        }
+    #    }
 
     print("Arguments: Second transfer back to host machine")
     print(msg_template_return)

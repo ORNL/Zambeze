@@ -6,11 +6,9 @@ from .activity_message.message_activity_template_generator import createActivity
 from .status_message.message_status import MessageStatus
 from .status_message.message_status_validator import MessageStatusValidator
 from .status_message.message_status_template_generator import createStatusTemplate
-from zambeze.orchestration.plugins_message_validator import (
-    PluginsMessageValidator
-)
+from zambeze.orchestration.plugins_message_validator import PluginsMessageValidator
 from zambeze.orchestration.plugins_message_template_engine import (
-    PluginsMessageTemplateEngine
+    PluginsMessageTemplateEngine,
 )
 
 from ..zambeze_types import MessageType
@@ -21,13 +19,10 @@ from typing import Optional
 
 
 class MessageFactory:
-    def __init__(
-            self,
-            logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: Optional[logging.Logger] = None):
 
         self._logger = logger
-        self._plugins_message_template_generators = \
-            PluginsMessageTemplateEngine(logger)
+        self._plugins_message_template_generators = PluginsMessageTemplateEngine(logger)
         self._plugins_message_validators = PluginsMessageValidator(logger)
 
     def createTemplate(
@@ -91,9 +86,9 @@ class MessageFactory:
         if message_type == MessageType.ACTIVITY:
             activity = createActivityTemplate()
             if plugin_name is not None:
-                activity.body = \
-                    self._plugins_message_template_generators \
-                    .generate(plugin_name, args)
+                activity.body = self._plugins_message_template_generators.generate(
+                    plugin_name, args
+                )
             return (message_type, activity)
         elif message_type == MessageType.STATUS:
             status = createStatusTemplate()
@@ -140,9 +135,9 @@ class MessageFactory:
             result = validator.check(args[1])
             if result[0]:
                 plugin_name = args[1].plugin
-                results = \
-                    self._plugins_message_validators \
-                    .validate(plugin_name, args[1].body)
+                results = self._plugins_message_validators.validate(
+                    plugin_name, args[1].body
+                )
                 if results[0] is False:
                     raise Exception("Invalid plugin message body" f"{results[1]}")
                 return MessageActivity(args[1], self._logger)

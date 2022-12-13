@@ -6,6 +6,8 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+from __future__ import annotations
+
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from ..common_dataclasses import (
@@ -20,29 +22,21 @@ from ..common_dataclasses import (
 )
 from .rsync_common import (
     PLUGIN_NAME,
-    SUPPORTED_ACTIONS,
     validateRequiredSourceAndDestinationValuesValid,
 )
 
 # Standard imports
-from typing import Optional
-
+from typing import Optional, overload
 import logging
 
 
 class RsyncMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
-        self._supported_actions = SUPPORTED_ACTIONS
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
 
         if action == "transfer":
-            # Check if the action is supported
-            if self._supported_actions[action] is False:
-                checks.append({action: (False, "action is not supported.")})
-                return checks
-
             # Start by checking that all the files have been provided
             for item in arguments.transfer.items:
                 check = validateRequiredSourceAndDestinationValuesValid(item)
@@ -51,7 +45,6 @@ class RsyncMessageValidator(PluginMessageValidator):
                     checks.append(
                         {action: (False, f"Error detected for {action}. " + check[1])}
                     )
-            return checks
 
         else:
             checks.append({action: (False, f"{action} unsupported action\n")})
@@ -102,7 +95,15 @@ class RsyncMessageValidator(PluginMessageValidator):
         checks = []
         return self._validateAction(action, checks, arguments)
 
+    @overload
+    def validateMessage(self, arguments: RsyncTransferTemplate) -> list:
+        ...
+
+    @overload
     def validateMessage(self, arguments: list[dict]) -> list:
+        ...
+
+    def validateMessage(self, arguments):
         """Check the arguments are supported.
 
         :param arguments: arguments needed to run the rsync plugin
@@ -143,6 +144,15 @@ class RsyncMessageValidator(PluginMessageValidator):
         >>> # }]
         >>> assert checked_arguments[0]["transfer"][0]
         """
+
+        if isinstance(type(arguments), list):
+            pass
+        elif isinstance(arguments, RsyncTransferTemplate):
+            arguments = [arguments]
+        else:
+            error = f"Unsupported argument type encountered. {type(arguments)}"
+            error += f" {type(RsyncTransferTemplate)}"
+            raise Exception(error)
 
         checks = []
 

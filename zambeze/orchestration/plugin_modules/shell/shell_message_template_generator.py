@@ -7,9 +7,7 @@
 # it under the terms of the MIT License.
 
 # Local imports
-from ..abstract_plugin_message_template_generator import (
-    PluginMessageTemplateGenerator
-)
+from ..abstract_plugin_template_generator import PluginMessageTemplateGenerator
 
 # Standard imports
 from dataclasses import dataclass
@@ -18,7 +16,7 @@ from typing import Optional
 import logging
 
 
-class ShellMessageHelper(PluginMessageTemplateGenerator):
+class ShellMessageGenerator(PluginMessageTemplateGenerator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
 

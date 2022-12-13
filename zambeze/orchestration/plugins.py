@@ -200,7 +200,6 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-
     @overload
     def check(
         self, msg: AbstractMessage, arguments: Optional[dict] = None
@@ -267,15 +266,19 @@ class Plugins:
             plugin_name = msg
 
         if not isinstance(plugin_name, str):
-            raise ValueError("Unsupported plugin_name type detected in check."
-                             "The check function only supports either:\n"
-                             "1. An abstract message as a single argument\n"
-                             "2. The plugin name as a str and the package as a dict\n")
+            raise ValueError(
+                "Unsupported plugin_name type detected in check."
+                "The check function only supports either:\n"
+                "1. An abstract message as a single argument\n"
+                "2. The plugin name as a str and the package as a dict\n"
+            )
         elif not isinstance(arguments, dict):
-            raise ValueError("Unsupported plugin_name type detected in check."
-                             "The check function only supports either:\n"
-                             "1. An abstract message as a single argument\n"
-                             "2. The plugin name as a str and the package as a dict\n")
+            raise ValueError(
+                "Unsupported plugin_name type detected in check."
+                "The check function only supports either:\n"
+                "1. An abstract message as a single argument\n"
+                "2. The plugin name as a str and the package as a dict\n"
+            )
 
         check_results = {}
         if plugin_name not in self._plugins.keys():

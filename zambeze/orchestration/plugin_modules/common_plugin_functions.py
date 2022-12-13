@@ -14,7 +14,7 @@ def registerPlugins(logger: Optional[logging.Logger] = None) -> None:
     """
 
     module_names = []
-    #plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
+    # plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
     plugin_path = [str(Path(__file__).resolve().parent)]
     for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
         if (
@@ -23,10 +23,9 @@ def registerPlugins(logger: Optional[logging.Logger] = None) -> None:
             and module_name != "abstract_plugin_message_validator"
             and module_name != "common_dataclasses"
             and module_name != "common_plugin_functions"
+            and module_name != "abstract_plugin_template_generator"
         ):
             module_names.append(module_name)
     if logger:
         logger.debug(f"Registered Plugins: {', '.join(module_names)}")
     return module_names
-
-

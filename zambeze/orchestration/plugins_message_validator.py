@@ -1,8 +1,6 @@
 # Zambeze internal imports
 from .plugin_modules.common_plugin_functions import registerPlugins
-from .plugin_modules.abstract_plugin_message_validator import (
-    PluginMessageValidator
-)
+from .plugin_modules.abstract_plugin_message_validator import PluginMessageValidator
 
 # Standard imports
 from importlib import import_module
@@ -13,36 +11,39 @@ import logging
 
 
 class PluginsMessageValidator:
-
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+        self.__logger = logger
+        if self.__logger is None:
+            self.__logger = logging.Logger()
 
         self.__module_names = registerPlugins()
         self._plugin_message_validators = {}
 
         # self.__registerPlugins()
-        self.__registerPluginHelpers()
+        self.__registerPluginValidators()
 
-    def __registerPluginHelpers(self) -> None:
+    def __registerPluginValidators(self) -> None:
         for module_name in self.__module_names:
             # Registering plugin message validators
             module = import_module(
                 "zambeze.orchestration.plugin_modules."
-                f"{module_name}.{module_name}_message_helper"
+                f"{module_name}.{module_name}_message_validator"
             )
             for attribute_name in dir(module):
                 potential_plugin_message_validator = getattr(module, attribute_name)
                 if isclass(potential_plugin_message_validator):
                     if (
                         issubclass(
-                            potential_plugin_message_validator,
-                            PluginMessageValidator)
+                            potential_plugin_message_validator, PluginMessageValidator
+                        )
                         and attribute_name != "PluginMessageValidator"
                     ):
                         print(
-                            " - Registering plugin helper:" f" {attribute_name.lower()}"
+                            " - Registering plugin validator:"
+                            f" {attribute_name.lower()}"
                         )
                         plugin_name = attribute_name.lower().replace(
-                            "messagehelper", ""
+                            "messagevalidator", ""
                         )
                         self._plugin_message_validators[
                             plugin_name

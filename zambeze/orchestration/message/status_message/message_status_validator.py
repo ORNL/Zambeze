@@ -6,8 +6,8 @@ import logging
 # Local imports
 from ..abstract_message_validator import AbstractMessageValidator
 from .message_status_template_generator import (
-        REQUIRED_STATUS_COMPONENTS,
-        StatusTemplate
+    REQUIRED_STATUS_COMPONENTS,
+    StatusTemplate,
 )
 
 

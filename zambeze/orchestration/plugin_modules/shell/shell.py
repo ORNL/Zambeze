@@ -8,7 +8,7 @@
 
 # Local imports
 from ..abstract_plugin import Plugin
-from .shell_message_helper import ShellMessageHelper
+from .shell_message_validator import ShellMessageValidator
 
 # Standard imports
 from shutil import which
@@ -25,7 +25,7 @@ class Shell(Plugin):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
         self._configured = False
-        self._message_helper = ShellMessageHelper(logger)
+        self._message_validator = ShellMessageValidator(logger)
 
     def messageTemplate(self, args=None) -> dict:
         """Args can be used to generate a more flexible template. Say for
@@ -102,7 +102,7 @@ class Shell(Plugin):
         for index in range(len(arguments)):
             for action in arguments[index].keys():
 
-                schema_checks = self._message_helper.validateAction(
+                schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
 

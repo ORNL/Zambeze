@@ -1,7 +1,5 @@
 # Local imports
-from ..abstract_plugin_message_template_generator import (
-    PluginMessageTemplateGenerator
-)
+from ..abstract_plugin_template_generator import PluginMessageTemplateGenerator
 from ..common_dataclasses import Items, Move, TransferTemplateInner, TransferTemplate
 
 # Standard imports
@@ -14,7 +12,7 @@ class GlobusMessageTemplateGenerator(PluginMessageTemplateGenerator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
 
-    def messageTemplate(self, args=None):
+    def generate(self, args=None):
         if args is None or args == "transfer":
             return TransferTemplate(
                 TransferTemplateInner("synchronous", [Move("", "")])

@@ -15,7 +15,7 @@ from typing import Optional
 import logging
 
 
-class ShellMessageHelper(PluginMessageValidator):
+class ShellMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
 

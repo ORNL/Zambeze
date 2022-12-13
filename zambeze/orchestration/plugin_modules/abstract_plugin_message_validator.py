@@ -15,7 +15,7 @@ from typing import Optional
 class PluginMessageValidator(ABC):
     """
     Abstract base class for ensuring that all registered plugins have a
-    valid message helper
+    valid message validator
 
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]

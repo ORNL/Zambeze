@@ -8,7 +8,7 @@
 
 # Local imports
 from zambeze.orchestration.plugin_modules.abstract_plugin_template_generator import (
-    PluginMessageTemplateGenerator
+    PluginMessageTemplateGenerator,
 )
 from ..common_dataclasses import (
     Items,

@@ -1,11 +1,10 @@
 import pytest
 
 from zambeze.orchestration.message.status_message.message_status_validator import (
-    MessageStatusValidator
+    MessageStatusValidator,
 )
 from zambeze.orchestration.message.status_message.message_status_template_generator import (
-    createStatusTemplate,
-)
+    createStatusTemplate, )
 
 
 ###############################################################################
