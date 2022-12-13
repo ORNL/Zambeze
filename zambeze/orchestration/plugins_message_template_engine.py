@@ -65,6 +65,6 @@ class PluginsMessageTemplateEngine:
 
         message_template = self._plugin_message_template_generators[
             plugin_name
-        ].messageTemplate(args)
+        ].generate(args)
         message_template.plugin = plugin_name
         return message_template
