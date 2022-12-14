@@ -16,7 +16,7 @@ class PluginsMessageTemplateEngine:
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__logger = logger
         if self.__logger is None:
-            self.__logger = logging.Logger()
+            self.__logger = logging.Logger(__name__)
 
         self.__module_names = registerPlugins()
         self._plugin_message_template_generators = {}
