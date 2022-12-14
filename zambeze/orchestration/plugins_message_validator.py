@@ -11,6 +11,16 @@ import logging
 
 
 class PluginsMessageValidator:
+    """Validator for all plugins
+
+    This class is responsible for ensuring the following:
+
+    1. That all the plugin relevant components of a message have the right
+    schema.
+    2. Checking that the types are consistent
+
+    """
+
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__logger = logger
         if self.__logger is None:
@@ -50,7 +60,8 @@ class PluginsMessageValidator:
                         ] = potential_plugin_message_validator(logger=self.__logger)
 
     def validate(self, plugin_name: str, arguments: dict) -> dict:
-        """Check that the arguments passed to the plugin "plugin_name" are valid
+        """Check that the arguments passed to the plugin "plugin_name" have
+        correct types
 
         :parameter plugin_name: the name of the plugin to validate against
         :type plugin_name: str

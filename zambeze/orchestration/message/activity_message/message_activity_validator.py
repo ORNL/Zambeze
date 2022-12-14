@@ -6,27 +6,12 @@ import logging
 
 # Local imports
 from ..abstract_message_validator import AbstractMessageValidator
-from ..general_message_components import REQUIRED_GENERAL_COMPONENTS
-
-REQUIRED_ACTIVITY_COMPONENTS = {
-    **REQUIRED_GENERAL_COMPONENTS,
-    "activity_id": "",
-    "agent_id": "",
-    "campaign_id": "",
-    "credential": {},
-    "body": {},
-}
-
-OPTIONAL_ACTIVITY_COMPONENTS = {"needs": []}
-
-ActivityTemplate = make_dataclass(
-    "ActivityTemplate", {**REQUIRED_ACTIVITY_COMPONENTS, **OPTIONAL_ACTIVITY_COMPONENTS}
+from .message_activity_template_generator import (
+    ActivityTemplate,
+    REQUIRED_ACTIVITY_COMPONENTS,
+    OPTIONAL_ACTIVITY_COMPONENTS,
 )
-
-
-# pyre-ignore[11]
-def createActivityTemplate() -> ActivityTemplate:
-    return ActivityTemplate(None, None, None, None, None, None, None, None, None)
+from zambeze.orchestration.identity import validUUID
 
 
 class MessageActivityValidator(AbstractMessageValidator):
@@ -57,8 +42,55 @@ class MessageActivityValidator(AbstractMessageValidator):
                 ),
             )
 
+        # Simply checks that each required item does not have None as a value
         for attribute in REQUIRED_ACTIVITY_COMPONENTS:
             att = getattr(message, attribute)
             if att is None:
                 return (False, f"Required attribute is not defined: {attribute}")
+
+        if message.type != "ACTIVITY":
+            return (
+                False,
+                (
+                    "Required type attribute for activity message must"
+                    f"be ACTIVITY but is instead: {message.type}"
+                ),
+            )
+
+        if not validUUID(message.activity_id, 4):
+            return (
+                False,
+                (
+                    "Required activity_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.activity_id}"
+                ),
+            )
+
+        if not validUUID(message.campaign_id, 4):
+            return (
+                False,
+                (
+                    "Required campaign_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.campaign_id}"
+                ),
+            )
+
+        if not validUUID(message.agent_id, 4):
+            return (
+                False,
+                (
+                    "Required agent_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.agent_id}"
+                ),
+            )
+
+        if not validUUID(message.message_id, 4):
+            return (
+                False,
+                (
+                    "Required message_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.message_id}"
+                ),
+            )
+
         return (True, "")

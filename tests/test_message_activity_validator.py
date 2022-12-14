@@ -1,23 +1,27 @@
 import pytest
+import uuid
 
 from zambeze.orchestration.message.activity_message.message_activity_validator import (
-    MessageActivityValidator,
+    MessageActivityValidator
+)
+from zambeze.orchestration.message.activity_message.message_activity_template_generator import (
     createActivityTemplate,
 )
-
+from zambeze.orchestration.zambeze_types import ActivityType
 
 ###############################################################################
 # Testing Action: Control
 ###############################################################################
 @pytest.mark.unit
-def test_message_activity_validator1():
-    """This check should fail because it is a dict"""
+def test_message_activity_validator():
+    """This check should fail because a dict is passed to a validator instead
+    of an immutable message type."""
     activity_message = {
-        "message_id": "",
+        "message_id": str(uuid.uuid4()),
         "submission_time": "",
-        "type": "",
-        "activity_id": "",
-        "campaign_id": "",
+        "type": "ACTIVITY",
+        "activity_id": str(uuid.uuid4()),
+        "campaign_id": str(uuid.uuid4()),
         "credential": {},
         "submission_time": "",
         "body": {},
@@ -28,12 +32,12 @@ def test_message_activity_validator1():
 
 
 @pytest.mark.unit
-def test_message_activity_validator2():
+def test_message_activity_validator_required_shell():
     """This test should be true all required fields are included
 
     The following attributes should exist
     message_id: "",
-    type: "",
+    type: "ACTIVITY",
     activity_id: "",
     agent_id: "",
     campaign_id: "",
@@ -42,34 +46,59 @@ def test_message_activity_validator2():
     body: {},
     """
     validator = MessageActivityValidator()
-    activity_message = createActivityTemplate()
-    activity_message.message_id = ""
-    activity_message.type = ""
-    activity_message.activity_id = ""
-    activity_message.agent_id = ""
-    activity_message.campaign_id = ""
+    activity_message = createActivityTemplate(ActivityType.SHELL)
+    activity_message.message_id = str(uuid.uuid4())
+    activity_message.activity_id = str(uuid.uuid4())
+    activity_message.agent_id = str(uuid.uuid4())
+    activity_message.campaign_id = str(uuid.uuid4())
     activity_message.credential = {}
     activity_message.submission_time = ""
-    activity_message.body = {}
+    assert activity_message.body.type == "SHELL"
 
     result = validator.check(activity_message)
     assert result[0] is True
 
 
 @pytest.mark.unit
-def test_message_activity_validator3():
+def test_message_activity_validator_required_plugin():
+    """This test should be true all required fields are included
+
+    The following attributes should exist
+    message_id: "",
+    type: "ACTIVITY",
+    activity_id: "",
+    agent_id: "",
+    campaign_id: "",
+    credential: {},
+    submission_time: "",
+    body: {},
+    """
+    validator = MessageActivityValidator()
+    activity_message = createActivityTemplate(ActivityType.PLUGIN)
+    activity_message.message_id = str(uuid.uuid4())
+    activity_message.activity_id = str(uuid.uuid4())
+    activity_message.agent_id = str(uuid.uuid4())
+    activity_message.campaign_id = str(uuid.uuid4())
+    activity_message.credential = {}
+    activity_message.submission_time = ""
+    assert activity_message.body.type == "PLUGIN"
+    result = validator.check(activity_message)
+    assert result[0] is True
+
+
+@pytest.mark.unit
+def test_message_activity_validator_required_and_optional_shell():
     """This test should be true all required fields are defined as well as all
     optional fields"""
     validator = MessageActivityValidator()
-    activity_message = createActivityTemplate()
-    activity_message.message_id = ""
-    activity_message.type = ""
-    activity_message.activity_id = ""
-    activity_message.agent_id = ""
-    activity_message.campaign_id = ""
+    activity_message = createActivityTemplate(ActivityType.SHELL)
+    activity_message.message_id = str(uuid.uuid4())
+    activity_message.activity_id = str(uuid.uuid4())
+    activity_message.agent_id = str(uuid.uuid4())
+    activity_message.campaign_id = str(uuid.uuid4())
     activity_message.credential = {}
     activity_message.submission_time = ""
-    activity_message.body = {}
+    assert activity_message.body.type == "SHELL"
     activity_message.needs = []
     result = validator.check(activity_message)
     assert result[0] is True

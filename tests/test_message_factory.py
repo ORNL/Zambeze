@@ -1,12 +1,13 @@
 # Local imports
 from zambeze.orchestration.message.message_factory import MessageFactory
 
-from zambeze.orchestration.zambeze_types import MessageType
+from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 from zambeze.orchestration.plugins import Plugins
 
 # Standard imports
 import pytest
 import time
+import uuid
 
 
 @pytest.mark.unit
@@ -56,27 +57,30 @@ def test_factory_fail():
 
 
 @pytest.mark.unit
-def test_factory_activity_template():
+def test_factory_activity_template_plugin_globus():
     """This test should be true all required fields are defined as well as all
     optional fields"""
     plugins = Plugins()
     msg_factory = MessageFactory(plugins)
     activity_template = msg_factory.createTemplate(
-        MessageType.ACTIVITY, "globus", "transfer"
+            MessageType.ACTIVITY, ActivityType.PLUGIN, args={
+                "plugin": "globus",
+                "action": "transfer"}
     )[1]
     print(activity_template)
     no_fail = True
     try:
-        activity_template.message_id = ""
-        activity_template.type = ""
-        activity_template.activity_id = ""
-        activity_template.agent_id = ""
-        activity_template.campaign_id = ""
+        activity_template.message_id = str(uuid.uuid4())
+        activity_template.activity_id = str(uuid.uuid4())
+        activity_template.agent_id = str(uuid.uuid4())
+        activity_template.campaign_id = str(uuid.uuid4())
         activity_template.credential = {}
         activity_template.submission_time = ""
-        assert activity_template.body.transfer.type == "synchronous"
-        activity_template.body.transfer.items[0].source = ""
-        activity_template.body.transfer.items[0].destination = ""
+        assert activity_template.body.parameters.transfer.type == "synchronous"
+        assert activity_template.body.type == "PLUGIN"
+        assert activity_template.body.plugin == "globus"
+        activity_template.body.parameters.transfer.items[0].source = ""
+        activity_template.body.parameters.transfer.items[0].destination = ""
         activity_template.needs = []
     except Exception as e:
         print(e)
@@ -85,7 +89,67 @@ def test_factory_activity_template():
 
 
 @pytest.mark.unit
-def test_factory_success():
+def test_factory_activity_template_plugin_rsync():
+    """This test should be true all required fields are defined as well as all
+    optional fields"""
+    plugins = Plugins()
+    msg_factory = MessageFactory(plugins)
+    activity_template = msg_factory.createTemplate(
+            MessageType.ACTIVITY, ActivityType.PLUGIN, {
+                "plugin": "rsync",
+                "action": "transfer"}
+    )[1]
+    print(activity_template)
+    no_fail = True
+    try:
+        activity_template.message_id = str(uuid.uuid4())
+        activity_template.activity_id = str(uuid.uuid4())
+        activity_template.agent_id = str(uuid.uuid4())
+        activity_template.campaign_id = str(uuid.uuid4())
+        activity_template.credential = {}
+        activity_template.submission_time = ""
+        assert activity_template.body.parameters.transfer.type == "synchronous"
+        assert activity_template.body.type == "PLUGIN"
+        assert activity_template.body.plugin == "rsync"
+        activity_template.body.parameters.transfer.items[0].source.path = ""
+        activity_template.body.parameters.transfer.items[0].source.user = ""
+        activity_template.body.parameters.transfer.items[0].destination.path = ""
+        activity_template.body.parameters.transfer.items[0].destination.user = ""
+        activity_template.needs = []
+    except Exception as e:
+        print(e)
+        no_fail = False
+    assert no_fail
+
+
+@pytest.mark.unit
+def test_factory_activity_template_shell():
+    """This test should be true all required fields are defined as well as all
+    optional fields"""
+    plugins = Plugins()
+    msg_factory = MessageFactory(plugins)
+    activity_template = msg_factory.createTemplate(
+            MessageType.ACTIVITY, ActivityType.SHELL, args={"shell": "bash"})[1]
+    print(activity_template)
+    no_fail = True
+    try:
+        activity_template.message_id = str(uuid.uuid4())
+        activity_template.activity_id = str(uuid.uuid4())
+        activity_template.agent_id = str(uuid.uuid4())
+        activity_template.campaign_id = str(uuid.uuid4())
+        activity_template.credential = {}
+        activity_template.submission_time = ""
+        assert activity_template.body.type == "SHELL"
+        assert activity_template.body.shell == "bash"
+
+    except Exception as e:
+        print(e)
+        no_fail = False
+    assert no_fail
+
+
+@pytest.mark.unit
+def test_factory_success_status():
     plugins = Plugins()
     msg_factory = MessageFactory(plugins)
 
@@ -112,13 +176,12 @@ def test_factory_success():
     status_tuple = msg_factory.createTemplate(MessageType.STATUS)
     """At this point the template can be used to fill in the items required
     to exceute the message after it is sent"""
-    status_tuple[1].message_id = 1
+    status_tuple[1].message_id = str(uuid.uuid4())
     status_tuple[1].submission_time = time.time()
-    status_tuple[1].type = ""
-    status_tuple[1].activity_id = ""
-    status_tuple[1].target_id = ""
-    status_tuple[1].campaign_id = ""
-    status_tuple[1].agent_id = ""
+    status_tuple[1].activity_id = str(uuid.uuid4())
+    status_tuple[1].target_id = str(uuid.uuid4())
+    status_tuple[1].campaign_id = str(uuid.uuid4())
+    status_tuple[1].agent_id = str(uuid.uuid4())
     status_tuple[1].body = {}
 
     """Should generate an immutable Status message, it will also verify that
@@ -126,3 +189,41 @@ def test_factory_success():
     status_msg = msg_factory.create(status_tuple)
 
     assert status_msg.type == MessageType.STATUS
+
+
+@pytest.mark.unit
+def test_factory_create_plugin_rsync():
+    """This test should be true all required fields are defined as well as all
+    optional fields"""
+    plugins = Plugins()
+    msg_factory = MessageFactory(plugins)
+    activity_tuple = msg_factory.createTemplate(
+            MessageType.ACTIVITY, ActivityType.PLUGIN, {
+                "plugin": "rsync",
+                "action": "transfer"}
+    )
+    print(activity_tuple)
+
+    activity_tuple[1].message_id = str(uuid.uuid4())
+    activity_tuple[1].activity_id = str(uuid.uuid4())
+    activity_tuple[1].agent_id = str(uuid.uuid4())
+    activity_tuple[1].campaign_id = str(uuid.uuid4())
+    activity_tuple[1].credential = {}
+    activity_tuple[1].submission_time = ""
+    activity_tuple[1].body.parameters.transfer.items[0].source.path = ""
+    activity_tuple[1].body.parameters.transfer.items[0].source.user = ""
+    activity_tuple[1].body.parameters.transfer.items[0].source.ip = "127.0.0.1"
+    activity_tuple[1].body.parameters.transfer.items[0].destination.path = ""
+    activity_tuple[1].body.parameters.transfer.items[0].destination.user = ""
+    activity_tuple[1].body.parameters.transfer.items[0].destination.ip = "127.0.0.1"
+    activity_tuple[1].needs = []
+    
+    """Should generate an immutable Activity message, it will also verify that
+    the correct fields have been included."""
+    status_msg = msg_factory.create(activity_tuple)
+
+    assert status_msg.type == MessageType.ACTIVITY
+
+
+
+

@@ -145,13 +145,15 @@ class RsyncMessageValidator(PluginMessageValidator):
         >>> assert checked_arguments[0]["transfer"][0]
         """
 
-        if isinstance(type(arguments), list):
+        if isinstance(arguments, list):
             pass
         elif isinstance(arguments, RsyncTransferTemplate):
             arguments = [arguments]
         else:
-            error = f"Unsupported argument type encountered. {type(arguments)}"
-            error += f" {type(RsyncTransferTemplate)}"
+            error = (
+                f"Unsupported argument type encountered. arguments = {type(arguments)}"
+            )
+            error += f" where {type(RsyncTransferTemplate)} is expected"
             raise Exception(error)
 
         checks = []

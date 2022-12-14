@@ -21,4 +21,6 @@ StatusTemplate = make_dataclass(
 
 # pyre-ignore[11]
 def createStatusTemplate() -> StatusTemplate:
-    return StatusTemplate(None, None, None, None, None, None, None, None)
+    template = StatusTemplate(None, None, None, None, None, None, None, None)
+    template.type = "STATUS"
+    return template

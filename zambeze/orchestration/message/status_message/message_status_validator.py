@@ -9,6 +9,7 @@ from .message_status_template_generator import (
     REQUIRED_STATUS_COMPONENTS,
     StatusTemplate,
 )
+from zambeze.orchestration.identity import validUUID
 
 
 class MessageStatusValidator(AbstractMessageValidator):
@@ -28,8 +29,8 @@ class MessageStatusValidator(AbstractMessageValidator):
         ...
 
     def check(self, message) -> tuple[bool, str]:
-        print(type(message))
-        print(type(StatusTemplate))
+        """Will ensure that the values of the message have the expected
+        format and values"""
         if not isinstance(message, StatusTemplate):
             return (
                 False,
@@ -44,5 +45,59 @@ class MessageStatusValidator(AbstractMessageValidator):
             att = getattr(message, attribute)
             if att is None:
                 return (False, f"Required attribute is not defined: {attribute}")
+
+        if message.type != "STATUS":
+            return (
+                False,
+                (
+                    "Required type attribute for status message must"
+                    f"be STATUS but is instead: {message.type}"
+                ),
+            )
+
+        if not validUUID(message.activity_id, 4):
+            return (
+                False,
+                (
+                    "Required activity_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.activity_id}"
+                ),
+            )
+
+        if not validUUID(message.campaign_id, 4):
+            return (
+                False,
+                (
+                    "Required campaign_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.campaign_id}"
+                ),
+            )
+
+        if not validUUID(message.agent_id, 4):
+            return (
+                False,
+                (
+                    "Required agent_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.agent_id}"
+                ),
+            )
+
+        if not validUUID(message.message_id, 4):
+            return (
+                False,
+                (
+                    "Required message_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.message_id}"
+                ),
+            )
+
+        if not validUUID(message.target_id, 4):
+            return (
+                False,
+                (
+                    "Required target_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.target_id}"
+                ),
+            )
 
         return (True, "")

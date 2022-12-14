@@ -1,5 +1,9 @@
 # Local imports
 from zambeze.orchestration.plugins import Plugins
+from zambeze.orchestration.plugins_message_template_engine import (
+    PluginsMessageTemplateEngine
+)
+from zambeze.orchestration.plugins_message_validator import PluginsMessageValidator
 from zambeze.orchestration.message.message_factory import MessageFactory
 
 # Standard imports
@@ -95,7 +99,8 @@ def test_rsync_plugin_check():
 
     neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
 
-    msg_template = plugins.messageTemplate("rsync", "transfer")
+    template_engine = PluginsMessageTemplateEngine()
+    msg_template = template_engine.generate("rsync", "transfer")
 
     msg_template.transfer.items[0].source.ip = local_ip
     msg_template.transfer.items[0].source.user = current_user
@@ -176,7 +181,8 @@ def test_rsync_plugin_run():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
-    msg_template = plugins.messageTemplate("rsync", "transfer")
+    template_engine = PluginsMessageTemplateEngine()
+    msg_template = template_engine.generate("rsync", "transfer")
 
     msg_template.transfer.items[0].source.ip = local_ip
     msg_template.transfer.items[0].source.user = current_user
@@ -206,7 +212,8 @@ def test_rsync_plugin_run():
     if os.path.exists(file_path_return):
         os.remove(file_path_return)
 
-    msg_template_return = plugins.messageTemplate("rsync", "transfer")
+    template_engine = PluginsMessageTemplateEngine()
+    msg_template_return = template_engine.generate("rsync", "transfer")
 
     msg_template_return.transfer.items[0].source.ip = local_ip
     msg_template_return.transfer.items[0].source.user = current_user

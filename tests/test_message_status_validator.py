@@ -1,4 +1,5 @@
 import pytest
+import uuid
 
 from zambeze.orchestration.message.status_message.message_status_validator import (
     MessageStatusValidator,
@@ -14,10 +15,10 @@ from zambeze.orchestration.message.status_message.message_status_template_genera
 def test_message_status_validator1():
     """This check should fail missing required fields"""
     status_message = {
-        "message_id": "",
+        "message_id": str(uuid.uuid4()),
         "submission_time": "",
-        "type": "",
-        "activity_id": "",
+        "type": "STATUS",
+        "activity_id": str(uuid.uuid4()),
     }
     validator = MessageStatusValidator()
     result = validator.check(status_message)
@@ -64,13 +65,12 @@ def test_message_status_validator3():
     """
     validator = MessageStatusValidator()
     status_message = createStatusTemplate()
-    status_message.message_id = "1"
+    status_message.message_id = str(uuid.uuid4())
     status_message.submission_time = "131"
-    status_message.type = ""
-    status_message.activity_id = ""
-    status_message.target_id = ""
-    status_message.campaign_id = ""
-    status_message.agent_id = ""
+    status_message.activity_id = str(uuid.uuid4())
+    status_message.target_id = str(uuid.uuid4())
+    status_message.campaign_id = str(uuid.uuid4())
+    status_message.agent_id = str(uuid.uuid4())
     status_message.body = {}
 
     result = validator.check(status_message)
@@ -94,13 +94,12 @@ def test_message_template():
     body: {}
     """
     status_message = createStatusTemplate()
-    status_message.message_id = "1"
+    status_message.message_id = str(uuid.uuid4())
     status_message.submission_time = "131"
-    status_message.type = ""
-    status_message.activity_id = ""
-    status_message.target_id = ""
-    status_message.campaign_id = ""
-    status_message.agent_id = ""
+    status_message.activity_id = str(uuid.uuid4())
+    status_message.target_id = str(uuid.uuid4())
+    status_message.campaign_id = str(uuid.uuid4())
+    status_message.agent_id = str(uuid.uuid4())
     status_message.body = {}
 
     failed = False
