@@ -133,7 +133,10 @@ def validateRequiredSourceAndDestinationValuesValid(
         action_inst = asdict(action_inst)
 
     if not isAddressValid(action_inst["source"]["ip"]):
-        return (False, f"Invalid 'source' ip address detected: {action_inst['source']['ip']}")
+        return (
+            False,
+            f"Invalid 'source' ip address detected: {action_inst['source']['ip']}",
+        )
 
     if not isAddressValid(action_inst["destination"]["ip"]):
         return (
@@ -183,7 +186,10 @@ def requiredSourceAndDestinationValuesValid(
         if not pathlib.Path(action_inst["source"]["path"]).exists():
             # If it is the destination it doesn't matter as much because
             # we will try to create it
-            return (False, f"Source path does not exist: {action_inst['source']['path']}")
+            return (
+                False,
+                f"Source path does not exist: {action_inst['source']['path']}",
+            )
 
         if not userExists(action_inst["source"]["user"]):
             return (False, f"User does not exist: {action_inst['source']['user']}")

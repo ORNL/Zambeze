@@ -267,8 +267,8 @@ class Plugins:
                 plugin_name = msg.data.body.plugin
             else:
                 raise Exception(
-                    "plugin check only currently supports plugin "
-                    "activities")
+                    "plugin check only currently supports plugin " "activities"
+                )
         else:
             plugin_name = msg
 
@@ -280,7 +280,6 @@ class Plugins:
                 "2. The plugin name as a str and the package as a dict\n"
                 "\n"
                 f"The encountered type is {type(plugin_name)}"
-
             )
         elif not isinstance(arguments, dict):
             raise ValueError(
@@ -313,9 +312,7 @@ class Plugins:
         return PluginChecks(check_results)
 
     @overload
-    def run(
-        self, msg: AbstractMessage, arguments: Optional[dict] = None
-    ) -> None:
+    def run(self, msg: AbstractMessage, arguments: Optional[dict] = None) -> None:
         ...
 
     @overload
@@ -372,8 +369,8 @@ class Plugins:
                 plugin_name = msg.data.body.plugin
             else:
                 raise Exception(
-                    "plugin check only currently supports plugin "
-                    "activities")
+                    "plugin check only currently supports plugin " "activities"
+                )
         else:
             plugin_name = msg
 

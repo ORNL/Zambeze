@@ -18,6 +18,7 @@ import socket
 import time
 import uuid
 
+
 @pytest.mark.unit
 def test_registered_plugins():
     """Test checks that you can get a list of all the registered plugins"""
@@ -102,12 +103,10 @@ def test_rsync_plugin_check():
 
     factory = MessageFactory()
     msg_template = factory.createTemplate(
-            MessageType.ACTIVITY,
-            ActivityType.PLUGIN,
-            {
-                "plugin": "rsync",
-                "action": "transfer"
-            })
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
+    )
 
     msg_template[1].message_id = str(uuid.uuid4())
     msg_template[1].activity_id = str(uuid.uuid4())
@@ -149,7 +148,9 @@ def test_rsync_plugin_check():
     assert should_fail
 
     msg_faulty_user = copy.deepcopy(msg_template)
-    msg_faulty_user[1].body.parameters.transfer.items[0].source.user = "user_that_does_not_exist"
+    msg_faulty_user[1].body.parameters.transfer.items[
+        0
+    ].source.user = "user_that_does_not_exist"
     msg = factory.create(msg_faulty_user)
     checked_actions = plugins.check(msg)
     print(checked_actions)
@@ -203,12 +204,10 @@ def test_rsync_plugin_run():
 
     factory = MessageFactory()
     msg_template = factory.createTemplate(
-            MessageType.ACTIVITY,
-            ActivityType.PLUGIN,
-            {
-                "plugin": "rsync",
-                "action": "transfer"
-            })
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
+    )
 
     msg_template[1].message_id = str(uuid.uuid4())
     msg_template[1].activity_id = str(uuid.uuid4())
@@ -249,12 +248,10 @@ def test_rsync_plugin_run():
     msg_template_return = template_engine.generate("rsync", "transfer")
 
     msg_template_return = factory.createTemplate(
-            MessageType.ACTIVITY,
-            ActivityType.PLUGIN,
-            {
-                "plugin": "rsync",
-                "action": "transfer"
-            })
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
+    )
 
     msg_template_return[1].message_id = str(uuid.uuid4())
     msg_template_return[1].activity_id = str(uuid.uuid4())
@@ -264,10 +261,16 @@ def test_rsync_plugin_run():
     msg_template_return[1].submission_time = str(int(time.time()))
     msg_template_return[1].body.parameters.transfer.items[0].source.ip = neighbor_vm_ip
     msg_template_return[1].body.parameters.transfer.items[0].source.user = "cades"
-    msg_template_return[1].body.parameters.transfer.items[0].source.path = "/tmp/" + file_name
+    msg_template_return[1].body.parameters.transfer.items[0].source.path = (
+        "/tmp/" + file_name
+    )
     msg_template_return[1].body.parameters.transfer.items[0].destination.ip = local_ip
-    msg_template_return[1].body.parameters.transfer.items[0].destination.user = current_user
-    msg_template_return[1].body.parameters.transfer.items[0].destination.path = file_path_return
+    msg_template_return[1].body.parameters.transfer.items[
+        0
+    ].destination.user = current_user
+    msg_template_return[1].body.parameters.transfer.items[
+        0
+    ].destination.path = file_path_return
 
     #    arguments_return = {
     #        "transfer": {
