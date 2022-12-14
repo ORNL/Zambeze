@@ -1,7 +1,7 @@
 # Local imports
 from zambeze.orchestration.plugins import Plugins
 from zambeze.orchestration.plugins_message_template_engine import (
-    PluginsMessageTemplateEngine
+    PluginsMessageTemplateEngine,
 )
 from zambeze.orchestration.plugins_message_validator import PluginsMessageValidator
 from zambeze.orchestration.message.message_factory import MessageFactory

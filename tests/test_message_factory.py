@@ -63,9 +63,9 @@ def test_factory_activity_template_plugin_globus():
     plugins = Plugins()
     msg_factory = MessageFactory(plugins)
     activity_template = msg_factory.createTemplate(
-            MessageType.ACTIVITY, ActivityType.PLUGIN, args={
-                "plugin": "globus",
-                "action": "transfer"}
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        args={"plugin": "globus", "action": "transfer"},
     )[1]
     print(activity_template)
     no_fail = True
@@ -95,9 +95,9 @@ def test_factory_activity_template_plugin_rsync():
     plugins = Plugins()
     msg_factory = MessageFactory(plugins)
     activity_template = msg_factory.createTemplate(
-            MessageType.ACTIVITY, ActivityType.PLUGIN, {
-                "plugin": "rsync",
-                "action": "transfer"}
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
     )[1]
     print(activity_template)
     no_fail = True
@@ -129,7 +129,8 @@ def test_factory_activity_template_shell():
     plugins = Plugins()
     msg_factory = MessageFactory(plugins)
     activity_template = msg_factory.createTemplate(
-            MessageType.ACTIVITY, ActivityType.SHELL, args={"shell": "bash"})[1]
+        MessageType.ACTIVITY, ActivityType.SHELL, args={"shell": "bash"}
+    )[1]
     print(activity_template)
     no_fail = True
     try:
@@ -198,9 +199,9 @@ def test_factory_create_plugin_rsync():
     plugins = Plugins()
     msg_factory = MessageFactory(plugins)
     activity_tuple = msg_factory.createTemplate(
-            MessageType.ACTIVITY, ActivityType.PLUGIN, {
-                "plugin": "rsync",
-                "action": "transfer"}
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
     )
     print(activity_tuple)
 
@@ -217,13 +218,9 @@ def test_factory_create_plugin_rsync():
     activity_tuple[1].body.parameters.transfer.items[0].destination.user = ""
     activity_tuple[1].body.parameters.transfer.items[0].destination.ip = "127.0.0.1"
     activity_tuple[1].needs = []
-    
+
     """Should generate an immutable Activity message, it will also verify that
     the correct fields have been included."""
     status_msg = msg_factory.create(activity_tuple)
 
     assert status_msg.type == MessageType.ACTIVITY
-
-
-
-

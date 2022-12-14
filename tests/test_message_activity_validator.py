@@ -2,7 +2,7 @@ import pytest
 import uuid
 
 from zambeze.orchestration.message.activity_message.message_activity_validator import (
-    MessageActivityValidator
+    MessageActivityValidator,
 )
 from zambeze.orchestration.message.activity_message.message_activity_template_generator import (
     createActivityTemplate,
@@ -12,6 +12,8 @@ from zambeze.orchestration.zambeze_types import ActivityType
 ###############################################################################
 # Testing Action: Control
 ###############################################################################
+
+
 @pytest.mark.unit
 def test_message_activity_validator():
     """This check should fail because a dict is passed to a validator instead

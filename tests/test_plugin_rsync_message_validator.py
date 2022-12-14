@@ -1,6 +1,7 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.rsync.rsync_message_template_generator import (
-    RsyncMessageTemplateGenerator, )
+    RsyncMessageTemplateGenerator,
+)
 from zambeze.orchestration.plugin_modules.rsync.rsync_message_validator import (
     RsyncMessageValidator,
 )

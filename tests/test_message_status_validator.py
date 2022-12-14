@@ -5,7 +5,8 @@ from zambeze.orchestration.message.status_message.message_status_validator impor
     MessageStatusValidator,
 )
 from zambeze.orchestration.message.status_message.message_status_template_generator import (
-    createStatusTemplate, )
+    createStatusTemplate,
+)
 
 
 ###############################################################################
