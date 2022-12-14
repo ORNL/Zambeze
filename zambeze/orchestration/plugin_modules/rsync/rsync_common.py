@@ -11,6 +11,7 @@ from ...system_utils import userExists
 from ...network import isAddressValid
 
 # Standard imports
+from dataclasses import asdict
 import pathlib
 
 SUPPORTED_ACTIONS = {"transfer": False}
@@ -128,13 +129,16 @@ def validateRequiredSourceAndDestinationValuesValid(
     Extra checks are run on the source or destination
     values depending on which machine this code is running on.
     """
-    if not isAddressValid(action_inst.source.ip):
-        return (False, f"Invalid 'source' ip address detected: {action_inst.source.ip}")
+    if not isinstance(action_inst, dict):
+        action_inst = asdict(action_inst)
 
-    if not isAddressValid(action_inst.destination.ip):
+    if not isAddressValid(action_inst["source"]["ip"]):
+        return (False, f"Invalid 'source' ip address detected: {action_inst['source']['ip']}")
+
+    if not isAddressValid(action_inst["destination"]["ip"]):
         return (
             False,
-            f"Invalid 'destination' ip address detected: {action_inst.destination.ip}",
+            f"Invalid 'destination' ip address detected: {action_inst['destination']['ip']}",
         )
 
     return (True, "")
@@ -165,6 +169,9 @@ def requiredSourceAndDestinationValuesValid(
     Extra checks are run on the source or destination
     values depending on which machine this code is running on.
     """
+    if not isinstance(action_inst, dict):
+        action_inst = asdict(action_inst)
+
     if match_host == "":
         return (
             False,
@@ -173,16 +180,16 @@ def requiredSourceAndDestinationValuesValid(
         )
     # If make sure that paths defined on the host exist
     if match_host == "source":
-        if not pathlib.Path(action_inst.source.path).exists():
+        if not pathlib.Path(action_inst["source"]["path"]).exists():
             # If it is the destination it doesn't matter as much because
             # we will try to create it
-            return (False, f"Source path does not exist: {action_inst.source.path}")
+            return (False, f"Source path does not exist: {action_inst['source']['path']}")
 
-        if not userExists(action_inst.source.user):
-            return (False, f"User does not exist: {action_inst.source.user}")
+        if not userExists(action_inst["source"]["user"]):
+            return (False, f"User does not exist: {action_inst['source']['user']}")
     else:
-        if not userExists(action_inst.destination.user):
-            return (False, f"User does not exist: {action_inst.destination.user}")
+        if not userExists(action_inst["destination"]["user"]):
+            return (False, f"User does not exist: {action_inst['destination']['user']}")
 
     return (True, "")
 
@@ -194,7 +201,8 @@ def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
     if the "destination" ip address matches returns "destination", and
     if neither is a match returns None
     """
-    if hasattr("source", action_inst):
+    print(f"action_inst is {action_inst}")
+    if hasattr(action_inst, "source"):
         if isAddressValid(action_inst.source.ip):
             if action_inst.source.ip == host_ip:
                 return "source"

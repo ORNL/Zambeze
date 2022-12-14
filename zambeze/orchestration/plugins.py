@@ -16,6 +16,7 @@ from .plugin_modules.common_plugin_functions import registerPlugins
 
 # Standard imports
 from copy import deepcopy
+from dataclasses import asdict
 from importlib import import_module
 from inspect import isclass
 from typing import Optional, Type, overload
@@ -260,8 +261,14 @@ class Plugins:
         print("Checking if instance of abstract message")
         if isinstance(msg, AbstractMessage):
             print("Abstract message detected")
-            arguments = msg.data["cmd"]
-            plugin_name = msg.data["plugin"]
+            print(msg.data)
+            if msg.data.body.type == "PLUGIN":
+                arguments = asdict(msg.data.body.parameters)
+                plugin_name = msg.data.body.plugin
+            else:
+                raise Exception(
+                    "plugin check only currently supports plugin "
+                    "activities")
         else:
             plugin_name = msg
 
@@ -271,6 +278,9 @@ class Plugins:
                 "The check function only supports either:\n"
                 "1. An abstract message as a single argument\n"
                 "2. The plugin name as a str and the package as a dict\n"
+                "\n"
+                f"The encountered type is {type(plugin_name)}"
+
             )
         elif not isinstance(arguments, dict):
             raise ValueError(
@@ -278,6 +288,8 @@ class Plugins:
                 "The check function only supports either:\n"
                 "1. An abstract message as a single argument\n"
                 "2. The plugin name as a str and the package as a dict\n"
+                "\n"
+                f"The encountered type is {type(arguments)}"
             )
 
         check_results = {}
@@ -301,14 +313,20 @@ class Plugins:
         return PluginChecks(check_results)
 
     @overload
-    def run(self, msg: Type[AbstractMessage], arguments: Optional[dict] = None) -> None:
+    def run(
+        self, msg: AbstractMessage, arguments: Optional[dict] = None
+    ) -> None:
+        ...
+
+    @overload
+    def run(self, msg: str, arguments: dict = {}) -> None:
         ...
 
     #    @overload
     #    def run(self, plugin_name: str, arguments: dict) -> None:
     #        ...
     #
-    def run(self, msg, arguments) -> None:
+    def run(self, msg, arguments=None) -> None:
         """Run a specific plugins.
 
         :parameter plugin_name: Plugin name
@@ -347,8 +365,19 @@ class Plugins:
         >>> plugins.run('rsync', arguments)
         """
         if isinstance(msg, AbstractMessage):
-            arguments = msg.data.body
-            plugin_name = msg.data.body.plugin.lower()
+            print("Abstract message detected")
+            print(msg.data)
+            if msg.data.body.type == "PLUGIN":
+                arguments = asdict(msg.data.body.parameters)
+                plugin_name = msg.data.body.plugin
+            else:
+                raise Exception(
+                    "plugin check only currently supports plugin "
+                    "activities")
+        else:
+            plugin_name = msg
+
+        print(f"plugin_name: {plugin_name} {type(plugin_name)}")
 
         if not isinstance(plugin_name, str):
             raise ValueError("Unsupported plugin_name type detected in check.")

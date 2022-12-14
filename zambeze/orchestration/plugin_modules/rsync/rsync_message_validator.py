@@ -26,6 +26,7 @@ from .rsync_common import (
 )
 
 # Standard imports
+from dataclasses import asdict
 from typing import Optional, overload
 import logging
 
@@ -36,9 +37,14 @@ class RsyncMessageValidator(PluginMessageValidator):
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
 
+        if not isinstance(arguments, dict):
+            arguments = asdict(arguments)
+
         if action == "transfer":
             # Start by checking that all the files have been provided
-            for item in arguments.transfer.items:
+            print("**************************************************")
+            print(arguments)
+            for item in arguments["transfer"]["items"]:
                 check = validateRequiredSourceAndDestinationValuesValid(item)
 
                 if not check[0]:

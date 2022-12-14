@@ -91,6 +91,9 @@ class MessageFactory:
         >>>     "needs": []
         >>> }
         """
+        if not isinstance(message_type, MessageType):
+            raise Exception("message_type must be of type MessageType")
+
         if message_type == MessageType.ACTIVITY:
             activity = createActivityTemplate(activity_type)
 
