@@ -1,4 +1,5 @@
 import pytest
+import time
 import uuid
 
 from zambeze.orchestration.message.activity_message.message_activity_validator import (
@@ -22,12 +23,11 @@ def test_message_activity_validator():
     of an immutable message type."""
     activity_message = {
         "message_id": str(uuid.uuid4()),
-        "submission_time": "",
+        "submission_time": str(int(time.time())),
         "type": "ACTIVITY",
         "activity_id": str(uuid.uuid4()),
         "campaign_id": str(uuid.uuid4()),
         "credential": {},
-        "submission_time": "",
         "body": {},
     }
     validator = MessageActivityValidator()
@@ -56,7 +56,7 @@ def test_message_activity_validator_required_shell():
     activity_message.agent_id = str(uuid.uuid4())
     activity_message.campaign_id = str(uuid.uuid4())
     activity_message.credential = {}
-    activity_message.submission_time = ""
+    activity_message.submission_time = str(int(time.time()))
     assert activity_message.body.type == "SHELL"
 
     result = validator.check(activity_message)
@@ -84,7 +84,7 @@ def test_message_activity_validator_required_plugin():
     activity_message.agent_id = str(uuid.uuid4())
     activity_message.campaign_id = str(uuid.uuid4())
     activity_message.credential = {}
-    activity_message.submission_time = ""
+    activity_message.submission_time = str(int(time.time()))
     assert activity_message.body.type == "PLUGIN"
     result = validator.check(activity_message)
     assert result[0] is True
@@ -101,7 +101,7 @@ def test_message_activity_validator_required_and_optional_shell():
     activity_message.agent_id = str(uuid.uuid4())
     activity_message.campaign_id = str(uuid.uuid4())
     activity_message.credential = {}
-    activity_message.submission_time = ""
+    activity_message.submission_time = str(int(time.time()))
     assert activity_message.body.type == "SHELL"
     activity_message.needs = []
     result = validator.check(activity_message)

@@ -101,4 +101,22 @@ class MessageStatusValidator(AbstractMessageValidator):
                 ),
             )
 
+        is_valid_int = False
+        try:
+            valid_epoch_time = int(message.submission_time)
+            if valid_epoch_time > 0:
+                is_valid_int = True
+        except Exception:
+            pass
+
+        if is_valid_int is False:
+            return (
+                False,
+                (
+                    "Required submission_time attribute for activity message must"
+                    "be a valid string with an int for the epoc time:"
+                    f"{message.submission_time}"
+                ),
+            )
+
         return (True, "")

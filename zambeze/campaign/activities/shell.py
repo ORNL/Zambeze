@@ -6,6 +6,7 @@
 # it under the terms of the MIT License.
 
 import logging
+import time
 import uuid
 
 from typing import Optional
@@ -66,7 +67,7 @@ class ShellActivity(Activity):
         template[1].agent_id = str(uuid.uuid4())
         template[1].campaign_id = str(uuid.uuid4())
         template[1].credential = {}
-        template[1].submission_time = ""
+        template[1].submission_time = str(int(time.time()))
         template[1].body.type == "SHELL"
         template[1].body.shell == "bash"
         template[1].body.files == self.files

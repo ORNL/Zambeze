@@ -40,7 +40,7 @@ def test_factory_fail():
     to exceute the message after it is sent"""
     print(status_tuple)
     status_tuple[1].message_id = 1
-    status_tuple[1].submission_time = time.time()
+    status_tuple[1].submission_time = str(int(time.time()))
 
     """This field should force failure"""
     status_tuple[1].unsupported_field = "should make fail"
@@ -75,7 +75,7 @@ def test_factory_activity_template_plugin_globus():
         activity_template.agent_id = str(uuid.uuid4())
         activity_template.campaign_id = str(uuid.uuid4())
         activity_template.credential = {}
-        activity_template.submission_time = ""
+        activity_template.submission_time = str(int(time.time()))
         assert activity_template.body.parameters.transfer.type == "synchronous"
         assert activity_template.body.type == "PLUGIN"
         assert activity_template.body.plugin == "globus"
@@ -107,7 +107,7 @@ def test_factory_activity_template_plugin_rsync():
         activity_template.agent_id = str(uuid.uuid4())
         activity_template.campaign_id = str(uuid.uuid4())
         activity_template.credential = {}
-        activity_template.submission_time = ""
+        activity_template.submission_time = str(int(time.time()))
         assert activity_template.body.parameters.transfer.type == "synchronous"
         assert activity_template.body.type == "PLUGIN"
         assert activity_template.body.plugin == "rsync"
@@ -139,7 +139,7 @@ def test_factory_activity_template_shell():
         activity_template.agent_id = str(uuid.uuid4())
         activity_template.campaign_id = str(uuid.uuid4())
         activity_template.credential = {}
-        activity_template.submission_time = ""
+        activity_template.submission_time = str(int(time.time()))
         assert activity_template.body.type == "SHELL"
         assert activity_template.body.shell == "bash"
 
@@ -178,7 +178,7 @@ def test_factory_success_status():
     """At this point the template can be used to fill in the items required
     to exceute the message after it is sent"""
     status_tuple[1].message_id = str(uuid.uuid4())
-    status_tuple[1].submission_time = time.time()
+    status_tuple[1].submission_time = str(int(time.time()))
     status_tuple[1].activity_id = str(uuid.uuid4())
     status_tuple[1].target_id = str(uuid.uuid4())
     status_tuple[1].campaign_id = str(uuid.uuid4())
@@ -210,7 +210,7 @@ def test_factory_create_plugin_rsync():
     activity_tuple[1].agent_id = str(uuid.uuid4())
     activity_tuple[1].campaign_id = str(uuid.uuid4())
     activity_tuple[1].credential = {}
-    activity_tuple[1].submission_time = ""
+    activity_tuple[1].submission_time = str(int(time.time()))
     activity_tuple[1].body.parameters.transfer.items[0].source.path = ""
     activity_tuple[1].body.parameters.transfer.items[0].source.user = ""
     activity_tuple[1].body.parameters.transfer.items[0].source.ip = "127.0.0.1"
