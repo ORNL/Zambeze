@@ -1,9 +1,8 @@
 # Local imports
-# fmt off
-from zambeze.orchestration.plugin_modules.rsync.rsync_message_template_generator import (
-    RsyncMessageTemplateGenerator, )
-
-# fmt on
+# fmt: off
+from zambeze.orchestration.plugin_modules.rsync.\
+    rsync_message_template_generator import RsyncMessageTemplateGenerator
+# fmt: on
 from zambeze.orchestration.plugin_modules.rsync.rsync_message_validator import (
     RsyncMessageValidator,
 )
