@@ -31,6 +31,7 @@ class MessageActivityValidator(AbstractMessageValidator):
         ...
 
     def check(self, message) -> tuple[bool, str]:
+        # pyre-ignore[6]
         if not isinstance(message, ActivityTemplate):
             return (
                 False,

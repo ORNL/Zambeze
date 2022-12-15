@@ -94,7 +94,7 @@ class RsyncMessageValidator(PluginMessageValidator):
         checks = []
         return self._validateAction(action, checks, arguments)
 
-    @overload
+    @overload  # pyre-ignore[14]
     def validateMessage(self, arguments: RsyncTransferTemplate) -> list:
         ...
 
