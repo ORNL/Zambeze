@@ -1,5 +1,4 @@
 # Standard imports
-from dataclasses import make_dataclass
 from typing import Optional, Any, overload
 
 import logging

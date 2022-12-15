@@ -11,13 +11,6 @@ from __future__ import annotations
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from ..common_dataclasses import (
-    Items,
-    Move,
-    TransferTemplateInner,
-    TransferTemplate,
-    RsyncItem,
-    Endpoints,
-    RsyncTransferTemplateInner,
     RsyncTransferTemplate,
 )
 from .rsync_common import (

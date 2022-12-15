@@ -1,6 +1,5 @@
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
-from ..common_dataclasses import Items, Move, TransferTemplateInner, TransferTemplate
 from .globus_common import (
     checkTransferEndpoint,
     checkAllItemsHaveValidEndpoints,
@@ -10,7 +9,6 @@ from .globus_common import (
 from ...identity import validUUID
 
 # Standard imports
-from dataclasses import dataclass
 from typing import Optional
 import logging
 

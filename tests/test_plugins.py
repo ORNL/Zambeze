@@ -3,7 +3,6 @@ from zambeze.orchestration.plugins import Plugins
 from zambeze.orchestration.plugins_message_template_engine import (
     PluginsMessageTemplateEngine,
 )
-from zambeze.orchestration.plugins_message_validator import PluginsMessageValidator
 from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 

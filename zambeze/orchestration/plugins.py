@@ -19,7 +19,7 @@ from copy import deepcopy
 from dataclasses import asdict
 from importlib import import_module
 from inspect import isclass
-from typing import Optional, Type, overload
+from typing import Optional, overload
 
 import logging
 

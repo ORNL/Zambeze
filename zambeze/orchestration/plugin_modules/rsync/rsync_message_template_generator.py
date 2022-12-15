@@ -11,10 +11,6 @@ from zambeze.orchestration.plugin_modules.abstract_plugin_template_generator imp
     PluginMessageTemplateGenerator,
 )
 from ..common_dataclasses import (
-    Items,
-    Move,
-    TransferTemplateInner,
-    TransferTemplate,
     RsyncItem,
     Endpoints,
     RsyncTransferTemplateInner,
@@ -23,7 +19,6 @@ from ..common_dataclasses import (
 from .rsync_common import (
     PLUGIN_NAME,
     SUPPORTED_ACTIONS,
-    validateRequiredSourceAndDestinationValuesValid,
 )
 
 # Standard imports

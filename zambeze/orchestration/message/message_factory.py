@@ -77,11 +77,11 @@ class MessageFactory:
         >>>                "items": [
         >>>                    {
         >>>                        "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-        >>>                        "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
+        >>>                        "destination": "globus://YYY...YYYYY/dest/file1.txt"
         >>>                    },
         >>>                    {
-        >>>                        "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-        >>>                        "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
+        >>>                        "source": "globus://XXXXXXXX-...XXXXXXXXX/file2.txt",
+        >>>                        "destination": "globus://YYYY...YYYY/dest/file2.txt"
         >>>                    }
         >>>                ]
         >>>                }
