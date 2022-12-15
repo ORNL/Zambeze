@@ -4,8 +4,11 @@ import uuid
 from zambeze.orchestration.message.activity_message.message_activity_validator import (
     MessageActivityValidator,
 )
-from zambeze.orchestration.message.activity_message.message_activity_template_generator import (
-    createActivityTemplate, )
+
+# fmt: off
+from zambeze.orchestration.message.activity_message.\
+        message_activity_template_generator import createActivityTemplate
+# fmt: on
 from zambeze.orchestration.zambeze_types import ActivityType
 
 ###############################################################################

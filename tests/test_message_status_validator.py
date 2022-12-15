@@ -4,8 +4,11 @@ import uuid
 from zambeze.orchestration.message.status_message.message_status_validator import (
     MessageStatusValidator,
 )
-from zambeze.orchestration.message.status_message.message_status_template_generator import (
-    createStatusTemplate, )
+
+# fmt: off
+from zambeze.orchestration.message.status_message.\
+    message_status_template_generator import createStatusTemplate
+# fmt: on
 
 
 ###############################################################################
