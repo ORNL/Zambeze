@@ -12,6 +12,8 @@ import logging
 import os
 import socket
 import threading
+import time
+import uuid
 
 from typing import Optional
 
@@ -24,6 +26,7 @@ from urllib.parse import urlparse
 
 # Local imports
 from ..settings import ZambezeSettings
+from .message.abstract_message import AbstractMessage
 from .message.message_factory import MessageFactory
 from .queue.queue_factory import QueueFactory
 from .queue.queue_exceptions import QueueTimeoutException
@@ -86,40 +89,45 @@ class Processor(threading.Thread):
 
                 msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
                 self._logger.debug("Message received:")
-                self._logger.debug(json.dumps(msg.data, indent=4))
 
-                if self._settings.is_plugin_configured(msg.data["plugin"].lower()):
+                if msg.type != MessageType.ACTIVITY:
+                    self._logger.debug(
+                        "Non-activity message received on" "ACTIVITY channel"
+                    )
+                else:
+                    self._logger.debug(json.dumps(msg.data, indent=4))
+                    # Determine what kind of activity it is
+                    if msg.data.body.type == "SHELL":
+                        # Determine if the shell activity has files that
+                        # Need to be moved to be executed
+                        if len(msg.data.body.files) > 0:
+                            await self.__process_files(msg.data.body.files)
 
-                    # look for files
-                    if "files" in msg.data and msg.data["files"]:
-                        await self.__process_files(msg.data["files"])
+                        self._logger.info("Command to be executed.")
+                        self._logger.info(json.dumps(msg.data["cmd"], indent=4))
 
-                    self._logger.info("Command to be executed.")
-                    self._logger.info(json.dumps(msg.data["cmd"], indent=4))
+                        # Running Checks
+                        # Returned results should be double nested dict with a tuple of
+                        # the form
+                        #
+                        # "plugin": { "action": (bool, message) }
+                        #
+                        # The bool is a true or false which indicates if the action
+                        # for the plugin is a problem, the message is an error message
+                        # or a success statement
+                        checked_result = self._settings.plugins.check(msg)
+                        self._logger.debug(checked_result)
 
-                    # Running Checks
-                    # Returned results should be double nested dict with a tuple of
-                    # the form
-                    #
-                    # "plugin": { "action": (bool, message) }
-                    #
-                    # The bool is a true or false which indicates if the action
-                    # for the plugin is a problem, the message is an error message
-                    # or a success statement
-                    checked_result = self._settings.plugins.check(msg)
-                    self._logger.debug(checked_result)
+                        if checked_result.errorDetected() is False:
+                            self._settings.plugins.run(msg)
+                        else:
+                            self._logger.debug(
+                                "Skipping run - error detected when running "
+                                "plugin check"
+                            )
 
-                    if checked_result.errorDetected() is False:
-                        self._settings.plugins.run(msg)
-                    #                        self._settings.plugins.run(
-                    #                            plugin_name=msg.data["plugin"].lower(),
-                    #                            arguments=msg.data["cmd"]
-                    #                        )
                     else:
-                        self._logger.debug(
-                            "Skipping run - error detected when running plugin check"
-                        )
-
+                        raise Exception("Only SHELL currently supported")
                 self._logger.debug("Waiting for messages")
 
             except QueueTimeoutException as e:
@@ -167,27 +175,13 @@ class Processor(threading.Thread):
                     ActivityType.PLUGIN,
                     {"plugin": "globus", "action": "transfer"},
                 )
-                #
-                #                msg_template[1]["body"]["cmd"] = [
-                #                    {
-                #                        "transfer": {
-                #                            "type": "synchronous",
-                #                            "items": [
-                #                                {
-                #                                    "source": file_url.geturl(),
-                #                                    "destination": local_globus_uri,
-                #                                }
-                #                            ],
-                #                        }
-                #                    }
-                #                ]
-                msg_template_transfer[1].message_id = ""
-                msg_template_transfer[1].type = ""
-                msg_template_transfer[1].activity_id = ""
-                msg_template_transfer[1].agent_id = ""
-                msg_template_transfer[1].campaign_id = ""
+
+                msg_template_transfer[1].message_id = str(uuid.uuid4())
+                msg_template_transfer[1].activity_id = str(uuid.uuid4())
+                msg_template_transfer[1].agent_id = str(uuid.uuid4())
+                msg_template_transfer[1].campaign_id = str(uuid.uuid4())
                 msg_template_transfer[1].credential = {}
-                msg_template_transfer[1].submission_time = ""
+                msg_template_transfer[1].submission_time = str(int(time.time()))
                 msg_template_transfer[1].body.transfer.type = "synchronous"
                 msg_template_transfer[1].body.transfer.items[
                     0
@@ -209,32 +203,18 @@ class Processor(threading.Thread):
                     {"plugin": "globus", "action": "move_from_globus_collection"},
                 )
 
-                # Dependency on transfer needs to be defined
-                #                msg_template_move[1]["body"]["cmd"] = [
-                #                    {
-                #                        "move_from_globus_collection": {
-                #                            "items": [
-                #                                {
-                #                                    "source": local_globus_uri,
-                #                                    "destination": local_posix_uri,
-                #                                }
-                #                            ]
-                #                        }
-                #                    }
-                #                ]
-                msg_template_move[1].message_id = ""
-                msg_template_move[1].type = ""
-                msg_template_move[1].activity_id = ""
-                msg_template_move[1].agent_id = ""
-                msg_template_move[1].campaign_id = ""
+                msg_template_move[1].message_id = str(uuid.uuid4())
+                msg_template_move[1].activity_id = str(uuid.uuid4())
+                msg_template_move[1].agent_id = str(uuid.uuid4())
+                msg_template_move[1].campaign_id = str(uuid.uuid4())
                 msg_template_move[1].credential = {}
-                msg_template_move[1].submission_time = ""
+                msg_template_move[1].submission_time = str(int(time.time()))
                 msg_template_move[1].body.move_to_globus_collection.items[
                     0
                 ].source = local_globus_uri
                 msg_template_move[1].body.move_to_globus_collection.items[
                     0
-                ].destination = (local_posix_uri,)
+                ].destination = local_posix_uri
 
                 # Will validate the message fields and then make it immutable
                 immutable_msg_move = self._msg_factory.create(msg_template_move)
@@ -243,25 +223,6 @@ class Processor(threading.Thread):
 
                 await self._queue_client.send(ChannelType.ACTIVITY, immutable_msg)
                 await self._queue_client.send(ChannelType.ACTIVITY, immutable_msg_move)
-
-                # If the local agent does not support Globus we will need to
-                # send a request to to nats for someone else to handle the
-                # transfer
-                # await self.send(
-                #     MessageType.COMPUTE.value,
-                #     {
-                #         "plugin": "globus",
-                #         "cmd": [
-                #             {
-                #                 "transfer": {
-                #                     "type": "synchronous",
-                #                     "items": [file_url],
-                #                 }
-                #             },
-                #         ],
-                #     },
-                # )
-                # raise Exception("Needs to be implemented.")
 
             elif file_url.scheme == "rsync":
 
@@ -285,28 +246,12 @@ class Processor(threading.Thread):
                 msg_template[1].body.transfer.items[
                     0
                 ].destination.username = getpass.getuser()
-                #                msg_template[1]["body"]["cmd"] = [
-                #                    {
-                #                        "transfer": {
-                #                            "source": {
-                #                                "ip": file_url.netloc,
-                #                                "path": file_url.path,
-                #                                "user": file_url.username,
-                #                            },
-                #                            "destination": {
-                #               "ip": socket.gethostbyname(socket.gethostname()),
-                #               "path": str(pathlib.Path().resolve()),
-                #               "user": getpass.getuser(),
-                #                            },
-                #                        }
-                #                    }
-                #                ]
                 # Will validate the message fields and then make it immutable
                 msg = self._msg_factory.create(msg_template)
                 await self._queue_client.send(ChannelType.ACTIVITY, msg)
 
     # body needs to be changed to AbstractMessage
-    async def send(self, channel_type: ChannelType, body: tuple) -> None:
+    async def send(self, channel_type: ChannelType, msg: AbstractMessage) -> None:
         """
         Publish an activity message to the queue.
 
@@ -321,6 +266,5 @@ class Processor(threading.Thread):
         )
         self._logger.debug(f"Sending a '{channel_type.value}' message")
 
-        msg = self._msg_factory.create(body)
         await self._queue_client.connect()
         await self._queue_client.send(channel_type, msg)

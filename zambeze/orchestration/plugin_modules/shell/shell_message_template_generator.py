@@ -33,5 +33,6 @@ class ShellMessageGenerator(PluginMessageTemplateGenerator):
         class Command:
             program: str
             args: list[str]
+            env_vars: dict
 
         return Bash(Command("", []))

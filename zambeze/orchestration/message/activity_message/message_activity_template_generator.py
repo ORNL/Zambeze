@@ -20,7 +20,7 @@ ActivityTemplate = make_dataclass(
 )
 
 ShellTemplate = make_dataclass(
-    "ShellTemplate", {"type": "SHELL", "shell": "", "parameters": {}}
+    "ShellTemplate", {"type": "SHELL", "shell": "", "files": [""], "parameters": {}}
 )
 
 TransferTemplate = make_dataclass(
@@ -37,7 +37,7 @@ def createActivityTemplate(activity_type: ActivityType) -> ActivityTemplate:
     template = ActivityTemplate(None, None, None, None, None, None, None, None, None)
     template.type = "ACTIVITY"
     if activity_type == ActivityType.SHELL:
-        template.body = ShellTemplate("SHELL", None, None)
+        template.body = ShellTemplate("SHELL", None, None, None)
     elif activity_type == ActivityType.TRANSFER:
         template.body = TransferTemplate("TRANSFER", None)
     elif activity_type == ActivityType.PLUGIN:

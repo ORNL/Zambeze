@@ -6,9 +6,14 @@
 # it under the terms of the MIT License.
 
 import logging
+import uuid
 
 from typing import Optional
 from .abstract_activity import Activity
+
+from zambeze.orchestration.message.abstract_message import AbstractMessage
+from zambeze.orchestration.message.message_factory import MessageFactory
+from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
 class ShellActivity(Activity):
@@ -51,15 +56,36 @@ class ShellActivity(Activity):
         else:
             self.env_vars = []
 
-    def generate_message(self) -> dict:
-        return {
-            "plugin": "shell",
-            "files": self.files,
-            "cmd": {
-                "bash": {
-                    "program": self.command,
-                    "args": self.arguments,
-                    "env_vars": self.env_vars,
-                }
-            },
-        }
+    def generate_message(self) -> AbstractMessage:
+
+        factory = MessageFactory()
+        template = factory.createTemplate(MessageType.ACTIVITY, ActivityType.SHELL)
+
+        template[1].message_id = str(uuid.uuid4())
+        template[1].activity_id = str(uuid.uuid4())
+        template[1].agent_id = str(uuid.uuid4())
+        template[1].campaign_id = str(uuid.uuid4())
+        template[1].credential = {}
+        template[1].submission_time = ""
+        template[1].body.type == "SHELL"
+        template[1].body.shell == "bash"
+        template[1].body.files == self.files
+        template[1].body.parameters.program == self.command
+        template[1].body.parameters.args == self.arguments
+        template[1].body.parameters.env_vars == self.env_vars
+
+        return factory.create(template)
+
+
+#
+#    {
+#            "plugin": "shell",
+#            "files": self.files,
+#            "cmd": {
+#                "bash": {
+#                    "program": self.command,
+#                    "args": self.arguments,
+#                    "env_vars": self.env_vars,
+#                }
+#            },
+#        }
