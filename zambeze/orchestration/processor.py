@@ -27,7 +27,7 @@ from ..settings import ZambezeSettings
 from .message.message_factory import MessageFactory
 from .queue.queue_factory import QueueFactory
 from .queue.queue_exceptions import QueueTimeoutException
-from .zambeze_types import ChannelType, QueueType, MessageType
+from .zambeze_types import ChannelType, QueueType, MessageType, ActivityType
 
 
 class Processor(threading.Thread):
@@ -56,7 +56,7 @@ class Processor(threading.Thread):
         }
         self._queue_client = queue_factory.create(QueueType.NATS, args)
 
-        self._msg_factory = MessageFactory(self._settings.plugins, logger=self._logger)
+        self._msg_factory = MessageFactory(logger=self._logger)
 
     def run(self):
         """Start the Processor thread."""
@@ -163,7 +163,9 @@ class Processor(threading.Thread):
                 )
 
                 msg_template_transfer = self._msg_factory.createTemplate(
-                    MessageType.ACTIVITY, "globus", "transfer"
+                    MessageType.ACTIVITY,
+                    ActivityType.PLUGIN,
+                    {"plugin": "globus", "action": "transfer"},
                 )
                 #
                 #                msg_template[1]["body"]["cmd"] = [
@@ -202,7 +204,9 @@ class Processor(threading.Thread):
                 # Move from the Globus collection to the default working
                 # directory
                 msg_template_move = self._msg_factory.createTemplate(
-                    MessageType.ACTIVITY, "globus", "move_from_globus_collection"
+                    MessageType.ACTIVITY,
+                    ActivityType.PLUGIN,
+                    {"plugin": "globus", "action": "move_from_globus_collection"},
                 )
 
                 # Dependency on transfer needs to be defined
@@ -262,7 +266,9 @@ class Processor(threading.Thread):
             elif file_url.scheme == "rsync":
 
                 msg_template = self._msg_factory.createTemplate(
-                    MessageType.ACTIVITY, "rsync", "transfer"
+                    MessageType.ACTIVITY,
+                    ActivityType.PLUGIN,
+                    {"plugin": "rsync", "action": "transfer"},
                 )
 
                 msg_template[1].body.transfer.items[0].source.ip = file_url.netloc

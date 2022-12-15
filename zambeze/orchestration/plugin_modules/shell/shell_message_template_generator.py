@@ -20,7 +20,7 @@ class ShellMessageGenerator(PluginMessageTemplateGenerator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
 
-    def generate(self, args=None) -> dict:
+    def generate(self, args=None):
         """Args can be used to generate a more flexible template. Say for
         instance you wanted to transfer several different items.
         """

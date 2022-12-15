@@ -58,8 +58,10 @@ def validateRequiredSourceAndDestinationValuesValid(
     if not isAddressValid(action_inst["destination"]["ip"]):
         return (
             False,
-            ("Invalid 'destination' ip address detected: "
-             f"{action_inst['destination']['ip']}"),
+            (
+                "Invalid 'destination' ip address detected: "
+                f"{action_inst['destination']['ip']}"
+            ),
         )
 
     return (True, "")

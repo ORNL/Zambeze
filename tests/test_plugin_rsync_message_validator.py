@@ -1,8 +1,9 @@
 # Local imports
-from zambeze.orchestration.plugin_modules.rsync.rsync_message_template_generator \
-    import RsyncMessageTemplateGenerator
-from zambeze.orchestration.plugin_modules.rsync.rsync_message_validator \
-    import RsyncMessageValidator
+from zambeze.orchestration.plugin_modules.rsync.rsync_message_template_generator import (
+    RsyncMessageTemplateGenerator, )
+from zambeze.orchestration.plugin_modules.rsync.rsync_message_validator import (
+    RsyncMessageValidator,
+)
 
 # Standard imports
 import pytest

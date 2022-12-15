@@ -258,10 +258,8 @@ class Plugins:
         >>> #   "rsync": { "transfer": (True, "") }
         >>> # {
         """
-        print("Checking if instance of abstract message")
         if isinstance(msg, AbstractMessage):
-            print("Abstract message detected")
-            print(msg.data)
+            # pyre-ignore[16]
             if msg.data.body.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.body.plugin
@@ -362,8 +360,7 @@ class Plugins:
         >>> plugins.run('rsync', arguments)
         """
         if isinstance(msg, AbstractMessage):
-            print("Abstract message detected")
-            print(msg.data)
+            # pyre-ignore[16]
             if msg.data.body.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.body.plugin
@@ -373,8 +370,6 @@ class Plugins:
                 )
         else:
             plugin_name = msg
-
-        print(f"plugin_name: {plugin_name} {type(plugin_name)}")
 
         if not isinstance(plugin_name, str):
             raise ValueError("Unsupported plugin_name type detected in check.")
