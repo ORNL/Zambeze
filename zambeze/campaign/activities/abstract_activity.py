@@ -12,6 +12,8 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Optional
 
+from zambeze.orchestration.message.abstract_message import AbstractMessage
+
 
 class ActivityStatus(Enum):
     CREATED = auto()
@@ -108,7 +110,7 @@ class Activity(ABC):
         return self.status
 
     @abstractmethod
-    def generate_message(self) -> dict:
+    def generate_message(self) -> AbstractMessage:
         raise NotImplementedError(
             "Method to generate message has not been instantiated."
         )

@@ -1,5 +1,5 @@
 # Local imports
-from ..abstract_plugin_message_helper import PluginMessageHelper
+from ..abstract_plugin_message_validator import PluginMessageValidator
 from .globus_common import (
     checkTransferEndpoint,
     checkAllItemsHaveValidEndpoints,
@@ -10,11 +10,10 @@ from ...identity import validUUID
 
 # Standard imports
 from typing import Optional
-
 import logging
 
 
-class GlobusMessageHelper(PluginMessageHelper):
+class GlobusMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
         self.__known_actions = SUPPORTED_ACTIONS.keys()
@@ -276,56 +275,3 @@ class GlobusMessageHelper(PluginMessageHelper):
             for action in arguments[index]:
                 checks = self._validateAction(action, checks, arguments[index])
         return checks
-
-    def messageTemplate(self, args=None) -> dict:
-
-        if args is None or args == "transfer":
-            return {
-                "transfer": {
-                    "type": "synchronous",
-                    "items": [
-                        {
-                            "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-                            "destination": "globus://YYY...YYYYYYYY/dest/file1.txt",
-                        },
-                        {
-                            "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-                            "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt",
-                        },
-                    ],
-                }
-            }
-        elif args == "move_to_globus_collection":
-            return {
-                "move_to_globus_collection": {
-                    "items": [
-                        {
-                            "source": "file://file1.txt",
-                            "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt",
-                        },
-                        {
-                            "source": "file://file2.txt",
-                            "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt",
-                        },
-                    ]
-                }
-            }
-        elif args == "move_from_globus_collection":
-            return {
-                "move_from_globus_collection": {
-                    "items": [
-                        {
-                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt",
-                            "destination": "file://file1.txt",
-                        },
-                        {
-                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt",
-                            "destination": "file://file2.txt",
-                        },
-                    ]
-                }
-            }
-        else:
-            raise Exception(
-                "Unrecognized argument provided, cannot generate " "messageTemplate"
-            )

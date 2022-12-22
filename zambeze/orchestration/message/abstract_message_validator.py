@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class AbstractMessageValidator(ABC):
@@ -15,7 +16,7 @@ class AbstractMessageValidator(ABC):
         raise NotImplementedError("requiredKeys - method does not exist.")
 
     @abstractmethod
-    def check(self, message: dict) -> tuple[bool, str]:
+    def check(self, message: Any) -> tuple[bool, str]:
         """Return whether message is valid
 
         :return: if true return true and if false return false with an error

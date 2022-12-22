@@ -12,10 +12,10 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 
-class PluginMessageHelper(ABC):
+class PluginMessageValidator(ABC):
     """
     Abstract base class for ensuring that all registered plugins have a
-    valid message helper
+    valid message validator
 
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
@@ -37,11 +37,6 @@ class PluginMessageHelper(ABC):
         :rtype: string
         """
         return self._name
-
-    @abstractmethod
-    def messageTemplate(self, args) -> dict:
-        """Returns the message Template that can be attached to an activity"""
-        raise NotImplementedError("messageTemplate method has not been created.")
 
     @abstractmethod
     def validateAction(self, arguments: dict, action) -> list:
