@@ -46,14 +46,6 @@ def test_check_configured_plugins():
     assert len(plugins.configured) == 0
 
     configuration = {"shell": {}}
-    #            "globus": {
-    #                "authentication flow": {
-    #                    "type": "client credential",
-    #                    "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY")
-    #                    }
-    #                }
-    #            }
-    #
     plugins.configure(configuration)
 
     assert len(plugins.configured) > 0
@@ -89,8 +81,6 @@ def test_rsync_plugin_info():
 def test_rsync_plugin_check():
     plugins = Plugins()
     plugins.configure({"shell": {}, "rsync": {}})
-    # ,
-    # "rsync": {}})
 
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
@@ -113,27 +103,16 @@ def test_rsync_plugin_check():
     msg_template[1].campaign_id = str(uuid.uuid4())
     msg_template[1].credential = {}
     msg_template[1].submission_time = str(int(time.time()))
+    # This section will get replaced with a single rsync uri in the future
     msg_template[1].body.parameters.transfer.items[0].source.ip = local_ip
     msg_template[1].body.parameters.transfer.items[0].source.user = current_user
     msg_template[1].body.parameters.transfer.items[0].source.path = current_valid_path
     msg_template[1].body.parameters.transfer.items[0].destination.ip = neighbor_vm_ip
     msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
     msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
-    #    arguments = {
-    #        "transfer": {
-    #            "source": {
-    #                "ip": local_ip,
-    #                "user": current_user,
-    #                "path": current_valid_path,
-    #            },
-    #            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-    #            "arguments": ["-a"],
-    #        }
-    #    }
 
     msg = factory.create(msg_template)
     checked_actions = plugins.check(msg)
-    print(checked_actions)
     assert checked_actions["rsync"][0]["transfer"][0]
 
     msg_faulty_ip = copy.deepcopy(msg_template)
@@ -152,7 +131,6 @@ def test_rsync_plugin_check():
     ].source.user = "user_that_does_not_exist"
     msg = factory.create(msg_faulty_user)
     checked_actions = plugins.check(msg)
-    print(checked_actions)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
 
@@ -192,7 +170,6 @@ def test_rsync_plugin_run():
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
-    print(f"\nOriginal number is {original_number}")
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
@@ -214,6 +191,8 @@ def test_rsync_plugin_run():
     msg_template[1].campaign_id = str(uuid.uuid4())
     msg_template[1].credential = {}
     msg_template[1].submission_time = str(int(time.time()))
+    # In the future this will be simplified and be replced with a single
+    # rsync uri
     msg_template[1].body.parameters.transfer.items[0].source.ip = local_ip
     msg_template[1].body.parameters.transfer.items[0].source.user = current_user
     msg_template[1].body.parameters.transfer.items[0].source.path = file_path
@@ -221,16 +200,6 @@ def test_rsync_plugin_run():
     msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
     msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
 
-    #    arguments = {
-    #        "transfer": {
-    #            "source": {"ip": local_ip, "user": current_user, "path": file_path},
-    #            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-    #            "arguments": ["-a"],
-    #        }
-    #    }
-
-    print("Arguments: Initial transfer to remote machine")
-    print(msg_template)
     msg = factory.create(msg_template)
     checks = plugins.check(msg)
     assert checks["rsync"][0]["transfer"][0]
@@ -271,28 +240,8 @@ def test_rsync_plugin_run():
         0
     ].destination.path = file_path_return
 
-    #    arguments_return = {
-    #        "transfer": {
-    #            "destination": {
-    #                "ip": local_ip,
-    #                "user": current_user,
-    #                "path": file_path_return,
-    #            },
-    #            "source": {
-    #                "ip": neighbor_vm_ip,
-    #                "user": "cades",
-    #                "path": "/tmp" + "/" + file_name,
-    #            },
-    #            "arguments": ["-a"],
-    #        }
-    #    }
-
-    print("Arguments: Second transfer back to host machine")
-    print(msg_template_return)
     msg = factory.create(msg_template_return)
     checked_actions = plugins.check(msg)
-    print("Checked items ***************")
-    print(checked_actions)
     assert checked_actions["rsync"][0]["transfer"][0]
     attempts = 0
     # Loop is needed because sometimes the initial transfer takes a while to

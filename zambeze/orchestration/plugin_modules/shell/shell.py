@@ -9,6 +9,11 @@
 # Local imports
 from ..abstract_plugin import Plugin
 from .shell_message_validator import ShellMessageValidator
+from .shell_common import (
+    PLUGIN_NAME,
+    SUPPORTED_ACTIONS,
+)
+from ...system_utils import isExecutable
 
 # Standard imports
 from shutil import which
@@ -23,49 +28,17 @@ class Shell(Plugin):
     """Implementation of a Shell plugin."""
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("shell", logger=logger)
+        super().__init__(PLUGIN_NAME, logger=logger)
         self._configured = False
+        self._supported_actions = SUPPORTED_ACTIONS
         self._message_validator = ShellMessageValidator(logger)
-
-    def messageTemplate(self, args=None) -> dict:
-        """Args can be used to generate a more flexible template. Say for
-        instance you wanted to transfer several different items.
-        """
-        return {"bash": {"program": "", "args": [""]}}
-
-    def validateMessage(self, arguments: list[dict]) -> list:
-        """Checks to see if the message contains the right fields
-
-
-        :Example"
-
-        >>> arguments = [ {
-        >>>   "bash": { }
-        >>> }]
-
-        """
-        checks = []
-        for index in range(len(arguments)):
-            for action in arguments[index]:
-
-                if "program" not in arguments[action]:
-                    checks.append(
-                        {
-                            action: (
-                                False,
-                                "A program has not been defined to run in the shell,"
-                                + " required 'program' field is missing.",
-                            )
-                        }
-                    )
-                    continue
-
-                checks.append({action, (True, "")})
-        return checks
 
     def configure(self, config: dict) -> None:
         """Configure shell."""
         self._logger.debug(f"Configuring {self._name} plugin")
+        for action in self._supported_actions.keys():
+            if isExecutable(action):
+                self._supported_actions[action] = True
         self._configured = True
 
     @property
@@ -78,11 +51,25 @@ class Shell(Plugin):
 
     @property
     def supportedActions(self) -> list[str]:
-        return []
+        supported_actions = []
+        for action in self._supported_actions:
+            if self._supported_actions[action]:
+                supported_actions.append(action)
+        return supported_actions
 
     @property
     def info(self) -> dict:
-        return {}
+        """Provides information about the instance of the plugin"""
+        supported_actions = []
+        for action in self._supported_actions:
+            if self._supported_actions[action]:
+                supported_actions.append(action)
+
+        return {
+            "configured": self._configured,
+            "supported_actions": supported_actions,
+        }
+
 
     def check(self, arguments: list[dict]) -> list[dict]:
         """Checks to see if the provided shell is supported
@@ -100,7 +87,8 @@ class Shell(Plugin):
         checks = []
 
         for index in range(len(arguments)):
-            for action in arguments[index].keys():
+            print(arguments)
+            for action in arguments[index]:
 
                 schema_checks = self._message_validator.validateAction(
                     arguments[index], action
@@ -155,7 +143,8 @@ class Shell(Plugin):
             {
                 "bash": {
                     "program": "/bin/echo",
-                    "args": ["Hello!"]
+                    "args": ["Hello! $NAME"],
+                    "env_vars": { "NAME": "John" }
                 }
             }
         ]
@@ -178,8 +167,11 @@ class Shell(Plugin):
 
             try:
                 # env_tup : (key, value)
-                for env_tup in data["bash"]["env_vars"]:
-                    parent_env[env_tup[0]] = env_tup[1]
+                # Check if dict is empty
+                if data["bash"]["env_vars"]: 
+                    parent_env = {**parent_env, **data["bash"]["env_vars"]}
+#                for env_tup in data["bash"]["env_vars"]:
+#                    parent_env[env_tup[0]] = env_tup[1]
             except ValueError as e:
                 self._logger.error(f"Caught ValueError: {e}")
 
@@ -193,5 +185,5 @@ class Shell(Plugin):
             #       if cmd coming from untrusted source. See:
             # https://stackoverflow.com/questions/21009416/python-subprocess-security)
             # shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
-            shell_exec = subprocess.Popen(shell_cmd, shell=True)
+            shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
             shell_exec.wait()
