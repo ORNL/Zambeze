@@ -70,7 +70,6 @@ class Shell(Plugin):
             "supported_actions": supported_actions,
         }
 
-
     def check(self, arguments: list[dict]) -> list[dict]:
         """Checks to see if the provided shell is supported
 
@@ -87,7 +86,6 @@ class Shell(Plugin):
         checks = []
 
         for index in range(len(arguments)):
-            print(arguments)
             for action in arguments[index]:
 
                 schema_checks = self._message_validator.validateAction(
@@ -168,10 +166,10 @@ class Shell(Plugin):
             try:
                 # env_tup : (key, value)
                 # Check if dict is empty
-                if data["bash"]["env_vars"]: 
+                if data["bash"]["env_vars"]:
                     parent_env = {**parent_env, **data["bash"]["env_vars"]}
-#                for env_tup in data["bash"]["env_vars"]:
-#                    parent_env[env_tup[0]] = env_tup[1]
+            #                for env_tup in data["bash"]["env_vars"]:
+            #                    parent_env[env_tup[0]] = env_tup[1]
             except ValueError as e:
                 self._logger.error(f"Caught ValueError: {e}")
 

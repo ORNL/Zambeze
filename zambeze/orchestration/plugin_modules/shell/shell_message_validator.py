@@ -79,14 +79,8 @@ class ShellMessageValidator(PluginMessageValidator):
             error += f" where {type(Bash)} is expected"
             raise Exception(error)
 
-        print(type(arguments))
-        print(f"length is {len(arguments)}")
         checks = []
         for index in range(len(arguments)):
-            print(f"Index is: {index}")
-            print(f"arguments are \n{arguments}")
-            print(f"first value is: {arguments[0]}")
             if hasattr(arguments[index], "bash"):
-                print(arguments[index])
                 checks = self._validateAction("bash", checks, arguments[index])
         return checks
