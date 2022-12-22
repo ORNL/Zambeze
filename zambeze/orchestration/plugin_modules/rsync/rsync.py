@@ -278,6 +278,5 @@ class Rsync(Plugin):
                     # only support one item
                     break
 
-                print(command_list)
                 subprocess.call(command_list)
         return {}

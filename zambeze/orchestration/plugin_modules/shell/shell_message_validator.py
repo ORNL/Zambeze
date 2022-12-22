@@ -8,9 +8,13 @@
 
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
+from .shell_message_template_generator import (
+    Bash,
+)
 
 # Standard imports
-from typing import Optional
+from dataclasses import asdict
+from typing import Optional, overload
 
 import logging
 
@@ -20,27 +24,40 @@ class ShellMessageValidator(PluginMessageValidator):
         super().__init__("shell", logger=logger)
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
-        if "program" not in arguments[action]:
-            checks.append(
-                {
-                    action: (
-                        False,
-                        "A program has not been defined to run in the shell,"
-                        + " required 'program' field is missing.",
-                    )
-                }
-            )
+        if not isinstance(arguments, dict):
+            arguments = asdict(arguments)
 
+        if action == "bash":
+            if "program" not in arguments[action]:
+                checks.append(
+                    {
+                        action: (
+                            False,
+                            "A program has not been defined to run in the shell,"
+                            + " required 'program' field is missing.",
+                        )
+                    }
+                )
         else:
-            checks.append({action: (True, "")})
+            checks.append({action: (False, f"{action} unsupported action\n")})
+            return checks
 
+        checks.append({action: (True, "")})
         return checks
 
     def validateAction(self, arguments: dict, action) -> list:
         checks = []
         return self._validateAction(action, checks, arguments)
 
+    @overload
+    def validateMessage(self, arguments: Bash) -> list:
+        ...
+
+    @overload
     def validateMessage(self, arguments: list[dict]) -> list:
+        ...
+
+    def validateMessage(self, arguments):
         """Checks to see if the message contains the right fields
 
 
@@ -51,8 +68,19 @@ class ShellMessageValidator(PluginMessageValidator):
         >>> }]
 
         """
+        if isinstance(arguments, list):
+            pass
+        elif isinstance(arguments, Bash):
+            arguments = [arguments]
+        else:
+            error = (
+                f"Unsupported argument type encountered. arguments = {type(arguments)}"
+            )
+            error += f" where {type(Bash)} is expected"
+            raise Exception(error)
+
         checks = []
         for index in range(len(arguments)):
-            for action in arguments[index]:
-                checks = self._validateAction(action, checks, arguments[index])
+            if hasattr(arguments[index], "bash"):
+                checks = self._validateAction("bash", checks, arguments[index])
         return checks

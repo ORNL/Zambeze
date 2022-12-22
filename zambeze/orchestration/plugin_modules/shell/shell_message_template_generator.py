@@ -8,6 +8,9 @@
 
 # Local imports
 from ..abstract_plugin_template_generator import PluginMessageTemplateGenerator
+from .shell_common import (
+    PLUGIN_NAME,
+)
 
 # Standard imports
 from dataclasses import dataclass
@@ -16,23 +19,24 @@ from typing import Optional
 import logging
 
 
-class ShellMessageGenerator(PluginMessageTemplateGenerator):
+@dataclass
+class Command:
+    program: str
+    args: list[str]
+    env_vars: dict
+
+
+@dataclass
+class Bash:
+    bash: Command
+
+
+class ShellMessageTemplateGenerator(PluginMessageTemplateGenerator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("shell", logger=logger)
+        super().__init__(PLUGIN_NAME, logger=logger)
 
     def generate(self, args=None):
         """Args can be used to generate a more flexible template. Say for
         instance you wanted to transfer several different items.
         """
-
-        @dataclass
-        class Bash:
-            bash: {}
-
-        @dataclass
-        class Command:
-            program: str
-            args: list[str]
-            env_vars: dict
-
-        return Bash(Command("", []))
+        return Bash(Command("", [], {}))
