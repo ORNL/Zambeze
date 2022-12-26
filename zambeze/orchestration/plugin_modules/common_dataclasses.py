@@ -6,6 +6,9 @@ class Move:
     source: str
     destination: str
 
+@dataclass
+class Source:
+    source: str
 
 @dataclass
 class TransferTemplateInner:

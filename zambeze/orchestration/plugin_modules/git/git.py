@@ -20,57 +20,6 @@ from typing import Optional
 import logging
 
 
-def check_path(path_name: str, path: str, msg: str, success: bool) -> tuple[bool, str]:
-    """Takes a path string and ensures it is correctly formatted.
-
-    :param path_name: The name of the type of the file path i.e. "source"
-    :type path_name: str
-    :param path: The actual path that is being checked
-    :type path: str
-    :param msg: The existing error messages that the function will append to
-    :type msg: str
-    :param success: Whether all previous checks have been successful or not
-    :type success: bool
-    """
-    if not path:
-        msg = msg + f"\nError {path_name} path cannot be empty"
-        return False, msg
-
-    if path.endswith("/"):
-        msg = msg + f"\nError {path_name} path must end with a filename, path"
-        msg = msg + f" is {path}"
-        return False, msg
-    return success, msg
-
-
-def contains_subkey(
-    action_name: str, obj: dict, key: str, subkey: str, is_success: bool, msg: str
-) -> tuple[bool, str]:
-    """Checks if the the object contains a subkey
-
-    :param action_name: Describes what action is being called for better logging
-    :type action_name: str
-    :param obj: The object being checked
-    :type obj: The object is a dict
-    :param key: The objects key, where we will be checking for a subkey
-    :type key: str
-    :param subkey: The subkey of the object that is being checked
-    :type subkey: str
-    :param is_success: The parameter that determines if previous checks have
-    been successful.
-    :type is_success: bool
-    :param msg: The error messages that have been accumulated.
-    :type msg: str
-
-    This function checks to see if a subkey exists, if no problems are detected
-    then the original 'is_success' and 'msg' will be returned, if problems
-    are detected, then an error message will be appeneded to 'msg' and a 'False'
-    value will be returned.
-    """
-    if subkey not in obj[key]:
-        msg = msg + f"\n'{subkey}' key not found in '{key}' in {action_name} action"
-        return False, msg
-    return is_success, msg
 
 
 class Git(Plugin):
@@ -258,48 +207,24 @@ class Git(Plugin):
 
 
         """
-        # Check that the following required parameters have been provided
-        required_keys = ["repo", "owner", "source", "destination", "credentials"]
+        owner_exists, error_msg = self.__checkRepoOwnerExists(action_obj["owner"])
+        if not owner_exists:
+            msg = msg + error_msg
+            success = False
 
-        msg = ""
-        for key in required_keys:
-            if key not in action_obj:
-                return (
-                    False,
-                    f"\nrequired key: {key} is missing from the \
-'download' action.",
-                )
-
-        success = True
-        keys = ["source", "source", "destination", "destination", "credentials"]
-        subkeys = ["path", "type", "path", "type", "access_token"]
-        for (key, subkey) in zip(keys, subkeys):
-            success, msg = contains_subkey(
-                "download action", action_obj, key, subkey, success, msg
+        # Only run these checks if previous checks have all passed
+        token = action_obj["credentials"]["access_token"]
+        repo_exists, error_msg = self.__checkRepoExists(
+            action_obj["repo"], action_obj["owner"], token=token
+        )
+        if not repo_exists:
+            msg = msg + error_msg
+            msg = (
+                msg
+                + f" \nUnable to verify the existance of the 'repo':\
+{action_obj['repo']} in 'download' action"
             )
-
-        if success:
-            owner_exists, error_msg = self.__checkRepoOwnerExists(action_obj["owner"])
-            if not owner_exists:
-                msg = msg + error_msg
-                success = False
-
-            source_path = action_obj["source"]["path"]
-            success, msg = check_path("source", source_path, msg, success)
-
-            # Only run these checks if previous checks have all passed
-            token = action_obj["credentials"]["access_token"]
-            repo_exists, error_msg = self.__checkRepoExists(
-                action_obj["repo"], action_obj["owner"], token=token
-            )
-            if not repo_exists:
-                msg = msg + error_msg
-                msg = (
-                    msg
-                    + f" \nUnable to verify the existance of the 'repo':\
- {action_obj['repo']} in 'download' action"
-                )
-                success = False
+            success = False
 
         return success, msg
 
@@ -352,54 +277,22 @@ class Git(Plugin):
         >>>     }
         >>> }
         """
-        # Check that the following required parameters have been provided
-        required_keys = ["repo", "owner", "source", "destination", "credentials"]
 
-        msg = ""
-        for key in required_keys:
-            if key not in action_obj:
-                return (
-                    False,
-                    f"\nrequired key: {key} is missing from the \
-'commit' action.",
-                )
+        # Check if branch exists
+        branch_exists, error_msg = self.__checkBranchExists(
+            action_obj["repo"],
+            action_obj["owner"],
+            action_obj["branch"],
+            access_token,
+        )
 
-        success = True
-        keys = [
-            "source",
-            "source",
-            "destination",
-            "destination",
-            "credentials",
-            "credentials",
-            "credentials",
-        ]
-        subkeys = ["path", "type", "path", "type", "user_name", "access_token", "email"]
-        for (key, subkey) in zip(keys, subkeys):
-            success, msg = contains_subkey(
-                "commit action", action_obj, key, subkey, success, msg
+        if not branch_exists:
+            msg = (
+                msg
+                + f"'branch' {action_obj['branch']} does not exist on GitHub repo "
+                + f"{action_obj['repo']} for owner {action_obj['owner']} "
             )
-
-        access_token = None
-        if success:
-            access_token = action_obj["credentials"]["access_token"]
-
-        if "branch" in action_obj:
-            # Check if branch exists
-            branch_exists, error_msg = self.__checkBranchExists(
-                action_obj["repo"],
-                action_obj["owner"],
-                action_obj["branch"],
-                access_token,
-            )
-
-            if not branch_exists:
-                msg = (
-                    msg
-                    + f"'branch' {action_obj['branch']} does not exist on GitHub repo "
-                    + f"{action_obj['repo']} for owner {action_obj['owner']} "
-                )
-                success = False
+            success = False
 
         if success:
             owner_exists, error_msg = self.__checkRepoOwnerExists(
@@ -410,8 +303,6 @@ class Git(Plugin):
                 msg = msg + error_msg
                 success = False
 
-            dest_path = action_obj["destination"]["path"]
-            success, msg = check_path("destination", dest_path, msg, success)
 
             # Only run these checks if previous checks have all passed
             repo_exists, error_msg = self.__checkRepoExists(
