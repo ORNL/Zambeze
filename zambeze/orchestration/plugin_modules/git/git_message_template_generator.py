@@ -19,12 +19,13 @@ from .git_common import (
 )
 
 # Standard imports
+from dataclasses import dataclass, field
 from typing import Optional
 
 import logging
 
 @dataclass
-class GitCredential:
+class GitCredentialTemplate:
     user_name: str
     access_token: str
     email: str
@@ -32,27 +33,27 @@ class GitCredential:
 @dataclass
 class GitCommitTemplateInner:
 
-    items: list = field(default_factory=list)
     destination: str
     commit_message: str
-    credentials: GitCredential
+    credentials: GitCredentialTemplate
+    items: list = field(default_factory=list)
 
 @dataclass
 class GitCommitTemplate:
-    commit: CommitTemplateInner
+    commit: GitCommitTemplateInner
 
 
 @dataclass
 class GitDownloadTemplateInner:
 
-    items: list = field(default_factory=list)
     destination: str
-    credentials: GitCredential
+    credentials: GitCredentialTemplate
+    items: list = field(default_factory=list)
 
 
 @dataclass
 class GitDownloadTemplate:
-    download: DownloadTemplateInner
+    download: GitDownloadTemplateInner
 
 
 class GitMessageTemplateGenerator(PluginMessageTemplateGenerator):
@@ -67,12 +68,12 @@ class GitMessageTemplateGenerator(PluginMessageTemplateGenerator):
         """
         if args is None or args == "commit":
             return GitCommitTemplate(
-                GitCommitTemplateInner([Source("")], "", "", GitCredential("","",""))
+                GitCommitTemplateInner("", "", GitCredentialTemplate("","",""), [Source("")])
             )
         elif args == "download":
 
             return GitDownloadTemplate(
-                GitDownloadTemplateInner([Source("")], "", "", GitCredential("","",""))
+                GitDownloadTemplateInner("", GitCredentialTemplate("","",""), [Source("")])
             )
 
         else:
