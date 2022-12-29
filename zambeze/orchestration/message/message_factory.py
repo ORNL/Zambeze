@@ -115,6 +115,7 @@ class MessageFactory:
             elif activity_type == ActivityType.SHELL:
                 if "shell" in args:
                     activity.body.shell = args["shell"]
+
                 else:
                     raise Exception(
                         "Missing required arguments to initialize"

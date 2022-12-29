@@ -36,8 +36,6 @@ class GitMessageValidator(PluginMessageValidator):
 
         if action == "commit":
             # Start by checking that all the files have been provided
-            print("**************************************************")
-            print(arguments)
             for item in arguments["commit"]["items"]:
 
                 if not item["source"].startswith("file://"):
@@ -74,6 +72,9 @@ class GitMessageValidator(PluginMessageValidator):
                 error_msg += "download must have a valid posix path to download to"
                 error_msg += "and the destination URI must begin with file://"
                 checks.append({action: (False, error_msg)})
+
+            # If a source ends with '/' it indicates that the entire folder 
+            # should be downloaded.
 
         else:
             checks.append({action: (False, f"{action} unsupported action\n")})

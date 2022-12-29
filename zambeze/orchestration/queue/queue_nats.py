@@ -5,7 +5,7 @@ from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 from typing import Optional
-
+import dill
 
 class QueueNATS(AbstractQueue):
     def __init__(
@@ -139,7 +139,9 @@ class QueueNATS(AbstractQueue):
 
         try:
             msg = await self._sub[channel].next_msg(timeout=1)
-            data = json.loads(msg.data.decode())
+            print("Received data")
+            data = dill.loads(msg.data)
+            print(data)
 
         except nats.errors.TimeoutError:
             raise QueueTimeoutException("nextMsg call - checking NATS")
@@ -162,7 +164,7 @@ class QueueNATS(AbstractQueue):
                 "Cannot send message to NATS, client is "
                 "not connected to a NATS queue"
             )
-        await self._nc.publish(channel.value, json.dumps(body).encode())
+        await self._nc.publish(channel.value, dill.dumps(body))
 
     async def close(self):
         if self._sub:

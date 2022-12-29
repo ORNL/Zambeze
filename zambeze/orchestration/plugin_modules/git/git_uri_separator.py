@@ -1,5 +1,5 @@
 
-from ..abstract_uri_separator.py import URISeparator
+from ..abstract_uri_separator import URISeparator
 
 # Standard imports
 import logging
@@ -10,17 +10,18 @@ from typing import Optional
 class GitURISeparator(URISeparator):
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("rsync", logger=logger)
+        super().__init__("git", logger=logger)
 
     def __removeConsecutiveDuplicates(self, s, char):
         if len(s) < 2:
             return s
-        if s[0] != s[1]:
-            if s[0] == char:
-                return s[0] + self.__removeConsecutiveDuplicates(s[1:], char)
-        return self.__removeConsecutiveDuplicates(s[1:], char)
 
-    def separate(self, uri: str) -> dict:
+        if s[0] == char:
+            if s[0] == s[1]:
+                return self.__removeConsecutiveDuplicates(s[1:], char)
+        return s[0] + self.__removeConsecutiveDuplicates(s[1:], char)
+
+    def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a file URI and break it into its components
 
         :param uri: Git uri should be like git://org1/awesome_proj/path/file.txt
@@ -28,11 +29,12 @@ class GitURISeparator(URISeparator):
 
         :Example:
 
-        >>> git_uri = git://path/file.txt
+        >>> git_uri = git://orig1/awesome_proj/main/path/file.txt
         >>> uri_components = gitURISeparator(git_uri)
         >>> print( uri_components["project"]) # "awesome_proj"
         >>> print( uri_components["owner"]) # "org1"
         >>> print( uri_components["path"] ) # Path
+        >>> print( uri_components["branch"] ) # Branch
         >>> print( uri_components["file_name"]) # File name
         >>> print( uri_components["error_message"] ) # Error message
 
@@ -46,7 +48,7 @@ class GitURISeparator(URISeparator):
         file_uri_tag = "git://"
 
         package = {
-                "protocol": "rsync",
+                "protocol": "git",
                 "error_message": "",
                 "project": "",
                 "owner": "",
@@ -65,21 +67,27 @@ class GitURISeparator(URISeparator):
         # There needs to be at least two / left in the string after removing
         # the git:// prefix, becuase the git URI must contain a project and
         # owner
-
+        print("Before removeConsecutiveDuplicates")
+        print(file_and_path_project_owner)
         file_and_path_project_owner = self.__removeConsecutiveDuplicates(
                 file_and_path_project_owner, os.sep)
 
-        if file_and_path_project_owner.count(os.sep) < 2:
-            error_msg = "git URI at a minimum must contain a project and"
-            error_msg += " owner filed git:://owner/project/ to be valid"
+        if file_and_path_project_owner.count(os.sep) < 3:
+            error_msg = "git URI at a minimum must contain a project "
+            error_msg += " owner and branch: git:://owner/project/branch/ to be valid"
 
+        print("Before split")
+        print(file_and_path_project_owner)
         split_str = file_and_path_project_owner.split(os.sep)
+        print("After split")
+        print(split_str)
         package["owner"] = split_str[0]
         package["project"] = split_str[1]
+        package["branch"] = split_str[2]
 
         # Indicates there is no file, just a path that ends in /
         if file_and_path_project_owner[-1] == os.sep:
-            index = 2
+            index = 3
             package["path"] = os.sep
             while index < len(split_str):
                 package["path"] += split_str[index] + os.sep
@@ -87,7 +95,7 @@ class GitURISeparator(URISeparator):
         else:
             # indicates there is a file at the end
             package["file_name"] = split_str[-1]
-            index = 2
+            index = 3
             package["path"] = os.sep
             while index < (len(split_str) - 1):
                 package["path"] += split_str[index] + os.sep

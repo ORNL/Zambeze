@@ -5,6 +5,8 @@ from zambeze.orchestration.zambeze_types import ActivityType
 # Local imports
 from ..general_message_components import REQUIRED_GENERAL_COMPONENTS
 
+from dataclasses import dataclass, field
+
 REQUIRED_ACTIVITY_COMPONENTS = {
     **REQUIRED_GENERAL_COMPONENTS,
     "activity_id": "",
@@ -32,12 +34,27 @@ PluginTemplate = make_dataclass(
 )
 
 
+@dataclass
+class ShellParams:
+    program: str
+    args: list
+    env_vars: dict
+
+
 # pyre-ignore[11]
 def createActivityTemplate(activity_type: ActivityType) -> ActivityTemplate:
     template = ActivityTemplate(None, None, None, None, None, None, None, None, None)
     template.type = "ACTIVITY"
     if activity_type == ActivityType.SHELL:
-        template.body = ShellTemplate("SHELL", None, None, None)
+        template.body = ShellTemplate(
+                "SHELL",
+                None,
+                None,
+                ShellParams(
+                    None,
+                    None,
+                    None)
+                )
     elif activity_type == ActivityType.TRANSFER:
         template.body = TransferTemplate("TRANSFER", None)
     elif activity_type == ActivityType.PLUGIN:

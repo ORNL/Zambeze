@@ -1,5 +1,5 @@
 
-from .abstract_uri_separator.py import URISeparator
+from .abstract_uri_separator import URISeparator
 
 # Standard imports
 import logging
@@ -12,7 +12,7 @@ class FileURISeparator(URISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("file", logger=logger)
 
-    def separate(self, uri: str) -> dict:
+    def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a file URI and break it into its components
 
         :param uri: File uri should be like file://path/file.txt
@@ -49,7 +49,7 @@ class FileURISeparator(URISeparator):
             return package
 
         file_and_path = uri[len(file_uri_tag):]
-        path = os.dirname(file_and_path)
+        path = os.path.dirname(file_and_path)
 
         if not path.startswith(os.sep):
             path = os.sep + path
@@ -58,7 +58,7 @@ class FileURISeparator(URISeparator):
             path = path + os.sep
 
         package["path"] = path
-        package["file_name"] = os.basename(file_and_path)
+        package["file_name"] = os.path.basename(file_and_path)
         return package
 
 

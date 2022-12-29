@@ -24,6 +24,8 @@ def registerPlugins(logger: Optional[logging.Logger] = None) -> list:
             and module_name != "common_dataclasses"
             and module_name != "common_plugin_functions"
             and module_name != "abstract_plugin_template_generator"
+            and module_name != "abstract_uri_separator"
+            and module_name != "file_uri_separator"
         ):
             module_names.append(module_name)
     if logger:

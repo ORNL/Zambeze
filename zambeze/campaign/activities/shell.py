@@ -60,7 +60,10 @@ class ShellActivity(Activity):
     def generate_message(self) -> AbstractMessage:
 
         factory = MessageFactory()
-        template = factory.createTemplate(MessageType.ACTIVITY, ActivityType.SHELL)
+        template = factory.createTemplate(
+                MessageType.ACTIVITY,
+                ActivityType.SHELL,
+                {"shell": "bash"})
 
         template[1].message_id = str(uuid.uuid4())
         template[1].activity_id = str(uuid.uuid4())

@@ -1,5 +1,5 @@
 
-from ..abstract_uri_separator.py import URISeparator
+from ..abstract_uri_separator import URISeparator
 
 # Standard imports
 import logging
@@ -12,7 +12,7 @@ class RsyncURISeparator(URISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("rsync", logger=logger)
 
-    def separate(self, uri: str) -> dict:
+    def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a rsync URI and break it into its components
 
         :param uri: Rsync uri should be like rsync://path/file.txt
@@ -42,6 +42,8 @@ class RsyncURISeparator(URISeparator):
                 "path": "",
                 "file_name": ""
                 }
+
+        print(f"URI is {uri}")
         # Start by ensuring the start of the uri begins with globus://
         if not uri.startswith(file_uri_tag):
             error_msg = f"Incompatible rsync URI format {uri} must start with "
@@ -50,16 +52,20 @@ class RsyncURISeparator(URISeparator):
             return package
 
         file_and_path = uri[len(file_uri_tag):]
-        path = os.dirname(file_and_path)
+        print(f"After removing rsync:// path is {file_and_path}")
+        path = os.path.dirname(file_and_path)
+        print(f"Removing file from path {path}")
 
         if not path.startswith(os.sep):
             path = os.sep + path
+            print(f"1: {path}")
 
         if not path.endswith(os.sep):
-            path = path + os.sep
+            path += os.sep
+            print(f"2: {path}")
 
         package["path"] = path
-        package["file_name"] = os.basename(file_and_path)
+        package["file_name"] = os.path.basename(file_and_path)
         return package
 
 
