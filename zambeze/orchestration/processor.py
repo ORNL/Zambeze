@@ -16,6 +16,7 @@ import time
 import uuid
 
 from typing import Optional
+from dataclasses import asdict
 
 # Third party imports
 import getpass
@@ -31,7 +32,6 @@ from .message.message_factory import MessageFactory
 from .queue.queue_factory import QueueFactory
 from .queue.queue_exceptions import QueueTimeoutException
 from .zambeze_types import ChannelType, QueueType, MessageType, ActivityType
-
 
 class Processor(threading.Thread):
     """An Agent processor.
@@ -86,25 +86,31 @@ class Processor(threading.Thread):
 
         while True:
             try:
-
+                print("Receiving first message")
                 msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
+                print("Message received")
+                print(msg)
                 self._logger.debug("Message received:")
 
                 if msg.type != MessageType.ACTIVITY:
+                    print("Non activity detected")
                     self._logger.debug(
                         "Non-activity message received on" "ACTIVITY channel"
                     )
                 else:
-                    self._logger.debug(json.dumps(msg.data, indent=4))
+                    print("dump 1")
+                    self._logger.debug(json.dumps(asdict(msg.data), indent=4))
                     # Determine what kind of activity it is
                     if msg.data.body.type == "SHELL":
                         # Determine if the shell activity has files that
                         # Need to be moved to be executed
-                        if len(msg.data.body.files) > 0:
-                            await self.__process_files(msg.data.body.files)
+                        if msg.data.body.files:
+                            if len(msg.data.body.files) > 0:
+                                await self.__process_files(msg.data.body.files)
 
                         self._logger.info("Command to be executed.")
-                        self._logger.info(json.dumps(msg.data["cmd"], indent=4))
+                        print("dump 2")
+                        #self._logger.info(json.dumps(msg.data["cmd"], indent=4))
 
                         # Running Checks
                         # Returned results should be double nested dict with a tuple of
@@ -266,5 +272,8 @@ class Processor(threading.Thread):
         )
         self._logger.debug(f"Sending a '{channel_type.value}' message")
 
+        print("Processor sending")
+        print(msg)
         await self._queue_client.connect()
+        self._logger.debug(json.dumps(asdict(msg.data), indent=4))
         await self._queue_client.send(channel_type, msg)

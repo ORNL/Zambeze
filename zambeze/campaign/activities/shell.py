@@ -57,6 +57,9 @@ class ShellActivity(Activity):
         else:
             self.env_vars = []
 
+        print("Printing files after init in SHell")
+        print(self.files)
+
     def generate_message(self) -> AbstractMessage:
 
         factory = MessageFactory()
@@ -71,12 +74,12 @@ class ShellActivity(Activity):
         template[1].campaign_id = str(uuid.uuid4())
         template[1].credential = {}
         template[1].submission_time = str(int(time.time()))
-        template[1].body.type == "SHELL"
-        template[1].body.shell == "bash"
-        template[1].body.files == self.files
-        template[1].body.parameters.program == self.command
-        template[1].body.parameters.args == self.arguments
-        template[1].body.parameters.env_vars == self.env_vars
+        template[1].body.type = "SHELL"
+        template[1].body.shell = "bash"
+        template[1].body.files = self.files
+        template[1].body.parameters.program = self.command
+        template[1].body.parameters.args = self.arguments
+        template[1].body.parameters.env_vars = self.env_vars
 
         return factory.create(template)
 

@@ -39,7 +39,11 @@ class Shell(Plugin):
         for action in self._supported_actions.keys():
             if isExecutable(action):
                 self._supported_actions[action] = True
+            else:
+                self._supported_actions[action] = False
+            self._logger.debug(f"  - action {action} supported {self._supported_actions[action]}")
         self._configured = True
+        self._logger.debug(f"Configured {self._name} = {self._configured}")
 
     @property
     def configured(self) -> bool:
@@ -155,6 +159,8 @@ class Shell(Plugin):
         if not self._configured:
             raise Exception("Cannot run shell plugin, must first be configured.")
 
+        print("Arguments passed to shell process are")
+        print(arguments)
         for data in arguments:
             cmd = data["bash"]["args"]
             cmd.insert(0, data["bash"]["program"])

@@ -77,6 +77,89 @@ def test_rsync_plugin_info():
     assert info["rsync"]["local_ip"] == local_ip
 
 
+@pytest.mark.unit
+def test_shell_plugin_check():
+    plugins = Plugins()
+    plugins.configure({"shell": {}})
+
+    file_name = "shell_file.txt1"
+    current_valid_path = os.getcwd()
+    file_path = current_valid_path + "/" + file_name
+    original_number = random.randint(0, 100000000000)
+
+    factory = MessageFactory()
+    msg_template = factory.createTemplate(
+        MessageType.ACTIVITY,
+        ActivityType.SHELL,
+        {"shell": "bash"},
+    )
+
+    msg_template[1].message_id = str(uuid.uuid4())
+    msg_template[1].activity_id = str(uuid.uuid4())
+    msg_template[1].agent_id = str(uuid.uuid4())
+    msg_template[1].campaign_id = str(uuid.uuid4())
+    msg_template[1].credential = {}
+    msg_template[1].submission_time = str(int(time.time()))
+    # This section will get replaced with a single rsync uri in the future
+    msg_template[1].body.parameters.program = "echo"
+    msg_template[1].body.parameters.args = [
+            "$RAN",
+            ">",
+            file_path
+            ]
+    msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
+
+    msg = factory.create(msg_template)
+    checked_actions = plugins.check(msg)
+    print(checked_actions)
+    assert checked_actions["shell"][0]["bash"][0]
+
+
+@pytest.mark.unit
+def test_shell_plugin_run():
+    plugins = Plugins()
+    plugins.configure({"shell": {}})
+
+    file_name = "shell_file2.txt"
+    current_valid_path = os.getcwd()
+    file_path = current_valid_path + "/" + file_name
+    original_number = random.randint(0, 100000000000)
+
+    factory = MessageFactory()
+    msg_template = factory.createTemplate(
+        MessageType.ACTIVITY,
+        ActivityType.SHELL,
+        {"shell": "bash"},
+    )
+
+    msg_template[1].message_id = str(uuid.uuid4())
+    msg_template[1].activity_id = str(uuid.uuid4())
+    msg_template[1].agent_id = str(uuid.uuid4())
+    msg_template[1].campaign_id = str(uuid.uuid4())
+    msg_template[1].credential = {}
+    msg_template[1].submission_time = str(int(time.time()))
+    # This section will get replaced with a single rsync uri in the future
+    msg_template[1].body.parameters.program = "echo"
+    msg_template[1].body.parameters.args = [
+            "$RAN",
+            ">",
+            file_path
+            ]
+    msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
+
+    msg = factory.create(msg_template)
+    checked_actions = plugins.check(msg)
+    assert checked_actions["shell"][0]["bash"][0]
+    plugins.run(msg)
+
+    assert os.path.exists(file_path)
+    with open(file_path) as f:
+        # Now we will verify that it is the same file that was sent
+        lines = f.readlines()
+        # Should be a single line
+        assert lines[0].strip() == str(original_number)
+
+
 @pytest.mark.gitlab_runner
 def test_rsync_plugin_check():
     plugins = Plugins()

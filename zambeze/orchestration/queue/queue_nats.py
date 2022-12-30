@@ -125,7 +125,7 @@ class QueueNATS(AbstractQueue):
         await self._sub[channel].unsubscribe()
         self._sub[channel] = None
 
-    async def nextMsg(self, channel: ChannelType) -> dict:
+    async def nextMsg(self, channel: ChannelType):
         if not self._sub:
             raise Exception(
                 "Cannot get next message client is not subscribed \
@@ -141,6 +141,7 @@ class QueueNATS(AbstractQueue):
             msg = await self._sub[channel].next_msg(timeout=1)
             print("Received data")
             data = dill.loads(msg.data)
+            print("After dill loads")
             print(data)
 
         except nats.errors.TimeoutError:
@@ -158,12 +159,14 @@ class QueueNATS(AbstractQueue):
             if channel in self._sub:
                 await self._sub[channel].nack()
 
-    async def send(self, channel: ChannelType, body: dict):
+    async def send(self, channel: ChannelType, body):
         if self._nc is None:
             raise Exception(
                 "Cannot send message to NATS, client is "
                 "not connected to a NATS queue"
             )
+        print("Queue is sending")
+        print(body)
         await self._nc.publish(channel.value, dill.dumps(body))
 
     async def close(self):

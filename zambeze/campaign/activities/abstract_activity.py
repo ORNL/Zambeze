@@ -23,7 +23,7 @@ class ActivityStatus(Enum):
     FAILED = auto()
 
 
-class Activity(ABC):
+class Activity():
     """An abstract class of a scientific campaign activity.
 
     :param name: Campaign activity name.
@@ -109,7 +109,7 @@ class Activity(ABC):
         """
         return self.status
 
-    @abstractmethod
+    #@abstractmethod
     def generate_message(self) -> AbstractMessage:
         raise NotImplementedError(
             "Method to generate message has not been instantiated."

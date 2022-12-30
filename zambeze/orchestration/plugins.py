@@ -262,10 +262,15 @@ class Plugins:
             # pyre-ignore[16]
             if msg.data.body.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
-                plugin_name = msg.data.body.plugin
+                plugin_name = msg.data.body.plugin.lower()
+            elif msg.data.body.type == "SHELL":
+                arguments = {
+                    msg.data.body.shell: asdict(msg.data.body.parameters)
+                }
+                plugin_name = msg.data.body.type.lower()
             else:
                 raise Exception(
-                    "plugin check only currently supports plugin " "activities"
+                    "plugin check only currently supports PLUGIN and SHELL" "activities"
                 )
         else:
             plugin_name = msg
@@ -363,10 +368,15 @@ class Plugins:
             # pyre-ignore[16]
             if msg.data.body.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
-                plugin_name = msg.data.body.plugin
+                plugin_name = msg.data.body.plugin.lower()
+            elif msg.data.body.type == "SHELL":
+                arguments = {
+                    msg.data.body.shell: asdict(msg.data.body.parameters)
+                }
+                plugin_name = msg.data.body.type.lower()
             else:
                 raise Exception(
-                    "plugin check only currently supports plugin " "activities"
+                    "plugin check only currently supports PLUGIN and SHELL activities"
                 )
         else:
             plugin_name = msg
