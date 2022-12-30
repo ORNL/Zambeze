@@ -87,11 +87,12 @@ class Shell(Plugin):
 
         for index in range(len(arguments)):
             for action in arguments[index]:
-
+                print(f"shell action {action} index is {index}")
                 schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
-
+                print("Schema checks")
+                print(schema_checks)
                 if len(schema_checks) > 0:
                     if schema_checks[0][action][0] is False:
                         checks.extend(schema_checks)

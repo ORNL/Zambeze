@@ -260,10 +260,12 @@ class Plugins:
         """
         if isinstance(msg, AbstractMessage):
             # pyre-ignore[16]
+            print("msg is AbstractMessage")
             if msg.data.body.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.body.plugin.lower()
             elif msg.data.body.type == "SHELL":
+                print("Is shell")
                 arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
                 plugin_name = msg.data.body.type.lower()
             else:
@@ -293,6 +295,8 @@ class Plugins:
             )
 
         check_results = {}
+        print("Plugin keys are")
+        print(self._plugins.keys)
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
                 {"configured": (False, f"{plugin_name} is not configured.")}
