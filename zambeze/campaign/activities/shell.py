@@ -53,7 +53,8 @@ class ShellActivity(Activity):
 
         # Pull out environment variables, IF users submitted them.
         if "env_vars" in kwargs:
-            raise Exception("TODO env_vars provided via kwargs need to be converted to dict here in the code")
+            if not isinstance(kwargs.get("env_vars"), dict):
+                raise Exception("TODO env_vars provided via kwargs need to be converted to dict here in the code")
             self.env_vars = kwargs.get("env_vars")
         else:
             self.env_vars = {}
