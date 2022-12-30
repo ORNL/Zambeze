@@ -44,7 +44,7 @@ activity = ShellActivity(
     ],
     logger=logger,
     # Uncomment if running on M1 Mac.
-    env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
+    #env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
 )
 campaign.add_activity(activity)
 
