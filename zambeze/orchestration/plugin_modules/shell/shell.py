@@ -9,10 +9,7 @@
 # Local imports
 from ..abstract_plugin import Plugin
 from .shell_message_validator import ShellMessageValidator
-from .shell_common import (
-    PLUGIN_NAME,
-    SUPPORTED_ACTIONS,
-)
+from .shell_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 from ...system_utils import isExecutable
 
 # Standard imports
@@ -41,7 +38,9 @@ class Shell(Plugin):
                 self._supported_actions[action] = True
             else:
                 self._supported_actions[action] = False
-            self._logger.debug(f"  - action {action} supported {self._supported_actions[action]}")
+            self._logger.debug(
+                f"  - action {action} supported {self._supported_actions[action]}"
+            )
         self._configured = True
         self._logger.debug(f"Configured {self._name} = {self._configured}")
 
@@ -69,10 +68,7 @@ class Shell(Plugin):
             if self._supported_actions[action]:
                 supported_actions.append(action)
 
-        return {
-            "configured": self._configured,
-            "supported_actions": supported_actions,
-        }
+        return {"configured": self._configured, "supported_actions": supported_actions}
 
     def check(self, arguments: list[dict]) -> list[dict]:
         """Checks to see if the provided shell is supported

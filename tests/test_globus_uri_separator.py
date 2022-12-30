@@ -1,6 +1,6 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.globus.globus_uri_separator import (
-    GlobusURISeparator
+    GlobusURISeparator,
 )
 
 # Standard imports
@@ -9,6 +9,7 @@ import pwd
 import pytest
 import socket
 import uuid
+
 
 @pytest.mark.unit
 def test_globus_uri_separator():
@@ -141,5 +142,3 @@ def test_globus_uri_separator8():
     assert result["path"] == "/"
     assert result["file_name"] == file_name
     assert len(result["error_message"]) == 0
-
-

@@ -89,9 +89,7 @@ def test_shell_plugin_check():
 
     factory = MessageFactory()
     msg_template = factory.createTemplate(
-        MessageType.ACTIVITY,
-        ActivityType.SHELL,
-        {"shell": "bash"},
+        MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
     )
 
     msg_template[1].message_id = str(uuid.uuid4())
@@ -102,11 +100,7 @@ def test_shell_plugin_check():
     msg_template[1].submission_time = str(int(time.time()))
     # This section will get replaced with a single rsync uri in the future
     msg_template[1].body.parameters.program = "echo"
-    msg_template[1].body.parameters.args = [
-            "$RAN",
-            ">",
-            file_path
-            ]
+    msg_template[1].body.parameters.args = ["$RAN", ">", file_path]
     msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
 
     msg = factory.create(msg_template)
@@ -127,9 +121,7 @@ def test_shell_plugin_run():
 
     factory = MessageFactory()
     msg_template = factory.createTemplate(
-        MessageType.ACTIVITY,
-        ActivityType.SHELL,
-        {"shell": "bash"},
+        MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
     )
 
     msg_template[1].message_id = str(uuid.uuid4())
@@ -140,11 +132,7 @@ def test_shell_plugin_run():
     msg_template[1].submission_time = str(int(time.time()))
     # This section will get replaced with a single rsync uri in the future
     msg_template[1].body.parameters.program = "echo"
-    msg_template[1].body.parameters.args = [
-            "$RAN",
-            ">",
-            file_path
-            ]
+    msg_template[1].body.parameters.args = ["$RAN", ">", file_path]
     msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
 
     msg = factory.create(msg_template)

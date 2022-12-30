@@ -1,8 +1,9 @@
 # Local imports
 import zambeze.orchestration.plugin_modules.git.git as git
 from zambeze.orchestration.plugin_modules.git.git_message_template_generator import (
-    GitMessageTemplateGenerator
+    GitMessageTemplateGenerator,
 )
+
 # Standard imports
 import os
 import pytest
@@ -10,6 +11,7 @@ import random
 import time
 
 from dataclasses import asdict
+
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitSuccess():
@@ -34,7 +36,7 @@ def test_git_checkCommitSuccess():
 
     template.commit.items[0].source = "file://" + current_dir + "/" + file_name
     template.commit.destination = "git://Zambeze84/TestRepo/main/" + file_name
-    template.commit.commit_message = "Adding a file",
+    template.commit.commit_message = ("Adding a file",)
     template.commit.credentials.user_name = "zambeze84"
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
@@ -68,7 +70,7 @@ def test_git_checkCommitFailure1():
 
     template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
     template.commit.destination = "git://Zambeze84/main/" + file_name
-    template.commit.commit_message = "Adding a file",
+    template.commit.commit_message = ("Adding a file",)
     template.commit.credentials.user_name = "zambeze84"
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
@@ -102,7 +104,7 @@ def test_git_checkCommitFailure2():
 
     template.commit.items[0].source = ""
     template.commit.destination = "git://Zambeze84/main/" + file_name
-    template.commit.commit_message = "Adding a file",
+    template.commit.commit_message = ("Adding a file",)
     template.commit.credentials.user_name = "zambeze84"
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
@@ -135,7 +137,7 @@ def test_git_checkCommitFailure3():
 
     template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
     template.commit.destination = "git://Zambeze84/main/" + file_name
-    template.commit.commit_message = "Adding a file",
+    template.commit.commit_message = ("Adding a file",)
 
     git_plugin = git.Git()
     git_plugin.configure({})

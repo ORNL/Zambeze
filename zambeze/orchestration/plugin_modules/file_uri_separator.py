@@ -1,4 +1,3 @@
-
 from .abstract_uri_separator import URISeparator
 
 # Standard imports
@@ -8,7 +7,6 @@ from typing import Optional
 
 
 class FileURISeparator(URISeparator):
-
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("file", logger=logger)
 
@@ -35,12 +33,7 @@ class FileURISeparator(URISeparator):
 
         file_uri_tag = "file://"
 
-        package = {
-                "protocol": "file",
-                "error_message": "",
-                "path": "",
-                "file_name": ""
-                }
+        package = {"protocol": "file", "error_message": "", "path": "", "file_name": ""}
         # Start by ensuring the start of the uri begins with globus://
         if not uri.startswith(file_uri_tag):
             error_msg = f"Incompatible file URI format {uri} must start with "
@@ -60,5 +53,3 @@ class FileURISeparator(URISeparator):
         package["path"] = path
         package["file_name"] = os.path.basename(file_and_path)
         return package
-
-

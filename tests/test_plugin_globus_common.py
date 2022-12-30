@@ -2,7 +2,7 @@
 from zambeze.orchestration.plugin_modules.globus.globus_common import (
     checkAllItemsHaveValidEndpoints,
     getGlobusScopes,
-    getMappedCollections
+    getMappedCollections,
 )
 
 # Standard imports

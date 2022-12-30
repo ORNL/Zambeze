@@ -7,6 +7,7 @@ from ..zambeze_types import ChannelType, QueueType
 from typing import Optional
 import dill
 
+
 class QueueNATS(AbstractQueue):
     def __init__(
         self, queue_config: dict, logger: Optional[logging.Logger] = None

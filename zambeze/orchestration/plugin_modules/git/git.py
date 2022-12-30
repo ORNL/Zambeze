@@ -10,6 +10,7 @@
 from ..abstract_plugin import Plugin
 from .git_uri_separator import GitURISeparator
 from ..file_uri_separator import FileURISeparator
+
 # Third party imports
 import base64
 import json
@@ -200,8 +201,7 @@ class Git(Plugin):
 
 
         """
-        split_uri = self.__git_uri_separator.separate(
-                action_obj["items"][0]["source"])
+        split_uri = self.__git_uri_separator.separate(action_obj["items"][0]["source"])
 
         owner_exists, error_msg = self.__checkRepoOwnerExists(split_uri["owner"])
         msg = ""
@@ -281,10 +281,7 @@ class Git(Plugin):
         msg = ""
         # Check if branch exists
         branch_exists, error_msg = self.__checkBranchExists(
-            split_uri["project"],
-            split_uri["owner"],
-            split_uri["branch"],
-            token
+            split_uri["project"], split_uri["owner"], split_uri["branch"], token
         )
 
         if not branch_exists:
@@ -476,16 +473,15 @@ class Git(Plugin):
         """
         print("Trying to read from file")
         file_split_uri = self.__file_uri_separator.separate(
-                action_obj["items"][0]["source"])
+            action_obj["items"][0]["source"]
+        )
         print(file_split_uri)
         posix_file_path = file_split_uri["path"] + file_split_uri["file_name"]
         with open(posix_file_path) as f:
             file_content = f.read()
             print(file_content)
 
-            git_split_uri = self.__git_uri_separator.separate(
-                action_obj["destination"]
-            )
+            git_split_uri = self.__git_uri_separator.separate(action_obj["destination"])
             github_repo_info = {}
             github_repo_info["project"] = git_split_uri["project"]
             github_repo_info["owner"] = git_split_uri["owner"]

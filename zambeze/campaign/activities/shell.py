@@ -64,9 +64,8 @@ class ShellActivity(Activity):
 
         factory = MessageFactory()
         template = factory.createTemplate(
-                MessageType.ACTIVITY,
-                ActivityType.SHELL,
-                {"shell": "bash"})
+            MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
+        )
 
         template[1].message_id = str(uuid.uuid4())
         template[1].activity_id = str(uuid.uuid4())

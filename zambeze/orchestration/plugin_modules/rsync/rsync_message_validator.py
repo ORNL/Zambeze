@@ -10,13 +10,8 @@ from __future__ import annotations
 
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
-from ..common_dataclasses import (
-    RsyncTransferTemplate,
-)
-from .rsync_common import (
-    PLUGIN_NAME,
-    validateRequiredSourceAndDestinationValuesValid,
-)
+from ..common_dataclasses import RsyncTransferTemplate
+from .rsync_common import PLUGIN_NAME, validateRequiredSourceAndDestinationValuesValid
 
 # Standard imports
 from dataclasses import asdict

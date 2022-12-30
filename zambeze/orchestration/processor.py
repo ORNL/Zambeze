@@ -33,6 +33,7 @@ from .queue.queue_factory import QueueFactory
 from .queue.queue_exceptions import QueueTimeoutException
 from .zambeze_types import ChannelType, QueueType, MessageType, ActivityType
 
+
 class Processor(threading.Thread):
     """An Agent processor.
 
@@ -110,7 +111,7 @@ class Processor(threading.Thread):
 
                         self._logger.info("Command to be executed.")
                         print("dump 2")
-                        #self._logger.info(json.dumps(msg.data["cmd"], indent=4))
+                        # self._logger.info(json.dumps(msg.data["cmd"], indent=4))
 
                         # Running Checks
                         # Returned results should be double nested dict with a tuple of

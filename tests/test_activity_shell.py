@@ -1,7 +1,5 @@
 # Local imports
-from zambeze.campaign.activities.shell import (
-    ShellActivity
-)
+from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.orchestration.zambeze_types import MessageType
 from zambeze.orchestration.identity import validUUID
 
@@ -11,6 +9,7 @@ import logging
 import pathlib
 
 from dataclasses import asdict
+
 
 @pytest.mark.unit
 def test_shell_activity_type():
@@ -51,4 +50,3 @@ def test_shell_activity_type():
     assert msg.data.body.parameters.program == "convert"
     assert len(msg.data.body.parameters.args) == 6
     assert "PATH" in msg.data.body.parameters.env_vars
-

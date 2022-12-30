@@ -29,7 +29,7 @@ class URISeparator(ABC):
         Standard key value pairs that should always be returned
 
         "error_message"
-        "protocol" 
+        "protocol"
         "file_name"
         "path"
 
@@ -47,5 +47,3 @@ class URISeparator(ABC):
         NOTE: path will always begin and end with the separator
         """
         raise NotImplementedError("separate method has not been created.")
-
-

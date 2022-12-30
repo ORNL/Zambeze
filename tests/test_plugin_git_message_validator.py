@@ -27,7 +27,6 @@ def test_shell_messageTemplate_and_validate():
     git_template_commit.commit.credentials.access_token = ""
     git_template_commit.commit.credentials.email = "boby@wonder.com"
 
-    
     print(git_template_commit)
     validator = GitMessageValidator()
     checks = validator.validateMessage(git_template_commit)

@@ -1,7 +1,5 @@
 # Local imports
-from zambeze.orchestration.plugin_modules.git.git_uri_separator import (
-    GitURISeparator
-)
+from zambeze.orchestration.plugin_modules.git.git_uri_separator import GitURISeparator
 
 # Standard imports
 import os

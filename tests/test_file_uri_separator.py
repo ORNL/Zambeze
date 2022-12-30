@@ -1,11 +1,10 @@
 # Local imports
-from zambeze.orchestration.plugin_modules.file_uri_separator import (
-    FileURISeparator
-)
+from zambeze.orchestration.plugin_modules.file_uri_separator import FileURISeparator
 
 # Standard imports
 import pytest
 import os
+
 
 @pytest.mark.unit
 def test_file_uri_separator():
@@ -94,4 +93,3 @@ def test_file_uri_separator6():
     assert split_uri["path"] == "/"
     assert split_uri["file_name"] == ""
     assert len(split_uri["error_message"]) == 0
-

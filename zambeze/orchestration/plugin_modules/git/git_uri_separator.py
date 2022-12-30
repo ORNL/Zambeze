@@ -1,4 +1,3 @@
-
 from ..abstract_uri_separator import URISeparator
 
 # Standard imports
@@ -8,7 +7,6 @@ from typing import Optional
 
 
 class GitURISeparator(URISeparator):
-
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("git", logger=logger)
 
@@ -48,13 +46,13 @@ class GitURISeparator(URISeparator):
         file_uri_tag = "git://"
 
         package = {
-                "protocol": "git",
-                "error_message": "",
-                "project": "",
-                "owner": "",
-                "path": "",
-                "file_name": ""
-                }
+            "protocol": "git",
+            "error_message": "",
+            "project": "",
+            "owner": "",
+            "path": "",
+            "file_name": "",
+        }
         # Start by ensuring the start of the uri begins with globus://
         if not uri.startswith(file_uri_tag):
             error_msg = f"Incompatible git URI format {uri} must start with "
@@ -70,7 +68,8 @@ class GitURISeparator(URISeparator):
         print("Before removeConsecutiveDuplicates")
         print(file_and_path_project_owner)
         file_and_path_project_owner = self.__removeConsecutiveDuplicates(
-                file_and_path_project_owner, os.sep)
+            file_and_path_project_owner, os.sep
+        )
 
         if file_and_path_project_owner.count(os.sep) < 3:
             error_msg = "git URI at a minimum must contain a project "
@@ -102,5 +101,3 @@ class GitURISeparator(URISeparator):
                 index += 1
 
         return package
-
-

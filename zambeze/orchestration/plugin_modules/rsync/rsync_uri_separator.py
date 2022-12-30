@@ -1,4 +1,3 @@
-
 from ..abstract_uri_separator import URISeparator
 
 # Standard imports
@@ -8,7 +7,6 @@ from typing import Optional
 
 
 class RsyncURISeparator(URISeparator):
-
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("rsync", logger=logger)
 
@@ -37,11 +35,11 @@ class RsyncURISeparator(URISeparator):
         file_uri_tag = "rsync://"
 
         package = {
-                "protocol": "rsync",
-                "error_message": "",
-                "path": "",
-                "file_name": ""
-                }
+            "protocol": "rsync",
+            "error_message": "",
+            "path": "",
+            "file_name": "",
+        }
 
         print(f"URI is {uri}")
         # Start by ensuring the start of the uri begins with globus://
@@ -67,5 +65,3 @@ class RsyncURISeparator(URISeparator):
         package["path"] = path
         package["file_name"] = os.path.basename(file_and_path)
         return package
-
-

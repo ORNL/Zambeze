@@ -101,11 +101,8 @@ class MessageFactory:
                 if "plugin" in args:
                     if args["plugin"] is not None:
                         activity.body.plugin = args["plugin"]
-                        activity.body.parameters = (
-                            self._plugins_message_template_generators.generate(
-                                args["plugin"], args["action"]
-                            )
-                        )
+                        activity.body.parameters = self._plugins_message_template_generators.generate(
+                            args["plugin"], args["action"])
                 else:
                     raise Exception(
                         "Missing required arguments to initialize"

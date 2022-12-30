@@ -10,13 +10,8 @@ from __future__ import annotations
 
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
-from .git_message_template_generator import (
-    GitCommitTemplate,
-    GitDownloadTemplate
-)
-from .git_common import (
-    PLUGIN_NAME,
-)
+from .git_message_template_generator import GitCommitTemplate, GitDownloadTemplate
+from .git_common import PLUGIN_NAME
 from zambeze.orchestration.identity import validEmail
 
 # Standard imports
@@ -24,10 +19,10 @@ from dataclasses import asdict
 from typing import Optional, overload
 import logging
 
+
 class GitMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
-
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
 
@@ -73,7 +68,7 @@ class GitMessageValidator(PluginMessageValidator):
                 error_msg += "and the destination URI must begin with file://"
                 checks.append({action: (False, error_msg)})
 
-            # If a source ends with '/' it indicates that the entire folder 
+            # If a source ends with '/' it indicates that the entire folder
             # should be downloaded.
 
         else:
@@ -90,7 +85,7 @@ class GitMessageValidator(PluginMessageValidator):
         >>> }
         >>> # Assumes you are provided with a single dict not a list of dicts
         >>> arguments = {
-        >>>     
+        >>>
         >>> }
         >>> instance = Git()
         >>> instance.configure(config)
@@ -131,7 +126,7 @@ class GitMessageValidator(PluginMessageValidator):
         >>> # Assumes you are provided with a list of dicts
         >>> arguments = [
         >>>     {
-        >>>         
+        >>>
         >>>     }
         >>> ]
         >>> instance = Git()

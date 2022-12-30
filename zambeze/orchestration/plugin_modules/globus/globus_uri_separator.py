@@ -1,4 +1,3 @@
-
 from ..abstract_uri_separator import URISeparator
 from ...identity import validUUID
 
@@ -59,7 +58,7 @@ class GlobusURISeparator(URISeparator):
             "path": "",
             "file_name": "",
             "uuid": "",
-            "error_message": ""
+            "error_message": "",
         }
         if not uri.startswith(globus_uri_tag):
             error_msg = f"Incompatible Globus URI format {uri} must start with "
@@ -100,7 +99,7 @@ class GlobusURISeparator(URISeparator):
                 error_msg += "it must also conform to RFC4122"
                 package["error_message"] = error_msg
                 return package
- 
+
         path = os.path.dirname(file_and_path)
 
         if not path.startswith(os.sep):
@@ -113,5 +112,3 @@ class GlobusURISeparator(URISeparator):
         package["path"] = path
         package["file_name"] = os.path.basename(file_and_path)
         return package
-
-

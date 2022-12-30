@@ -47,14 +47,8 @@ def createActivityTemplate(activity_type: ActivityType) -> ActivityTemplate:
     template.type = "ACTIVITY"
     if activity_type == ActivityType.SHELL:
         template.body = ShellTemplate(
-                "SHELL",
-                None,
-                None,
-                ShellParams(
-                    None,
-                    None,
-                    None)
-                )
+            "SHELL", None, None, ShellParams(None, None, None)
+        )
     elif activity_type == ActivityType.TRANSFER:
         template.body = TransferTemplate("TRANSFER", None)
     elif activity_type == ActivityType.PLUGIN:

@@ -242,7 +242,7 @@ class Globus(Plugin):
         If the type is asynchrouns a runTransfer will return a callback action
         that can be executed to check the status of the generated task
         """
-        
+
         for item in transfer["items"]:
             source_globus_uri = self.__globus_uri_separator.separate(
                 item["source"], self.__default_endpoint
@@ -384,7 +384,9 @@ class Globus(Plugin):
         >>> }
         """
         for item in action_package["items"]:
-            destination_sep_file_uri = self.__file_uri_separator.separate(item["destination"])
+            destination_sep_file_uri = self.__file_uri_separator.separate(
+                item["destination"]
+            )
             destination_path = destination_sep_file_uri["path"]
             destination_file_name = destination_sep_file_uri["file_name"]
 
@@ -488,7 +490,9 @@ class Globus(Plugin):
         >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
         """
         for item in action_package["items"]:
-            globus_sep_uri = self.__globus_uri_separator.separate(item["source"], self.__default_endpoint)
+            globus_sep_uri = self.__globus_uri_separator.separate(
+                item["source"], self.__default_endpoint
+            )
             if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
                 error_msg = f"Invalid source endpoint uuid detected in "
                 error_msg += f"'move_from_globus_collection' item: {item} "
@@ -497,7 +501,9 @@ class Globus(Plugin):
                 error_msg += f"are {self.__endpoints}."
                 return (False, error_msg)
 
-            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(globus_sep_uri["uuid"])
+            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(
+                globus_sep_uri["uuid"]
+            )
             file_path = posix_path_to_endpoint + globus_sep_uri["path"]
             file_path += globus_sep_uri["file_name"]
             if not exists(file_path):

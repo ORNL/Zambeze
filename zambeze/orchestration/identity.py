@@ -39,7 +39,7 @@ def validUUID(uuid_to_test: str, version=None) -> bool:
 
 
 def validEmail(email: str) -> bool:
-    regexp = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    regexp = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     if re.match(regexp, email):
         return True
     else:

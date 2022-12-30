@@ -1,6 +1,6 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.rsync.rsync_uri_separator import (
-    RsyncURISeparator
+    RsyncURISeparator,
 )
 
 # Standard imports
@@ -9,6 +9,7 @@ import pwd
 import pytest
 import socket
 import uuid
+
 
 @pytest.mark.unit
 def test_rsync_uri_separator():

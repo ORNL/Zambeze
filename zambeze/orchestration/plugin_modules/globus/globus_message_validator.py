@@ -69,7 +69,9 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = self.__globus_uri_separator.separate(item["destination"])
+                globus_sep_uri = self.__globus_uri_separator.separate(
+                    item["destination"]
+                )
                 if globus_sep_uri["uuid"] is not None:
                     if not validUUID(globus_sep_uri["uuid"]):
                         error_msg = f"Invalid uuid detected in "

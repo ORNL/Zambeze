@@ -66,8 +66,6 @@ def localEndpointConfigCheck(config: dict) -> None:
             raise Exception(error_msg)
 
 
-
-
 def checkTransferEndpoint(action_package: dict) -> tuple[bool, str]:
     """Makes sure each item to be transferred has the correct format
 

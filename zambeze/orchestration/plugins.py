@@ -264,9 +264,7 @@ class Plugins:
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.body.plugin.lower()
             elif msg.data.body.type == "SHELL":
-                arguments = {
-                    msg.data.body.shell: asdict(msg.data.body.parameters)
-                }
+                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
                 plugin_name = msg.data.body.type.lower()
             else:
                 raise Exception(
@@ -370,9 +368,7 @@ class Plugins:
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.body.plugin.lower()
             elif msg.data.body.type == "SHELL":
-                arguments = {
-                    msg.data.body.shell: asdict(msg.data.body.parameters)
-                }
+                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
                 plugin_name = msg.data.body.type.lower()
             else:
                 raise Exception(

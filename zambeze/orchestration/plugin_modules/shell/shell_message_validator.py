@@ -8,9 +8,7 @@
 
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
-from .shell_message_template_generator import (
-    Bash,
-)
+from .shell_message_template_generator import Bash
 
 # Standard imports
 from dataclasses import asdict
@@ -23,12 +21,7 @@ class ShellMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("shell", logger=logger)
 
-
-    def __validateEnvVars(
-            self,
-            action: str,
-            arguments: dict,
-            checks: list):
+    def __validateEnvVars(self, action: str, arguments: dict, checks: list):
 
         # Make sure all of the values provided in the env_vars dict
         # are of type string
@@ -37,16 +30,15 @@ class ShellMessageValidator(PluginMessageValidator):
                 value = arguments[action]["env_vars"][key]
                 if not isinstance(value, str):
                     checks.append(
-                           {
-                               action: (
-                                   False,
-                                   "All env_vars key value pairs must be strings "
-                                   + f" {key} value is not: {value}.",
-                               )
-                           }
-                       )
+                        {
+                            action: (
+                                False,
+                                "All env_vars key value pairs must be strings "
+                                + f" {key} value is not: {value}.",
+                            )
+                        }
+                    )
         return checks
-
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
         if not isinstance(arguments, dict):
