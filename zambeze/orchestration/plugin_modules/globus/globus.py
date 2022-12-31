@@ -556,10 +556,12 @@ class Globus(Plugin):
         """
         self.__validConfig(config)
 
+        print("Config is")
+        print(config)
         self._logger.debug(json.dumps(config, indent=4))
         if "authentication_flow" in config:
-            if "client_id" in config:
-                self.__client_id = config["client_id"]
+            if "client_id" in config['authentication_flow']:
+                self.__client_id = config['authentication_flow']["client_id"]
 
         print("Client id is ")
         print(self.__client_id)
