@@ -44,7 +44,9 @@ class Processor(threading.Thread):
     """
 
     def __init__(
-        self, settings: ZambezeSettings, logger: Optional[logging.Logger] = None
+        self,
+        settings: ZambezeSettings,
+        logger: Optional[logging.Logger] = None,
         agent_id: Optional[str] = None) -> None:
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
