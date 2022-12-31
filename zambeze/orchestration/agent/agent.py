@@ -65,6 +65,8 @@ class Agent:
         """
         # Receive and unwrap the activity message from ZMQ.
         activity_message = pickle.loads((self._zmq_socket.recv()))
+        # Set the agent id in the activity
+        activity_message.agent_id = self._agent_id
         self._logger.info(f"Received message from campaign: {activity_message}")
 
         activity = ActivityModel(
@@ -89,6 +91,8 @@ class Agent:
         :type activity: Activity
         """
         self._logger.error("Received activity for dispatch...")
+        activity.message_id = uuid4()
+        self._logger.info(f"Dispatching message activity_id: {activity.activity_id} message_id: {activity.message_id}")
         asyncio.run(
             self.processor.send(ChannelType.ACTIVITY, activity.generate_message())
         )
