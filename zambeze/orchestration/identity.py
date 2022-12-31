@@ -27,6 +27,9 @@ def validUUID(uuid_to_test: str, version=None) -> bool:
     https://stackoverflow.com/questions/19989481/how-to-determine-if-a-string-
     is-a-valid-v4-uuid
     """
+    if not isinstance(uuid_to_test, str):
+        raise Exception("UUID must be of type str")
+
     uuid_obj = ""
     try:
         if version:

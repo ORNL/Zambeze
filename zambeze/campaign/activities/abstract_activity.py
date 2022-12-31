@@ -42,6 +42,7 @@ class Activity:
     command: Optional[str]
     arguments: list[str]
     logger: Optional[logging.Logger]
+    campaign_id: str
 
     def __init__(
         self,
@@ -50,6 +51,7 @@ class Activity:
         command: Optional[str] = None,
         arguments: list[str] = [],
         logger: Optional[logging.Logger] = None,
+        campaign_id: Optional[str] = "",
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
@@ -58,6 +60,7 @@ class Activity:
         self.files = files
         self.command = command
         self.arguments = arguments
+        self.campaign_id = campaign_id
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
 

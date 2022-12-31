@@ -1,5 +1,6 @@
 # Local imports
 from zambeze.campaign.activities.shell import ShellActivity
+from zambeze.campaign.campaign import Campaign
 from zambeze.orchestration.zambeze_types import MessageType
 from zambeze.orchestration.identity import validUUID
 
@@ -13,7 +14,7 @@ from dataclasses import asdict
 
 
 @pytest.mark.unit
-def test_shell_activity_type():
+def test_campaign():
 
     logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
@@ -35,20 +36,14 @@ def test_shell_activity_type():
         logger=logger,
         # Uncomment if running on M1 Mac.
         env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
-        campaign_id=str(uuid.uuid4()),
     )
 
-    msg = activity.generate_message()
-    assert msg.type == MessageType.ACTIVITY
-    assert validUUID(msg.data.agent_id)
-    assert validUUID(msg.data.campaign_id)
-    assert validUUID(msg.data.message_id)
-    assert validUUID(msg.data.activity_id)
-    assert len(msg.data.submission_time) > 0
-    assert int(msg.data.submission_time) > 0
-    assert msg.data.body.type == "SHELL"
-    assert msg.data.body.shell == "bash"
-    assert len(msg.data.body.files) > 0
-    assert msg.data.body.parameters.program == "convert"
-    assert len(msg.data.body.parameters.args) == 6
-    assert "PATH" in msg.data.body.parameters.env_vars
+    assert activity.campaign_id is None
+
+    campaign = Campaign("My test", logger=logger)
+
+    # Check that the campaign id is correctly added to teh activity
+    campaign.add_activity(activity)
+    assert validUUID(campaign.activities[0].campaign_id)
+    assert campaign.activities[0].campaign_id == campaign.campaign_id
+

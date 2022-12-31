@@ -154,20 +154,28 @@ class Processor(threading.Thread):
         self._logger.debug("Processing files...")
         for file_path in files:
             file_url = urlparse(file_path)
+            print(f"File to parse {file_url}")
             if file_url.scheme == "file":
                 if not pathlib.Path(file_url.path).exists():
                     raise Exception(f"Unable to find file: {file_url.path}")
 
             elif file_url.scheme == "globus":
+                if "globus" not in self._settings.settings["plugins"]:
+                    raise Exception("It doesn't look like Globus is configured locally")
 
+                print("Globus executing")
+                print(file_url.path)
                 # Check if we have plugin
                 source_file_name = os.path.basename(file_url.path)
-                default_endpoint = self._settings.settings["plugins"]["globus"][
-                    "config"
-                ]["default_endpoint"]
+                print(f"Source file_name {source_file_name}")
+                print("Settings")
+                print(self._settings.settings["plugins"])
+                default_endpoint = self._settings.settings["plugins"]["globus"]["config"]["default_endpoint"]
+                print(f"default endpoint {default_endpoint}")
                 default_working_dir = self._settings.settings["plugins"]["All"][
                     "default_working_directory"
                 ]
+                print(f"default working directory {default_working_directory}")
 
                 local_globus_uri = (
                     f"globus://{default_endpoint}{os.sep}" f"source_file_name"
@@ -196,6 +204,8 @@ class Processor(threading.Thread):
                 msg_template_transfer[1].body.transfer.items[0].destination = (
                     local_globus_uri,
                 )
+
+                print(asdict(msg_template_transfer))
                 # Will validate the message fields and then make it immutable
                 immutable_msg = self._msg_factory.create(msg_template_transfer)
 

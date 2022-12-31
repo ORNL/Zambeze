@@ -43,10 +43,11 @@ class ShellActivity(Activity):
         command: Optional[str] = None,
         arguments: list[str] = [],
         logger: Optional[logging.Logger] = None,
+        campaign_id: Optional[str] = None,
         **kwargs
     ) -> None:
         """Create an object of a unix shell activity."""
-        super().__init__(name, files, command, arguments, logger)
+        super().__init__(name, files, command, arguments, logger, campaign_id)
         self.logger: Optional[logging.Logger] = (
             logger if logger else logging.getLogger(__name__)
         )
@@ -54,7 +55,7 @@ class ShellActivity(Activity):
         # Pull out environment variables, IF users submitted them.
         if "env_vars" in kwargs:
             if not isinstance(kwargs.get("env_vars"), dict):
-                raise Exception("TODO env_vars provided via kwargs need to be converted to dict here in the code")
+                raise Exception("env_vars provided via kwargs mubst be a dict.")
             self.env_vars = kwargs.get("env_vars")
         else:
             self.env_vars = {}
@@ -72,7 +73,10 @@ class ShellActivity(Activity):
         template[1].message_id = str(uuid.uuid4())
         template[1].activity_id = str(uuid.uuid4())
         template[1].agent_id = str(uuid.uuid4())
-        template[1].campaign_id = str(uuid.uuid4())
+        if self.campaign_id:
+            template[1].campaign_id = self.campaign_id
+        else:
+            template[1].campaign_id = ""
         template[1].credential = {}
         template[1].submission_time = str(int(time.time()))
         template[1].body.type = "SHELL"
