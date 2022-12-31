@@ -46,7 +46,10 @@ class Agent:
         self._agent_id = uuid4()
 
         self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
-        self._processor = Processor(settings=self._settings, logger=self._logger)
+        self._processor = Processor(
+                settings=self._settings,
+                logger=self._logger,
+                agent_id=self._agent_id)
         self._processor.start()
 
         self._zmq_context = zmq.Context()
@@ -91,9 +94,12 @@ class Agent:
         :type activity: Activity
         """
         self._logger.error("Received activity for dispatch...")
-        activity.message_id = uuid4()
-        self._logger.info(f"Dispatching message activity_id: {activity.activity_id} message_id: {activity.message_id}")
+        #activity.message_id = uuid4()
+        msg = activity.generate_message()
+        self._logger.info(
+                f"Dispatching message activity_id: {activity.activity_id} "
+                f"message_id: {msg.data.body.message_id}")
         asyncio.run(
-            self.processor.send(ChannelType.ACTIVITY, activity.generate_message())
+            self.processor.send(ChannelType.ACTIVITY, msg)
         )
         activity.status = ActivityStatus.QUEUED

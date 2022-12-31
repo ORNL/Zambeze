@@ -45,14 +45,14 @@ class Processor(threading.Thread):
 
     def __init__(
         self, settings: ZambezeSettings, logger: Optional[logging.Logger] = None
-    ) -> None:
+        agent_id: Optional[str] = None) -> None:
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
         self._settings = settings
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-
+        self._agent_id = agent_id
         queue_factory = QueueFactory(logger=self._logger)
         args = {
             "ip": self._settings.settings["nats"]["host"],
@@ -107,7 +107,10 @@ class Processor(threading.Thread):
                         # Need to be moved to be executed
                         if msg.data.body.files:
                             if len(msg.data.body.files) > 0:
-                                await self.__process_files(msg.data.body.files)
+                                await self.__process_files(
+                                        msg.data.body.files,
+                                        msg.data.body.campaign_id,
+                                        msg.data.body.activity_id)
 
                         self._logger.info("Command to be executed.")
                         print("dump 2")
@@ -143,7 +146,11 @@ class Processor(threading.Thread):
                 print(e)
                 exit(1)
 
-    async def __process_files(self, files: list[str]) -> None:
+    async def __process_files(
+            self,
+            files: list[str],
+            campaign_id: str,
+            activity_id: str) -> None:
         """
         Process a list of files by generating transfer requests when files are
         not available locally.
@@ -191,10 +198,10 @@ class Processor(threading.Thread):
                     {"plugin": "globus", "action": "transfer"},
                 )
 
-                msg_template_transfer[1].message_id = str(uuid.uuid4())
-                msg_template_transfer[1].activity_id = str(uuid.uuid4())
-                msg_template_transfer[1].agent_id = str(uuid.uuid4())
-                msg_template_transfer[1].campaign_id = str(uuid.uuid4())
+                #msg_template_transfer[1].message_id = str(uuid.uuid4())
+                msg_template_transfer[1].activity_id = activity_id
+                msg_template_transfer[1].agent_id = self._agent_id
+                msg_template_transfer[1].campaign_id = campaign_id
                 msg_template_transfer[1].credential = {}
                 msg_template_transfer[1].submission_time = str(int(time.time()))
                 msg_template_transfer[1].body.transfer.type = "synchronous"
@@ -220,10 +227,10 @@ class Processor(threading.Thread):
                     {"plugin": "globus", "action": "move_from_globus_collection"},
                 )
 
-                msg_template_move[1].message_id = str(uuid.uuid4())
-                msg_template_move[1].activity_id = str(uuid.uuid4())
-                msg_template_move[1].agent_id = str(uuid.uuid4())
-                msg_template_move[1].campaign_id = str(uuid.uuid4())
+                #msg_template_move[1].message_id = str(uuid.uuid4())
+                msg_template_move[1].activity_id = activity_id
+                msg_template_move[1].agent_id = self._agent_id
+                msg_template_move[1].campaign_id = campaign_id
                 msg_template_move[1].credential = {}
                 msg_template_move[1].submission_time = str(int(time.time()))
                 msg_template_move[1].body.move_to_globus_collection.items[
