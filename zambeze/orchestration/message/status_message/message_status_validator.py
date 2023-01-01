@@ -84,14 +84,14 @@ class MessageStatusValidator(AbstractMessageValidator):
             )
 
             # NOT NEEDED will be generated when the message is created
-#        if not validUUID(message.message_id, 4):
-#            return (
-#                False,
-#                (
-#                    "Required message_id attribute for activity message must"
-#                    f"be a valid version 4 UUID but is not: {message.message_id}"
-#                ),
-#            )
+        #        if not validUUID(message.message_id, 4):
+        #            return (
+        #                False,
+        #                (
+        #                    "Required message_id attribute for activity message must"
+        #                    f"be a valid version 4 UUID but is not: {message.message_id}"
+        #                ),
+        #            )
 
         if not validUUID(message.target_id, 4):
             return (

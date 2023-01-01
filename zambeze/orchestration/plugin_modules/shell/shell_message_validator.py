@@ -53,17 +53,15 @@ class ShellMessageValidator(PluginMessageValidator):
                         # Detect $ in env variable provided by user
                         # only support env variables with ${} syntax
                         # not simply $
-                        if value.count('$') != value.count("${"):
+                        if value.count("$") != value.count("${"):
                             checks.append(
                                 {
                                     action: (
                                         False,
-                                        "Shell environment variables can support shell variable "
-                                        + "injection. However, zambeze only support the more explicit${} syntax "
-                                        + f" value has the following syntax: {value}.",
-                                    )
-                                }
-                            )
+                                        "Shell environment variables can support shell variable " +
+                                        "injection. However, zambeze only support the more explicit${} syntax " +
+                                        f" value has the following syntax: {value}.",
+                                    )})
 
         return checks
 

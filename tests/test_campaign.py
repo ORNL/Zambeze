@@ -46,4 +46,3 @@ def test_campaign():
     campaign.add_activity(activity)
     assert validUUID(campaign.activities[0].campaign_id)
     assert campaign.activities[0].campaign_id == campaign.campaign_id
-

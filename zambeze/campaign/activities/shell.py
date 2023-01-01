@@ -50,8 +50,16 @@ class ShellActivity(Activity):
     ) -> None:
         """Create an object of a unix shell activity."""
         super().__init__(
-                name, files, command, arguments, logger, campaign_id,
-                agent_id, message_id, activity_id=str(uuid.uuid4()))
+            name,
+            files,
+            command,
+            arguments,
+            logger,
+            campaign_id,
+            agent_id,
+            message_id,
+            activity_id=str(uuid.uuid4()),
+        )
         self.logger: Optional[logging.Logger] = (
             logger if logger else logging.getLogger(__name__)
         )

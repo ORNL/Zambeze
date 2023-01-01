@@ -27,13 +27,13 @@ def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
     :Example:
 
     variable = "My${Long}string${Containing${Nested}Patterns}"
-                012345678901234567890123456789012345678901234 
-    match, start, end = getInnerPattern(variable, "${", "}") 
+                012345678901234567890123456789012345678901234
+    match, start, end = getInnerPattern(variable, "${", "}")
     print(f"match: {match}, start: {start}, end: {end})
 
     Will return
 
-    match: Nested, start: 27, end: 36 
+    match: Nested, start: 27, end: 36
     """
     # find returns -1 if no match was found
     if len(variable) == 0:
@@ -66,20 +66,27 @@ def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
 
         match = ""
         if inner_match_right_index > -1 and inner_match_left_index > -1:
-            match = variable[inner_match_left_index+len(left_pattern):inner_match_right_index] 
-        
-        if (left_index > inner_match_right_index or left_index <= -1) and (right_index <= inner_match_left_index or right_index <= -1):
+            match = variable[
+                inner_match_left_index + len(left_pattern): inner_match_right_index
+            ]
+
+        if (left_index > inner_match_right_index or left_index <= -1) and (
+            right_index <= inner_match_left_index or right_index <= -1
+        ):
             if inner_match_right_index > -1 and inner_match_left_index > -1:
-                return match, inner_match_left_index, inner_match_right_index + len(right_pattern)
+                return (
+                    match,
+                    inner_match_left_index,
+                    inner_match_right_index + len(right_pattern),
+                )
             return "", -1, -1
 
-        left_index = variable.find(left_pattern, left_index+1, len(variable))
+        left_index = variable.find(left_pattern, left_index + 1, len(variable))
         if right_index >= -1:
             right_index = variable.rfind(right_pattern, 0, right_index)
 
-    
 
-def mergeEnvVariables(current_vars: dict, new_vars: dict) -> dict: 
+def mergeEnvVariables(current_vars: dict, new_vars: dict) -> dict:
     """Function supports merging env variables
 
     This function also supports ${} notation, where ${var} where
@@ -96,7 +103,7 @@ def mergeEnvVariables(current_vars: dict, new_vars: dict) -> dict:
 
     # If new vars have the same named key it will overwrite current vars
     return {**current_vars, **new_vars}
-    
+
 
 class Shell(Plugin):
     """Implementation of a Shell plugin."""
