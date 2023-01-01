@@ -108,11 +108,11 @@ class GitMessageValidator(PluginMessageValidator):
         checks = []
         return self._validateAction(action, checks, arguments)
 
-    @overload  # pyre-ignore[14]
+    @overload
     def validateMessage(self, arguments: GitCommitTemplate) -> list:
         ...
 
-    @overload  # pyre-ignore[14]
+    @overload
     def validateMessage(self, arguments: GitDownloadTemplate) -> list:
         ...
 

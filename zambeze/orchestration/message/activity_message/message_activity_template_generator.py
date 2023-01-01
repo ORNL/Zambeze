@@ -5,7 +5,8 @@ from zambeze.orchestration.zambeze_types import ActivityType
 # Local imports
 from ..general_message_components import REQUIRED_GENERAL_COMPONENTS
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import Optional
 
 REQUIRED_ACTIVITY_COMPONENTS = {
     **REQUIRED_GENERAL_COMPONENTS,
@@ -36,7 +37,7 @@ PluginTemplate = make_dataclass(
 
 @dataclass
 class ShellParams:
-    program: str
+    program: Optional[str]
     args: list
     env_vars: dict
 

@@ -261,10 +261,10 @@ class Plugins:
         if isinstance(msg, AbstractMessage):
             # pyre-ignore[16]
             print("msg is AbstractMessage")
-            if msg.data.body.type == "PLUGIN":
+            if msg.data.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.body.plugin.lower()
-            elif msg.data.body.type == "SHELL":
+            elif msg.data.type == "SHELL":
                 print("Is shell")
                 arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
                 plugin_name = msg.data.body.type.lower()

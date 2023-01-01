@@ -23,7 +23,7 @@ class URISeparator(ABC):
         return self._name
 
     @abstractmethod
-    def separate(self, uri: str, extra_args) -> dict:
+    def separate(self, uri: str, extra_args=None) -> dict:
         """Should return a dict with the different components
 
         Standard key value pairs that should always be returned

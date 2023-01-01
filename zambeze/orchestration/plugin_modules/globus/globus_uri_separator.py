@@ -11,7 +11,7 @@ class GlobusURISeparator(URISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
 
-    def separate(self, uri: str, default_uuid=None) -> dict:
+    def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a globus URI and break it into its components
 
         :param uri: the globus uri globus://XXXXX...XXX/path/file.txt
@@ -50,6 +50,7 @@ class GlobusURISeparator(URISeparator):
         >>> /path/
         >>> file.txt
         """
+        default_uuid = extra_args
         uri = uri.lstrip(" ").rstrip(" ")
 
         globus_uri_tag = "globus://"

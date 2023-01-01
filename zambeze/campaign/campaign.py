@@ -45,7 +45,7 @@ class Campaign:
 
         self.activities: list[Activity] = activities
         for index in range(0, len(self.activities)):
-            self.activities[index] = self.campaign_id
+            self.activities[index].campaign_id = self.campaign_id
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
