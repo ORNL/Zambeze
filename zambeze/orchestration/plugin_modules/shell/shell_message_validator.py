@@ -32,7 +32,9 @@ class ShellMessageValidator(PluginMessageValidator):
                     {
                         action: (
                             False,
-                            f"Shell env_vars must be provided as a dict but they have been provided as {type(arguments[action]['env_vars'])}.",
+                            ("Shell env_vars must be provided as a dict but "
+                             "they have been provided as "
+                             f"{type(arguments[action]['env_vars'])}."),
                         )
                     }
                 )
@@ -58,9 +60,12 @@ class ShellMessageValidator(PluginMessageValidator):
                                 {
                                     action: (
                                         False,
-                                        "Shell environment variables can support shell variable " +
-                                        "injection. However, zambeze only support the more explicit${} syntax " +
-                                        f" value has the following syntax: {value}.",
+                                        "Shell environment variables can " +
+                                        "support shell variable injection." +
+                                        " However, zambeze only support the " +
+                                        "more explicit${} syntax " +
+                                        " value has the following syntax: " +
+                                        f"{value}.",
                                     )})
 
         return checks
@@ -137,7 +142,7 @@ class ShellMessageValidator(PluginMessageValidator):
 
         checks = []
         for index in range(len(arguments)):
-            print(f"Shell validateMessage")
+            print("Shell validateMessage")
             print(arguments)
             if hasattr(arguments[index], "bash"):
                 checks = self._validateAction("bash", checks, arguments[index])

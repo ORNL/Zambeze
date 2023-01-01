@@ -452,7 +452,7 @@ class Globus(Plugin):
                 item["destination"], self.__default_endpoint
             )
             if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
-                error_msg = f"Invalid source endpoint uuid detected in "
+                error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"move_from_globus_collection' item: {item}"
                 error_msg += "\nuuid:"
                 error_msg += f" {globus_sep_uri['uuid']}\nRecognized endpoints "
@@ -494,7 +494,7 @@ class Globus(Plugin):
                 item["source"], self.__default_endpoint
             )
             if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
-                error_msg = f"Invalid source endpoint uuid detected in "
+                error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"'move_from_globus_collection' item: {item} "
                 error_msg += "\nuuid: "
                 error_msg += f" {globus_sep_uri['uuid']}\nRecognized endpoints "

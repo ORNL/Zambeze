@@ -2,12 +2,7 @@
 from ...identity import validUUID
 
 # Standard imports
-import os
-from os.path import basename
-from os.path import dirname
 from os.path import exists
-
-import re
 
 SUPPORTED_ACTIONS = {
     "transfer": False,

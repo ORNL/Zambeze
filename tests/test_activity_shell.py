@@ -9,8 +9,6 @@ import logging
 import pathlib
 import uuid
 
-from dataclasses import asdict
-
 
 @pytest.mark.unit
 def test_shell_activity_generate_message():

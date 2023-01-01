@@ -13,7 +13,6 @@ import os
 import socket
 import threading
 import time
-import uuid
 
 from typing import Optional
 from dataclasses import asdict
@@ -186,7 +185,7 @@ class Processor(threading.Thread):
                 default_working_dir = self._settings.settings["plugins"]["All"][
                     "default_working_directory"
                 ]
-                print(f"default working directory {default_working_directory}")
+                print(f"default working directory {default_working_dir}")
 
                 local_globus_uri = (
                     f"globus://{default_endpoint}{os.sep}" f"source_file_name"

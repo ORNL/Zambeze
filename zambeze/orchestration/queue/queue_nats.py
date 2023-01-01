@@ -1,4 +1,3 @@
-import json
 import logging
 import nats
 from .abstract_queue import AbstractQueue

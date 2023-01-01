@@ -2,9 +2,8 @@
 # fmt: off
 from zambeze.orchestration.plugin_modules.git.\
     git_message_template_generator import (
-    GitMessageTemplateGenerator,
-    GitCredentialTemplate
-)
+        GitMessageTemplateGenerator,
+    )
 # fmt: on
 from zambeze.orchestration.plugin_modules.git.git_message_validator import (
     GitMessageValidator,

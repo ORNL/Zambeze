@@ -4,11 +4,7 @@ from zambeze.orchestration.plugin_modules.rsync.rsync_uri_separator import (
 )
 
 # Standard imports
-import os
-import pwd
 import pytest
-import socket
-import uuid
 
 
 @pytest.mark.unit

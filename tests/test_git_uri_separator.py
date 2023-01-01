@@ -2,10 +2,7 @@
 from zambeze.orchestration.plugin_modules.git.git_uri_separator import GitURISeparator
 
 # Standard imports
-import os
-import pwd
 import pytest
-import socket
 
 
 @pytest.mark.unit

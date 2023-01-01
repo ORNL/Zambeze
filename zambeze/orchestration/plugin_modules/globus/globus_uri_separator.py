@@ -33,7 +33,8 @@ class GlobusURISeparator(URISeparator):
         >>> /path/
         >>> file.txt
 
-        :Example: When no endpoint UUID is provided in the URI the default should be used
+        :Example: When no endpoint UUID is provided in the URI the default shoul
+        be used
 
         >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
         >>> globus_uri = globus://path/file.txt

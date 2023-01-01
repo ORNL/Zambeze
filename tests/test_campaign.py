@@ -1,16 +1,12 @@
 # Local imports
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.campaign.campaign import Campaign
-from zambeze.orchestration.zambeze_types import MessageType
 from zambeze.orchestration.identity import validUUID
 
 # Standard imports
 import pytest
 import logging
 import pathlib
-import uuid
-
-from dataclasses import asdict
 
 
 @pytest.mark.unit

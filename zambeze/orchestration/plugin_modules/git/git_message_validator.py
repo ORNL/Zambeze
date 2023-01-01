@@ -24,52 +24,60 @@ class GitMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
 
-    def _validateAction(self, action: str, checks: list, arguments: dict):
+    def _validateCommit(self, commit_arguments, checks):
+        # Start by checking that all the files have been provided
+        action = "commit"
+        for item in commit_arguments["items"]:
 
+            if not item["source"].startswith("file://"):
+                error_msg = "Error detected for commit source. The file to "
+                error_msg += "commit must be located on the posix file system"
+                error_msg += "and the source URI must begin with file://"
+                checks.append({action: (False, error_msg)})
+
+        if not commit_arguments["destination"].startswith("git://"):
+            error_msg = "Error detected for commit destination. The git URI "
+            error_msg += "must begin with git://"
+            checks.append({action: (False, error_msg)})
+
+        print(commit_arguments)
+        if len(commit_arguments["credentials"]["user_name"]) == 0:
+            error_msg = "Cannot commit without specifying user_name"
+            checks.append({action: (False, error_msg)})
+
+        if not validEmail(commit_arguments["credentials"]["email"]):
+            error_msg = "Cannot commit without specifying a valid email address"
+            checks.append({action: (False, error_msg)})
+        return checks
+
+    def _validateDownload(self, download_arguments, checks):
+        action = "download"
+        for item in download_arguments["items"]:
+
+            if not item["source"].startswith("git://"):
+                error_msg = "Error detected for download source. The git URI "
+                error_msg += "must begin with git://"
+                checks.append({action: (False, error_msg)})
+
+        if not download_arguments["destination"].startswith("file://"):
+            error_msg = "Error detected for download destination. The file to "
+            error_msg += "download must have a valid posix path to download to"
+            error_msg += "and the destination URI must begin with file://"
+            checks.append({action: (False, error_msg)})
+
+        # If a source ends with '/' it indicates that the entire folder
+        # should be downloaded.
+        return checks
+
+    def _validateAction(self, action: str, checks: list, arguments: dict):
         if not isinstance(arguments, dict):
             arguments = asdict(arguments)
 
         if action == "commit":
-            # Start by checking that all the files have been provided
-            for item in arguments["commit"]["items"]:
-
-                if not item["source"].startswith("file://"):
-                    error_msg = "Error detected for commit source. The file to "
-                    error_msg += "commit must be located on the posix file system"
-                    error_msg += "and the source URI must begin with file://"
-                    checks.append({action: (False, error_msg)})
-
-            if not arguments[action]["destination"].startswith("git://"):
-                error_msg = "Error detected for commit destination. The git URI "
-                error_msg += "must begin with git://"
-                checks.append({action: (False, error_msg)})
-
-            print(arguments)
-            if len(arguments[action]["credentials"]["user_name"]) == 0:
-                error_msg = "Cannot commit without specifying user_name"
-                checks.append({action: (False, error_msg)})
-
-            if not validEmail(arguments[action]["credentials"]["email"]):
-                error_msg = "Cannot commit without specifying a valid email address"
-                checks.append({action: (False, error_msg)})
+            checks = self._validateCommit(arguments["commit"], checks)
 
         elif action == "download":
-
-            for item in arguments["commit"]["items"]:
-
-                if not item["source"].startswith("git://"):
-                    error_msg = "Error detected for download source. The git URI "
-                    error_msg += "must begin with git://"
-                    checks.append({action: (False, error_msg)})
-
-            if not arguments[action]["destination"].startswith("file://"):
-                error_msg = "Error detected for download destination. The file to "
-                error_msg += "download must have a valid posix path to download to"
-                error_msg += "and the destination URI must begin with file://"
-                checks.append({action: (False, error_msg)})
-
-            # If a source ends with '/' it indicates that the entire folder
-            # should be downloaded.
+            checks = self._validateDownload(arguments["download"], checks)
 
         else:
             checks.append({action: (False, f"{action} unsupported action\n")})
@@ -146,10 +154,9 @@ class GitMessageValidator(PluginMessageValidator):
         elif isinstance(arguments, GitDownloadTemplate):
             arguments = [arguments]
         else:
-            error = (
-                f"Unsupported argument type encountered. arguments = {type(arguments)}"
-            )
-            error += f" where {type(GitTemplate)} is expected"
+            error = "Unsupported argument type encountered. arguments = "
+            error += f"{type(arguments)} where {type(GitCommitTemplate)} "
+            error += f"or {type(GitDownloadTemplate)} is expected."
             raise Exception(error)
 
         checks = []
