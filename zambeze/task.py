@@ -16,7 +16,7 @@ class Task:
     _payload = {}
 
     def __init__(self, payload):
-        if type(payload) is not dict:
+        if not isinstance(payload, dict):
             raise actions.ActionExcept("Payload must be dict")
         self.__validatePayload(payload)
         self._payload = {

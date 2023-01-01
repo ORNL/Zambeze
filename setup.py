@@ -8,6 +8,9 @@
 
 from setuptools import setup, find_packages
 
+with open("requirements.txt") as f:
+    requires = f.read().splitlines()
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -23,10 +26,10 @@ setup(
     description="",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/zambeze/zambeze",
+    url="https://github.com/ORNL/zambeze",
+    install_requires=requires,
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["nats-py", "setuptools"],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",

@@ -12,9 +12,15 @@ import pathlib
 import pickle
 import zmq
 
+from time import time
 from typing import Optional
 from uuid import uuid4
-from ..processor import Processor, MessageType
+
+from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
+from zambeze.orchestration.db.model.activity_model import ActivityModel
+
+from ..processor import Processor
+from ..zambeze_types import ChannelType
 from ...campaign.activities.abstract_activity import Activity, ActivityStatus
 from ...settings import ZambezeSettings
 
@@ -37,17 +43,19 @@ class Agent:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-
         self._agent_id = uuid4()
 
         self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
-        self._processor = Processor(settings=self._settings, logger=self._logger)
+        self._processor = Processor(
+            settings=self._settings, logger=self._logger, agent_id=self._agent_id
+        )
         self._processor.start()
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
         self._logger.info(f"Binding to: {self._settings.get_zmq_connection_uri()}")
         self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
+        self._activity_dao = ActivityDAO(self._logger)
 
         while True:
             self._logger.info("Waiting for new activities from campaign(s)...")
@@ -59,8 +67,16 @@ class Agent:
         """
         # Receive and unwrap the activity message from ZMQ.
         activity_message = pickle.loads((self._zmq_socket.recv()))
+        # Set the agent id in the activity
+        activity_message.agent_id = self._agent_id
         self._logger.info(f"Received message from campaign: {activity_message}")
 
+        activity = ActivityModel(
+            agent_id=str(self._agent_id), created_at=int(time() * 1000)
+        )
+        self._logger.info(f"Creating activity in the DB: {activity}")
+        self._activity_dao.insert(activity)
+        self._logger.info("Saved in the DB!")
         # Dispatch the activity!
         self.dispatch_activity(activity_message)
         self._zmq_socket.send(b"Agent successfully dispatched task!")
@@ -77,7 +93,10 @@ class Agent:
         :type activity: Activity
         """
         self._logger.error("Received activity for dispatch...")
-        asyncio.run(
-            self.processor.send(MessageType.COMPUTE.value, activity.generate_message())
+        msg = activity.generate_message()
+        self._logger.info(
+            f"Dispatching message activity_id: {activity.activity_id} "
+            f"message_id: {msg.data.message_id}"
         )
+        asyncio.run(self.processor.send(ChannelType.ACTIVITY, msg))
         activity.status = ActivityStatus.QUEUED

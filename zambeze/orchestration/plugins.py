@@ -10,17 +10,32 @@
 from __future__ import annotations
 
 # Local imports
+from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
+from .plugin_modules.common_plugin_functions import registerPlugins
 
 # Standard imports
 from copy import deepcopy
+from dataclasses import asdict
 from importlib import import_module
 from inspect import isclass
-from pathlib import Path
-from typing import Optional
+from typing import Optional, overload
 
 import logging
-import pkgutil
+
+
+class PluginChecks(dict):
+    def __init__(self, val: dict = {}):
+        super().__init__(val)
+
+    def errorDetected(self) -> bool:
+        """Detects if an error was found in the results of the plugin checks"""
+        for key in self.keys():
+            for item in self[key]:
+                for key2 in item.keys():
+                    if item[key2][0] is False:
+                        return True
+        return False
 
 
 class Plugins:
@@ -41,20 +56,11 @@ class Plugins:
         self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.__module_names = []
+        self.__module_names = registerPlugins()
         self._plugins = {}
-        self.__registerPlugins()
-
-    def __registerPlugins(self) -> None:
-        """Will register all the plugins provided in the plugin_modules folder"""
-        plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
-        for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
-            if module_name != "abstract_plugin" and module_name != "__init__":
-                self.__module_names.append(module_name)
-        self.__logger.debug(f"Registered Plugins: {', '.join(self.__module_names)}")
 
     @property
-    def registered(self) -> list[Plugin]:
+    def registered(self) -> list[str]:
         """List all plugins that have been registered.
 
         This method can be called at any time and is meant to simply display which
@@ -114,9 +120,10 @@ class Plugins:
         This will just configure the "shell" plugin
         """
         for module_name in self.__module_names:
+            # Registering plugins
             if module_name in config.keys() and module_name in self.__module_names:
                 module = import_module(
-                    f"zambeze.orchestration.plugin_modules.{module_name}"
+                    f"zambeze.orchestration.plugin_modules.{module_name}.{module_name}"
                 )
                 for attribute_name in dir(module):
                     potential_plugin = getattr(module, attribute_name)
@@ -194,7 +201,17 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    def check(self, plugin_name: str, arguments: dict) -> dict:
+    @overload
+    def check(
+        self, msg: AbstractMessage, arguments: Optional[dict] = None
+    ) -> PluginChecks:
+        ...
+
+    @overload
+    def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
+        ...
+
+    def check(self, msg, arguments=None) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -238,10 +255,48 @@ class Plugins:
         >>> print(checked_args)
         >>> # Should print
         >>> # {
-        >>> #   "rsync": { "transfer": True }
+        >>> #   "rsync": { "transfer": (True, "") }
         >>> # {
         """
+        if isinstance(msg, AbstractMessage):
+            # pyre-ignore[16]
+            print("msg is AbstractMessage")
+            if msg.data.type == "PLUGIN":
+                arguments = asdict(msg.data.body.parameters)
+                plugin_name = msg.data.body.plugin.lower()
+            elif msg.data.type == "SHELL":
+                print("Is shell")
+                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
+                plugin_name = msg.data.body.type.lower()
+            else:
+                raise Exception(
+                    "plugin check only currently supports PLUGIN and SHELL" "activities"
+                )
+        else:
+            plugin_name = msg
+
+        if not isinstance(plugin_name, str):
+            raise ValueError(
+                "Unsupported plugin_name type detected in check."
+                "The check function only supports either:\n"
+                "1. An abstract message as a single argument\n"
+                "2. The plugin name as a str and the package as a dict\n"
+                "\n"
+                f"The encountered type is {type(plugin_name)}"
+            )
+        elif not isinstance(arguments, dict):
+            raise ValueError(
+                "Unsupported plugin_name type detected in check."
+                "The check function only supports either:\n"
+                "1. An abstract message as a single argument\n"
+                "2. The plugin name as a str and the package as a dict\n"
+                "\n"
+                f"The encountered type is {type(arguments)}"
+            )
+
         check_results = {}
+        print("Plugin keys are")
+        print(self._plugins.keys)
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
                 {"configured": (False, f"{plugin_name} is not configured.")}
@@ -259,9 +314,21 @@ class Plugins:
                 )
         else:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
-        return check_results
+        return PluginChecks(check_results)
 
-    def run(self, plugin_name: str, arguments: dict) -> None:
+    @overload
+    def run(self, msg: AbstractMessage, arguments: Optional[dict] = None) -> None:
+        ...
+
+    @overload
+    def run(self, msg: str, arguments: dict = {}) -> None:
+        ...
+
+    #    @overload
+    #    def run(self, plugin_name: str, arguments: dict) -> None:
+    #        ...
+    #
+    def run(self, msg, arguments=None) -> None:
         """Run a specific plugins.
 
         :parameter plugin_name: Plugin name
@@ -299,4 +366,24 @@ class Plugins:
         >>> # Should print { "rsync": { "transfer": True } }
         >>> plugins.run('rsync', arguments)
         """
+        if isinstance(msg, AbstractMessage):
+            # pyre-ignore[16]
+            if msg.data.body.type == "PLUGIN":
+                arguments = asdict(msg.data.body.parameters)
+                plugin_name = msg.data.body.plugin.lower()
+            elif msg.data.body.type == "SHELL":
+                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
+                plugin_name = msg.data.body.type.lower()
+            else:
+                raise Exception(
+                    "plugin check only currently supports PLUGIN and SHELL activities"
+                )
+        else:
+            plugin_name = msg
+
+        if not isinstance(plugin_name, str):
+            raise ValueError("Unsupported plugin_name type detected in check.")
+        if not isinstance(arguments, dict):
+            raise ValueError("Unsupported arguments type detected in check.")
+
         self._plugins[plugin_name].process([arguments])

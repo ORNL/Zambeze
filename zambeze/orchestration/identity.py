@@ -1,4 +1,5 @@
 # Standard python imports
+import re
 from uuid import UUID
 
 
@@ -26,6 +27,9 @@ def validUUID(uuid_to_test: str, version=None) -> bool:
     https://stackoverflow.com/questions/19989481/how-to-determine-if-a-string-
     is-a-valid-v4-uuid
     """
+    if not isinstance(uuid_to_test, str):
+        raise Exception("UUID must be of type str")
+
     uuid_obj = ""
     try:
         if version:
@@ -35,3 +39,11 @@ def validUUID(uuid_to_test: str, version=None) -> bool:
     except ValueError:
         return False
     return str(uuid_obj).lower() == str(uuid_to_test).lower()
+
+
+def validEmail(email: str) -> bool:
+    regexp = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+    if re.match(regexp, email):
+        return True
+    else:
+        return False

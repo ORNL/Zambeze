@@ -9,6 +9,7 @@
 import logging
 import zmq
 import pickle
+import uuid
 
 from .activities.abstract_activity import Activity
 
@@ -31,7 +32,7 @@ class Campaign:
     def __init__(
         self,
         name: str,
-        activities: Optional[list[Activity]] = [],
+        activities: list[Activity] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign."""
@@ -39,7 +40,12 @@ class Campaign:
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name: str = name
+
+        self.campaign_id = str(uuid.uuid4())
+
         self.activities: list[Activity] = activities
+        for index in range(0, len(self.activities)):
+            self.activities[index].campaign_id = self.campaign_id
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
@@ -54,6 +60,7 @@ class Campaign:
         :type activity: Activity
         """
         self._logger.debug(f"Adding activity: {activity.name}")
+        activity.campaign_id = self.campaign_id
         self.activities.append(activity)
 
     def dispatch(self) -> None:
