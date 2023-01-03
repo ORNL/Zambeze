@@ -6,7 +6,6 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import asyncio
 import getpass
 import json
 import logging
@@ -16,16 +15,17 @@ import os
 import socket
 import threading
 
+from queue import Queue
 from typing import Optional
 from urllib.parse import urlparse
 from ..settings import ZambezeSettings
 from .zambeze_types import ChannelType, QueueType
-from .queue.queue_factory import QueueFactory
-from .queue.queue_exceptions import QueueTimeoutException
+# from .queue.queue_factory import QueueFactory
+# from .queue.queue_exceptions import QueueTimeoutException
 
 
-class Processor(threading.Thread):
-    """An Agent processor.
+class Executor(threading.Thread):
+    """An Agent executor (formerly the PROCESSOR).
 
     :param settings: Zambeze settings
     :type settings: ZambezeSettings
@@ -43,86 +43,66 @@ class Processor(threading.Thread):
             logging.getLogger(__name__) if logger is None else logger
         )
 
-        factory = QueueFactory(logger=self._logger)
-        args = {
-            "ip": self._settings.settings["nats"]["host"],
-            "port": self._settings.settings["nats"]["port"],
-        }
-        self._queue_client = factory.create(QueueType.NATS, args)
+        self.to_process_q = Queue()
+        self.to_status_q = Queue()
+        self.to_new_activity_q = Queue()
+
+        # TODO: implement queue factory.
+        # factory = QueueFactory(logger=self._logger)
+        # args = {
+        #     "ip": self._settings.settings["nats"]["host"],
+        #     "port": self._settings.settings["nats"]["port"],
+        # }
+
+        self._logger.info("[EXECUTOR] Created executor! ")
 
     def run(self):
-        """Start the Processor thread."""
-        asyncio.run(self.__process())
+        """ Override the Thread 'run' method to instead run our process when Thread.start() is called! """
+        # Create persisent "__process()"
+        self.__process()
 
-    async def __process(self):
+    def __process(self):
         """
         Evaluate and process messages if requested activity is supported.
         """
-        self._logger.debug(
-            f"Connecting to Queue ({self._queue_client.type}) server: "
-            f"{self._queue_client.type}"
-        )
 
-        await self._queue_client.connect()
-
-        await self._queue_client.subscribe(ChannelType.ACTIVITY)
+        self._logger.info("[EXECUTOR] In __process! ")
 
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
         ]
-        self._logger.debug(f"Moving to working directory {default_working_dir}")
+        self._logger.info(f"Moving to working directory {default_working_dir}")
         os.chdir(default_working_dir)
 
         while True:
             try:
+                self._logger.info("[EXECUTOR] Retrieving a message! ")
+                msg = self.to_process_q.get()
+                data = msg.generate_message()
 
-                msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
-                data = msg
-                self._logger.debug("Message received:")
-                self._logger.debug(json.dumps(data, indent=4))
+                self._logger.info("[Executor] Message received:")
+                self._logger.info(json.dumps(data, indent=4))
 
-                if self._settings.is_plugin_configured(data["plugin"].lower()):
+                # if we need files, check to see if they're here (and if not, go get them).
+                if "files" in data and data["files"] is not None:
+                    self.__process_files(data["files"])
 
-                    # look for files
-                    if "files" in data and data["files"]:
-                        await self.__process_files(data["files"])
+                self._logger.info("[EXECUTOR] Command to be executed.")
+                self._logger.info(json.dumps(data["cmd"], indent=4))
 
-                    self._logger.info("Command to be executed.")
-                    self._logger.info(json.dumps(data["cmd"], indent=4))
+                # TODO: should re-do the 'check' here (in case runtime might have changed; race condition).
+                # TODO: tie the try/except to this line. Make it properly handled.
+                self._settings.plugins.run(plugin_name=data["plugin"].lower(), arguments=data["cmd"])
 
-                    # Running Checks
-                    # Returned results should be double nested dict with a tuple of
-                    # the form
-                    #
-                    # "plugin": { "action": (bool, message) }
-                    #
-                    # The bool is a true or false which indicates if the action
-                    # for the plugin is a problem, the message is an error message
-                    # or a success statement
+                self._logger.info("[EXECUTOR] Waiting for messages")
 
-                    checked_result = self._settings.plugins.check(
-                        plugin_name=data["plugin"].lower(), arguments=data["cmd"]
-                    )
-                    self._logger.debug(f"Checked result: {checked_result}")
-
-                    if checked_result.errorDetected() is False:
-                        self._settings.plugins.run(
-                            plugin_name=data["plugin"].lower(), arguments=data["cmd"]
-                        )
-                    else:
-                        self._logger.debug(
-                            "Skipping run - error detected when running plugin check"
-                        )
-
-                self._logger.debug("Waiting for messages")
-
-            except QueueTimeoutException as e:
-                print(e)
             except Exception as e:
+                self._logger.error(e)
                 print(e)
+                # TODO: exit(1) makes me nervous.
                 exit(1)
 
-    async def __process_files(self, files: list[str]) -> None:
+    def __process_files(self, files: list[str]) -> None:
         """
         Process a list of files by generating transfer requests when files are
         not available locally.
@@ -218,7 +198,7 @@ class Processor(threading.Thread):
                     raise Exception("Needs to be implemented.")
 
             elif file_url.scheme == "rsync":
-                await self._queue_client.send(
+                self._queue_client.send(
                     ChannelType.ACTIVITY,
                     {
                         "plugin": "rsync",
@@ -244,20 +224,21 @@ class Processor(threading.Thread):
                 )
 
     # body needs to be changed to AbstractMessage
-    async def send(self, channel_type: ChannelType, body: dict) -> None:
-        """
-        Publish an activity message to the queue.
-
-        :param type: Message type
-        :type type: MessageType
-        :param body: Message body
-        :type body: dict
-        """
-        self._logger.debug(
-            f"Connecting to Queue ({self._queue_client.type}) "
-            f"server: {self._queue_client.uri}"
-        )
-        self._logger.debug(f"Sending a '{channel_type.value}' message")
-
-        await self._queue_client.connect()
-        await self._queue_client.send(channel_type, body)
+    # def send(self, channel_type: ChannelType, body: dict) -> None:
+    #     # TODO: just throw onto a 'done' queue that can be
+    #     """
+    #     Publish an activity message to the queue.
+    #
+    #     :param type: Message type
+    #     :type type: MessageType
+    #     :param body: Message body
+    #     :type body: dict
+    #     """
+    #     self._logger.debug(
+    #         f"Connecting to Queue ({self._queue_client.type}) "
+    #         f"server: {self._queue_client.uri}"
+    #     )
+    #     self._logger.debug(f"Sending a '{channel_type.value}' message")
+    #
+    #     self._queue_client.connect()
+    #     self._queue_client.send(channel_type, body)

@@ -9,19 +9,15 @@
 import asyncio
 import logging
 import pathlib
-import pickle
-import zmq
+import threading
 
-from time import time
 from typing import Optional
 from uuid import uuid4
 
+from zambeze.orchestration.agent.message_handler import MessageHandler
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
-from zambeze.orchestration.db.model.activity_model import ActivityModel
 
-from ..processor import Processor
-from ..zambeze_types import ChannelType
-from ...campaign.activities.abstract_activity import Activity, ActivityStatus
+from ..executor import Executor
 from ...settings import ZambezeSettings
 
 
@@ -44,52 +40,45 @@ class Agent:
             logging.getLogger(__name__) if logger is None else logger
         )
         self._agent_id = uuid4()
-
-        self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
-        self._processor = Processor(settings=self._settings, logger=self._logger)
-        self._processor.start()
-
-        self._zmq_context = zmq.Context()
-        self._zmq_socket = self._zmq_context.socket(zmq.REP)
-        self._logger.info(f"Binding to: {self._settings.get_zmq_connection_uri()}")
-        self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
         self._activity_dao = ActivityDAO(self._logger)
 
-        while True:
-            self._logger.info("Waiting for new activities from campaign(s)...")
-            self._receive_activity_from_campaign()
+        self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
 
-    def _receive_activity_from_campaign(self) -> None:
-        """
-        Receive activity messages via ZMQ
-        """
-        # Receive and unwrap the activity message from ZMQ.
-        activity_message = pickle.loads((self._zmq_socket.recv()))
-        self._logger.info(f"Received message from campaign: {activity_message}")
+        # Create and start an executor thread.
+        self._executor = Executor(settings=self._settings, logger=self._logger)
+        self._executor.start()
 
-        activity = ActivityModel(
-            agent_id=str(self._agent_id), created_at=int(time() * 1000)
-        )
-        self._logger.info(f"Creating activity in the DB: {activity}")
-        self._activity_dao.insert(activity)
-        self._logger.info("Saved in the DB!")
-        # Dispatch the activity!
-        self.dispatch_activity(activity_message)
-        self._zmq_socket.send(b"Agent successfully dispatched task!")
+        # Create and start a MessageHandler thread object.
+        self._msg_handler_thd = MessageHandler(self._agent_id, settings=self._settings, logger=self._logger)
+
+        # Create and start the sorter threads!
+        _activity_sorter_thd = threading.Thread(target=self.recv_activity_process_thd, args=())
+        _activity_sorter_thd.start()
 
     @property
-    def processor(self) -> Processor:
-        return self._processor
+    def executor(self) -> Executor:
+        return self._executor
 
-    def dispatch_activity(self, activity: Activity) -> None:
-        """
-        Dispatch an activity.
+    def send_control_thd(self):
+        """ Move process-eligible control messages to the message_handler from the executor. """
+        self._logger.info("Starting send control thread!")
+        while True:
+            activ_to_sort = self._executor.to_status_q.get()
+            self._msg_handler_thd.send_control_q.put(activ_to_sort)
+            self._logger.debug("Put new activity into message handler control queue!")
 
-        :param activity: An activity object.
-        :type activity: Activity
-        """
-        self._logger.error("Received activity for dispatch...")
-        asyncio.run(
-            self.processor.send(ChannelType.ACTIVITY, activity.generate_message())
-        )
-        activity.status = ActivityStatus.QUEUED
+    def recv_activity_process_thd(self):
+        """ Move process-eligible activities to the executor's to_process_q! """
+        self._logger.info("Starting activity sorter thread!")
+        while True:
+            activ_to_sort = self._msg_handler_thd.check_activity_q.get()
+            self._executor.to_process_q.put(activ_to_sort)
+            self._logger.debug("Put new activity into executor processing queue!")
+
+    def send_activity_thd(self):
+        """ We created an activity! Now time to enqueue it to be sent to Zambeze's central queue... """
+        self._logger.info("Starting send activity thread!")
+        while True:
+            activ_to_sort = self._executor.to_new_activity_q.get()
+            self._msg_handler_thd.send_activity_q.put(activ_to_sort)
+            self._logger.debug("Put new activity into executor processing queue!")

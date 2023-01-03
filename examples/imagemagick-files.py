@@ -16,9 +16,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-)
+formatter = logging.Formatter("[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s")
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 

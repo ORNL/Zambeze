@@ -36,6 +36,7 @@ class ShellActivity(Activity):
         files: Optional[list[str]] = [],
         command: Optional[str] = None,
         arguments: Optional[list[str]] = [],
+        # required_plugins = ['shell'],
         logger: Optional[logging.Logger] = None,
         **kwargs
     ) -> None:
