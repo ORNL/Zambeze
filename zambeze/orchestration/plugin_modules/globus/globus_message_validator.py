@@ -9,7 +9,7 @@ from .globus_uri_separator import GlobusURISeparator
 from ...identity import validUUID
 
 # Standard imports
-from typing import Optional
+from typing import Optional, overload
 import logging
 
 
@@ -212,7 +212,11 @@ class GlobusMessageValidator(PluginMessageValidator):
         checks = []
         return self._validateAction(action, checks, arguments)
 
+    @overload
     def validateMessage(self, arguments: list[dict]) -> list:
+        ...
+
+    def validateMessage(self, arguments) -> list:
         """Checks the input argument for errors
 
         Cycle through the items in the argument and checks if this instance

@@ -38,8 +38,8 @@ PluginTemplate = make_dataclass(
 @dataclass
 class ShellParams:
     program: Optional[str]
-    args: list
-    env_vars: dict
+    args: Optional[list]
+    env_vars: Optional[dict]
 
 
 # pyre-ignore[11]
