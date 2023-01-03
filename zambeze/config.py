@@ -16,6 +16,6 @@ NATS_PORT = int(os.getenv("NATS_PORT", 4222))
 
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.realpath(os.path.join(SOURCE_DIR, ".."))
-DB_DIR = os.path.join(PROJECT_DIR, "db")
+DB_DIR = os.path.join(PROJECT_DIR, "zambeze/db")
 LOCAL_DB_FILE = os.path.join(DB_DIR, "zambeze.db")
 LOCAL_DB_SCHEMA = os.path.join(DB_DIR, "zambeze_schema.sql")

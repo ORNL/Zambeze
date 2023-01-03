@@ -228,8 +228,12 @@ def test_globus_transfer_check():
             "move_to_globus_collection": {
                 "items": [
                     {
-                        "source": "file://" + file_path,
-                        "destination": "globus://" + destination_path + sub_folder,
+                        "source": "file:/" + file_path,
+                        "destination": "globus://"
+                        + os.getenv(required_env_variables[2])
+                        + os.sep
+                        + sub_folder
+                        + file_name,
                     }
                 ]
             }
@@ -256,7 +260,7 @@ def test_globus_transfer_check():
     ]
 
     output = globus_plugin.check(package)
-
+    print(output)
     for item in output[0].keys():
         assert output[0][item][0]
 

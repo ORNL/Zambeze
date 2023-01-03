@@ -1,5 +1,10 @@
 # Local imports
 from zambeze.orchestration.plugins import Plugins
+from zambeze.orchestration.plugins_message_template_engine import (
+    PluginsMessageTemplateEngine,
+)
+from zambeze.orchestration.message.message_factory import MessageFactory
+from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 # Standard imports
 import copy
@@ -10,6 +15,7 @@ import pytest
 import random
 import socket
 import time
+import uuid
 
 
 @pytest.mark.unit
@@ -40,14 +46,6 @@ def test_check_configured_plugins():
     assert len(plugins.configured) == 0
 
     configuration = {"shell": {}}
-    #            "globus": {
-    #                "authentication flow": {
-    #                    "type": "client credential",
-    #                    "secret": os.getenv("ZAMBEZE_CI_TEST_GLOBUS_APP_KEY")
-    #                    }
-    #                }
-    #            }
-    #
     plugins.configure(configuration)
 
     assert len(plugins.configured) > 0
@@ -79,12 +77,81 @@ def test_rsync_plugin_info():
     assert info["rsync"]["local_ip"] == local_ip
 
 
+@pytest.mark.unit
+def test_shell_plugin_check():
+    plugins = Plugins()
+    plugins.configure({"shell": {}})
+
+    file_name = "shell_file.txt1"
+    current_valid_path = os.getcwd()
+    file_path = current_valid_path + "/" + file_name
+    original_number = random.randint(0, 100000000000)
+
+    factory = MessageFactory()
+    msg_template = factory.createTemplate(
+        MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
+    )
+
+    msg_template[1].message_id = str(uuid.uuid4())
+    msg_template[1].activity_id = str(uuid.uuid4())
+    msg_template[1].agent_id = str(uuid.uuid4())
+    msg_template[1].campaign_id = str(uuid.uuid4())
+    msg_template[1].credential = {}
+    msg_template[1].submission_time = str(int(time.time()))
+    # This section will get replaced with a single rsync uri in the future
+    msg_template[1].body.parameters.program = "echo"
+    msg_template[1].body.parameters.args = ["$RAN", ">", file_path]
+    msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
+
+    msg = factory.create(msg_template)
+    checked_actions = plugins.check(msg)
+    print(checked_actions)
+    assert checked_actions["shell"][0]["bash"][0]
+
+
+@pytest.mark.unit
+def test_shell_plugin_run():
+    plugins = Plugins()
+    plugins.configure({"shell": {}})
+
+    file_name = "shell_file2.txt"
+    current_valid_path = os.getcwd()
+    file_path = current_valid_path + "/" + file_name
+    original_number = random.randint(0, 100000000000)
+
+    factory = MessageFactory()
+    msg_template = factory.createTemplate(
+        MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
+    )
+
+    msg_template[1].message_id = str(uuid.uuid4())
+    msg_template[1].activity_id = str(uuid.uuid4())
+    msg_template[1].agent_id = str(uuid.uuid4())
+    msg_template[1].campaign_id = str(uuid.uuid4())
+    msg_template[1].credential = {}
+    msg_template[1].submission_time = str(int(time.time()))
+    # This section will get replaced with a single rsync uri in the future
+    msg_template[1].body.parameters.program = "echo"
+    msg_template[1].body.parameters.args = ["$RAN", ">", file_path]
+    msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
+
+    msg = factory.create(msg_template)
+    checked_actions = plugins.check(msg)
+    assert checked_actions["shell"][0]["bash"][0]
+    plugins.run(msg)
+
+    assert os.path.exists(file_path)
+    with open(file_path) as f:
+        # Now we will verify that it is the same file that was sent
+        lines = f.readlines()
+        # Should be a single line
+        assert lines[0].strip() == str(original_number)
+
+
 @pytest.mark.gitlab_runner
 def test_rsync_plugin_check():
     plugins = Plugins()
     plugins.configure({"shell": {}, "rsync": {}})
-    # ,
-    # "rsync": {}})
 
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
@@ -93,31 +160,48 @@ def test_rsync_plugin_check():
     local_ip = socket.gethostbyname(hostname)
 
     neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
-    arguments = {
-        "transfer": {
-            "source": {
-                "ip": local_ip,
-                "user": current_user,
-                "path": current_valid_path,
-            },
-            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-            "arguments": ["-a"],
-        }
-    }
 
-    checked_actions = plugins.check("rsync", arguments)
-    print(checked_actions)
+    factory = MessageFactory()
+    msg_template = factory.createTemplate(
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
+    )
+
+    msg_template[1].message_id = str(uuid.uuid4())
+    msg_template[1].activity_id = str(uuid.uuid4())
+    msg_template[1].agent_id = str(uuid.uuid4())
+    msg_template[1].campaign_id = str(uuid.uuid4())
+    msg_template[1].credential = {}
+    msg_template[1].submission_time = str(int(time.time()))
+    # This section will get replaced with a single rsync uri in the future
+    msg_template[1].body.parameters.transfer.items[0].source.ip = local_ip
+    msg_template[1].body.parameters.transfer.items[0].source.user = current_user
+    msg_template[1].body.parameters.transfer.items[0].source.path = current_valid_path
+    msg_template[1].body.parameters.transfer.items[0].destination.ip = neighbor_vm_ip
+    msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
+    msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
+
+    msg = factory.create(msg_template)
+    checked_actions = plugins.check(msg)
     assert checked_actions["rsync"][0]["transfer"][0]
-    arguments_faulty_ip = copy.deepcopy(arguments)
-    arguments_faulty_ip["transfer"]["destination"]["ip"] = "172.22."
-    checked_actions = plugins.check("rsync", arguments_faulty_ip)
-    print(checked_actions)
-    assert not checked_actions["rsync"][0]["transfer"][0]
 
-    arguments_faulty_user = copy.deepcopy(arguments)
-    arguments_faulty_user["transfer"]["source"]["user"] = "user_that_does_not_exist"
-    checked_actions = plugins.check("rsync", arguments_faulty_user)
-    print(checked_actions)
+    msg_faulty_ip = copy.deepcopy(msg_template)
+    msg_faulty_ip[1].body.parameters.transfer.items[0].destination.ip = "172.22."
+    should_fail = False
+    try:
+        msg = factory.create(msg_faulty_ip)
+    except Exception:
+        should_fail = True
+
+    assert should_fail
+
+    msg_faulty_user = copy.deepcopy(msg_template)
+    msg_faulty_user[1].body.parameters.transfer.items[
+        0
+    ].source.user = "user_that_does_not_exist"
+    msg = factory.create(msg_faulty_user)
+    checked_actions = plugins.check(msg)
     assert not checked_actions["rsync"][0]["transfer"][0]
 
 
@@ -157,7 +241,6 @@ def test_rsync_plugin_run():
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
-    print(f"\nOriginal number is {original_number}")
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
@@ -166,19 +249,32 @@ def test_rsync_plugin_run():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
-    arguments = {
-        "transfer": {
-            "source": {"ip": local_ip, "user": current_user, "path": file_path},
-            "destination": {"ip": neighbor_vm_ip, "user": "cades", "path": "/tmp"},
-            "arguments": ["-a"],
-        }
-    }
+    factory = MessageFactory()
+    msg_template = factory.createTemplate(
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
+    )
 
-    print("Arguments: Initial transfer to remote machine")
-    print(arguments)
-    checks = plugins.check("rsync", arguments)
+    msg_template[1].message_id = str(uuid.uuid4())
+    msg_template[1].activity_id = str(uuid.uuid4())
+    msg_template[1].agent_id = str(uuid.uuid4())
+    msg_template[1].campaign_id = str(uuid.uuid4())
+    msg_template[1].credential = {}
+    msg_template[1].submission_time = str(int(time.time()))
+    # In the future this will be simplified and be replced with a single
+    # rsync uri
+    msg_template[1].body.parameters.transfer.items[0].source.ip = local_ip
+    msg_template[1].body.parameters.transfer.items[0].source.user = current_user
+    msg_template[1].body.parameters.transfer.items[0].source.path = file_path
+    msg_template[1].body.parameters.transfer.items[0].destination.ip = neighbor_vm_ip
+    msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
+    msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
+
+    msg = factory.create(msg_template)
+    checks = plugins.check(msg)
     assert checks["rsync"][0]["transfer"][0]
-    plugins.run("rsync", arguments)
+    plugins.run(msg)
 
     file_name_return = "demofile_return-" + str(time.time_ns()) + ".txt"
     file_path_return = current_valid_path + "/" + file_name_return
@@ -187,31 +283,42 @@ def test_rsync_plugin_run():
     if os.path.exists(file_path_return):
         os.remove(file_path_return)
 
-    arguments_return = {
-        "transfer": {
-            "destination": {
-                "ip": local_ip,
-                "user": current_user,
-                "path": file_path_return,
-            },
-            "source": {
-                "ip": neighbor_vm_ip,
-                "user": "cades",
-                "path": "/tmp" + "/" + file_name,
-            },
-            "arguments": ["-a"],
-        }
-    }
+    template_engine = PluginsMessageTemplateEngine()
+    msg_template_return = template_engine.generate("rsync", "transfer")
 
-    print("Arguments: Second transfer back to host machine")
-    print(arguments_return)
-    checked_actions = plugins.check("rsync", arguments_return)
+    msg_template_return = factory.createTemplate(
+        MessageType.ACTIVITY,
+        ActivityType.PLUGIN,
+        {"plugin": "rsync", "action": "transfer"},
+    )
+
+    msg_template_return[1].message_id = str(uuid.uuid4())
+    msg_template_return[1].activity_id = str(uuid.uuid4())
+    msg_template_return[1].agent_id = str(uuid.uuid4())
+    msg_template_return[1].campaign_id = str(uuid.uuid4())
+    msg_template_return[1].credential = {}
+    msg_template_return[1].submission_time = str(int(time.time()))
+    msg_template_return[1].body.parameters.transfer.items[0].source.ip = neighbor_vm_ip
+    msg_template_return[1].body.parameters.transfer.items[0].source.user = "cades"
+    msg_template_return[1].body.parameters.transfer.items[0].source.path = (
+        "/tmp/" + file_name
+    )
+    msg_template_return[1].body.parameters.transfer.items[0].destination.ip = local_ip
+    msg_template_return[1].body.parameters.transfer.items[
+        0
+    ].destination.user = current_user
+    msg_template_return[1].body.parameters.transfer.items[
+        0
+    ].destination.path = file_path_return
+
+    msg = factory.create(msg_template_return)
+    checked_actions = plugins.check(msg)
     assert checked_actions["rsync"][0]["transfer"][0]
     attempts = 0
     # Loop is needed because sometimes the initial transfer takes a while to
     # finalize, this loop will make the test more robust.
     while True:
-        plugins.run("rsync", arguments_return)
+        plugins.run(msg)
         # This will verify that copying from a remote machine to the local
         # machine was a success
         assert os.path.exists(file_path_return)

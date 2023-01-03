@@ -1,11 +1,16 @@
 # Local imports
 import zambeze.orchestration.plugin_modules.git.git as git
+from zambeze.orchestration.plugin_modules.git.git_message_template_generator import (
+    GitMessageTemplateGenerator,
+)
 
 # Standard imports
 import os
 import pytest
 import random
 import time
+
+from dataclasses import asdict
 
 
 @pytest.mark.gitlab_runner
@@ -25,32 +30,26 @@ def test_git_checkCommitSuccess():
     f.write(str(original_number))
     f.close()
 
-    package = [
-        {
-            "commit": {
-                "repo": "TestRepo",
-                "owner": "Zambeze84",
-                "branch": "main",
-                "source": {
-                    "path": current_dir + "/" + file_name,
-                    "type": "posix absolute",
-                },
-                "destination": {"path": file_name, "type": "GitHub repository root"},
-                "commit_message": "Adding a file",
-                "credentials": {
-                    "user_name": "zambeze84",
-                    "access_token": access_token,
-                    "email": "zambeze84@gmail.com",
-                },
-            }
-        }
-    ]
+    generator = GitMessageTemplateGenerator()
+
+    template = generator.generate("commit")
+
+    template.commit.items[0].source = "file://" + current_dir + "/" + file_name
+    template.commit.destination = "git://Zambeze84/TestRepo/main/" + file_name
+    template.commit.commit_message = ("Adding a file",)
+    template.commit.credentials.user_name = "zambeze84"
+    template.commit.credentials.access_token = access_token
+    template.commit.credentials.email = "zambeze84@gmail.com"
 
     git_plugin = git.Git()
     git_plugin.configure({})
-    checked_actions = git_plugin.check(package)
+
+    arguments = asdict(template)
+    print(arguments)
+    checked_actions = git_plugin.check([arguments])
     print(checked_actions)
     assert checked_actions[0]["commit"][0]
+    os.remove(file_name)
 
 
 @pytest.mark.gitlab_runner
@@ -65,72 +64,30 @@ def test_git_checkCommitFailure1():
     f.write(str(original_number))
     f.close()
 
-    package = [
-        {
-            "commit": {
-                "owner": "Zambeze84",
-                "branch": "main",
-                "source": {
-                    "path": current_dir + "/" + file_name,
-                    "type": "posix absolute",
-                },
-                "destination": {"path": file_name, "type": "GitHub repository root"},
-                "commit_message": "Adding a file",
-                "credentials": {
-                    "user_name": "zambeze84",
-                    "access_token": access_token,
-                    "email": "zambeze84@gmail.com",
-                },
-            }
-        }
-    ]
+    generator = GitMessageTemplateGenerator()
+
+    template = generator.generate("commit")
+
+    template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
+    template.commit.destination = "git://Zambeze84/main/" + file_name
+    template.commit.commit_message = ("Adding a file",)
+    template.commit.credentials.user_name = "zambeze84"
+    template.commit.credentials.access_token = access_token
+    template.commit.credentials.email = "zambeze84@gmail.com"
+
     git_plugin = git.Git()
     git_plugin.configure({})
-    checked_actions = git_plugin.check(package)
+
+    arguments = asdict(template)
+    print(arguments)
+
+    checked_actions = git_plugin.check([arguments])
     assert not checked_actions[0]["commit"][0]
+    os.remove(file_name)
 
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitFailure2():
-    """This test should fail because the commit package is missing the
-    destination type key"""
-
-    access_token = os.getenv("ZAMBEZE84_GITHUB_ACCESS_TOKEN")
-    current_dir = os.getcwd()
-    file_name = "demofile_for_git_commit-" + str(time.time_ns()) + ".txt"
-    f = open(current_dir + "/" + file_name, "w")
-    original_number = random.randint(0, 100000000000)
-    f.write(str(original_number))
-    f.close()
-
-    package = [
-        {
-            "commit": {
-                "repo": "TestRepo",
-                "owner": "Zambeze84",
-                "branch": "main",
-                "source": {
-                    "path": current_dir + "/" + file_name,
-                    "type": "posix absolute",
-                },
-                "destination": {"path": file_name},
-                "commit_message": "Adding a file",
-                "credentials": {
-                    "user_name": "zambeze84",
-                    "access_token": access_token,
-                    "email": "zambeze84@gmail.com",
-                },
-            }
-        }
-    ]
-    git_plugin = git.Git()
-    git_plugin.configure({})
-    checked_actions = git_plugin.check(package)
-    assert not checked_actions[0]["commit"][0]
-
-
-@pytest.mark.gitlab_runner
-def test_git_checkCommitFailure3():
     """This test should fail because the commit package is missing the
     source key"""
 
@@ -141,31 +98,29 @@ def test_git_checkCommitFailure3():
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
+    generator = GitMessageTemplateGenerator()
 
-    package = [
-        {
-            "commit": {
-                "repo": "TestRepo",
-                "owner": "Zambeze84",
-                "branch": "main",
-                "destination": {"path": file_name, "type": "GitHub repository root"},
-                "commit_message": "Adding a file",
-                "credentials": {
-                    "user_name": "zambeze84",
-                    "access_token": access_token,
-                    "email": "zambeze84@gmail.com",
-                },
-            }
-        }
-    ]
+    template = generator.generate("commit")
+
+    template.commit.items[0].source = ""
+    template.commit.destination = "git://Zambeze84/main/" + file_name
+    template.commit.commit_message = ("Adding a file",)
+    template.commit.credentials.user_name = "zambeze84"
+    template.commit.credentials.access_token = access_token
+    template.commit.credentials.email = "zambeze84@gmail.com"
+
     git_plugin = git.Git()
     git_plugin.configure({})
-    checked_actions = git_plugin.check(package)
+
+    arguments = asdict(template)
+    print(arguments)
+    checked_actions = git_plugin.check([arguments])
     assert not checked_actions[0]["commit"][0]
+    os.remove(file_name)
 
 
 @pytest.mark.gitlab_runner
-def test_git_checkCommitFailure4():
+def test_git_checkCommitFailure3():
     """This test should fail because the commit package is missing the
     credentials key"""
 
@@ -176,25 +131,22 @@ def test_git_checkCommitFailure4():
     f.write(str(original_number))
     f.close()
 
-    package = [
-        {
-            "commit": {
-                "repo": "TestRepo",
-                "owner": "Zambeze84",
-                "branch": "main",
-                "source": {
-                    "path": current_dir + "/" + file_name,
-                    "type": "posix absolute",
-                },
-                "destination": {"path": file_name, "type": "GitHub repository root"},
-                "commit_message": "Adding a file",
-            }
-        }
-    ]
+    generator = GitMessageTemplateGenerator()
+
+    template = generator.generate("commit")
+
+    template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
+    template.commit.destination = "git://Zambeze84/main/" + file_name
+    template.commit.commit_message = ("Adding a file",)
+
     git_plugin = git.Git()
     git_plugin.configure({})
-    checked_actions = git_plugin.check(package)
+
+    arguments = asdict(template)
+    print(arguments)
+    checked_actions = git_plugin.check([arguments])
     assert not checked_actions[0]["commit"][0]
+    os.remove(file_name)
 
 
 @pytest.mark.gitlab_runner
@@ -216,57 +168,47 @@ def test_git_processCommitAndDownload():
     f.write(str(original_number))
     f.close()
 
-    package = [
-        {
-            "commit": {
-                "repo": "TestRepo",
-                "owner": "Zambeze84",
-                "branch": "main",
-                "source": {
-                    "path": current_dir + "/" + file_name,
-                    "type": "posix absolute",
-                },
-                "destination": {"path": file_name, "type": "GitHub repository root"},
-                "commit_message": "Adding a file",
-                "credentials": {
-                    "user_name": "zambeze84",
-                    "access_token": access_token,
-                    "email": "zambeze84@gmail.com",
-                },
-            }
-        }
-    ]
+    generator = GitMessageTemplateGenerator()
 
+    template = generator.generate("commit")
+
+    print(f"Current dir {current_dir}")
+
+    template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
+    template.commit.destination = "git://Zambeze84/TestRepo/main/" + file_name
+    template.commit.commit_message = "Adding a file"
+    template.commit.credentials.user_name = "zambeze84"
+    template.commit.credentials.access_token = access_token
+    template.commit.credentials.email = "zambeze84@gmail.com"
+
+    print("Template is")
+    print(template)
     git_plugin = git.Git()
     git_plugin.configure({})
-    git_plugin.check(package)
-    git_plugin.process(package)
+    arguments = asdict(template)
+    git_plugin.check([arguments])
+    git_plugin.process([arguments])
 
     file_name2 = "demofile_for_git_commit_download-" + time_stamp + ".txt"
-    package = [
-        {
-            "download": {
-                "repo": "TestRepo",
-                "owner": "Zambeze84",
-                "branch": "main",
-                "destination": {
-                    "path": current_dir + "/" + file_name2,
-                    "type": "posix absolute",
-                },
-                "source": {"path": file_name, "type": "GitHub repository root"},
-                "credentials": {"access_token": access_token},
-            }
-        }
-    ]
+
+    template = generator.generate("download")
+
+    template.download.destination = "file:/" + current_dir + "/" + file_name2
+    template.download.items[0].source = "git://Zambeze84/TestRepo/main/" + file_name
+    template.download.credentials.user_name = "zambeze84"
+    template.download.credentials.access_token = access_token
+    template.download.credentials.email = "zambeze84@gmail.com"
 
     git_plugin = git.Git()
     git_plugin.configure({})
-    git_plugin.check(package)
+
+    arguments = asdict(template)
+    git_plugin.check([arguments])
 
     attempts = 10
     number_from_repo = "NA"
     while True:
-        git_plugin.process(package)
+        git_plugin.process([arguments])
 
         with open(file_name2) as f:
             number_from_repo = f.read()
@@ -279,3 +221,5 @@ def test_git_processCommitAndDownload():
         time.sleep(1)
 
     assert number_from_repo == str(original_number)
+    os.remove(file_name)
+    os.remove(file_name2)
