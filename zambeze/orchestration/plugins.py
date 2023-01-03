@@ -261,17 +261,25 @@ class Plugins:
         if isinstance(msg, AbstractMessage):
             # pyre-ignore[16]
             print("msg is AbstractMessage")
-            if msg.data.type == "PLUGIN":
-                arguments = asdict(msg.data.body.parameters)
-                plugin_name = msg.data.body.plugin.lower()
-            elif msg.data.type == "SHELL":
-                print("Is shell")
-                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
-                plugin_name = msg.data.body.type.lower()
+
+            if msg.data.type == "ACTIVITY":
+                if msg.data.body.type == "PLUGIN":
+                    arguments = asdict(msg.data.body.parameters)
+                    plugin_name = msg.data.body.plugin.lower()
+                elif msg.data.body.type == "SHELL":
+                    arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
+                    plugin_name = "shell"
+                else:
+                    error_msg = "plugin check only currently supports actvities"
+                    error_msg += " PLUGIN and SHELL, but the following "
+                    error_msg += "unsupported activity has been specified: "
+                    error_msg += f"{msg.data.body.type}"
+                    raise Exception(error_msg)
             else:
-                raise Exception(
-                    "plugin check only currently supports PLUGIN and SHELL" "activities"
-                )
+                error_msg = "plugin check only currently supports "
+                error_msg += "ACTIVITY messages, but the following unsupported "
+                error_msg += f"message has been specified: {msg.data.type}"
+                raise Exception(error_msg)
         else:
             plugin_name = msg
 

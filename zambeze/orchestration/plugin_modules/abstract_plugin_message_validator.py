@@ -43,7 +43,7 @@ class PluginMessageValidator(ABC):
         raise NotImplementedError("validateAction method has not been created.")
 
     @abstractmethod
-    def validateMessage(self, arguments: list[dict]) -> list:
+    def validateMessage(self, arguments) -> list:
         """Return whether the schema of the message is valid.
 
         This is similar to the "check" method but the "check" command will run

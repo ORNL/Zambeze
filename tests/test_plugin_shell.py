@@ -1,8 +1,8 @@
 # Local imports
 import zambeze.orchestration.plugin_modules.shell.shell as shell
-from zambeze.orchestration.plugin_modules.\
-        shell.shell_message_template_generator import (
-            ShellMessageTemplateGenerator)
+from zambeze.orchestration.plugin_modules.shell.shell_message_template_generator import (
+    ShellMessageTemplateGenerator,
+)
 from zambeze.orchestration.plugin_modules.shell.shell_message_validator import (
     ShellMessageValidator,
 )
@@ -24,7 +24,7 @@ def test_shell_get_inner_pattern():
     print(variable)
     match, left_ind, right_ind = shell.getInnerPattern(variable, "${", "}")
 
-    print(variable[0:left_ind] + variable[right_ind: len(variable)])
+    print(variable[0:left_ind] + variable[right_ind : len(variable)])
 
     assert match == "Nested"
     assert left_ind == 27
@@ -41,7 +41,7 @@ def test_shell_get_inner_pattern2():
     print(variable)
     match, left_ind, right_ind = shell.getInnerPattern(variable, "MM", "BB")
 
-    print(variable[0:left_ind] + variable[right_ind: len(variable)])
+    print(variable[0:left_ind] + variable[right_ind : len(variable)])
 
     assert match == "no"
     assert left_ind == 7

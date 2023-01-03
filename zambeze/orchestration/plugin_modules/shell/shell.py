@@ -21,6 +21,21 @@ import os
 import subprocess
 
 
+def checkInputs(variable, left_pattern, right_pattern):
+    # find returns -1 if no match was found
+    if len(variable) == 0:
+        return "", -1, -1
+
+    if len(left_pattern) == 0:
+        raise Exception("Must specify a left pattern")
+
+    if len(right_pattern) == 0:
+        raise Exception("Must specify a right pattern")
+
+    if variable.count(left_pattern) != variable.count(right_pattern):
+        raise Exception("Cannot identify inner pattern ambiguous patterns used")
+
+
 def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
     """Finds the value between two patterns
 
@@ -35,21 +50,8 @@ def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
 
     match: Nested, start: 27, end: 36
     """
-    # find returns -1 if no match was found
-    if len(variable) == 0:
-        return "", -1, -1
+    checkInputs(variable, left_pattern, right_pattern)
 
-    if len(left_pattern) == 0:
-        raise Exception("Must specify a left pattern")
-
-    if len(right_pattern) == 0:
-        raise Exception("Must specify a right pattern")
-
-    if variable.count(left_pattern) != variable.count(right_pattern):
-        raise Exception("Cannot identify inner pattern ambiguous patterns used")
-
-    left_index = 0
-    right_index = len(variable) - 1
     left_index = variable.find(left_pattern, 0, len(variable))
     right_index = variable.rfind(right_pattern, 0, len(variable))
 
@@ -67,7 +69,7 @@ def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
         match = ""
         if inner_match_right_index > -1 and inner_match_left_index > -1:
             match = variable[
-                inner_match_left_index + len(left_pattern): inner_match_right_index
+                inner_match_left_index + len(left_pattern) : inner_match_right_index
             ]
 
         if (left_index > inner_match_right_index or left_index <= -1) and (

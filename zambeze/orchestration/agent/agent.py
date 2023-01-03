@@ -18,6 +18,7 @@ from uuid import uuid4
 
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 from zambeze.orchestration.db.model.activity_model import ActivityModel
+from zambeze.orchestration.db.model.abstract_message import AbstractMessage
 
 from ..processor import Processor
 from ..zambeze_types import ChannelType
@@ -93,7 +94,7 @@ class Agent:
         :type activity: Activity
         """
         self._logger.error("Received activity for dispatch...")
-        msg = activity.generate_message()
+        msg: AbstractMessage = activity.generate_message()
         self._logger.info(
             f"Dispatching message activity_id: {activity.activity_id} "
             f"message_id: {msg.data.message_id}"

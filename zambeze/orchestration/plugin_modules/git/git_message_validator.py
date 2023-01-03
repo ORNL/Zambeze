@@ -120,7 +120,7 @@ class GitMessageValidator(PluginMessageValidator):
     def validateMessage(self, arguments: list[dict]) -> list:
         ...
 
-    def validateMessage(self, arguments):
+    def validateMessage(self, arguments) -> list:
         """Check the arguments are supported.
 
         :param arguments: arguments needed to run the rsync plugin
