@@ -15,7 +15,7 @@ from .rsync_common import (
     requiredSourceAndDestinationValuesValid,
     SUPPORTED_ACTIONS,
 )
-from .rsync_message_helper import RsyncMessageHelper
+from .rsync_message_validator import RsyncMessageValidator
 from ...system_utils import isExecutable
 
 # Standard imports
@@ -40,7 +40,7 @@ class Rsync(Plugin):
         self._hostname = socket.gethostname()
         self._local_ip = socket.gethostbyname(self._hostname)
         self._ssh_key = pathlib.Path.home().joinpath(".ssh/id_rsa")
-        self._message_helper = RsyncMessageHelper(logger)
+        self._message_validator = RsyncMessageValidator(logger)
 
     def messageTemplate(self, args=None) -> dict:
         """Args can be used to generate a more flexible template. Say for
@@ -178,7 +178,7 @@ class Rsync(Plugin):
         for index in range(len(arguments)):
             for action in arguments[index]:
 
-                schema_checks = self._message_helper.validateAction(
+                schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
 
@@ -190,14 +190,14 @@ class Rsync(Plugin):
                 if action == "transfer":
 
                     match_host = isTheHostTheSourceOrDestination(
-                        arguments[index][action], self._local_ip
+                        arguments[index][action]["items"][0], self._local_ip
                     )
 
                     # Now that we know the fields exist ensure that they are valid
                     # Ensure that at either the source or destination ip addresses
                     # are associated with the local machine
                     check = requiredSourceAndDestinationValuesValid(
-                        arguments[index][action], match_host
+                        arguments[index][action]["items"][0], match_host
                     )
                     if not check[0]:
                         checks.append(
@@ -267,14 +267,16 @@ class Rsync(Plugin):
                     for argument in action_inst["arguments"]:
                         command_list.append(argument)
 
-                if action_inst["source"]["ip"] == self._local_ip:
-                    command_list.append(action_inst["source"]["path"])
-                    command_list.append(buildRemotePath(action_inst["destination"]))
+                for item in action_inst["items"]:
+                    if item["source"]["ip"] == self._local_ip:
+                        command_list.append(item["source"]["path"])
+                        command_list.append(buildRemotePath(item["destination"]))
 
-                elif action_inst["destination"]["ip"] == self._local_ip:
-                    command_list.append(buildRemotePath(action_inst["source"]))
-                    command_list.append(action_inst["destination"]["path"])
+                    elif item["destination"]["ip"] == self._local_ip:
+                        command_list.append(buildRemotePath(item["source"]))
+                        command_list.append(item["destination"]["path"])
+                    # only support one item
+                    break
 
-                print(command_list)
                 subprocess.call(command_list)
         return {}

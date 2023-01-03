@@ -1,25 +1,25 @@
 # Local imports
-from ..abstract_plugin_message_helper import PluginMessageHelper
+from ..abstract_plugin_message_validator import PluginMessageValidator
 from .globus_common import (
     checkTransferEndpoint,
     checkAllItemsHaveValidEndpoints,
-    globusURISeparator,
     SUPPORTED_ACTIONS,
 )
+from .globus_uri_separator import GlobusURISeparator
 from ...identity import validUUID
 
 # Standard imports
-from typing import Optional
-
+from typing import Optional, overload
 import logging
 
 
-class GlobusMessageHelper(PluginMessageHelper):
+class GlobusMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
         self.__known_actions = SUPPORTED_ACTIONS.keys()
+        self.__globus_uri_separator = GlobusURISeparator()
 
-    def __runTransferValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runTransferValidationCheck(self, action_package: dict) -> tuple[bool, str]:
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
@@ -55,7 +55,9 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         return checkTransferEndpoint(action_package)
 
-    def __runMoveToGlobusValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveToGlobusValidationCheck(
+        self, action_package: dict
+    ) -> tuple[bool, str]:
         supported_source_path_types = ["file"]
         supported_destination_path_types = ["globus"]
 
@@ -67,17 +69,22 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(item["destination"])
-                if globus_sep_uri[0] is not None:
-                    if not validUUID(globus_sep_uri[0]):
-                        error_msg = f"Invalid uuid dectected in \
-                                    'move_from_globus_collection' item: {item} \nuuid: \
-                                    {globus_sep_uri[0]}"
+                globus_sep_uri = self.__globus_uri_separator.separate(
+                    item["destination"]
+                )
+                if globus_sep_uri["uuid"] is not None:
+                    if not validUUID(globus_sep_uri["uuid"]):
+                        error_msg = "Invalid uuid detected in "
+                        error_msg += "'move_from_globus_collection' item: "
+                        error_msg += f"{item} \nuuid: "
+                        error_msg += f"{globus_sep_uri['uuid']}"
                         return (False, error_msg)
 
         return (valid, msg)
 
-    def __runMoveFromGlobusValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveFromGlobusValidationCheck(
+        self, action_package: dict
+    ) -> tuple[bool, str]:
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
@@ -112,18 +119,18 @@ class GlobusMessageHelper(PluginMessageHelper):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(
-                    item["source"], self.__default_endpoint
-                )
-                if not validUUID(globus_sep_uri[0]):
-                    error_msg = f"Invalid uuid dectected in \
-                                'move_from_globus_collection' item: {item} \nuuid: \
-                                {globus_sep_uri[0]}"
+                globus_sep_uri = self.__globus_uri_separator.separate(item["source"])
+                if not validUUID(globus_sep_uri["uuid"]):
+                    error_msg = "Invalid uuid detected in "
+                    error_msg += f"'move_from_globus_collection' item: {item} "
+                    error_msg += f"\nuuid: {globus_sep_uri['uuid']}"
                     return (False, error_msg)
 
         return (valid, msg)
 
-    def __runGetTaskStatusValidationCheck(self, action_package: dict) -> (bool, str):
+    def __runGetTaskStatusValidationCheck(
+        self, action_package: dict
+    ) -> tuple[bool, str]:
         """Checks that the get_task_status action is correctly configured
 
         :Example:
@@ -205,7 +212,11 @@ class GlobusMessageHelper(PluginMessageHelper):
         checks = []
         return self._validateAction(action, checks, arguments)
 
+    @overload
     def validateMessage(self, arguments: list[dict]) -> list:
+        ...
+
+    def validateMessage(self, arguments) -> list:
         """Checks the input argument for errors
 
         Cycle through the items in the argument and checks if this instance
@@ -272,56 +283,3 @@ class GlobusMessageHelper(PluginMessageHelper):
             for action in arguments[index]:
                 checks = self._validateAction(action, checks, arguments[index])
         return checks
-
-    def messageTemplate(self, args=None) -> dict:
-
-        if args is None or args == "transfer":
-            return {
-                "transfer": {
-                    "type": "synchronous",
-                    "items": [
-                        {
-                            "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-                            "destination": "globus://YYY...YYYYYYYY/dest/file1.txt",
-                        },
-                        {
-                            "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-                            "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt",
-                        },
-                    ],
-                }
-            }
-        elif args == "move_to_globus_collection":
-            return {
-                "move_to_globus_collection": {
-                    "items": [
-                        {
-                            "source": "file://file1.txt",
-                            "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt",
-                        },
-                        {
-                            "source": "file://file2.txt",
-                            "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt",
-                        },
-                    ]
-                }
-            }
-        elif args == "move_from_globus_collection":
-            return {
-                "move_from_globus_collection": {
-                    "items": [
-                        {
-                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt",
-                            "destination": "file://file1.txt",
-                        },
-                        {
-                            "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt",
-                            "destination": "file://file2.txt",
-                        },
-                    ]
-                }
-            }
-        else:
-            raise Exception(
-                "Unrecognized argument provided, cannot generate " "messageTemplate"
-            )

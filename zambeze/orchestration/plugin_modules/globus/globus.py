@@ -1,18 +1,22 @@
+# pyre-ignore-all-errors[13]
+# pyre-ignore-all-errors[6]
 # Local imports
 from ..abstract_plugin import Plugin
 from .globus_common import (
     localEndpointExists,
-    globusURISeparator,
-    fileURISeparator,
     getMappedCollections,
     getGlobusScopes,
     SUPPORTED_ACTIONS,
 )
-from .globus_message_helper import GlobusMessageHelper
+from .globus_uri_separator import GlobusURISeparator
+from ..file_uri_separator import FileURISeparator
+from .globus_message_validator import GlobusMessageValidator
 from ...network import externalNetworkConnectionDetected
 
 # Third party imports
 from globus_sdk import GlobusError
+from globus_sdk.authorizers import GlobusAuthorizer
+
 import globus_sdk
 
 # Standard imports
@@ -23,7 +27,7 @@ from os.path import exists
 from os.path import isdir
 from os.path import isfile
 from socket import gethostname
-from typing import Optional
+from typing import Optional, Any
 
 import json
 import logging
@@ -32,6 +36,10 @@ import shutil
 
 
 class Globus(Plugin):
+    __tc: Any = None
+    __scopes: str = ""
+    __authorizer: GlobusAuthorizer
+
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self.__name = "globus"
         super().__init__(self.__name, logger=logger)
@@ -46,7 +54,9 @@ class Globus(Plugin):
         self.__hostname = None
         self.__default_endpoint = None
         self.__supported_actions = SUPPORTED_ACTIONS
-        self._message_helper = GlobusMessageHelper(logger)
+        self._message_validator = GlobusMessageValidator(logger)
+        self.__file_uri_separator = FileURISeparator()
+        self.__globus_uri_separator = GlobusURISeparator()
         pass
 
     ###################################################################################
@@ -234,23 +244,26 @@ class Globus(Plugin):
         """
 
         for item in transfer["items"]:
-            source_globus_uri = globusURISeparator(
+            source_globus_uri = self.__globus_uri_separator.separate(
                 item["source"], self.__default_endpoint
             )
-            dest_globus_uri = globusURISeparator(
+            dest_globus_uri = self.__globus_uri_separator.separate(
                 item["destination"], self.__default_endpoint
             )
 
             tdata = globus_sdk.TransferData(
                 self.__tc,
-                source_globus_uri[0],
-                dest_globus_uri[0],
+                source_globus_uri["uuid"],
+                dest_globus_uri["uuid"],
                 label="Zambeze Workflow",
                 sync_level="checksum",
             )
 
-            source_file_path = source_globus_uri[1] + source_globus_uri[2]
-            dest_file_path = dest_globus_uri[1] + dest_globus_uri[2]
+            source_file_path = source_globus_uri["path"]
+            source_file_path += source_globus_uri["file_name"]
+
+            dest_file_path = dest_globus_uri["path"]
+            dest_file_path += dest_globus_uri["file_name"]
             tdata.add_item(source_file_path, dest_file_path)
 
             self._logger.info("Packet to be transferred by Globus.")
@@ -321,21 +334,22 @@ class Globus(Plugin):
         >>> }
         """
         for item in action_package["items"]:
-            source_sep_file_uri = fileURISeparator(item["source"])
-            source_path = source_sep_file_uri[0] + source_sep_file_uri[1]
+            source_sep_file_uri = self.__file_uri_separator.separate(item["source"])
+            source_path = source_sep_file_uri["path"]
+            source_path += source_sep_file_uri["file_name"]
 
-            destination_sep_globus_uri = globusURISeparator(
+            destination_sep_globus_uri = self.__globus_uri_separator.separate(
                 item["destination"], self.__default_endpoint
             )
-            destination_uuid = destination_sep_globus_uri[0]
-            destination_file_name = destination_sep_globus_uri[2]
+            destination_uuid = destination_sep_globus_uri["uuid"]
+            destination_file_name = destination_sep_globus_uri["file_name"]
             destination_endpoint_path = self.__getPOSIXpathToEndpoint(destination_uuid)
 
             # /mnt/globus/collections
             destination_path = destination_endpoint_path
 
             # /mnt/globus/collections + /file_path/
-            destination_path = destination_path + destination_sep_globus_uri[1]
+            destination_path += destination_sep_globus_uri["path"]
 
             if isdir(destination_path):
 
@@ -370,22 +384,24 @@ class Globus(Plugin):
         >>> }
         """
         for item in action_package["items"]:
-            destination_sep_file_uri = fileURISeparator(item["destination"])
-            destination_path = destination_sep_file_uri[0]
-            destination_file_name = destination_sep_file_uri[1]
+            destination_sep_file_uri = self.__file_uri_separator.separate(
+                item["destination"]
+            )
+            destination_path = destination_sep_file_uri["path"]
+            destination_file_name = destination_sep_file_uri["file_name"]
 
-            source_sep_globus_uri = globusURISeparator(
+            source_sep_globus_uri = self.__globus_uri_separator.separate(
                 item["source"], self.__default_endpoint
             )
-            source_uuid = source_sep_globus_uri[0]
-            source_file_name = source_sep_globus_uri[2]
+            source_uuid = source_sep_globus_uri["uuid"]
+            source_file_name = source_sep_globus_uri["file_name"]
             source_endpoint_path = self.__getPOSIXpathToEndpoint(source_uuid)
 
             # /mnt/globus/collections
             source_path = source_endpoint_path
 
             # /mnt/globus/collections + /file_path/
-            source_path = source_path + source_sep_globus_uri[1]
+            source_path += source_sep_globus_uri["path"]
 
             # /mnt/globus/collections/file_path/file.txt
             source_path = source_path + source_file_name
@@ -402,7 +418,7 @@ class Globus(Plugin):
 
             shutil.copyfile(source_path, destination_path)
 
-    def __runTransferSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runTransferSanityCheck(self, action_package: dict) -> tuple[bool, str]:
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
@@ -430,26 +446,27 @@ class Globus(Plugin):
 
         return True, ""
 
-    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> tuple[bool, str]:
         for item in action_package["items"]:
-            globus_sep_uri = globusURISeparator(
+            globus_sep_uri = self.__globus_uri_separator.separate(
                 item["destination"], self.__default_endpoint
             )
-            if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
-                error_msg = f"Invalid source endpoint uuid dectected in \
-                            'move_from_globus_collection' item: {item} \nuuid: \
-                            {globus_sep_uri[0]}\nRecognized endpoints \
-                            are {self.__endpoints}."
+            if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
+                error_msg = "Invalid source endpoint uuid detected in "
+                error_msg += f"move_from_globus_collection' item: {item}"
+                error_msg += "\nuuid:"
+                error_msg += f" {globus_sep_uri['uuid']}\nRecognized endpoints "
+                error_msg += f"are {self.__endpoints}."
                 return (False, error_msg)
 
-            file_sep_uri = fileURISeparator(item["source"])
-            file_path = file_sep_uri[0] + file_sep_uri[1]
+            file_sep_uri = self.__file_uri_separator.separate(item["source"])
+            file_path = file_sep_uri["path"] + file_sep_uri["file_name"]
             if not exists(file_path):
                 return False, f"Item does not exist {file_path}"
 
         return (True, "")
 
-    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> (bool, str):
+    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> tuple[bool, str]:
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
@@ -473,16 +490,22 @@ class Globus(Plugin):
         >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
         """
         for item in action_package["items"]:
-            globus_sep_uri = globusURISeparator(item["source"], self.__default_endpoint)
-            if not localEndpointExists(globus_sep_uri[0], self.__endpoints):
-                error_msg = f"Invalid source endpoint uuid dectected in \
-                            'move_from_globus_collection' item: {item} \nuuid: \
-                            {globus_sep_uri[0]}\nRecognized endpoints \
-                            are {self.__endpoints}."
+            globus_sep_uri = self.__globus_uri_separator.separate(
+                item["source"], self.__default_endpoint
+            )
+            if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
+                error_msg = "Invalid source endpoint uuid detected in "
+                error_msg += f"'move_from_globus_collection' item: {item} "
+                error_msg += "\nuuid: "
+                error_msg += f" {globus_sep_uri['uuid']}\nRecognized endpoints "
+                error_msg += f"are {self.__endpoints}."
                 return (False, error_msg)
 
-            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(globus_sep_uri[0])
-            file_path = posix_path_to_endpoint + globus_sep_uri[1] + globus_sep_uri[2]
+            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(
+                globus_sep_uri["uuid"]
+            )
+            file_path = posix_path_to_endpoint + globus_sep_uri["path"]
+            file_path += globus_sep_uri["file_name"]
             if not exists(file_path):
                 return False, f"Item does not exist {file_path}"
 
@@ -533,10 +556,12 @@ class Globus(Plugin):
         """
         self.__validConfig(config)
 
+        print("Config is")
+        print(config)
         self._logger.debug(json.dumps(config, indent=4))
         if "authentication_flow" in config:
-            if "client_id" in config:
-                self.__client_id = config["client_id"]
+            if "client_id" in config["authentication_flow"]:
+                self.__client_id = config["authentication_flow"]["client_id"]
 
         print("Client id is ")
         print(self.__client_id)
@@ -689,7 +714,7 @@ class Globus(Plugin):
         for index in range(len(arguments)):
             for action in arguments[index]:
 
-                schema_checks = self._message_helper.validateAction(
+                schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
 

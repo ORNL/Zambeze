@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter("[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s")
+formatter = logging.Formatter(
+    "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
+)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
@@ -42,7 +44,7 @@ activity = ShellActivity(
     ],
     logger=logger,
     # Uncomment if running on M1 Mac.
-    env_vars=[("PATH", "$PATH:/opt/homebrew/bin")],
+    env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
 )
 campaign.add_activity(activity)
 

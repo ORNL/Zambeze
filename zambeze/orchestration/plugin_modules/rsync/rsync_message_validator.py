@@ -6,40 +6,39 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+from __future__ import annotations
+
 # Local imports
-from ..abstract_plugin_message_helper import PluginMessageHelper
-from .rsync_common import (
-    PLUGIN_NAME,
-    SUPPORTED_ACTIONS,
-    validateRequiredSourceAndDestinationValuesValid,
-)
+from ..abstract_plugin_message_validator import PluginMessageValidator
+from ..common_dataclasses import RsyncTransferTemplate
+from .rsync_common import PLUGIN_NAME, validateRequiredSourceAndDestinationValuesValid
 
 # Standard imports
-from typing import Optional
-
+from dataclasses import asdict
+from typing import Optional, overload
 import logging
 
 
-class RsyncMessageHelper(PluginMessageHelper):
+class RsyncMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
-        self._supported_actions = SUPPORTED_ACTIONS
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
 
-        if action == "transfer":
-            # Check if the action is supported
-            if self._supported_actions[action] is False:
-                checks.append({action: (False, "action is not supported.")})
-                return checks
+        if not isinstance(arguments, dict):
+            arguments = asdict(arguments)
 
+        if action == "transfer":
             # Start by checking that all the files have been provided
-            check = validateRequiredSourceAndDestinationValuesValid(arguments[action])
-            if not check[0]:
-                checks.append(
-                    {action: (False, f"Error detected for {action}. " + check[1])}
-                )
-                return checks
+            print("**************************************************")
+            print(arguments)
+            for item in arguments["transfer"]["items"]:
+                check = validateRequiredSourceAndDestinationValuesValid(item)
+
+                if not check[0]:
+                    checks.append(
+                        {action: (False, f"Error detected for {action}. " + check[1])}
+                    )
 
         else:
             checks.append({action: (False, f"{action} unsupported action\n")})
@@ -47,22 +46,6 @@ class RsyncMessageHelper(PluginMessageHelper):
 
         checks.append({action: (True, "")})
         return checks
-
-    def messageTemplate(self, args=None) -> dict:
-        """Args can be used to generate a more flexible template. Say for
-        instance you wanted to transfer several different items.
-        """
-        return {
-            "plugin": self._name,
-            "cmd": [
-                {
-                    "transfer": {
-                        "source": {"ip": "", "path": "", "user": ""},
-                        "destination": {"ip": "", "path": "", "user": ""},
-                    }
-                }
-            ],
-        }
 
     def validateAction(self, arguments: dict, action) -> list:
         """Check the arguments are supported.
@@ -106,7 +89,15 @@ class RsyncMessageHelper(PluginMessageHelper):
         checks = []
         return self._validateAction(action, checks, arguments)
 
+    @overload  # pyre-ignore[14]
+    def validateMessage(self, arguments: RsyncTransferTemplate) -> list:
+        ...
+
+    @overload
     def validateMessage(self, arguments: list[dict]) -> list:
+        ...
+
+    def validateMessage(self, arguments):
         """Check the arguments are supported.
 
         :param arguments: arguments needed to run the rsync plugin
@@ -148,11 +139,22 @@ class RsyncMessageHelper(PluginMessageHelper):
         >>> assert checked_arguments[0]["transfer"][0]
         """
 
+        if isinstance(arguments, list):
+            pass
+        elif isinstance(arguments, RsyncTransferTemplate):
+            arguments = [arguments]
+        else:
+            error = (
+                f"Unsupported argument type encountered. arguments = {type(arguments)}"
+            )
+            error += f" where {type(RsyncTransferTemplate)} is expected"
+            raise Exception(error)
+
         checks = []
 
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
-            for action in arguments[index]:
-                checks = self._validateAction(action, checks, arguments[index])
+            if hasattr(arguments[index], "transfer"):
+                checks = self._validateAction("transfer", checks, arguments[index])
 
         return checks
