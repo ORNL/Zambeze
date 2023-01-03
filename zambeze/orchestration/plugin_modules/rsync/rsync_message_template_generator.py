@@ -16,10 +16,7 @@ from ..common_dataclasses import (
     RsyncTransferTemplateInner,
     RsyncTransferTemplate,
 )
-from .rsync_common import (
-    PLUGIN_NAME,
-    SUPPORTED_ACTIONS,
-)
+from .rsync_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 
 # Standard imports
 from typing import Optional

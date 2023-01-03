@@ -10,9 +10,65 @@ from zambeze.orchestration.plugin_modules.shell.shell_message_validator import (
 import os
 import pytest
 import random
-import socket
 
 from dataclasses import asdict
+
+
+@pytest.mark.unit
+def test_shell_get_inner_pattern():
+
+    variable = "My${Long}string${Containing${Nested}Patterns}"
+
+    print("From unit")
+    print(variable)
+    match, left_ind, right_ind = shell.getInnerPattern(variable, "${", "}")
+
+    print(variable[0:left_ind] + variable[right_ind: len(variable)])
+
+    assert match == "Nested"
+    assert left_ind == 27
+    assert right_ind == 36
+
+
+@pytest.mark.unit
+def test_shell_get_inner_pattern2():
+
+    variable = "heMMheyMMnoBByoyoBB_MMyesBB"
+    #           012345678901234567890123456
+
+    print("From unit")
+    print(variable)
+    match, left_ind, right_ind = shell.getInnerPattern(variable, "MM", "BB")
+
+    print(variable[0:left_ind] + variable[right_ind: len(variable)])
+
+    assert match == "no"
+    assert left_ind == 7
+    assert right_ind == 13
+
+
+@pytest.mark.unit
+def test_shell_merge_env_variables():
+
+    env_vars = {
+        "PATH": "/home/bob",
+        "RAND": "2324",
+        "EXTENSION": "EXT",
+        "FILE_EXT": "file.txt",
+    }
+    new_vars = {
+        "PATH": "/local/usr/bin:${PATH}",
+        "RAND": "1",
+        "FILE_PATH": "/new_file_path/${FILE_${EXTENSION}}",
+    }
+
+    result = shell.mergeEnvVariables(env_vars, new_vars)
+
+    assert result["PATH"] == "/local/usr/bin:/home/bob"
+    assert result["RAND"] == "1"
+    assert result["EXTENSION"] == "EXT"
+    assert result["FILE_EXT"] == "file.txt"
+    assert result["FILE_PATH"] == "/new_file_path/file.txt"
 
 
 @pytest.mark.unit

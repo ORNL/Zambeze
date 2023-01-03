@@ -17,9 +17,9 @@ def test_shell_messageTemplate():
     # Shell template should have all the following attributes
     no_fail = True
     try:
-        shell_template.bash.program == ""
-        shell_template.bash.args == [""]
-        shell_template.bash.env_vars == {}
+        shell_template.bash.program = ""
+        shell_template.bash.args = [""]
+        shell_template.bash.env_vars = {}
     except Exception as e:
         print(e.message)
         no_fail = False

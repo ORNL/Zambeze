@@ -13,9 +13,9 @@ import os
 import socket
 import threading
 import time
-import uuid
 
 from typing import Optional
+from dataclasses import asdict
 
 # Third party imports
 import getpass
@@ -43,7 +43,10 @@ class Processor(threading.Thread):
     """
 
     def __init__(
-        self, settings: ZambezeSettings, logger: Optional[logging.Logger] = None
+        self,
+        settings: ZambezeSettings,
+        logger: Optional[logging.Logger] = None,
+        agent_id: Optional[str] = None,
     ) -> None:
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
@@ -51,7 +54,7 @@ class Processor(threading.Thread):
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-
+        self._agent_id = agent_id
         queue_factory = QueueFactory(logger=self._logger)
         args = {
             "ip": self._settings.settings["nats"]["host"],
@@ -86,25 +89,35 @@ class Processor(threading.Thread):
 
         while True:
             try:
-
+                print("Receiving first message")
                 msg = await self._queue_client.nextMsg(ChannelType.ACTIVITY)
+                print("Message received")
+                print(msg)
                 self._logger.debug("Message received:")
 
                 if msg.type != MessageType.ACTIVITY:
+                    print("Non activity detected")
                     self._logger.debug(
                         "Non-activity message received on" "ACTIVITY channel"
                     )
                 else:
-                    self._logger.debug(json.dumps(msg.data, indent=4))
+                    print("dump 1")
+                    self._logger.debug(json.dumps(asdict(msg.data), indent=4))
                     # Determine what kind of activity it is
                     if msg.data.body.type == "SHELL":
                         # Determine if the shell activity has files that
                         # Need to be moved to be executed
-                        if len(msg.data.body.files) > 0:
-                            await self.__process_files(msg.data.body.files)
+                        if msg.data.body.files:
+                            if len(msg.data.body.files) > 0:
+                                await self.__process_files(
+                                    msg.data.body.files,
+                                    msg.data.body.campaign_id,
+                                    msg.data.body.activity_id,
+                                )
 
                         self._logger.info("Command to be executed.")
-                        self._logger.info(json.dumps(msg.data["cmd"], indent=4))
+                        print("dump 2")
+                        # self._logger.info(json.dumps(msg.data["cmd"], indent=4))
 
                         # Running Checks
                         # Returned results should be double nested dict with a tuple of
@@ -136,7 +149,9 @@ class Processor(threading.Thread):
                 print(e)
                 exit(1)
 
-    async def __process_files(self, files: list[str]) -> None:
+    async def __process_files(
+        self, files: list[str], campaign_id: str, activity_id: str
+    ) -> None:
         """
         Process a list of files by generating transfer requests when files are
         not available locally.
@@ -147,20 +162,30 @@ class Processor(threading.Thread):
         self._logger.debug("Processing files...")
         for file_path in files:
             file_url = urlparse(file_path)
+            print(f"File to parse {file_url}")
             if file_url.scheme == "file":
                 if not pathlib.Path(file_url.path).exists():
                     raise Exception(f"Unable to find file: {file_url.path}")
 
             elif file_url.scheme == "globus":
+                if "globus" not in self._settings.settings["plugins"]:
+                    raise Exception("It doesn't look like Globus is configured locally")
 
+                print("Globus executing")
+                print(file_url.path)
                 # Check if we have plugin
                 source_file_name = os.path.basename(file_url.path)
+                print(f"Source file_name {source_file_name}")
+                print("Settings")
+                print(self._settings.settings["plugins"])
                 default_endpoint = self._settings.settings["plugins"]["globus"][
                     "config"
                 ]["default_endpoint"]
+                print(f"default endpoint {default_endpoint}")
                 default_working_dir = self._settings.settings["plugins"]["All"][
                     "default_working_directory"
                 ]
+                print(f"default working directory {default_working_dir}")
 
                 local_globus_uri = (
                     f"globus://{default_endpoint}{os.sep}" f"source_file_name"
@@ -176,10 +201,10 @@ class Processor(threading.Thread):
                     {"plugin": "globus", "action": "transfer"},
                 )
 
-                msg_template_transfer[1].message_id = str(uuid.uuid4())
-                msg_template_transfer[1].activity_id = str(uuid.uuid4())
-                msg_template_transfer[1].agent_id = str(uuid.uuid4())
-                msg_template_transfer[1].campaign_id = str(uuid.uuid4())
+                # msg_template_transfer[1].message_id = str(uuid.uuid4())
+                msg_template_transfer[1].activity_id = activity_id
+                msg_template_transfer[1].agent_id = self._agent_id
+                msg_template_transfer[1].campaign_id = campaign_id
                 msg_template_transfer[1].credential = {}
                 msg_template_transfer[1].submission_time = str(int(time.time()))
                 msg_template_transfer[1].body.transfer.type = "synchronous"
@@ -189,6 +214,8 @@ class Processor(threading.Thread):
                 msg_template_transfer[1].body.transfer.items[0].destination = (
                     local_globus_uri,
                 )
+
+                print(asdict(msg_template_transfer))
                 # Will validate the message fields and then make it immutable
                 immutable_msg = self._msg_factory.create(msg_template_transfer)
 
@@ -203,10 +230,10 @@ class Processor(threading.Thread):
                     {"plugin": "globus", "action": "move_from_globus_collection"},
                 )
 
-                msg_template_move[1].message_id = str(uuid.uuid4())
-                msg_template_move[1].activity_id = str(uuid.uuid4())
-                msg_template_move[1].agent_id = str(uuid.uuid4())
-                msg_template_move[1].campaign_id = str(uuid.uuid4())
+                # msg_template_move[1].message_id = str(uuid.uuid4())
+                msg_template_move[1].activity_id = activity_id
+                msg_template_move[1].agent_id = self._agent_id
+                msg_template_move[1].campaign_id = campaign_id
                 msg_template_move[1].credential = {}
                 msg_template_move[1].submission_time = str(int(time.time()))
                 msg_template_move[1].body.move_to_globus_collection.items[
@@ -266,5 +293,8 @@ class Processor(threading.Thread):
         )
         self._logger.debug(f"Sending a '{channel_type.value}' message")
 
+        print("Processor sending")
+        print(msg)
         await self._queue_client.connect()
+        self._logger.debug(json.dumps(asdict(msg.data), indent=4))
         await self._queue_client.send(channel_type, msg)

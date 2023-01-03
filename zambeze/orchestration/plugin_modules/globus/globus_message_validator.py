@@ -3,13 +3,13 @@ from ..abstract_plugin_message_validator import PluginMessageValidator
 from .globus_common import (
     checkTransferEndpoint,
     checkAllItemsHaveValidEndpoints,
-    globusURISeparator,
     SUPPORTED_ACTIONS,
 )
+from .globus_uri_separator import GlobusURISeparator
 from ...identity import validUUID
 
 # Standard imports
-from typing import Optional
+from typing import Optional, overload
 import logging
 
 
@@ -17,6 +17,7 @@ class GlobusMessageValidator(PluginMessageValidator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
         self.__known_actions = SUPPORTED_ACTIONS.keys()
+        self.__globus_uri_separator = GlobusURISeparator()
 
     def __runTransferValidationCheck(self, action_package: dict) -> tuple[bool, str]:
         """Checks to ensure that the action_package has the right format and
@@ -68,12 +69,15 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(item["destination"])
-                if globus_sep_uri[0] is not None:
-                    if not validUUID(globus_sep_uri[0]):
-                        error_msg = f"Invalid uuid dectected in \
-                                    'move_from_globus_collection' item: {item} \nuuid: \
-                                    {globus_sep_uri[0]}"
+                globus_sep_uri = self.__globus_uri_separator.separate(
+                    item["destination"]
+                )
+                if globus_sep_uri["uuid"] is not None:
+                    if not validUUID(globus_sep_uri["uuid"]):
+                        error_msg = "Invalid uuid detected in "
+                        error_msg += "'move_from_globus_collection' item: "
+                        error_msg += f"{item} \nuuid: "
+                        error_msg += f"{globus_sep_uri['uuid']}"
                         return (False, error_msg)
 
         return (valid, msg)
@@ -115,11 +119,11 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         if valid:
             for item in action_package["items"]:
-                globus_sep_uri = globusURISeparator(item["source"])
-                if not validUUID(globus_sep_uri[0]):
-                    error_msg = f"Invalid uuid dectected in \
-                                'move_from_globus_collection' item: {item} \nuuid: \
-                                {globus_sep_uri[0]}"
+                globus_sep_uri = self.__globus_uri_separator.separate(item["source"])
+                if not validUUID(globus_sep_uri["uuid"]):
+                    error_msg = "Invalid uuid detected in "
+                    error_msg += f"'move_from_globus_collection' item: {item} "
+                    error_msg += f"\nuuid: {globus_sep_uri['uuid']}"
                     return (False, error_msg)
 
         return (valid, msg)
@@ -208,7 +212,11 @@ class GlobusMessageValidator(PluginMessageValidator):
         checks = []
         return self._validateAction(action, checks, arguments)
 
+    @overload
     def validateMessage(self, arguments: list[dict]) -> list:
+        ...
+
+    def validateMessage(self, arguments) -> list:
         """Checks the input argument for errors
 
         Cycle through the items in the argument and checks if this instance

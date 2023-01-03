@@ -8,9 +8,7 @@
 
 # Local imports
 from ..abstract_plugin_template_generator import PluginMessageTemplateGenerator
-from .shell_common import (
-    PLUGIN_NAME,
-)
+from .shell_common import PLUGIN_NAME
 
 # Standard imports
 from dataclasses import dataclass

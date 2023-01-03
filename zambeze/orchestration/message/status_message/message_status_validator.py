@@ -24,6 +24,34 @@ class MessageStatusValidator(AbstractMessageValidator):
     def requiredKeys(self) -> list[str]:
         return self._required_keys
 
+    def _checkUUIDs(self, message: Any):
+        if not validUUID(message.activity_id, 4):
+            return (
+                False,
+                (
+                    "Required activity_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.activity_id}"
+                ),
+            )
+
+        if not validUUID(message.campaign_id, 4):
+            return (
+                False,
+                (
+                    "Required campaign_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.campaign_id}"
+                ),
+            )
+
+        if not validUUID(message.agent_id, 4):
+            return (
+                False,
+                (
+                    "Required agent_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.agent_id}"
+                ),
+            )
+
     @overload
     def check(self, message: Any) -> tuple[bool, str]:
         ...
@@ -56,41 +84,7 @@ class MessageStatusValidator(AbstractMessageValidator):
                 ),
             )
 
-        if not validUUID(message.activity_id, 4):
-            return (
-                False,
-                (
-                    "Required activity_id attribute for activity message must"
-                    f"be a valid version 4 UUID but is not: {message.activity_id}"
-                ),
-            )
-
-        if not validUUID(message.campaign_id, 4):
-            return (
-                False,
-                (
-                    "Required campaign_id attribute for activity message must"
-                    f"be a valid version 4 UUID but is not: {message.campaign_id}"
-                ),
-            )
-
-        if not validUUID(message.agent_id, 4):
-            return (
-                False,
-                (
-                    "Required agent_id attribute for activity message must"
-                    f"be a valid version 4 UUID but is not: {message.agent_id}"
-                ),
-            )
-
-        if not validUUID(message.message_id, 4):
-            return (
-                False,
-                (
-                    "Required message_id attribute for activity message must"
-                    f"be a valid version 4 UUID but is not: {message.message_id}"
-                ),
-            )
+        self._checkUUIDs(message)
 
         if not validUUID(message.target_id, 4):
             return (

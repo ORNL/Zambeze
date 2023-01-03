@@ -2,12 +2,7 @@
 from ...identity import validUUID
 
 # Standard imports
-import os
-from os.path import basename
-from os.path import dirname
 from os.path import exists
-
-import re
 
 SUPPORTED_ACTIONS = {
     "transfer": False,
@@ -64,125 +59,6 @@ def localEndpointConfigCheck(config: dict) -> None:
             error_msg = error_msg + " agent.yaml file. Local endpoints are:"
             error_msg = error_msg + f"\n{config['local_endpoints']}"
             raise Exception(error_msg)
-
-
-def globusURISeparator(uri: str, default_uuid=None) -> tuple[str, str, str, str]:
-    """Will take a globus URI and break it into its components
-
-    :param uri: the globus uri globus://XXXXX...XXX/path/file.txt
-    :type uri: str
-
-    :Example:
-
-    >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
-    >>> globus_uri = globus://XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX/path/file.txt
-    >>> uri_components = globusURISeparator(globus_uri, default_uri)
-    >>> print( uri_components[0] ) # UUID
-    >>> print( uri_components[1] ) # Path
-    >>> print( uri_components[2] ) # File name
-    >>> print( uri_components[3] ) # Error message
-
-    The output should be
-
-    >>> XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX
-    >>> /path/
-    >>> file.txt
-
-    :Example: When no endpoint UUID is provided in the URI the default should be used
-
-    >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
-    >>> globus_uri = globus://path/file.txt
-    >>> uri_components = globusURISeparator(globus_uri, default_uri)
-    >>> print( uri_components[0] ) # UUID
-    >>> print( uri_components[1] ) # Path
-    >>> print( uri_components[2] ) # File name
-    >>> print( uri_components[3] ) # Error message
-
-    The output should be
-
-    >>> YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ
-    >>> /path/
-    >>> file.txt
-    """
-    uri = uri.lstrip(" ").rstrip(" ")
-
-    globus_uri_tag = "globus://"
-    # Start by ensuring the start of the uri begins with globus://
-    if not uri.startswith(globus_uri_tag):
-        error_msg = f"Incompatible Globus URI format {uri} must start with "
-        error_msg = error_msg + "globus://"
-        return ("", "", "", error_msg)
-
-    UUID_and_path = uri[len(globus_uri_tag):]
-    # Replace multiple occurances of // with single /
-    UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
-
-    UUID = UUID_and_path[0:36]
-
-    file_and_path = UUID_and_path
-    valid_uuid = default_uuid
-    # Check if the first 36 chars contains os.sep it is probably a file_path
-    # in which case the default uuid should be provided
-    if os.sep not in UUID:
-        if not validUUID(UUID):
-            error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
-            error_msg = error_msg + "character valid UUID of the form "
-            error_msg = error_msg + "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-            error_msg = error_msg + f" the provided UUID is {UUID} it must also"
-            error_msg = error_msg + " conform to RFC4122"
-            return ("", "", "", error_msg)
-        valid_uuid = UUID
-        file_and_path = UUID_and_path[36:]
-
-    path = dirname(file_and_path)
-
-    if not path.startswith(os.sep):
-        path = os.sep + path
-
-    if not path.endswith(os.sep):
-        path = path + os.sep
-
-    return (valid_uuid, path, basename(file_and_path), "")
-
-
-def fileURISeparator(uri: str) -> tuple[str, str, str]:
-    """Will take a file URI and break it into its components
-
-    :param uri: File uri should be like file://path/file.txt
-    :type uri: str
-
-    :Example:
-
-    >>> file_uri = file://path/file.txt
-    >>> uri_components = fileURISeparator(file_uri)
-    >>> print( uri_components[0] ) # Path
-    >>> print( uri_components[1] ) # File name
-    >>> print( uri_components[2] ) # Error message
-
-    The output should be
-
-    >>> /path/
-    >>> file.txt
-    """
-    uri = uri.lstrip(" ").rstrip(" ")
-
-    file_uri_tag = "file://"
-    # Start by ensuring the start of the uri begins with globus://
-    if not uri.startswith(file_uri_tag):
-        error_msg = f"Incompatible file URI format {uri} must start with "
-        error_msg = error_msg + "file://"
-        return ("", "", error_msg)
-
-    file_and_path = uri[len(file_uri_tag):]
-    path = dirname(file_and_path)
-
-    if not path.startswith(os.sep):
-        path = os.sep + path
-
-    if not path.endswith(os.sep):
-        path = path + os.sep
-
-    return (path, basename(file_and_path), "")
 
 
 def checkTransferEndpoint(action_package: dict) -> tuple[bool, str]:

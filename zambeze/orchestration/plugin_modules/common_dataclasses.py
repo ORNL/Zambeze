@@ -8,6 +8,11 @@ class Move:
 
 
 @dataclass
+class Source:
+    source: str
+
+
+@dataclass
 class TransferTemplateInner:
     """Type can be synchronous or asynchronous"""
 

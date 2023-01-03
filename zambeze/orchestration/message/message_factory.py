@@ -15,6 +15,7 @@ from ..zambeze_types import MessageType, ActivityType
 
 # Standard imports
 import logging
+import uuid
 from typing import Optional
 
 
@@ -115,6 +116,7 @@ class MessageFactory:
             elif activity_type == ActivityType.SHELL:
                 if "shell" in args:
                     activity.body.shell = args["shell"]
+
                 else:
                     raise Exception(
                         "Missing required arguments to initialize"
@@ -182,6 +184,8 @@ class MessageFactory:
                                 raise Exception(
                                     "Invalid plugin message body" f"{check[action][1]}"
                                 )
+
+                args[1].message_id = str(uuid.uuid4())
                 return MessageActivity(args[1], self._logger)
             else:
                 raise Exception(f"Invalid activity message: {result[1]}")
@@ -189,6 +193,7 @@ class MessageFactory:
             validator = MessageStatusValidator()
             result = validator.check(args[1])
             if result[0]:
+                args[1].message_id = uuid.uuid4()
                 return MessageStatus(args[1])
             else:
                 raise Exception(f"Invalid status message: {result[1]}")

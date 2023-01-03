@@ -18,6 +18,7 @@ from uuid import uuid4
 
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 from zambeze.orchestration.db.model.activity_model import ActivityModel
+from zambeze.orchestration.db.model.abstract_message import AbstractMessage
 
 from ..processor import Processor
 from ..zambeze_types import ChannelType
@@ -46,7 +47,9 @@ class Agent:
         self._agent_id = uuid4()
 
         self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
-        self._processor = Processor(settings=self._settings, logger=self._logger)
+        self._processor = Processor(
+            settings=self._settings, logger=self._logger, agent_id=self._agent_id
+        )
         self._processor.start()
 
         self._zmq_context = zmq.Context()
@@ -65,6 +68,8 @@ class Agent:
         """
         # Receive and unwrap the activity message from ZMQ.
         activity_message = pickle.loads((self._zmq_socket.recv()))
+        # Set the agent id in the activity
+        activity_message.agent_id = self._agent_id
         self._logger.info(f"Received message from campaign: {activity_message}")
 
         activity = ActivityModel(
@@ -89,7 +94,10 @@ class Agent:
         :type activity: Activity
         """
         self._logger.error("Received activity for dispatch...")
-        asyncio.run(
-            self.processor.send(ChannelType.ACTIVITY, activity.generate_message())
+        msg: AbstractMessage = activity.generate_message()
+        self._logger.info(
+            f"Dispatching message activity_id: {activity.activity_id} "
+            f"message_id: {msg.data.message_id}"
         )
+        asyncio.run(self.processor.send(ChannelType.ACTIVITY, msg))
         activity.status = ActivityStatus.QUEUED

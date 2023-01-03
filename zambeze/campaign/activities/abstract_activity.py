@@ -42,6 +42,10 @@ class Activity(ABC):
     command: Optional[str]
     arguments: list[str]
     logger: Optional[logging.Logger]
+    campaign_id: Optional[str]
+    agent_id: Optional[str]
+    message_id: Optional[str]
+    activity_id: Optional[str]
 
     def __init__(
         self,
@@ -50,6 +54,10 @@ class Activity(ABC):
         command: Optional[str] = None,
         arguments: list[str] = [],
         logger: Optional[logging.Logger] = None,
+        campaign_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        message_id: Optional[str] = None,
+        activity_id: Optional[str] = None,
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
@@ -58,6 +66,10 @@ class Activity(ABC):
         self.files = files
         self.command = command
         self.arguments = arguments
+        self.campaign_id = campaign_id
+        self.agent_id = agent_id
+        self.message_id = message_id
+        self.activity_id = activity_id
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
 
