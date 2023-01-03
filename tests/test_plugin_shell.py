@@ -1,8 +1,7 @@
 # Local imports
 import zambeze.orchestration.plugin_modules.shell.shell as shell
-from zambeze.orchestration.plugin_modules.\
-        shell.shell_message_template_generator import (
-            ShellMessageTemplateGenerator)
+from zambeze.orchestration.plugin_modules.shell.shell_message_template_generator import (
+    ShellMessageTemplateGenerator, )
 from zambeze.orchestration.plugin_modules.shell.shell_message_validator import (
     ShellMessageValidator,
 )

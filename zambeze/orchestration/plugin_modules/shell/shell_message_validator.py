@@ -32,9 +32,11 @@ class ShellMessageValidator(PluginMessageValidator):
                     {
                         action: (
                             False,
-                            ("Shell env_vars must be provided as a dict but "
-                             "they have been provided as "
-                             f"{type(arguments[action]['env_vars'])}."),
+                            (
+                                "Shell env_vars must be provided as a dict but "
+                                "they have been provided as "
+                                f"{type(arguments[action]['env_vars'])}."
+                            ),
                         )
                     }
                 )
@@ -60,13 +62,15 @@ class ShellMessageValidator(PluginMessageValidator):
                                 {
                                     action: (
                                         False,
-                                        "Shell environment variables can " +
-                                        "support shell variable injection." +
-                                        " However, zambeze only support the " +
-                                        "more explicit${} syntax " +
-                                        " value has the following syntax: " +
-                                        f"{value}.",
-                                    )})
+                                        "Shell environment variables can "
+                                        + "support shell variable injection."
+                                        + " However, zambeze only support the "
+                                        + "more explicit${} syntax "
+                                        + " value has the following syntax: "
+                                        + f"{value}.",
+                                    )
+                                }
+                            )
 
         return checks
 
