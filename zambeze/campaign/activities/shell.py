@@ -10,7 +10,7 @@ import time
 import uuid
 
 from typing import Optional
-from .abstract_activity import Activity
+from .abstract_activity import Activity, AttributeType
 
 from zambeze.orchestration.message.abstract_message import AbstractMessage
 from zambeze.orchestration.message.message_factory import MessageFactory
@@ -35,6 +35,9 @@ class ShellActivity(Activity):
     :param logger: The logger where to log information/warning or errors.
     :type logger: Optional[logging.Logger]
     """
+    files: list[str]
+    command: Optional[str]
+    arguments: list[str]
 
     def __init__(
         self,
@@ -46,23 +49,30 @@ class ShellActivity(Activity):
         campaign_id: Optional[str] = None,
         agent_id: Optional[str] = None,
         message_id: Optional[str] = None,
+        activity_id: Optional[str] = str(uuid.uuid4()),
         **kwargs
     ) -> None:
         """Create an object of a unix shell activity."""
         super().__init__(
             name,
-            files,
-            command,
-            arguments,
-            logger,
-            campaign_id,
-            agent_id,
-            message_id,
-            activity_id=str(uuid.uuid4()),
+            supported_attributes=[
+                AttributeType.FILES,
+                AttributeType.FILE,
+                AttributeType.ARGUMENT,
+                AttributeType.ARGUMENTS,
+                AttributeType.COMMAND,
+            ],
+            logger=logger,
+            campaign_id=campaign_id,
+            agent_id=agent_id,
+            message_id=message_id,
+            activity_id=activity_id,
         )
-        self.logger: Optional[logging.Logger] = (
-            logger if logger else logging.getLogger(__name__)
-        )
+
+        self.arguments = arguments
+        self.command = command
+        self.files = files
+
         # Pull out environment variables, IF users submitted them.
         if "env_vars" in kwargs:
             if not isinstance(kwargs.get("env_vars"), dict):
@@ -71,8 +81,83 @@ class ShellActivity(Activity):
         else:
             self.env_vars = {}
 
-        print("Printing files after init in SHell")
-        print(self.files)
+    def add(self, attr_type: AttributeType, attribute) -> None:
+
+        if attr_type not in self._supported_attributes:
+            error_msg = f"Activity {self.name} does not support "
+            error_msg += f"the provided type {attr_type}"
+            raise Exception(error_msg)
+
+        if attr_type == AttributeType.FILES:
+            """Add a list of files to the dataset.
+
+            :param files: List of file URIs.
+            :type files: list[str]
+            """
+            self.files.extend(attribute)
+        elif attr_type == AttributeType.FILE:
+            """Add a file to the dataset.
+
+            :param file: A URI to a single file.
+            :type file: str
+            """
+            self.files.append(attribute)
+        elif attr_type == AttributeType.ARGUMENT:
+            """Add an argument to the action.
+
+            :param arg: An argument.
+            :type arg: str
+            """
+            self.arguments.append(attribute)
+        elif attr_type == AttributeType.ARGUMENTS:
+            """Add a list of arguments to the action.
+
+            :param args: List of arguments.
+            :type args: list[str]
+            """
+            self.arguments.extend(attribute)
+
+    def set(self, attr_type: AttributeType, attribute) -> None:
+        if attr_type not in self._supported_attributes:
+            error_msg = f"Activity {self.name} does not support the "
+            error_msg += f"provided type {attr_type}"
+            raise Exception(error_msg)
+
+        if attr_type == AttributeType.FILES:
+            """Set the list of files.
+
+            :param files: List of file URIs.
+            :type files: list[str]
+            """
+            self.files = attribute
+        elif attr_type == AttributeType.FILE:
+            """Set files to a single file.
+
+            :param file: A URI to a single file.
+            :type file: str
+            """
+            self.files = [attribute]
+        elif attr_type == AttributeType.ARGUMENT:
+            """Set an argument to the action.
+
+            :param arg: An argument.
+            :type arg: str
+            """
+            self.arguments = attribute
+        elif attr_type == AttributeType.ARGUMENTS:
+            """Set a list of arguments to the action.
+
+            :param args: List of arguments.
+            :type args: list[str]
+            """
+            self.arguments = attribute
+        elif attr_type == AttributeType.COMMAND:
+            """Set a command to the action.
+
+            :param command: A command.
+            :type command: str
+            """
+            self.command = attribute
 
     def generate_message(self) -> AbstractMessage:
 

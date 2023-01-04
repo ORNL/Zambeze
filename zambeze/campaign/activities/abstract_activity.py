@@ -26,8 +26,6 @@ class ActivityStatus(Enum):
 class AttributeType(Enum):
     FILE = auto()
     FILES = auto()
-    DATA_URI = auto()
-    DATA_URIS = auto()
     COMMAND = auto()
     ARGUMENT = auto()
     ARGUMENTS = auto()
@@ -49,133 +47,58 @@ class Activity(ABC):
     :type logger: Optional[logging.Logger]
     """
 
-    files: list[str]
-    command: Optional[str]
-    arguments: list[str]
     logger: Optional[logging.Logger]
     campaign_id: Optional[str]
     agent_id: Optional[str]
     message_id: Optional[str]
     activity_id: Optional[str]
+    _status: ActivityStatus
 
     def __init__(
         self,
         name: str,
-        files: list[str] = [],
-        command: Optional[str] = None,
-        arguments: Optional[list[str]] = [],
         supported_attributes: Optional[list[AttributeType]] = [],
         logger: Optional[logging.Logger] = None,
         campaign_id: Optional[str] = None,
         agent_id: Optional[str] = None,
         message_id: Optional[str] = None,
         activity_id: Optional[str] = None,
-        transfer: Optional[dict] = None,
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
         self.logger = logging.getLogger(__name__) if logger is None else logger
         self.name: str = name
-        self.files = files
-        self.transfer = transfer
-        self.command = command
-        self.arguments = arguments
         self.campaign_id = campaign_id
         self.agent_id = agent_id
         self.message_id = message_id
         self.activity_id = activity_id
-        self.status: ActivityStatus = ActivityStatus.CREATED
+        self._status = ActivityStatus.CREATED
         self._supported_attributes = supported_attributes
         self.__dict__.update(kwargs)
 
+    @abstractmethod
     def add(self, attr_type: AttributeType, attribute) -> None:
+        raise NotImplementedError(
+            "Method to generate message has not been instantiated."
+        )
 
-        if attr_type not in self._supported_attribute_types:
-            error_msg = f"Activity {self.name} does not support "
-            error_msg += f"the provided type {attr_type}"
-            raise Exception(error_msg)
-
-        if attr_type == AttributeType.FILES:
-            """Add a list of files to the dataset.
-
-            :param files: List of file URIs.
-            :type files: list[str]
-            """
-            self.files.extend(attribute)
-        elif attr_type == AttributeType.FILE:
-            """Add a file to the dataset.
-
-            :param file: A URI to a single file.
-            :type file: str
-            """
-            self.files.append(attribute)
-        elif attr_type == AttributeType.ARGUMENT:
-            """Add an argument to the action.
-
-            :param arg: An argument.
-            :type arg: str
-            """
-            self.arguments.append(attribute)
-        elif attr_type == AttributeType.ARGUMENTS:
-            """Add a list of arguments to the action.
-
-            :param args: List of arguments.
-            :type args: list[str]
-            """
-            self.arguments.extend(attribute)
-
+    @abstractmethod
     def set(self, attr_type: AttributeType, attribute) -> None:
-        if attr_type not in self._supported_attribute_types:
-            error_msg = f"Activity {self.name} does not support the "
-            error_msg += f"provided type {attr_type}"
-            raise Exception(error_msg)
-
-        if attr_type == AttributeType.FILES:
-            """Set the list of files.
-
-            :param files: List of file URIs.
-            :type files: list[str]
-            """
-            self.files = attribute
-        elif attr_type == AttributeType.FILE:
-            """Set files to a single file.
-
-            :param file: A URI to a single file.
-            :type file: str
-            """
-            self.files = [attribute]
-        elif attr_type == AttributeType.ARGUMENT:
-            """Set an argument to the action.
-
-            :param arg: An argument.
-            :type arg: str
-            """
-            self.arguments = attribute
-        elif attr_type == AttributeType.ARGUMENTS:
-            """Set a list of arguments to the action.
-
-            :param args: List of arguments.
-            :type args: list[str]
-            """
-            self.arguments = attribute
-        elif attr_type == AttributeType.COMMAND:
-            """Set a command to the action.
-
-            :param command: A command.
-            :type command: str
-            """
-            self.command = attribute
+        raise NotImplementedError(
+            "Method to generate message has not been instantiated."
+        )
 
     def supported_attributes(self) -> list[AttributeType]:
         return self._supported_attribute_types
 
-    def get_status(self) -> ActivityStatus:
+    @property
+    def status(self) -> ActivityStatus:
         """Get current activity status.
 
         :return: Current activity status
         :rtype: ActivityStatus
         """
-        return self.status
+        return self._status
 
     @abstractmethod
     def generate_message(self) -> AbstractMessage:

@@ -165,8 +165,12 @@ class MessageFactory:
                 "Malformed input, create method expects tuple of" "length 2"
             )
 
+        # Assigning message id when creating message
+        args[1].message_id = str(uuid.uuid4())
         if args[0] == MessageType.ACTIVITY:
             validator = MessageActivityValidator()
+            print("Running validator check on args[1]")
+            print(args[1])
             result = validator.check(args[1])
             print(result)
             if result[0]:
@@ -185,7 +189,6 @@ class MessageFactory:
                                     "Invalid plugin message body" f"{check[action][1]}"
                                 )
 
-                args[1].message_id = str(uuid.uuid4())
                 return MessageActivity(args[1], self._logger)
             else:
                 raise Exception(f"Invalid activity message: {result[1]}")

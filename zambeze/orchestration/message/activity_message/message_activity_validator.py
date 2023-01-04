@@ -71,6 +71,7 @@ class MessageActivityValidator(AbstractMessageValidator):
             )
 
         # Simply checks that each required item does not have None as a value
+        print(message)
         for attribute in REQUIRED_ACTIVITY_COMPONENTS:
             att = getattr(message, attribute)
             if att is None:

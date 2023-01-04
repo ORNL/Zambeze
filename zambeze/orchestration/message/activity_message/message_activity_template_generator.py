@@ -44,22 +44,28 @@ class ShellParams:
 
 @dataclass
 class TransferParams:
+    items: Optional[list]
+
+
+@dataclass
+class TransferItem:
     source: Optional[str]
     destination: Optional[str]
 
 
 # pyre-ignore[11]
 def createActivityTemplate(activity_type: ActivityType) -> ActivityTemplate:
-    template = ActivityTemplate(None, None, None, None, None, None, None, None, None)
+    template = ActivityTemplate("", "", "", "", "", "", "", {}, {})
     template.type = "ACTIVITY"
     if activity_type == ActivityType.SHELL:
         template.body = ShellTemplate(
-            "SHELL", None, None, ShellParams(None, None, None)
+            "SHELL", "", "", ShellParams("", [], {})
         )
     elif activity_type == ActivityType.TRANSFER:
-        template.body = TransferTemplate("TRANSFER", TransferParams(None, None))
+        template.body = TransferTemplate(
+                "TRANSFER", TransferParams([TransferItem("", "")]))
     elif activity_type == ActivityType.PLUGIN:
-        template.body = PluginTemplate("PLUGIN", None, None)
+        template.body = PluginTemplate("PLUGIN", "", "")
     else:
         raise Exception("Unsupported ActivitityType specified")
     return template

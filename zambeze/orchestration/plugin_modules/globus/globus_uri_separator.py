@@ -1,4 +1,4 @@
-from ..abstract_uri_separator import URISeparator
+from ..abstract_uri_separator import AbstractURISeparator
 from ...identity import validUUID
 
 import logging
@@ -7,7 +7,7 @@ import re
 from typing import Optional
 
 
-class GlobusURISeparator(URISeparator):
+class GlobusURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("globus", logger=logger)
 

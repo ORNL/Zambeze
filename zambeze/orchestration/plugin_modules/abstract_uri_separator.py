@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 
-class URISeparator(ABC):
+class AbstractURISeparator(ABC):
     def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
