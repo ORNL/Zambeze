@@ -4,8 +4,9 @@ from typing import Optional
 
 from .zambeze_types import ActivityType, MessageType
 from .uri_separator import URISeparator
-from .messages.abstract_message import AbstractMessage
-from .messages.message_factory import MessageFactory
+from .message.abstract_message import AbstractMessage
+from .message.message_factory import MessageFactory
+
 
 class ActivityMessageConverter():
 
@@ -25,7 +26,6 @@ class ActivityMessageConverter():
             activity_type: ActivityType) -> AbstractMessage:
         """Will convert the AbstractMessage to a different type assumes
         the message in an Activity message"""
-       
         if activity_type != ActivityType.PLUGIN:
             error_msg = "Currently only conversion to ActivityType.PLUGIN "
             error_msg += "is supported."
@@ -35,11 +35,21 @@ class ActivityMessageConverter():
             error_msg = "Only conversion of activity messages is supported."
             raise Exception(error_msg)
 
-        if msg.body.type == ActivityType.TRANSFER:
+        print("Message is")
+        print(msg.data)
+        print("ACTIVITY type")
+        print(msg.data.body.type)
+        print("These should be equal")
+        print(msg.data.body.type == ActivityType.TRANSFER)
+        print(ActivityType.TRANSFER)
+        data = msg.data
+        if data.body.type == "TRANSFER":
 
+            print("activity_type is")
+            print(activity_type)
             if activity_type == ActivityType.PLUGIN:
                 # Determine what plugin to use and then convert to plugin message
-                for item in msg.body.parameters.items:
+                for item in data.body.parameters.items:
                     source = item.source
                     destination = item.source
 
@@ -47,7 +57,7 @@ class ActivityMessageConverter():
                     destination_components = self.__uri_separator.separate(destination)
 
                     if source_components["protocol"] != destination_components["protocol"]:
-                        error_msg = "Cannot convert TRANSER Activity to PLUGIN"
+                        error_msg = "Cannot convert TRANSFER Activity to PLUGIN"
                         error_msg += " activity. Source and destination "
                         error_msg += "protocols differ. source: "
                         error_msg += f"{source_components['protocol']}"
@@ -64,10 +74,10 @@ class ActivityMessageConverter():
                         )
                         # message_id is added when the template is turned into
                         # a message
-                        template[1].activity_id = msg.activity_id
+                        template[1].activity_id = data.activity_id
                         template[1].agent_id = self.__agent_id
-                        template[1].campaign_id = msg.campaign_id
-                        template[1].credential = msg.credential
+                        template[1].campaign_id = data.campaign_id
+                        template[1].credential = data.credential
                         template[1].submission_time = str(int(time.time()))
                         template[1].\
                             body.\
@@ -97,10 +107,10 @@ class ActivityMessageConverter():
                         )
                         # message_id is added when the template is turned into
                         # a message
-                        template[1].activity_id = msg.activity_id
+                        template[1].activity_id = data.activity_id
                         template[1].agent_id = self.__agent_id
-                        template[1].campaign_id = msg.campaign_id
-                        template[1].credential = msg.credential
+                        template[1].campaign_id = data.campaign_id
+                        template[1].credential = data.credential
                         template[1].submission_time = str(int(time.time()))
                         template[1].\
                             body.\
@@ -122,10 +132,10 @@ class ActivityMessageConverter():
                         )
                         # message_id is added when the template is turned into
                         # a message
-                        template[1].activity_id = msg.activity_id
+                        template[1].activity_id = data.activity_id
                         template[1].agent_id = self.__agent_id
-                        template[1].campaign_id = msg.campaign_id
-                        template[1].credential = msg.credential
+                        template[1].campaign_id = data.campaign_id
+                        template[1].credential = data.credential
                         template[1].submission_time = str(int(time.time()))
                         template[1].body.\
                             parameters.\
@@ -143,6 +153,6 @@ class ActivityMessageConverter():
                     return self.__message_factory.create(template)
 
         else:
-            error_msg = f"Conversion from type {msg.body.type} not currently "
+            error_msg = f"Conversion from type {msg.data.body.type} not currently "
             error_msg += "supported."
             raise Exception()
