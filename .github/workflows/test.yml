@@ -21,6 +21,12 @@ jobs:
       run: |
         docker build -t zambeze/zambeze -f deployment/Dockerfile .
         docker compose -f deployment/compose.yml up -d
-        sleep(5)
+    - name: Sleep for 5 seconds
+      run: sleep 5s
+      shell: bash
+    - name: Run integration tests
+      run: |
         docker compose -f deployment/compose.yml zambeze_agent2 python3 -m pytest -m integration -sv 
+    - name: Cleanup
+      run: |
         docker compose -f deployment/compose.yml down
