@@ -5,10 +5,9 @@ from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
 
 
 def create_local_db() -> None:
-    with get_db_engine() as connection:
-        # conn = get_db_engine()
-        with open(LOCAL_DB_SCHEMA) as f:
-            connection.execute(text(f.read()))
+    conn = get_db_engine()
+    with open(LOCAL_DB_SCHEMA) as f:
+        conn.execute(text(f.read()))
 
 
 def get_db_engine():
