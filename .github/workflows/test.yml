@@ -5,34 +5,22 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ "3.9", "3.10" ]
     steps:
-      - uses: actions/checkout@v2
-      - name: Update ubuntu
-        run: sudo apt-get update
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y python3-sphinx sphinx-rtd-theme-common
-          pip install sphinx_rtd_theme recommonmark flake8 pytest pytest-cov
-      - name: Check package install
-        run: |
-          pip install -r requirements.txt .
-      - name: Setup compose
-        if: github.ref == 'refs/heads/main'
-        run: |
-          docker compose -f deployment/compose.yml up
-          sleep(5)
-      - name: Run tests
-        if: github.ref == 'refs/heads/main'
-        run: |
-          docker compose -f deployment/compose.yml zambeze_agent2 python3 -m pytest -m integration -sv 
-      - name: Close
-        if: github.ref == 'refs/heads/main'
-        run: |
-          docker compose -f deployment/compose.yml down
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9"
+    - name: Check python version
+      run: python --version
+    - name: Install our dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Setup compose
+      if: github.ref == 'refs/heads/main'
+      run: |
+        docker compose -f deployment/compose.yml up
+        sleep(5)
+        docker compose -f deployment/compose.yml zambeze_agent2 python3 -m pytest -m integration -sv 
+        docker compose -f deployment/compose.yml down
