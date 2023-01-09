@@ -32,8 +32,8 @@ def test_imagemagick_files():
     process = subprocess.Popen(
         command,
         shell=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT)
 
     stdout, stderr = process.communicate()
     print(stdout)
