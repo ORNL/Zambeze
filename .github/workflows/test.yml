@@ -26,7 +26,7 @@ jobs:
         sleep 3s
     - name: Run
       run: |
-        docker compose -f deployment/compose.yml exec zambeze_agent2 python3 -m pytest -m unit
+        docker compose -f deployment/compose.yml exec zambeze_agent2 python3 -m pytest -m integration -svvv
     - name: Cleanup
       run: |
         docker compose -f deployment/compose.yml down
