@@ -13,6 +13,7 @@ services:
     environment:
       NATS_HOST: nats
       NATS_PORT: 4222
+      SQLALCHEMY_WARN_20: 0
     container_name: zambeze1
     image: zambeze/zambeze:latest
     command: [/bin/sh, -c, 'zambeze agent start & sleep 2 && tail -f /root/.zambeze/logs/`ls -t /root/.zambeze/logs/ | head -n 1`']
@@ -23,6 +24,7 @@ services:
     environment:
       NATS_HOST: nats
       NATS_PORT: 4222
+      SQLALCHEMY_WARN_20: 0
     container_name: zambeze2
     image: zambeze/zambeze:latest
     tty: true
