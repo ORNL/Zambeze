@@ -19,6 +19,7 @@ jobs:
         pip install -r requirements.txt
     - name: Setup compose
       run: |
+        docker build -t zambeze/zambeze -f deployment/Dockerfile .
         docker compose -f deployment/compose.yml up
         sleep(5)
         docker compose -f deployment/compose.yml zambeze_agent2 python3 -m pytest -m integration -sv 
