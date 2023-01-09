@@ -20,7 +20,7 @@ jobs:
     - name: Setup compose
       run: |
         docker build -t zambeze/zambeze -f deployment/Dockerfile .
-        docker compose -f deployment/compose.yml up
+        docker compose -f deployment/compose.yml up -d
         sleep(5)
         docker compose -f deployment/compose.yml zambeze_agent2 python3 -m pytest -m integration -sv 
         docker compose -f deployment/compose.yml down
