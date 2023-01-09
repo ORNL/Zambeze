@@ -10,16 +10,19 @@ services:
       - 8222:8222
 
   zambeze_agent1:
+    environment:
+      NATS_HOST: nats
+      NATS_PORT: 4222
     container_name: zambeze1
     image: zambeze/zambeze:latest
     command: [/bin/sh, -c, 'zambeze agent start & sleep 2 && tail -f /root/.zambeze/logs/`ls -t /root/.zambeze/logs/ | head -n 1`']
     depends_on:
       -  nats
+
+  zambeze_agent2:
     environment:
       NATS_HOST: nats
       NATS_PORT: 4222
-
-  zambeze_agent2:
     container_name: zambeze2
     image: zambeze/zambeze:latest
     tty: true
@@ -28,6 +31,5 @@ services:
       - ../db:/zambeze/db
       - ../:/zambeze  # This line is needed only for development.
     command: [/bin/sh, -c , 'echo "Im idle!" & tail -f /dev/null']
-    environment:
-      NATS_HOST: nats
-      NATS_PORT: 4222
+    depends_on:
+      -  zambeze_agent1 # Needed when launching command on startup
