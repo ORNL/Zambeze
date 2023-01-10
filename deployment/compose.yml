@@ -27,8 +27,8 @@ services:
       PYTHONWARNINGS: "ignore::DeprecationWarning"
     container_name: zambeze2
     image: zambeze/zambeze:latest
-    tty: true
-    stdin_open: true
+    #tty: true
+    #stdin_open: true
     volumes: 
       - ../db:/zambeze/db
       - ../:/zambeze  # This line is needed only for development.

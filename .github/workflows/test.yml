@@ -17,14 +17,15 @@ jobs:
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install -r requirements.txt
-    - name: Setup build and run
-      run: |
-        docker build -t zambeze/zambeze -f deployment/Dockerfile .
-        docker compose -f deployment/compose.yml up -d
+    - name: Setup build
+      run: docker build -t zambeze/zambeze -f deployment/Dockerfile .
+    - name: Launch Docker Compose
+      run: docker compose -f deployment/compose.yml up -d
     - name: Sleep 
       run: |
-        sleep 3s
-    - name: Run
+        echo 'Going to sleep.. zzz...'
+        sleep 15
+    - name: Run Tests
       run: |
         docker compose -f deployment/compose.yml exec zambeze_agent2 python3 -m pytest -m integration -vvv
     - name: Cleanup
