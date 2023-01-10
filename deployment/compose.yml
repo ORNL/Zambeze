@@ -30,7 +30,8 @@ services:
     image: zambeze/zambeze:latest
     volumes:
       - ../db:/zambeze/db
-#      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only for development.
+      #- ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only for development.
+      - ../:/tmp}  # This line is needed only for development.
     command: [/bin/sh, -c , 'echo "Im idle!" & tail -f /dev/null']
     depends_on:
       -  zambeze_agent1 # Needed when launching command on startup
