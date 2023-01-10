@@ -30,8 +30,9 @@ services:
     image: zambeze/zambeze:latest
     volumes:
       - ../db:/zambeze/db
-      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only for development.
-      #- ../:/tmp}  # This line is needed only for development.
+      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only to facilitate development.
+      # The env var $CONTAINER_VOL_MNT_POINT is only set in the CI. If running for local dev, you don't need to set it.
+      # See test.yml.
     command: [/bin/sh, -c , 'echo "Im idle!" & tail -f /dev/null']
     depends_on:
       -  zambeze_agent1 # Needed when launching command on startup
