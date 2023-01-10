@@ -32,13 +32,13 @@ def test_imagemagick_files():
     assert True
 
 
-    # Step 4 launch example
-    # process = subprocess.Popen(
-    #     command,
-    #     shell=False,
-    #     stdout=subprocess.DEVNULL,
-    #     stderr=subprocess.STDOUT)
-    #
+    #Step 4 launch example
+    process = subprocess.Popen(
+        command,
+        shell=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT)
+
     # stdout, stderr = process.communicate()
     # print(stdout)
     # print(stderr)
