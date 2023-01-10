@@ -14,7 +14,13 @@ jobs:
     - name: Sleep 
       run: |
         echo 'Going to sleep... zzz...'
-        sleep 15
+        sleep 10
+    - name: Run ls
+      run: | 
+        echo `pwd`
+        ls -l
+        echo `pwd`/..
+        ls -l ../
     - name: Run Tests
       run: |
         docker compose -f deployment/compose.yml exec zambeze_agent2 python3 -m pytest -m integration -vs

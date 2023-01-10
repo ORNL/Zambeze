@@ -49,4 +49,5 @@ def test_imagemagick_files():
             break
 
     # Step 6 check that a.gif exists
+    print(f"Now asserting file {final_file_path} exists.")
     assert os.path.exists(final_file_path)
