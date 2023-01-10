@@ -1,9 +1,9 @@
 import pytest
 import time
-
+import subprocess
 import os
 
-from examples.imagemagick_files import main as image_magick_main
+#from examples.imagemagick_files import main
 
 
 @pytest.mark.integration
@@ -28,7 +28,19 @@ def test_imagemagick_files():
     if os.path.exists(final_file_path):
         os.remove(final_file_path)
 
-    image_magick_main()
+    command = ['python3', image_magick_example]
+
+    # Step 4 launch example
+    process = subprocess.Popen(
+        command,
+        shell=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT)
+
+    stdout, stderr = process.communicate()
+    print(stdout)
+    print(stderr)
+    #main()
 
     # Step 5 wait for example to complete
     count = 0

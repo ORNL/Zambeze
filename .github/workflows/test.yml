@@ -18,7 +18,7 @@ jobs:
         sleep 15
     - name: Run Tests
       run: |
-        export CONTAINER_VOL_MNT_POINT=/unused
+#        export CONTAINER_VOL_MNT_POINT=/unused
         docker compose -f deployment/compose.yml exec zambeze_agent2 python3 -m pytest -m integration -vs
     - name: Cleanup
       run: |
