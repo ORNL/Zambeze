@@ -7,23 +7,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.9"
-    - name: Check python version
-      run: python --version
-    - name: Install our dependencies
-      run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install -r requirements.txt
-    - name: Setup build
+#    - name: Set up Python 3.9
+#      uses: actions/setup-python@v3
+#      with:
+#        python-version: "3.9"
+#    - name: Check python version
+#      run: python --version
+#    - name: Install our dependencies
+#      run: |
+#        python3 -m pip install --upgrade pip
+#        python3 -m pip install -r requirements.txt
+    - name: Build Zambeze image
       run: docker build -t zambeze/zambeze -f deployment/Dockerfile .
     - name: Launch Docker Compose
       run: docker compose -f deployment/compose.yml up -d
     - name: Sleep 
       run: |
-        echo 'Going to sleep.. zzz...'
+        echo 'Going to sleep... zzz...'
         sleep 15
     - name: Run Tests
       run: |

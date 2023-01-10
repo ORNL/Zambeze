@@ -5,7 +5,7 @@ import subprocess
 import time
 
 
-@pytest.mark.integration
+#@pytest.mark.integration
 def test_imagemagick_files():
     """This test assumes that docker compose is already up and running with
     two agents and a nats queue"""
