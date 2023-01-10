@@ -3,8 +3,6 @@ import time
 import subprocess
 import os
 
-#from examples.imagemagick_files import main
-
 
 @pytest.mark.integration
 def test_imagemagick_files():
@@ -40,7 +38,6 @@ def test_imagemagick_files():
     stdout, stderr = process.communicate()
     print(stdout)
     print(stderr)
-    #main()
 
     # Step 5 wait for example to complete
     count = 0
