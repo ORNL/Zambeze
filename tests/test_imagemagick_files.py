@@ -1,15 +1,9 @@
-
-import os
 import pytest
-import subprocess
 import time
 
-import logging
 import os
 
-from zambeze import Campaign, ShellActivity
-
-from examples.imagemagick_files import main
+from examples.imagemagick_files import main as image_magick_main
 
 
 @pytest.mark.integration
@@ -34,19 +28,7 @@ def test_imagemagick_files():
     if os.path.exists(final_file_path):
         os.remove(final_file_path)
 
-    # command = ['python3', image_magick_example]
-    #
-    # # Step 4 launch example
-    # process = subprocess.Popen(
-    #     command,
-    #     shell=False,
-    #     stdout=subprocess.DEVNULL,
-    #     stderr=subprocess.STDOUT)
-    #
-    # stdout, stderr = process.communicate()
-    # print(stdout)
-    # print(stderr)
-    main()
+    image_magick_main()
 
     # Step 5 wait for example to complete
     count = 0
