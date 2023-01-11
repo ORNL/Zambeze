@@ -44,7 +44,7 @@ cd /zambeze/examples
 And run:
 
 ```shell
-$ python imagemagick-files.py
+$ python imagemagick_files.py
 ```
 
 You're supposed to see messages coming in the nats output. And the exepcted
