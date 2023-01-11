@@ -1,9 +1,8 @@
 name: Rsync Example as Integration Test
-#on: pull_request
-on: push
+on: [push, pull_request]
 
 jobs:
-  test:
+  rsync_example:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
