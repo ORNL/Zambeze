@@ -35,9 +35,7 @@ def test_imagemagick_files():
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT)
 
-    stdout, stderr = process.communicate()
-    print(stdout)
-    print(stderr)
+    process.communicate()
 
     # Step 5 wait for example to complete
     count = 0

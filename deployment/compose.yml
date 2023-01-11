@@ -31,8 +31,8 @@ services:
     volumes:
       - ../db:/zambeze/db
       - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only to facilitate development.
-      # The env var $CONTAINER_VOL_MNT_POINT is only set in the CI. If running for local dev, you don't need to set it.
-      # See test.yml.
+      # The env var $CONTAINER_VOL_MNT_POINT is only set in the CI (see rsync-example.yml).
+      # If running for local dev, you don't need to change set any env var or change anything here.
     command: [/bin/sh, -c , 'echo "Im idle!" & tail -f /dev/null']
     depends_on:
       -  zambeze_agent1 # Needed when launching command on startup

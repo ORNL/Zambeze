@@ -1,4 +1,4 @@
-name: Integration Test
+name: Rsync Example as Integration Test
 #on: pull_request
 on: push
 
