@@ -10,27 +10,25 @@
 from __future__ import annotations
 
 # Local imports
+from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
-from .plugin_modules.abstract_plugin_message_helper import PluginMessageHelper
+from .plugin_modules.common_plugin_functions import registerPlugins
 
 # Standard imports
 from copy import deepcopy
+from dataclasses import asdict
 from importlib import import_module
 from inspect import isclass
-from pathlib import Path
-from typing import Optional
+from typing import Optional, overload
 
 import logging
-import pkgutil
 
 
 class PluginChecks(dict):
-    def __init__(self, val: dict = None):
-        if val is None:
-            val = {}
+    def __init__(self, val: dict):
         super().__init__(val)
 
-    def errorDetected(self) -> bool:
+    def error_detected(self) -> bool:
         """Detects if an error was found in the results of the plugin checks"""
         for key in self.keys():
             for item in self[key]:
@@ -58,54 +56,11 @@ class Plugins:
         self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.__module_names = []
+        self.__module_names = registerPlugins()
         self._plugins = {}
-        self._plugin_message_helpers = {}
-        self.__registerPlugins()
-        self.__registerPluginHelpers()
-
-    def __registerPlugins(self) -> None:
-        """Will register all the plugins provided in the plugin_modules folder"""
-        plugin_path = [str(Path(__file__).resolve().parent) + "/plugin_modules"]
-        for importer, module_name, ispkg in pkgutil.walk_packages(path=plugin_path):
-            if (
-                module_name != "abstract_plugin"
-                and module_name != "__init__"
-                and module_name != "abstract_plugin_message_helper"
-            ):
-                self.__module_names.append(module_name)
-        self.__logger.debug(f"Registered Plugins: {', '.join(self.__module_names)}")
-
-    def __registerPluginHelpers(self) -> None:
-        for module_name in self.__module_names:
-            # Registering plugin message validators
-            module = import_module(
-                "zambeze.orchestration.plugin_modules."
-                f"{module_name}.{module_name}_message_helper"
-            )
-            for attribute_name in dir(module):
-                potential_plugin_message_helper = getattr(module, attribute_name)
-                if isclass(potential_plugin_message_helper):
-                    if (
-                        issubclass(potential_plugin_message_helper, PluginMessageHelper)
-                        and attribute_name != "PluginMessageHelper"
-                    ):
-                        self._plugin_message_helpers[
-                            attribute_name.lower()
-                        ] = potential_plugin_message_helper(logger=self.__logger)
-
-    def messageTemplate(self, plugin_name: str, args) -> dict:
-        """Will return a template of the message body that is needed to execute
-        an activity using the plugin"""
-
-        message_template = self._plugin_message_helpers[plugin_name].messageTemplate(
-            args
-        )
-        message_template["plugin"] = plugin_name
-        return message_template
 
     @property
-    def registered(self) -> list[Plugin]:
+    def registered(self) -> list[str]:
         """List all plugins that have been registered.
 
         This method can be called at any time and is meant to simply display which
@@ -115,15 +70,6 @@ class Plugins:
 
         :return: Returns the names of all the plugins that have been registered
         :rtype: list[str]
-
-        :Example:
-
-        >>> Plugins plugins
-        >>> for plugin_inst in plugins.registered:
-        >>>    print(plugin)
-        >>> globus
-        >>> shell
-        >>> rsync
         """
         plugins: list[str] = []
         for module_name in self.__module_names:
@@ -131,7 +77,8 @@ class Plugins:
         return plugins
 
     def configure(self, config: dict):
-        """Configuration options for each plugin
+        """
+        Configuration options for each plugin
 
         This method is responsible for initializing all the plugins that
         are supported in the plugin_modules folder. It should be called before the
@@ -147,20 +94,20 @@ class Plugins:
         The configuration options for each plugin will appear under their name
         in the configuration parameter.
 
-        I.e. for plugins "globus" and "shell"
+        I.e. for plugins 'globus' and 'shell'
 
-        >>> config = {
-        >>>     "globus": {
-        >>>         "authentication flow": {
-        >>>             "type": "credential flow",
-        >>>             "secret": "blahblah"
-        >>>     },
-        >>>     "shell": {
-        >>>         "arguments" : [""]
-        >>>     }
-        >>> }
-        >>> plugins = Plugins()
-        >>> plugins.configure(config, ["shell"])
+        config = {
+            'globus': {
+                'authentication flow': {
+                    'type': 'credential flow',
+                    'secret': "blahblah"
+                    },
+                'shell': {
+                    'arguments' : ['']
+                    }
+                    }
+            plugins = Plugins()
+            plugins.configure(config, ['shell'])
 
         This will just configure the "shell" plugin
         """
@@ -193,19 +140,19 @@ class Plugins:
 
         :Example: If nothing has been configured
 
-        >>> plugins = Plugins()
-        >>> assert len(plugins.configured) == 0
+        plugins = Plugins()
+        assert len(plugins.configured) == 0
 
         :Example: If globus is configured
 
-        >>> config = {
-        >>>     "globus": {
-        >>>         "client id": "..."
-        >>>     }
-        >>> }
-        >>> plugins.configure(config)
-        >>> assert len(plugins.configured) == 1
-        >>> assert "globus" in plugins.configured
+        config = {
+            "globus": {
+                "client id": "..."
+                }
+            }
+        plugins.configure(config)
+        assert len(plugins.configured) == 1
+        assert "globus" in plugins.configured
         """
         configured_plugins: list[str] = []
         for key in self._plugins:
@@ -227,15 +174,15 @@ class Plugins:
 
         :Example:
 
-        >>> these_plugins = ["globus", "shell"]
-        >>> Plugins plugins
-        >>> plugins.configure(configuration_options)
-        >>> information = plugins.info(these_plugins)
-        >>> print(information)
-        >>> {
-        >>>    "globus": {...}
-        >>>    "shell": {...}
-        >>> }
+        these_plugins = ["globus", "shell"]
+        plugins.configure(configuration_options)
+        information = plugins.info(these_plugins)
+        print(information)
+
+        {
+            "globus": {...}
+            "shell": {...}
+        }
         """
         info = {}
         if "all" in plugins:
@@ -246,7 +193,17 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    def validateMessage(self, plugin_name: str, arguments: dict) -> dict:
+    @overload
+    def check(
+        self, msg: AbstractMessage, arguments: Optional[dict] = None
+    ) -> PluginChecks:
+        ...
+
+    @overload
+    def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
+        ...
+
+    def check(self, msg, arguments=None) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         :parameter plugin_name: the name of the plugin to validate against
@@ -264,105 +221,82 @@ class Plugins:
         is different then it must be specified with the "private_ssh_key" key
         value pair.
 
-        >>> plugins = Plugins()
-        >>> config = {
-        >>>     "rsync": {
-        >>>         "private_ssh_key": "path to private ssh key"
-        >>>     }
-        >>> }
-        >>> plugins.configure(config)
-        >>> arguments = {
-        >>>     "transfer": {
-        >>>         "source": {
-        >>>             "ip": local_ip,
-        >>>             "user": current_user,
-        >>>             "path": current_valid_path,
-        >>>         },
-        >>>         "destination": {
-        >>>             "ip": "172.22.1.69",
-        >>>             "user": "cades",
-        >>>             "path": "/home/cades/josh-testing",
-        >>>         },
-        >>>         "arguments": ["-a"],
-        >>>     }
-        >>> }
-        >>> checked_args = plugins.check("rsync", arguments)
-        >>> print(checked_args)
-        >>> # Should print
-        >>> # {
-        >>> #   "rsync": { "transfer": True }
-        >>> # {
+        plugins = Plugins()
+        config = {
+            "rsync": {
+                "private_ssh_key": "path to private ssh key"
+                }
+            }
+        plugins.configure(config)
+        arguments = {
+            "transfer": {
+                "source": {
+                    "ip": local_ip,
+                    user": current_user,
+                    "path": current_valid_path,
+                    },
+                "destination": {
+                    "ip": "172.22.1.69",
+                    "user": "cades",
+                    "path": "/home/cades/josh-testing",
+                    },
+            "arguments": ["-a"],
+            }
+        }
+        checked_args = plugins.check("rsync", arguments)
+        print(checked_args)
+        >> {
+        >>     "rsync": { "transfer": (True, "") }
+        >> }
         """
-        check_results = {}
-        if plugin_name not in self._plugin_message_helpers.keys():
-            check_results[plugin_name] = [
-                {"configured": (False, f"{plugin_name} is not configured.")}
-            ]
-            if plugin_name not in self.__module_names:
-                known_module_names = " ".join(str(mod) for mod in self.__module_names)
-                check_results[plugin_name].append(
-                    {
-                        "registered": (
-                            False,
-                            f"{plugin_name} is not a known module. "
-                            + f"Known modules are: {known_module_names}",
-                        )
-                    }
-                )
+        if isinstance(msg, AbstractMessage):
+            # pyre-ignore[16]
+            print("msg is AbstractMessage")
+
+            if msg.data.type == "ACTIVITY":
+                if msg.data.body.type == "PLUGIN":
+                    arguments = asdict(msg.data.body.parameters)
+                    plugin_name = msg.data.body.plugin.lower()
+                elif msg.data.body.type == "SHELL":
+                    arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
+                    plugin_name = "shell"
+                else:
+                    error_msg = "plugin check only currently supports actvities"
+                    error_msg += " PLUGIN and SHELL, but the following "
+                    error_msg += "unsupported activity has been specified: "
+                    error_msg += f"{msg.data.body.type}"
+                    raise Exception(error_msg)
+            else:
+                error_msg = "plugin check only currently supports "
+                error_msg += "ACTIVITY messages, but the following unsupported "
+                error_msg += f"message has been specified: {msg.data.type}"
+                raise Exception(error_msg)
         else:
-            check_results[plugin_name] = self._plugin_message_helpers[
-                plugin_name
-            ].validateMessage([arguments])
-        return check_results
+            plugin_name = msg
 
-    def check(self, plugin_name: str, arguments: dict) -> PluginChecks:
-        """Check that the arguments passed to the plugin "plugin_name" are valid
+        if not isinstance(plugin_name, str):
+            raise ValueError(
+                "Unsupported plugin_name type detected in check."
+                "The check function only supports either:\n"
+                "1. An abstract message as a single argument\n"
+                "2. The plugin name as a str and the package as a dict\n"
+                "\n"
+                f"The encountered type is {type(plugin_name)}"
+            )
+        elif not isinstance(arguments, dict):
+            raise ValueError(
+                "Unsupported plugin_name type detected in check."
+                "The check function only supports either:\n"
+                "1. An abstract message as a single argument\n"
+                "2. The plugin name as a str and the package as a dict\n"
+                "\n"
+                f"The encountered type is {type(arguments)}"
+            )
 
-        :parameter plugin_name: the name of the plugin to validate against
-        :type plugin_name: str
-        :parameter arguments: the arguments to be validated for plugin "plugin_name"
-        :type arguments: dict
-        :return: What is returned are a list of the plugins and their actions
-            along with an indication on whether there was a problem with them
-
-        :Example: Using rsync
-
-        For the rsync plugin to be useful, both the local and remote host
-        ssh keys must have been configured. By default the rsync plugin will
-        look for the private key located at ~/.ssh/id_rsa. If the private key
-        is different then it must be specified with the "private_ssh_key" key
-        value pair.
-
-        >>> plugins = Plugins()
-        >>> config = {
-        >>>     "rsync": {
-        >>>         "private_ssh_key": "path to private ssh key"
-        >>>     }
-        >>> }
-        >>> plugins.configure(config)
-        >>> arguments = {
-        >>>     "transfer": {
-        >>>         "source": {
-        >>>             "ip": local_ip,
-        >>>             "user": current_user,
-        >>>             "path": current_valid_path,
-        >>>         },
-        >>>         "destination": {
-        >>>             "ip": "172.22.1.69",
-        >>>             "user": "cades",
-        >>>             "path": "/home/cades/josh-testing",
-        >>>         },
-        >>>         "arguments": ["-a"],
-        >>>     }
-        >>> }
-        >>> checked_args = plugins.check("rsync", arguments)
-        >>> print(checked_args)
-        >>> # Should print
-        >>> # {
-        >>> #   "rsync": { "transfer": (True, "") }
-        >>> # {
-        """
         check_results = {}
+        print("Plugin keys are")
+        print(self._plugins.keys)
+
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
                 {"configured": (False, f"{plugin_name} is not configured.")}
@@ -382,7 +316,15 @@ class Plugins:
             check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
         return PluginChecks(check_results)
 
-    def run(self, plugin_name: str, arguments: dict) -> None:
+    @overload
+    def run(self, msg: AbstractMessage, arguments: Optional[dict] = None) -> None:
+        ...
+
+    @overload
+    def run(self, msg: str, arguments: dict = {}) -> None:
+        ...
+
+    def run(self, msg, arguments=None) -> None:
         """Run a specific plugins.
 
         :parameter plugin_name: Plugin name
@@ -392,32 +334,52 @@ class Plugins:
 
         :Example:
 
-        >>> plugins = Plugins()
-        >>> config = {
-        >>>         "rsync": {
-        >>>                 "ssh_key": "path to private ssh key"
-        >>>         }
-        >>> }
-        >>> plugins.configure(config)
-        >>> arguments = {
-        >>>         "transfer": {
-        >>>                 "source": {
-        >>>                         "ip":
-        >>>                         "hostname":
-        >>>                         "path":
-        >>>                 },
-        >>>                 "destination": {
-        >>>                         "ip":
-        >>>                         "hostname":
-        >>>                         "path":
-        >>>                 }
-        >>>         }
-        >>> }
-        >>> # Should return True for each action that was found to be
-        >>> # correctly validated
-        >>> checks = plugins.check('rsync', arguments)
-        >>> print(checks)
-        >>> # Should print { "rsync": { "transfer": True } }
-        >>> plugins.run('rsync', arguments)
+        plugins = Plugins()
+        config = {
+            "rsync": {
+                "ssh_key": "path to private ssh key"
+                }
+            }
+        plugins.configure(config)
+        arguments = {
+            "transfer": {
+                "source": {
+                    "ip":
+                    "hostname":
+                    "path":
+                    },
+                "destination": {
+                    "ip":
+                    "hostname":
+                    "path":
+                    }
+                }
+            }
+        # Should return True for each action that was found to be
+        # correctly validated
+        checks = plugins.check('rsync', arguments)
+        print(checks)
+        # Should print { "rsync": { "transfer": True } }
+        plugins.run('rsync', arguments)
         """
+        if isinstance(msg, AbstractMessage):
+            # pyre-ignore[16]
+            if msg.data.body.type == "PLUGIN":
+                arguments = asdict(msg.data.body.parameters)
+                plugin_name = msg.data.body.plugin.lower()
+            elif msg.data.body.type == "SHELL":
+                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
+                plugin_name = msg.data.body.type.lower()
+            else:
+                raise Exception(
+                    "plugin check only currently supports PLUGIN and SHELL activities"
+                )
+        else:
+            plugin_name = msg
+
+        if not isinstance(plugin_name, str):
+            raise ValueError("Unsupported plugin_name type detected in check.")
+        if not isinstance(arguments, dict):
+            raise ValueError("Unsupported arguments type detected in check.")
+
         self._plugins[plugin_name].process([arguments])
