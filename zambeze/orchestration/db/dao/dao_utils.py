@@ -31,7 +31,7 @@ def get_update_stmt(entity: AbstractEntity):
     return stmt
 
 
-def get_insert_stmt(entity: AbstractEntity):
+def get_insert_stmt(entity: AbstractEntity) -> str:
     number_of_fields = len(entity.FIELD_NAMES.split(","))
     values_replacer = ",".join(["?" for _ in range(number_of_fields)])
     return (
