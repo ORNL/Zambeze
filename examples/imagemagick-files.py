@@ -7,7 +7,7 @@
 # it under the terms of the MIT License.
 
 import logging
-import pathlib
+import os
 
 from zambeze import Campaign, ShellActivity
 
@@ -26,7 +26,7 @@ logger.addHandler(ch)
 campaign = Campaign("My ImageMagick Campaign", logger=logger)
 
 # define an activity
-curr_dir = pathlib.Path().resolve()
+curr_dir = os.path.dirname(__file__)
 activity = ShellActivity(
     name="ImageMagick",
     files=[
