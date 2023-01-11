@@ -28,9 +28,9 @@ services:
       PYTHONWARNINGS: "ignore::DeprecationWarning"
     container_name: zambeze2
     image: zambeze/zambeze:latest
-    volumes:
-      - ../db:/zambeze/db
-      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only to facilitate development.
+#    volumes:
+#      - ../db:/zambeze/db
+#      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only to facilitate development.
       # The env var $CONTAINER_VOL_MNT_POINT is only set in the CI (see rsync-example.yml).
       # If running for local dev, you don't need to change set any env var or change anything here.
     command: [/bin/sh, -c , 'echo "Im idle!" & tail -f /dev/null']
