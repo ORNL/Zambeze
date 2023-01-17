@@ -21,7 +21,7 @@ def test_shell_get_inner_pattern():
 
     print("From unit")
     print(variable)
-    match, left_ind, right_ind = shell.getInnerPattern(variable, "${", "}")
+    match, left_ind, right_ind = shell.get_inner_pattern(variable, "${", "}")
 
     print(variable[0:left_ind] + variable[right_ind: len(variable)])
 
@@ -38,7 +38,7 @@ def test_shell_get_inner_pattern2():
 
     print("From unit")
     print(variable)
-    match, left_ind, right_ind = shell.getInnerPattern(variable, "MM", "BB")
+    match, left_ind, right_ind = shell.get_inner_pattern(variable, "MM", "BB")
 
     print(variable[0:left_ind] + variable[right_ind: len(variable)])
 
@@ -62,7 +62,7 @@ def test_shell_merge_env_variables():
         "FILE_PATH": "/new_file_path/${FILE_${EXTENSION}}",
     }
 
-    result = shell.mergeEnvVariables(env_vars, new_vars)
+    result = shell.merge_env_variables(env_vars, new_vars)
 
     assert result["PATH"] == "/local/usr/bin:/home/bob"
     assert result["RAND"] == "1"
