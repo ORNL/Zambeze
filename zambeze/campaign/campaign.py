@@ -14,7 +14,6 @@ import uuid
 from .activities.abstract_activity import Activity
 
 from zambeze.orchestration.agent.commands import agent_start
-
 from typing import Optional
 
 
@@ -70,8 +69,7 @@ class Campaign:
         for activity in self.activities:
             self._logger.debug(f"Running activity: {activity.name}")
 
-            # Dump dict into string (.dumps) and serialize string
-            #   as bytestring (.encode)
+            # Dump dict into bytestring (.dumps)
             serial_activity = pickle.dumps(activity)
             self._zmq_socket.send(serial_activity)
             self._logger.info(f"REPLY: {self._zmq_socket.recv()}")
