@@ -6,7 +6,6 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import asyncio
 import logging
 import pathlib
 import threading
@@ -22,7 +21,12 @@ from ...settings import ZambezeSettings
 
 
 class Agent:
-    """A distributed Agent.
+    """
+    A distributed Agent that uses threads to *OBSERVE* the state of the executor and message handler, and then to
+    move messages between these components, as appropriate.
+
+    See: https://en.wikipedia.org/wiki/Observer_pattern
+
 
     :param conf_file: Path to configuration file
     :type conf_file: Optional[pathlib.Path]
@@ -39,13 +43,13 @@ class Agent:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self._agent_id = uuid4()
+        self._agent_id = str(uuid4())
         self._activity_dao = ActivityDAO(self._logger)
 
         self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
 
         # Create and start an executor thread.
-        self._executor = Executor(settings=self._settings, logger=self._logger)
+        self._executor = Executor(settings=self._settings, agent_id=self._agent_id, logger=self._logger)
         self._executor.start()
 
         # Create and start a MessageHandler thread object.
@@ -60,7 +64,9 @@ class Agent:
         return self._executor
 
     def send_control_thd(self):
-        """ Move process-eligible control messages to the message_handler from the executor. """
+        """ Move process-eligible control messages to the message_handler from the executor.
+            OBSERVES message_handler (via send_control_q)
+        """
         self._logger.info("Starting send control thread!")
         while True:
             activ_to_sort = self._executor.to_status_q.get()
@@ -68,7 +74,9 @@ class Agent:
             self._logger.debug("Put new activity into message handler control queue!")
 
     def recv_activity_process_thd(self):
-        """ Move process-eligible activities to the executor's to_process_q! """
+        """ Move process-eligible activities to the executor's to_process_q!
+            OBSERVES message_handler (via to_process_q)
+        """
         self._logger.info("Starting activity sorter thread!")
         while True:
             activ_to_sort = self._msg_handler_thd.check_activity_q.get()
@@ -76,9 +84,12 @@ class Agent:
             self._logger.debug("Put new activity into executor processing queue!")
 
     def send_activity_thd(self):
-        """ We created an activity! Now time to enqueue it to be sent to Zambeze's central queue... """
+        """ We created an activity! Now time to enqueue it to be sent to Zambeze's central queue...
+            OBSERVES executor (via to_new_activity_q)
+
+        """
         self._logger.info("Starting send activity thread!")
         while True:
             activ_to_sort = self._executor.to_new_activity_q.get()
-            self._msg_handler_thd.send_activity_q.put(activ_to_sort)
+            self._msg_handler_thd.msg_handler_send_activity_q.put(activ_to_sort)
             self._logger.debug("Put new activity into executor processing queue!")
