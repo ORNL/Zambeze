@@ -22,8 +22,8 @@ from ...settings import ZambezeSettings
 
 class Agent:
     """
-    A distributed Agent that uses threads to *OBSERVE* the state of the executor and message handler, and then to
-    move messages between these components, as appropriate.
+    A distributed Agent that uses threads to *OBSERVE* the state of the executor
+    and message handler, and moves messages between these components, as needed.
 
     See: https://en.wikipedia.org/wiki/Observer_pattern
 
@@ -43,20 +43,28 @@ class Agent:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self._agent_id = str(uuid4())
-        self._activity_dao = ActivityDAO(self._logger)
 
+        # Create an ID for our agent.
+        self._agent_id = str(uuid4())
+
+        self._activity_dao = ActivityDAO(self._logger)
         self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
 
         # Create and start an executor thread.
-        self._executor = Executor(settings=self._settings, agent_id=self._agent_id, logger=self._logger)
+        self._executor = Executor(
+            settings=self._settings, agent_id=self._agent_id, logger=self._logger
+        )
         self._executor.start()
 
         # Create and start a MessageHandler thread object.
-        self._msg_handler_thd = MessageHandler(self._agent_id, settings=self._settings, logger=self._logger)
+        self._msg_handler_thd = MessageHandler(
+            self._agent_id, settings=self._settings, logger=self._logger
+        )
 
         # Create and start the sorter threads!
-        _activity_sorter_thd = threading.Thread(target=self.recv_activity_process_thd, args=())
+        _activity_sorter_thd = threading.Thread(
+            target=self.recv_activity_process_thd, args=()
+        )
         _activity_sorter_thd.start()
 
     @property
@@ -64,7 +72,7 @@ class Agent:
         return self._executor
 
     def send_control_thd(self):
-        """ Move process-eligible control messages to the message_handler from the executor.
+        """ Move processable control messages to the message_handler from executor.
             OBSERVES message_handler (via send_control_q)
         """
         self._logger.info("Starting send control thread!")
@@ -84,7 +92,7 @@ class Agent:
             self._logger.debug("Put new activity into executor processing queue!")
 
     def send_activity_thd(self):
-        """ We created an activity! Now time to enqueue it to be sent to Zambeze's central queue...
+        """ We created an activity! Now enqueue it in Zambeze's central queue...
             OBSERVES executor (via to_new_activity_q)
 
         """
