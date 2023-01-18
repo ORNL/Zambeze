@@ -53,14 +53,12 @@ class Executor(threading.Thread):
         self._logger.info("[EXECUTOR] Created executor! ")
         self._agent_id = agent_id
 
-        self._logger.info("[EXECUTOR] A")
         self._msg_factory = MessageFactory(logger=self._logger)
-        self._logger.info("[EXECUTOR] B")
         self._transfer_hippo = TransferHippo(
             agent_id=self._agent_id, logger=self._logger, settings=self._settings
         )
 
-        self._logger.info("GAD ZOOKS!")
+        self._logger.info("[EXECUTOR] Successfully initialized Executor!")
 
     def run(self):
         """ Override the Thread 'run' method to instead run our
@@ -79,7 +77,7 @@ class Executor(threading.Thread):
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
         ]
-        self._logger.info(f"Moving to working directory {default_working_dir}")
+        self._logger.info(f"[EXECUTOR] Moving to working directory {default_working_dir}")
         os.chdir(default_working_dir)
 
         while True:

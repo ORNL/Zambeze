@@ -71,23 +71,27 @@ class TransferHippo:
 
             # Move from the Globus collection to the default working
             # directory
-            msg_template_move = self._msg_factory.createTemplate(
+            move_tmpl8 = self._msg_factory.createTemplate(
                 MessageType.ACTIVITY,
                 ActivityType.PLUGIN,
                 {"plugin": "globus", "action": "move_from_globus_collection"},
             )
 
-            # msg_template_move[1].message_id = str(uuid.uuid4())
-            msg_template_move[1].activity_id = activity_id
-            msg_template_move[1].agent_id = self._agent_id
-            msg_template_move[1].campaign_id = campaign_id
-            msg_template_move[1].credential = {}
-            msg_template_move[1].submission_time = str(int(time.time()))
-            msg_template_move[1].body.move_to_globus_collection.items[0].source = local_globus_uri
-            msg_template_move[1].body.move_to_globus_collection.items[0].destination = local_posix_uri
+            # TODO: we can't have names this long AND an 88 char width limit...
+            # TODO: shorten 'move_to_globus_connection'
+            # TODO: 'source' and 'dest'.
+            # TODO: 'submit_time'.
+            # move_tmpl8[1].message_id = str(uuid.uuid4())
+            move_tmpl8[1].activity_id = activity_id
+            move_tmpl8[1].agent_id = self._agent_id
+            move_tmpl8[1].campaign_id = campaign_id
+            move_tmpl8[1].credential = {}
+            move_tmpl8[1].submission_time = str(int(time.time()))
+            move_tmpl8[1].body.move_to_globus_collection.items[0].source = local_globus_uri
+            move_tmpl8[1].body.move_to_globus_collection.items[0].destination = local_posix_uri
 
             # Make the message immutable.
-            immutable_msg_move = self._msg_factory.create(msg_template_move)
+            immutable_msg_move = self._msg_factory.create(move_tmpl8)
 
             messages.append(immutable_msg)
             messages.append(immutable_msg_move)

@@ -7,9 +7,8 @@ from .status_message.message_status import MessageStatus
 from .status_message.message_status_validator import MessageStatusValidator
 from .status_message.message_status_template_generator import createStatusTemplate
 from zambeze.orchestration.plugins_message_validator import PluginsMessageValidator
-from zambeze.orchestration.plugins_message_template_engine import (
-    PluginsMessageTemplateEngine,
-)
+from zambeze.orchestration.plugins_message_template_engine import PluginsMessageTemplateEngine
+
 
 from ..zambeze_types import MessageType, ActivityType
 
@@ -23,8 +22,14 @@ class MessageFactory:
     def __init__(self, logger: Optional[logging.Logger] = None):
 
         self._logger = logger
-        self._plugins_message_template_generators = PluginsMessageTemplateEngine(logger)
+        self._logger.info("MF A ")
+        try:
+            self._plugins_message_template_generators = PluginsMessageTemplateEngine(logger)
+        except Exception as e:
+            self._logger.info(e)
+        self._logger.info("MF B ")
         self._plugins_message_validators = PluginsMessageValidator(logger)
+        self._logger.info("MF C ")
 
     def createTemplate(
         self,

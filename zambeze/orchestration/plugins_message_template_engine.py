@@ -1,7 +1,8 @@
 # Zambeze internal imports
-from zambeze.orchestration.plugin_modules.common_plugin_functions import registerPlugins
-from zambeze.orchestration.plugin_modules.abstract_plugin_template_generator import PluginMessageTemplateGenerator
-
+from .plugin_modules.common_plugin_functions import registerPlugins
+from .plugin_modules.abstract_plugin_template_generator import (
+    PluginMessageTemplateGenerator,
+)
 
 # Standard imports
 from importlib import import_module
@@ -19,9 +20,9 @@ class PluginsMessageTemplateEngine:
 
         self.__module_names = registerPlugins()
         self._plugin_message_template_generators = {}
-        self.__register_plugin_template_generators()
+        self.__registerPluginTemplateGenerators()
 
-    def __register_plugin_template_generators(self) -> None:
+    def __registerPluginTemplateGenerators(self) -> None:
         print(self.__module_names)
         for module_name in self.__module_names:
             # Registering plugin message validators

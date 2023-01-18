@@ -27,6 +27,8 @@ class MessageHandler(threading.Thread):
             "port": self._settings.settings["rmq"]["port"],
         }
 
+        self._logger.info("EARTH TO JOSH C")
+
         self.queue_factory = QueueFactory(logger=self._logger)
 
         self._logger.info("[Message Handler] RabbitMQ broker and channel both created successfully!")

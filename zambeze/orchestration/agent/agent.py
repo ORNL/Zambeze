@@ -56,10 +56,14 @@ class Agent:
         )
         self._executor.start()
 
+        self._logger.info("EARTH TO JOSH A")
+
         # Create and start a MessageHandler thread object.
         self._msg_handler_thd = MessageHandler(
             self._agent_id, settings=self._settings, logger=self._logger
         )
+
+        self._logger.info("EARTH TO JOSH B")
 
         # Create and start the sorter threads!
         _activity_sorter_thd = threading.Thread(
