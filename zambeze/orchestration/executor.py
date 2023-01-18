@@ -6,22 +6,21 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import getpass
 import json
 import logging
-import pathlib
-
 import os
-import socket
+import pathlib
 import threading
 
 from queue import Queue
 from typing import Optional
+from dataclasses import asdict
 from urllib.parse import urlparse
+
 from ..settings import ZambezeSettings
-from .zambeze_types import ChannelType, QueueType
-# from .queue.queue_factory import QueueFactory
-# from .queue.queue_exceptions import QueueTimeoutException
+from .message.message_factory import MessageFactory
+from .queue.queue_exceptions import QueueTimeoutException
+from zambeze.orchestration.message.transfer_hippo import TransferHippo
 
 
 class Executor(threading.Thread):
@@ -33,9 +32,10 @@ class Executor(threading.Thread):
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(
-        self, settings: ZambezeSettings, logger: Optional[logging.Logger] = None
-    ) -> None:
+    def __init__(self,
+                 settings: ZambezeSettings, logger: Optional[logging.Logger] = None,
+                 agent_id: Optional[str] = None) -> None:
+
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
         self._settings = settings
@@ -47,14 +47,11 @@ class Executor(threading.Thread):
         self.to_status_q = Queue()
         self.to_new_activity_q = Queue()
 
-        # TODO: implement queue factory.
-        # factory = QueueFactory(logger=self._logger)
-        # args = {
-        #     "ip": self._settings.settings["nats"]["host"],
-        #     "port": self._settings.settings["nats"]["port"],
-        # }
-
         self._logger.info("[EXECUTOR] Created executor! ")
+        self._agent_id = agent_id
+
+        self._msg_factory = MessageFactory(logger=self._logger)
+        self._transfer_hippo = TransferHippo(agent_id=self._agent_id, logger=self._logger, settings=self._settings)
 
     def run(self):
         """ Override the Thread 'run' method to instead run our process when Thread.start() is called! """
@@ -68,9 +65,8 @@ class Executor(threading.Thread):
 
         self._logger.info("[EXECUTOR] In __process! ")
 
-        default_working_dir = self._settings.settings["plugins"]["All"][
-            "default_working_directory"
-        ]
+        # Change to the agent's desired working directory.
+        default_working_dir = self._settings.settings["plugins"]["All"]["default_working_directory"]
         self._logger.info(f"Moving to working directory {default_working_dir}")
         os.chdir(default_working_dir)
 
@@ -80,29 +76,55 @@ class Executor(threading.Thread):
                 msg = self.to_process_q.get()
                 data = msg.generate_message()
 
-                self._logger.info("[Executor] Message received:")
-                self._logger.info(json.dumps(data, indent=4))
-
                 # if we need files, check to see if they're here (and if not, go get them).
-                if "files" in data and data["files"] is not None:
-                    self.__process_files(data["files"])
+                self._logger.debug("[Executor] Message received:")
+                self._logger.debug(json.dumps(asdict(msg.data), indent=4))
+                if msg.data.body.type == "SHELL":
+                    # Determine if the shell activity has files that
+                    # Need to be moved to be executed
+                    if msg.data.body.files:
+                        if len(msg.data.body.files) > 0:
+                            self.__process_files(
+                                msg.data.body.files,
+                                msg.data.body.campaign_id,
+                                msg.data.body.activity_id)
 
-                self._logger.info("[EXECUTOR] Command to be executed.")
-                self._logger.info(json.dumps(data["cmd"], indent=4))
+                    # Running Checks
+                    # Returned results should be double nested dict with a tuple of
+                    # the form
+                    #
+                    # "plugin": { "action": (bool, message) }
+                    #
+                    # The bool is a true or false which indicates if the action
+                    # for the plugin is a problem, the message is an error message
+                    # or a success statement
+                    self._logger.info("[EXECUTOR] Command to be executed.")
+                    self._logger.info(json.dumps(data["cmd"], indent=4))
 
-                # TODO: should re-do the 'check' here (in case runtime might have changed; race condition).
-                # TODO: tie the try/except to this line. Make it properly handled.
-                self._settings.plugins.run(plugin_name=data["plugin"].lower(), arguments=data["cmd"])
+                    checked_result = self._settings.plugins.check(msg)
+                    self._logger.debug(checked_result)
+
+                    if checked_result.error_detected() is False:
+                        self._settings.plugins.run(msg)
+                        # self._settings.plugins.run(plugin_name=data["plugin"].lower(), arguments=data["cmd"])
+                    else:
+                        self._logger.debug(
+                            "Skipping run - error detected when running "
+                            "plugin check"
+                        )
+                else:
+                    raise Exception("Only SHELL currently supported")
 
                 self._logger.info("[EXECUTOR] Waiting for messages")
 
+            except QueueTimeoutException as e:
+                print(e)
             except Exception as e:
                 self._logger.error(e)
-                print(e)
-                # TODO: exit(1) makes me nervous.
+                # TODO: exit(1) makes me nervous???
                 exit(1)
 
-    def __process_files(self, files: list[str]) -> None:
+    def __process_files(self, files: list[str], campaign_id: str, activity_id: str) -> None:
         """
         Process a list of files by generating transfer requests when files are
         not available locally.
@@ -110,135 +132,40 @@ class Executor(threading.Thread):
         :param files: List of files
         :type files: list[str]
         """
+
         self._logger.debug("Processing files...")
+
+        # TODO: we raise exceptions without handling them.
+
+        transfer_type = None
         for file_path in files:
             file_url = urlparse(file_path)
+            print(f"File to parse {file_url}")
+
+            # If file scheme local, then do not upgrade to transfer!
             if file_url.scheme == "file":
                 if not pathlib.Path(file_url.path).exists():
                     raise Exception(f"Unable to find file: {file_url.path}")
 
+            # If globus, then upgrade to transfer
             elif file_url.scheme == "globus":
-
-                # Check if we have plugin
-                if self._settings.is_plugin_configured("globus"):
-                    source_file_name = os.path.basename(file_url.path)
-                    default_endpoint = self._settings.settings["plugins"]["globus"][
-                        "config"
-                    ]["default_endpoint"]
-                    default_working_dir = self._settings.settings["plugins"]["All"][
-                        "default_working_directory"
-                    ]
-
-                    local_globus_uri = "globus://"
-                    local_globus_uri = local_globus_uri + default_endpoint + os.sep
-                    local_globus_uri = local_globus_uri + source_file_name
-
-                    local_posix_uri = "file://"
-                    local_posix_uri = local_posix_uri + default_working_dir + os.sep
-                    local_posix_uri = local_posix_uri + source_file_name
-
-                    # Schedule the Globus transfer
-                    transfer_args = {
-                        "transfer": {
-                            "type": "synchronous",
-                            "items": [
-                                {
-                                    "source": file_url.geturl(),
-                                    "destination": local_globus_uri,
-                                }
-                            ],
-                        }
-                    }
-
-                    checked_result = self._settings.plugins.check(
-                        plugin_name="globus", arguments=transfer_args
-                    )
-                    self._logger.debug(checked_result)
-                    self._settings.plugins.run(
-                        plugin_name="globus", arguments=transfer_args
-                    )
-
-                    # Move from the Globus collection to the default working
-                    # directory
-                    move_to_file_path_args = {
-                        "move_from_globus_collection": {
-                            "items": [
-                                {
-                                    "source": local_globus_uri,
-                                    "destination": local_posix_uri,
-                                }
-                            ]
-                        }
-                    }
-                    checked_result = self._settings.plugins.check(
-                        plugin_name="globus", arguments=move_to_file_path_args
-                    )
-                    self._logger.debug(checked_result)
-                    self._settings.plugins.run(
-                        plugin_name="globus", arguments=move_to_file_path_args
-                    )
-                else:
-                    # If the local agent does not support Globus we will need to
-                    # send a request to to nats for someone else to handle the
-                    # transfer
-                    # await self.send(
-                    #     MessageType.COMPUTE.value,
-                    #     {
-                    #         "plugin": "globus",
-                    #         "cmd": [
-                    #             {
-                    #                 "transfer": {
-                    #                     "type": "synchronous",
-                    #                     "items": [file_url],
-                    #                 }
-                    #             },
-                    #         ],
-                    #     },
-                    # )
-                    raise Exception("Needs to be implemented.")
+                transfer_type = "globus"
+                if "globus" not in self._settings.settings["plugins"]:
+                    raise Exception("It doesn't look like Globus is configured locally")
 
             elif file_url.scheme == "rsync":
-                self._queue_client.send(
-                    ChannelType.ACTIVITY,
-                    {
-                        "plugin": "rsync",
-                        "cmd": [
-                            {
-                                "transfer": {
-                                    "source": {
-                                        "ip": file_url.netloc,
-                                        "path": file_url.path,
-                                        "user": file_url.username,
-                                    },
-                                    "destination": {
-                                        "ip": socket.gethostbyname(
-                                            socket.gethostname()
-                                        ),
-                                        "path": str(pathlib.Path().resolve()),
-                                        "user": getpass.getuser(),
-                                    },
-                                }
-                            }
-                        ],
-                    },
-                )
+                transfer_type = "rsync"
+                if "rsync" not in self._settings.settings["plugins"]:
+                    raise Exception("It doesn't look like rsync is configured locally")
 
-    # body needs to be changed to AbstractMessage
-    # def send(self, channel_type: ChannelType, body: dict) -> None:
-    #     # TODO: just throw onto a 'done' queue that can be
-    #     """
-    #     Publish an activity message to the queue.
-    #
-    #     :param type: Message type
-    #     :type type: MessageType
-    #     :param body: Message body
-    #     :type body: dict
-    #     """
-    #     self._logger.debug(
-    #         f"Connecting to Queue ({self._queue_client.type}) "
-    #         f"server: {self._queue_client.uri}"
-    #     )
-    #     self._logger.debug(f"Sending a '{channel_type.value}' message")
-    #
-    #     self._queue_client.connect()
-    #     self._queue_client.send(channel_type, body)
+            # Create activity messages (if no transfer, will do be empty).
+            activity_messages = self._transfer_hippo.pack(activity_id=activity_id,
+                                                          campaign_id=campaign_id,
+                                                          file_url=file_url,
+                                                          transfer_type=transfer_type)
+            for msg in activity_messages:
+                self.to_new_activity_q.put(msg)
+
+
+
+
