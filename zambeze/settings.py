@@ -12,7 +12,7 @@ import pathlib
 import yaml
 from typing import Optional, Union
 
-from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
+from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT, RABBIT_HOST, RABBIT_PORT
 from .orchestration.plugins import Plugins
 from .orchestration.db.dao.dao_utils import create_local_db
 
@@ -41,7 +41,8 @@ class ZambezeSettings:
             logging.getLogger(__name__) if logger is None else logger
         )
         # set default values
-        self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
+        # TODO: get the queue bits out of here (and into queue folder)
+        self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}
         self.plugins = Plugins(logger=self._logger)
         self.load_settings(conf_file)
 
@@ -73,6 +74,7 @@ class ZambezeSettings:
                         "All": {"default_working_directory": os.path.expanduser("~")},
                     },
                     "zmq": {"host": HOST, "port": ZMQ_PORT},
+                    "rmq": {"host": RABBIT_HOST, "port": RABBIT_PORT}
                 }
                 # pyre-ignore[6]
                 with open(self._conf_file, "w") as f:
@@ -92,6 +94,8 @@ class ZambezeSettings:
         self.__set_default("port", NATS_PORT, self.settings["nats"])
         self.__set_default("host", HOST, self.settings["zmq"])
         self.__set_default("port", ZMQ_PORT, self.settings["zmq"])
+        self.__set_default("host", RABBIT_HOST, self.settings["rmq"])
+        self.__set_default("port", RABBIT_PORT, self.settings["rmq"])
         self.__set_default("plugins", {"All": {}}, self.settings)
         self.__set_default("All", {}, self.settings["plugins"])
         self.__set_default(

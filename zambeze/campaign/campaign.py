@@ -48,6 +48,9 @@ class Campaign:
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
+
+        # TODO: this needs to be REFACTORED AND UNHARDCODED
+        #  (use the get_zmq_connection_uri) after we move it somewhere nice.
         self._zmq_socket.connect("tcp://localhost:5555")
 
         agent_start(self._logger)

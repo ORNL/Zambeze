@@ -59,9 +59,16 @@ class Agent:
         self._logger.info("EARTH TO JOSH A")
 
         # Create and start a MessageHandler thread object.
-        self._msg_handler_thd = MessageHandler(
-            self._agent_id, settings=self._settings, logger=self._logger
-        )
+
+        try:
+            self._msg_handler_thd = MessageHandler(
+                self._agent_id, settings=self._settings, logger=self._logger
+            )
+        except Exception as e:
+            self._logger.error("[AGENT] ERROR IN CREATING MESSAGE HANDLER")
+            self._logger.error(e)
+            self._logger.error("[AGENT] TERMINATING AGENT...")
+            exit(1)
 
         self._logger.info("EARTH TO JOSH B")
 
