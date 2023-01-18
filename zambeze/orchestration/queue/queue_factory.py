@@ -3,7 +3,9 @@ from typing import Optional
 
 from .queue_nats import QueueNATS
 from .queue_rmq import QueueRMQ
-from .abstract_queue import AbstractQueue
+# TODO: this enforces queue factory to be of type AbstractQueue. Needs to
+# allow RMQ protocols before this can occur.
+# from .abstract_queue import AbstractQueue
 from ..zambeze_types import QueueType
 
 
@@ -31,21 +33,21 @@ class QueueFactory:
         The following example assumes the code block appears in an async
         function.
 
-        >>> RabbitMQ = QueueType.RabbitMQ
-        >>> NATS = QueueType.NATS
-        >>> factory = QueueFactory(logger)
-        >>> # Create first client
-        >>> args = { "ip": 127.0.0.1, "port": 4222 }
-        >>> queue_clients[NATS] = QueueFactory.create(NATS, args)
-        >>> # Create second client
-        >>> args = { "ip": 127.0.0.1, "port": 5672 }
-        >>> queue_clients[RabbitMQ] = QueueFactory.create(RabbitMQ, args)
-        >>> # Loop through clients and print uri
-        >>> for client in queue_clients:
-        >>>     print(client.uri)
-        >>> # Have each client connect to their own queue
-        >>> for client in queue_clients:
-        >>>     await client.connect()
+        RabbitMQ = QueueType.RabbitMQ
+        NATS = QueueType.NATS
+        factory = QueueFactory(logger)
+        # Create first client
+        args = { "ip": 127.0.0.1, "port": 4222 }
+        queue_clients[NATS] = QueueFactory.create(NATS, args)
+        # Create second client
+        args = { "ip": 127.0.0.1, "port": 5672 }
+        queue_clients[RabbitMQ] = QueueFactory.create(RabbitMQ, args)
+        # Loop through clients and print uri
+        for client in queue_clients:
+          print(client.uri)
+        # Have each client connect to their own queue
+        for client in queue_clients:
+          await client.connect()
         """
         if queue_type == QueueType.NATS:
             return QueueNATS(args, logger=self._logger)
