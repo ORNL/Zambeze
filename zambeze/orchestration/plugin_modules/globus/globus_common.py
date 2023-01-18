@@ -1,5 +1,5 @@
 # Local imports
-from ...identity import validUUID
+from ...identity import valid_uuid
 
 # Standard imports
 from os.path import exists
@@ -23,7 +23,7 @@ def localEndpointConfigCheck(config: dict) -> None:
     # Check that the UUIDs are correct
     if "local_endpoints" in config:
         for local_endpoint in config["local_endpoints"]:
-            if not validUUID(local_endpoint["uuid"]):
+            if not valid_uuid(local_endpoint["uuid"]):
                 raise Exception(
                     f"Invalid uuid detected in plugin: {local_endpoint['uuid']}"
                 )
@@ -41,7 +41,7 @@ def localEndpointConfigCheck(config: dict) -> None:
                 " local_endpoints are configured."
             )
 
-        if not validUUID(config["default_endpoint"]):
+        if not valid_uuid(config["default_endpoint"]):
             raise Exception(
                 "Invalid uuid detected in plugin for default endpoint: "
                 f" {config['default_endpoint']}"

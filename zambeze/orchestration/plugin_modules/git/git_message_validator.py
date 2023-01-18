@@ -12,7 +12,7 @@ from __future__ import annotations
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from .git_message_template_generator import GitCommitTemplate, GitDownloadTemplate
 from .git_common import PLUGIN_NAME
-from zambeze.orchestration.identity import validEmail
+from zambeze.orchestration.identity import valid_email
 
 # Standard imports
 from dataclasses import asdict
@@ -45,7 +45,7 @@ class GitMessageValidator(PluginMessageValidator):
             error_msg = "Cannot commit without specifying user_name"
             checks.append({action: (False, error_msg)})
 
-        if not validEmail(commit_arguments["credentials"]["email"]):
+        if not valid_email(commit_arguments["credentials"]["email"]):
             error_msg = "Cannot commit without specifying a valid email address"
             checks.append({action: (False, error_msg)})
         return checks

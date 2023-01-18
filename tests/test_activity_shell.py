@@ -1,7 +1,7 @@
 # Local imports
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.orchestration.zambeze_types import MessageType
-from zambeze.orchestration.identity import validUUID
+from zambeze.orchestration.identity import valid_uuid
 
 # Standard imports
 import pytest
@@ -40,10 +40,10 @@ def test_shell_activity_generate_message():
 
     msg = activity.generate_message()
     assert msg.type == MessageType.ACTIVITY
-    assert validUUID(msg.data.agent_id)
-    assert validUUID(msg.data.campaign_id)
-    assert validUUID(msg.data.message_id)
-    assert validUUID(msg.data.activity_id)
+    assert valid_uuid(msg.data.agent_id)
+    assert valid_uuid(msg.data.campaign_id)
+    assert valid_uuid(msg.data.message_id)
+    assert valid_uuid(msg.data.activity_id)
     assert len(msg.data.submission_time) > 0
     assert int(msg.data.submission_time) > 0
     assert msg.data.body.type == "SHELL"
@@ -82,7 +82,7 @@ def test_shell_activity_attributes():
     assert activity.agent_id is None
     assert activity.campaign_id is None
     assert activity.message_id is None
-    assert validUUID(activity.activity_id)
+    assert valid_uuid(activity.activity_id)
     assert activity.command == "convert"
     assert len(activity.arguments) == 6
     assert "PATH" in activity.env_vars

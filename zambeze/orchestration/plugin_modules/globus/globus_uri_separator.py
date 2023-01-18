@@ -1,5 +1,5 @@
 from ..abstract_uri_separator import URISeparator
-from ...identity import validUUID
+from ...identity import valid_uuid
 
 import logging
 import os
@@ -80,7 +80,7 @@ class GlobusURISeparator(URISeparator):
         # Check if the first 36 chars contains os.sep it is probably a file_path
         # in which case the default uuid should be provided
         if os.sep not in UUID:
-            if not validUUID(UUID):
+            if not valid_uuid(UUID):
                 error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
                 error_msg += "character valid UUID of the form "
                 error_msg += "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"

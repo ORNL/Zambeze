@@ -6,7 +6,7 @@ from .globus_common import (
     SUPPORTED_ACTIONS,
 )
 from .globus_uri_separator import GlobusURISeparator
-from ...identity import validUUID
+from ...identity import valid_uuid
 
 # Standard imports
 from typing import Optional, overload
@@ -73,7 +73,7 @@ class GlobusMessageValidator(PluginMessageValidator):
                     item["destination"]
                 )
                 if globus_sep_uri["uuid"] is not None:
-                    if not validUUID(globus_sep_uri["uuid"]):
+                    if not valid_uuid(globus_sep_uri["uuid"]):
                         error_msg = "Invalid uuid detected in "
                         error_msg += "'move_from_globus_collection' item: "
                         error_msg += f"{item} \nuuid: "
@@ -120,7 +120,7 @@ class GlobusMessageValidator(PluginMessageValidator):
         if valid:
             for item in action_package["items"]:
                 globus_sep_uri = self.__globus_uri_separator.separate(item["source"])
-                if not validUUID(globus_sep_uri["uuid"]):
+                if not valid_uuid(globus_sep_uri["uuid"]):
                     error_msg = "Invalid uuid detected in "
                     error_msg += f"'move_from_globus_collection' item: {item} "
                     error_msg += f"\nuuid: {globus_sep_uri['uuid']}"
@@ -142,7 +142,7 @@ class GlobusMessageValidator(PluginMessageValidator):
         if "task_id" not in action_package:
             return (False, "Missing 'task_id' in get_task_status action")
 
-        if not validUUID(action_package["task_id"]):
+        if not valid_uuid(action_package["task_id"]):
             return (
                 False,
                 f"Invalid 'task_id' detected in 'get_task_status': \

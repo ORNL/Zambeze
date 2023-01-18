@@ -9,7 +9,7 @@ from .message_status_template_generator import (
     REQUIRED_STATUS_COMPONENTS,
     StatusTemplate,
 )
-from zambeze.orchestration.identity import validUUID
+from zambeze.orchestration.identity import valid_uuid
 
 
 class MessageStatusValidator(AbstractMessageValidator):
@@ -25,7 +25,7 @@ class MessageStatusValidator(AbstractMessageValidator):
         return self._required_keys
 
     def _checkUUIDs(self, message: Any):
-        if not validUUID(message.activity_id, 4):
+        if not valid_uuid(message.activity_id, 4):
             return (
                 False,
                 (
@@ -34,7 +34,7 @@ class MessageStatusValidator(AbstractMessageValidator):
                 ),
             )
 
-        if not validUUID(message.campaign_id, 4):
+        if not valid_uuid(message.campaign_id, 4):
             return (
                 False,
                 (
@@ -43,7 +43,7 @@ class MessageStatusValidator(AbstractMessageValidator):
                 ),
             )
 
-        if not validUUID(message.agent_id, 4):
+        if not valid_uuid(message.agent_id, 4):
             return (
                 False,
                 (
@@ -86,7 +86,7 @@ class MessageStatusValidator(AbstractMessageValidator):
 
         self._checkUUIDs(message)
 
-        if not validUUID(message.target_id, 4):
+        if not valid_uuid(message.target_id, 4):
             return (
                 False,
                 (
