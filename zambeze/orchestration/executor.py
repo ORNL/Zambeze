@@ -32,9 +32,12 @@ class Executor(threading.Thread):
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self,
-                 settings: ZambezeSettings, logger: Optional[logging.Logger] = None,
-                 agent_id: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        settings: ZambezeSettings,
+        logger: Optional[logging.Logger] = None,
+        agent_id: Optional[str] = None,
+    ) -> None:
 
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
@@ -50,11 +53,18 @@ class Executor(threading.Thread):
         self._logger.info("[EXECUTOR] Created executor! ")
         self._agent_id = agent_id
 
+        self._logger.info("[EXECUTOR] A")
         self._msg_factory = MessageFactory(logger=self._logger)
-        self._transfer_hippo = TransferHippo(agent_id=self._agent_id, logger=self._logger, settings=self._settings)
+        self._logger.info("[EXECUTOR] B")
+        self._transfer_hippo = TransferHippo(
+            agent_id=self._agent_id, logger=self._logger, settings=self._settings
+        )
+
+        self._logger.info("GAD ZOOKS!")
 
     def run(self):
-        """ Override the Thread 'run' method to instead run our process when Thread.start() is called! """
+        """ Override the Thread 'run' method to instead run our
+         process when Thread.start() is called! """
         # Create persisent "__process()"
         self.__process()
 
@@ -66,7 +76,9 @@ class Executor(threading.Thread):
         self._logger.info("[EXECUTOR] In __process! ")
 
         # Change to the agent's desired working directory.
-        default_working_dir = self._settings.settings["plugins"]["All"]["default_working_directory"]
+        default_working_dir = self._settings.settings["plugins"]["All"][
+            "default_working_directory"
+        ]
         self._logger.info(f"Moving to working directory {default_working_dir}")
         os.chdir(default_working_dir)
 
@@ -76,7 +88,7 @@ class Executor(threading.Thread):
                 msg = self.to_process_q.get()
                 data = msg.generate_message()
 
-                # if we need files, check to see if they're here (and if not, go get them).
+                # if we need files, check if present (and if not, go get them).
                 self._logger.debug("[Executor] Message received:")
                 self._logger.debug(json.dumps(asdict(msg.data), indent=4))
                 if msg.data.body.type == "SHELL":
@@ -87,7 +99,8 @@ class Executor(threading.Thread):
                             self.__process_files(
                                 msg.data.body.files,
                                 msg.data.body.campaign_id,
-                                msg.data.body.activity_id)
+                                msg.data.body.activity_id,
+                            )
 
                     # Running Checks
                     # Returned results should be double nested dict with a tuple of
@@ -106,11 +119,9 @@ class Executor(threading.Thread):
 
                     if checked_result.error_detected() is False:
                         self._settings.plugins.run(msg)
-                        # self._settings.plugins.run(plugin_name=data["plugin"].lower(), arguments=data["cmd"])
                     else:
                         self._logger.debug(
-                            "Skipping run - error detected when running "
-                            "plugin check"
+                            "Skipping run - error detected when running " "plugin check"
                         )
                 else:
                     raise Exception("Only SHELL currently supported")
@@ -124,7 +135,9 @@ class Executor(threading.Thread):
                 # TODO: exit(1) makes me nervous???
                 exit(1)
 
-    def __process_files(self, files: list[str], campaign_id: str, activity_id: str) -> None:
+    def __process_files(
+        self, files: list[str], campaign_id: str, activity_id: str
+    ) -> None:
         """
         Process a list of files by generating transfer requests when files are
         not available locally.
@@ -136,7 +149,6 @@ class Executor(threading.Thread):
         self._logger.debug("Processing files...")
 
         # TODO: we raise exceptions without handling them.
-
         transfer_type = None
         for file_path in files:
             file_url = urlparse(file_path)
@@ -151,21 +163,19 @@ class Executor(threading.Thread):
             elif file_url.scheme == "globus":
                 transfer_type = "globus"
                 if "globus" not in self._settings.settings["plugins"]:
-                    raise Exception("It doesn't look like Globus is configured locally")
+                    raise Exception("Globus may not be configured locally")
 
             elif file_url.scheme == "rsync":
                 transfer_type = "rsync"
                 if "rsync" not in self._settings.settings["plugins"]:
-                    raise Exception("It doesn't look like rsync is configured locally")
+                    raise Exception("Rsync may not be configured locally")
 
             # Create activity messages (if no transfer, will do be empty).
-            activity_messages = self._transfer_hippo.pack(activity_id=activity_id,
-                                                          campaign_id=campaign_id,
-                                                          file_url=file_url,
-                                                          transfer_type=transfer_type)
+            activity_messages = self._transfer_hippo.pack(
+                activity_id=activity_id,
+                campaign_id=campaign_id,
+                file_url=file_url,
+                transfer_type=transfer_type,
+            )
             for msg in activity_messages:
                 self.to_new_activity_q.put(msg)
-
-
-
-
