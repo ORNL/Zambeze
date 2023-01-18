@@ -9,6 +9,10 @@ from queue import Queue
 
 from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
+from zambeze.orchestration.message.abstract_message import AbstractMessage
+
+from zambeze.orchestration.queue.queue_factory import QueueFactory
+from zambeze.orchestration.zambeze_types import QueueType, MessageType
 
 
 class MessageHandler(threading.Thread):
@@ -18,12 +22,13 @@ class MessageHandler(threading.Thread):
         self._settings = settings
         self._logger = logger
 
-        # RabbitMQ stuff  # TODO: move to josh's queue service abstraction.
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(self._settings.settings["rmq"]["host"]))
-        self._logger.info("[Message Handler] Creating RabbitMQ channels...")
-        self.channel = self.connection.channel()
-        self.channel.queue_declare(queue='ACTIVITIES')
-        self.channel.queue_declare(queue='CONTROL')  # TODO: back-to-back queue declares.
+        self.mq_args = {
+            "ip": self._settings.settings["rmq"]["host"],
+            "port": self._settings.settings["rmq"]["port"],
+        }
+
+        self.queue_factory = QueueFactory(logger=self._logger)
+
         self._logger.info("[Message Handler] RabbitMQ broker and channel both created successfully!")
 
         self._activity_dao = ActivityDAO(self._logger)
@@ -34,7 +39,7 @@ class MessageHandler(threading.Thread):
         self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
 
         # Queues to allow safe inter-thread communication.
-        self.send_activity_q = Queue()
+        self.msg_handler_send_activity_q = Queue()
         self.check_activity_q = Queue()
         self.send_control_q = Queue()
         self._recv_control_q = Queue()
@@ -50,9 +55,6 @@ class MessageHandler(threading.Thread):
         # THREAD 4: send activity to RMQ
         activity_sender = threading.Thread(target=self.send_activity, args=())
 
-        # self.threads = [campaign_listener, activity_listener, control_liste]
-
-        # def run(self):
         campaign_listener.start()
         activity_listener.start()
         control_listener.start()
@@ -69,17 +71,27 @@ class MessageHandler(threading.Thread):
             self._logger.info("[recv_activities_from_campaign] Waiting for messages from campaign...")
 
             # Use ZMQ to receive activities from campaign.
-            activity_message = self._zmq_socket.recv()
+            activity_bytestring = self._zmq_socket.recv()
+            activity = pickle.loads(activity_bytestring)
+
+            activity.agent_id = self.agent_id
+
+            activity_message: AbstractMessage = activity.generate_message()
+
+            self._logger.info(
+                f"Dispatching message activity_id: {activity.activity_id} "
+                f"message_id: {activity_message.data.message_id}"
+            )
             self._logger.debug(f"[recv_activities_from_campaign] Received message from campaign: {activity_message}")
 
-            activity = ActivityModel(
+            activity_model = ActivityModel(
                 agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
             )
             self._logger.debug(f"[recv_activities_from_campaign] Creating activity in the DB: {activity}")
-            self._activity_dao.insert(activity)
+            self._activity_dao.insert(activity_model)
             self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
 
-            self.send_activity_q.put(activity_message)
+            self.msg_handler_send_activity_q.put(activity_message)
 
     def recv_activity(self):
         """
@@ -90,21 +102,30 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(f"[Message Handler] Connecting to RabbitMQ RECV ACTIVITY broker...")
-        recv_activities_connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-        recv_activities_channel = recv_activities_connection.channel()
+        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+        queue_client.connect()
 
-        self._logger.info(f"[recv_activity] receiving activity...")
-
-        def callback(ch, method, properties, body):
+        def callback(ch, method, _, body):
+            self._logger.info(f"[recv_activity] receiving activity...")
             activity = pickle.loads(body)
-            self._logger.debug(" [x recv_activity] Received %r" % activity)
-            self.check_activity_q.put(activity)  # TODO check that this is doing anything.
+
+            self.check_activity_q.put(activity)
             parseable_activity = activity.generate_message()
-            self._logger.debug(f"PARSEABLE ACTIVITY: {parseable_activity}")
+
+            self._logger.debug("Message received")
+            self._logger.debug(parseable_activity)
+
+            if activity.type != MessageType.ACTIVITY:
+                print("Non activity detected")
+                self._logger.debug(
+                    "Non-activity message received on" "ACTIVITY channel"
+                )
+
             # TODO: should be able to require a list of plugins (not just one).
             # TODO: move these to agent-init.
             plugins_are_configured = self.are_plugins_configured(parseable_activity['plugin'])
-            plugins_are_ready = self.can_plugins_run(parseable_activity['plugin'], cmd=parseable_activity['cmd'])
+            plugins_are_ready = self.message_to_plugin_validator(parseable_activity['plugin'],
+                                                                 cmd=parseable_activity['cmd'])
 
             should_ack = plugins_are_configured and plugins_are_ready
 
@@ -119,21 +140,20 @@ class MessageHandler(threading.Thread):
                                f"Plugins Ready: {plugins_are_ready}")
             try:
                 if should_ack:
-                    recv_activities_channel.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+                    ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
                     self._logger.debug("[recv activity] ACKED message.")
                 else:
-                    recv_activities_channel.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
+                    ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
                     self._logger.debug("[recv activity] NACKED message.")
                     # stuck in NACK loop.
                     time.sleep(1)   # TODO !!!!!!!!!!!!!
             except Exception as e:
                 self._logger.error(f"[Message Handler] CAUGHT: {e}")
 
-        recv_activities_channel.basic_consume(queue='ACTIVITIES', on_message_callback=callback, auto_ack=False)
-
         self._logger.debug(' [*] Waiting for ACTIVITY messages. To exit press CTRL+C')
-        # TODO: Death condition.
-        recv_activities_channel.start_consuming()
+        queue_client.listen_and_do_callback(callback_func=callback,
+                                            channel_to_listen="ACTIVITIES",
+                                            should_auto_ack=False)
 
     def send_activity(self):
         """
@@ -141,20 +161,25 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(f"[Message Handler] Connecting to RabbitMQ SEND ACTIVITY broker...")
-        send_activities_connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-        send_activities_channel = send_activities_connection.channel()
+        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+        queue_client.connect()
 
         while True:
             self._logger.info(f"[send_activity] Waiting for messages...")
-            activity_msg = self.send_activity_q.get()
+            activity_msg = self.msg_handler_send_activity_q.get()
+
+            self._logger.info(
+                f"Dispatching message activity_id: {activity_msg.activity_id} "
+                f"message_id: {activity_msg.data.message_id}"
+            )
 
             self._logger.info(f"[activity structure] {activity_msg}")
 
             self._logger.info(f"[send_activity] Message received! Sending...")
             try:
-                send_activities_channel.basic_publish(exchange='',
-                                                      routing_key='ACTIVITIES',
-                                                      body=activity_msg)
+                queue_client.send(exchange="",
+                                  channel="ACTIVITIES",
+                                  body=activity_msg)
             except Exception as e:
                 self._logger.error(f"CAUGHT: {e}")
             self._logger.debug(f"[send_activity] Successfully sent activity!")
@@ -165,21 +190,19 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(f"[Message Handler] Connecting to RabbitMQ RECV CONTROL broker...")
-        recv_control_connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-        recv_control_channel = recv_control_connection.channel()
+        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+        queue_client.connect()
 
         self._logger.info(f"[recv_control] receiving activity...")
 
-        def callback(ch, method, properties, body):
+        def callback(_1, _2, _3, body):
             activity = pickle.loads(body)
             self._logger.info(" [x recv_activity] Received %r" % activity)
             self._recv_control_q.put(activity)
 
-        recv_control_channel.basic_consume(queue='CONTROL', on_message_callback=callback, auto_ack=True)
-
-        self._logger.info(' [*] Waiting for messages. To exit press CTRL+C')
-        # TODO: Death condition.
-        recv_control_channel.start_consuming()
+        queue_client.listen_and_do_callback.basic_consume(channel_to_listen='CONTROL',
+                                                          callback_func=callback,
+                                                          should_auto_ack=True)
 
     def send_control(self):
         """
@@ -187,23 +210,24 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(f"[Message Handler] Connecting to RabbitMQ SEND CONTROL broker...")
-        send_control_connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-        send_control_channel = send_control_connection.channel()
+        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+        queue_client.connect()
 
         while True:
             self._logger.debug(f"[send_activity] Waiting for messages...")
-            activity_msg = self.send_activity_q.get()
+            activity_msg = self.msg_handler_send_activity_q.get()
 
             self._logger.debug(f"[send_activity] Message received! Sending...")
             try:
-                send_control_channel.basic_publish(exchange='',
-                                                      routing_key='CONTROL',
-                                                      body=activity_msg)
+                queue_client.send(exchange='',
+                                  channel='CONTROL',
+                                  body=activity_msg)
             except Exception as e:
                 self._logger.info(f"Caught error: {e}")
             self._logger.info(f"[send_activity] Successfully sent activity!")
 
-    def can_plugins_run(self, plugin, cmd):
+    def message_to_plugin_validator(self, plugin, cmd):
+        """ Determine whether plugin can execute based on plugin input schema.
 
         # Running Checks
         # Returned results should be double nested dict with a tuple of
@@ -214,12 +238,12 @@ class MessageHandler(threading.Thread):
         # The bool is a true or false which indicates if the action
         # for the plugin is a problem, the message is an error message
         # or a success statement
+        """
 
         checked_result = self._settings.plugins.check(plugin_name=plugin, arguments=cmd)
         self._logger.debug(f"Checked result: {checked_result}")
         # return whether NO errors were detected.
-        return not checked_result.errorDetected()
+        return not checked_result.error_detected()
 
     def are_plugins_configured(self, plugin_label):
         return self._settings.is_plugin_configured(plugin_label)
-
