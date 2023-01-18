@@ -112,4 +112,10 @@ class TransferHippo:
 
             messages.append(msg)
 
+        # if not transfer type, then we leave messages empty.
+        elif transfer_type is None:
+            self._logger.info("Local file; creating no activity messages!")
+
         return messages
+
+
