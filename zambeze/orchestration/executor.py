@@ -148,7 +148,7 @@ class Executor(threading.Thread):
 
         self._logger.debug("Processing files...")
 
-        # TODO: we raise exceptions without handling them.
+        # TODO: we raise exceptions and handle them in __process with an agent shutdown?!
         transfer_type = None
         for file_path in files:
             file_url = urlparse(file_path)
