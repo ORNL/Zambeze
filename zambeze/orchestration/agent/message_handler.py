@@ -74,11 +74,19 @@ class MessageHandler(threading.Thread):
 
             # Use ZMQ to receive activities from campaign.
             activity_bytestring = self._zmq_socket.recv()
+            self._zmq_socket.send(b"FOOBAR")
+            self._logger.debug("[recv_activities_from_campaign] Received an activity bytestring!")
             activity = pickle.loads(activity_bytestring)
 
             activity.agent_id = self.agent_id
 
-            activity_message: AbstractMessage = activity.generate_message()
+            self._logger.debug(f"Here is the activity: {activity}")
+
+            try:
+                activity_message: AbstractMessage = activity.generate_message()
+            except Exception as e:
+                self._logger.error("ERROR IN MESSAGE HANDLER")
+                self._logger.error(e)
 
             self._logger.info(
                 f"Dispatching message activity_id: {activity.activity_id} "
@@ -171,7 +179,7 @@ class MessageHandler(threading.Thread):
             activity_msg = self.msg_handler_send_activity_q.get()
 
             self._logger.info(
-                f"Dispatching message activity_id: {activity_msg.activity_id} "
+                f"Dispatching message activity_id: {activity_msg.data.activity_id} "
                 f"message_id: {activity_msg.data.message_id}"
             )
 
@@ -202,9 +210,9 @@ class MessageHandler(threading.Thread):
             self._logger.info(" [x recv_activity] Received %r" % activity)
             self._recv_control_q.put(activity)
 
-        queue_client.listen_and_do_callback.basic_consume(channel_to_listen='CONTROL',
-                                                          callback_func=callback,
-                                                          should_auto_ack=True)
+        queue_client.listen_and_do_callback(channel_to_listen='CONTROL',
+                                            callback_func=callback,
+                                            should_auto_ack=True)
 
     def send_control(self):
         """

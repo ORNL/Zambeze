@@ -19,7 +19,7 @@ from typing import Optional
 
 
 class MessageFactory:
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: Optional[logging.Logger]):
 
         self._logger = logger
         self._logger.info("MF A ")
@@ -170,7 +170,10 @@ class MessageFactory:
                 "Malformed input, create method expects tuple of" "length 2"
             )
 
+        args[1].message_id = str(uuid.uuid4())
+
         if args[0] == MessageType.ACTIVITY:
+
             validator = MessageActivityValidator()
             result = validator.check(args[1])
             print(result)
@@ -190,7 +193,6 @@ class MessageFactory:
                                     "Invalid plugin message body" f"{check[action][1]}"
                                 )
 
-                args[1].message_id = str(uuid.uuid4())
                 return MessageActivity(args[1], self._logger)
             else:
                 raise Exception(f"Invalid activity message: {result[1]}")
@@ -198,7 +200,6 @@ class MessageFactory:
             validator = MessageStatusValidator()
             result = validator.check(args[1])
             if result[0]:
-                args[1].message_id = uuid.uuid4()
                 return MessageStatus(args[1])
             else:
                 raise Exception(f"Invalid status message: {result[1]}")

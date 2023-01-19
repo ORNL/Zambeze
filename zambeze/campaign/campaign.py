@@ -53,6 +53,7 @@ class Campaign:
         #  (use the get_zmq_connection_uri) after we move it somewhere nice.
         self._zmq_socket.connect("tcp://localhost:5555")
 
+        self._logger.info("[CAMPAIGN] Starting agent...")
         agent_start(self._logger)
 
     def add_activity(self, activity: Activity) -> None:
@@ -74,5 +75,7 @@ class Campaign:
 
             # Dump dict into bytestring (.dumps)
             serial_activity = pickle.dumps(activity)
+            self._logger.debug("11")
             self._zmq_socket.send(serial_activity)
+            self._logger.debug("22")
             self._logger.info(f"REPLY: {self._zmq_socket.recv()}")

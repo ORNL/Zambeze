@@ -71,27 +71,30 @@ class ShellActivity(Activity):
         else:
             self.env_vars = {}
 
-        print("Printing files after init in SHell")
-        print(self.files)
+        self.logger.info("[activities/shell.py] Printing files after init in SHELL")
+        self.logger.info(self.files)
 
     def generate_message(self) -> AbstractMessage:
 
-        factory = MessageFactory()
+        factory = MessageFactory(logger=self.logger)
         template = factory.createTemplate(
             MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
         )
 
-        template[1].activity_id = self.activity_id
-        template[1].message_id = self.message_id
-        template[1].agent_id = self.agent_id
-        template[1].campaign_id = self.campaign_id
-        template[1].credential = {}
-        template[1].submission_time = str(int(time.time()))
-        template[1].body.type = "SHELL"
-        template[1].body.shell = "bash"
-        template[1].body.files = self.files
-        template[1].body.parameters.program = self.command
-        template[1].body.parameters.args = self.arguments
-        template[1].body.parameters.env_vars = self.env_vars
+        try:
+            template[1].activity_id = self.activity_id
+            template[1].message_id = self.message_id
+            template[1].agent_id = self.agent_id
+            template[1].campaign_id = self.campaign_id
+            template[1].credential = {}
+            template[1].submission_time = str(int(time.time()))
+            template[1].body.type = "SHELL"
+            template[1].body.shell = "bash"
+            template[1].body.files = self.files
+            template[1].body.parameters.program = self.command
+            template[1].body.parameters.args = self.arguments
+            template[1].body.parameters.env_vars = self.env_vars
+        except Exception as e:
+            self.logger.info(f"Error is here: {e}")
 
         return factory.create(template)

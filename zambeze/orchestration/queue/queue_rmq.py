@@ -10,7 +10,7 @@ import pika
 # TODO: should inherit AbstractQueue class (make it allow a listen).
 class QueueRMQ:
     def __init__(
-        self, queue_config: dict, settings: dict, logger: Optional[logging.Logger] = None
+        self, queue_config: dict, logger: Optional[logging.Logger] = None
     ) -> None:
 
         self._queue_type = QueueType.RABBITMQ
@@ -26,7 +26,6 @@ class QueueRMQ:
         if "port" in queue_config:
             self._port = queue_config["port"]
 
-        self._settings = settings
 
     def __disconnected(self):
         if self._logger:
@@ -69,13 +68,13 @@ class QueueRMQ:
     # TODO: Tyler 1 -- finish this.
     def connect(self) -> tuple[bool, str]:
         try:
-            self._rmq = pika.BlockingConnection(pika.ConnectionParameters(self._settings.settings["rmq"]["host"]))
+            self._rmq = pika.BlockingConnection(pika.ConnectionParameters(self._ip))
             self._rmq_channel = self._rmq.channel()
             self._logger.info("[Queue RMQ] Creating RabbitMQ channels...")
 
             # TODO: perhaps this should be 'subscribed'?
             self._rmq_channel.queue_declare(queue='ACTIVITIES')
-            self._rmq_channel.queue_declare(queue='CONTROL')
+            self._rmq_channel.queue_declare(queue='CONTROL')  # TODO: don't auto-sub to control.
         except Exception:
             if self._logger:
                 # pyre-ignore[16]
@@ -109,7 +108,7 @@ class QueueRMQ:
         """ Listen for messages on a persistent websocket connection;
             --> do action in callback function on receipt. """
 
-        listen_on_channel = self._rmq.channel
+        listen_on_channel = self._rmq.channel()
 
         self._logger.info(' [*] Waiting for messages. To exit press CTRL+C')
         listen_on_channel.basic_consume(queue=channel_to_listen,
@@ -183,12 +182,12 @@ class QueueRMQ:
         """ In 'send activity', body is activity message!"""
         if self._rmq is None:
             raise Exception(
-                "Cannot send message to NATS, client is "
-                "not connected to a NATS queue"
+                "Cannot send message to RabbitMQ, client is "
+                "not connected to a RabbitMQ queue"
             )
-        self._rmq.basic_publish(exchange=exchange,
-                                routing_key=channel,
-                                body=body)
+        self._rmq_channel.basic_publish(exchange=exchange,
+                                        routing_key=channel,
+                                        body=body)
 
     def close(self):
         if self._sub:

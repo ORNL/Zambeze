@@ -59,7 +59,6 @@ class Agent:
         self._logger.info("EARTH TO JOSH A")
 
         # Create and start a MessageHandler thread object.
-
         try:
             self._msg_handler_thd = MessageHandler(
                 self._agent_id, settings=self._settings, logger=self._logger
@@ -82,6 +81,7 @@ class Agent:
     def executor(self) -> Executor:
         return self._executor
 
+    # TODO: CHANGE THE WORD FROM SORT, PLEASE.
     def send_control_thd(self):
         """ Move processable control messages to the message_handler from executor.
             OBSERVES message_handler (via send_control_q)

@@ -25,8 +25,11 @@ logger.addHandler(ch)
 # create campaign
 campaign = Campaign("My ImageMagick Campaign", logger=logger)
 
+print("AA")
+
 # define an activity
 curr_dir = pathlib.Path().resolve()
+print("BB")
 activity = ShellActivity(
     name="ImageMagick",
     files=[
@@ -46,7 +49,11 @@ activity = ShellActivity(
     # Uncomment if running on M1 Mac.
     env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
 )
+
+print("CC")
 campaign.add_activity(activity)
 
+print("DD")
 # run the campaign
 campaign.dispatch()
+print("EE")
