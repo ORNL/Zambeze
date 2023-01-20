@@ -84,20 +84,22 @@ class Executor(threading.Thread):
             try:
                 self._logger.info("[EXECUTOR] Retrieving a message! ")
                 msg = self.to_process_q.get()
-                data = msg.generate_message()
 
                 # if we need files, check if present (and if not, go get them).
-                self._logger.debug("[Executor] Message received:")
-                self._logger.debug(json.dumps(asdict(msg.data), indent=4))
+                self._logger.info("[Executor] Message received:")
+                self._logger.info(json.dumps(asdict(msg.data), indent=4))
                 if msg.data.body.type == "SHELL":
+                    self._logger.info("[Executor] Message received:")
+                    self._logger.info(json.dumps(asdict(msg.data), indent=4))
+
                     # Determine if the shell activity has files that
                     # Need to be moved to be executed
                     if msg.data.body.files:
                         if len(msg.data.body.files) > 0:
                             self.__process_files(
                                 msg.data.body.files,
-                                msg.data.body.campaign_id,
-                                msg.data.body.activity_id,
+                                msg.data.campaign_id,
+                                msg.data.activity_id,
                             )
 
                     # Running Checks
@@ -109,11 +111,13 @@ class Executor(threading.Thread):
                     # The bool is a true or false which indicates if the action
                     # for the plugin is a problem, the message is an error message
                     # or a success statement
-                    self._logger.info("[EXECUTOR] Command to be executed.")
-                    self._logger.info(json.dumps(data["cmd"], indent=4))
+
+                    # TODO -- bring these back.
+                    # self._logger.info("[EXECUTOR] Command to be executed.")
+                    # self._logger.info(json.dumps(data["cmd"], indent=4))
 
                     checked_result = self._settings.plugins.check(msg)
-                    self._logger.debug(checked_result)
+                    self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
 
                     if checked_result.error_detected() is False:
                         self._settings.plugins.run(msg)
