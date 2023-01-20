@@ -114,4 +114,4 @@ class MessageActivityValidator(AbstractMessageValidator):
                 ),
             )
 
-        return (True, "")
+        return True, ""

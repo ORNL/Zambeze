@@ -2,7 +2,6 @@ import logging
 from .abstract_queue import AbstractQueue  # TODO: Tyler unable to use until we remove async requirement.
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
-from typing import Optional
 import dill
 import pika
 
@@ -10,7 +9,7 @@ import pika
 # TODO: should inherit AbstractQueue class (make it allow a listen).
 class QueueRMQ:
     def __init__(
-        self, queue_config: dict, logger: Optional[logging.Logger] = None
+        self, queue_config: dict, logger: logging.Logger
     ) -> None:
 
         self._queue_type = QueueType.RABBITMQ
@@ -21,11 +20,12 @@ class QueueRMQ:
         self._rmq_channel = None
         self._sub = {}
 
+        self.callback_queue = None
+
         if "ip" in queue_config:
             self._ip = queue_config["ip"]
         if "port" in queue_config:
             self._port = queue_config["port"]
-
 
     def __disconnected(self):
         if self._logger:
@@ -74,6 +74,8 @@ class QueueRMQ:
 
             # TODO: perhaps this should be 'subscribed'?
             self._rmq_channel.queue_declare(queue='ACTIVITIES')
+            # self.callback_queue = activities_q_declare.method.queue
+
             self._rmq_channel.queue_declare(queue='CONTROL')  # TODO: don't auto-sub to control.
         except Exception:
             if self._logger:
@@ -104,11 +106,11 @@ class QueueRMQ:
                     return True
         return False
 
-    def listen_and_do_callback(self, callback_func, channel_to_listen, should_auto_ack) -> bool:
+    def listen_and_do_callback(self, callback_func, channel_to_listen, should_auto_ack):
         """ Listen for messages on a persistent websocket connection;
             --> do action in callback function on receipt. """
 
-        listen_on_channel = self._rmq.channel()
+        listen_on_channel = self._rmq_channel
 
         self._logger.info(' [*] Waiting for messages. To exit press CTRL+C')
         listen_on_channel.basic_consume(queue=channel_to_listen,
@@ -143,7 +145,7 @@ class QueueRMQ:
         self._sub[channel].unsubscribe()
         self._sub[channel] = None
 
-    def nextMsg(self, channel: ChannelType):
+    def next_msg(self, channel: ChannelType):
         if not self._sub:
             raise Exception(
                 "Cannot get next message client is not subscribed \
@@ -185,9 +187,13 @@ class QueueRMQ:
                 "Cannot send message to RabbitMQ, client is "
                 "not connected to a RabbitMQ queue"
             )
+
+        self._logger.info(body.data)
+        self._logger.info(type(body.data))
+
         self._rmq_channel.basic_publish(exchange=exchange,
                                         routing_key=channel,
-                                        body=body)
+                                        body=dill.dumps(body))
 
     def close(self):
         if self._sub:

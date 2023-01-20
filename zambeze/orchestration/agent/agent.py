@@ -65,7 +65,7 @@ class Agent:
             )
         except Exception as e:
             self._logger.error("[AGENT] ERROR IN CREATING MESSAGE HANDLER")
-            self._logger.error(e)
+            self._logger.error(f"Error of type: {type(e).__name__}: {e}")
             self._logger.error("[AGENT] TERMINATING AGENT...")
             exit(1)
 
@@ -99,6 +99,7 @@ class Agent:
         self._logger.info("Starting activity sorter thread!")
         while True:
             activ_to_sort = self._msg_handler_thd.check_activity_q.get()
+            self._logger.info(f"[agent recv activity thd] Received activity: {activ_to_sort}")
             self._executor.to_process_q.put(activ_to_sort)
             self._logger.debug("Put new activity into executor processing queue!")
 

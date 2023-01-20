@@ -51,7 +51,7 @@ class Campaign:
 
         # TODO: this needs to be REFACTORED AND UNHARDCODED
         #  (use the get_zmq_connection_uri) after we move it somewhere nice.
-        self._zmq_socket.connect("tcp://localhost:5555")
+        self._zmq_socket.connect(f"tcp://localhost:5558")
 
         self._logger.info("[CAMPAIGN] Starting agent...")
         agent_start(self._logger)

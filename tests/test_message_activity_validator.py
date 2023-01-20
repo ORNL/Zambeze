@@ -8,7 +8,7 @@ from zambeze.orchestration.message.activity_message.message_activity_validator i
 
 # fmt: off
 from zambeze.orchestration.message.activity_message.\
-        message_activity_template_generator import createActivityTemplate
+        message_activity_template_generator import create_activity_template
 # fmt: on
 from zambeze.orchestration.zambeze_types import ActivityType
 
@@ -50,7 +50,7 @@ def test_message_activity_validator_required_shell():
     body: {},
     """
     validator = MessageActivityValidator()
-    activity_message = createActivityTemplate(ActivityType.SHELL)
+    activity_message = create_activity_template(ActivityType.SHELL)
     activity_message.message_id = str(uuid.uuid4())
     activity_message.activity_id = str(uuid.uuid4())
     activity_message.agent_id = str(uuid.uuid4())
@@ -78,7 +78,7 @@ def test_message_activity_validator_required_plugin():
     body: {},
     """
     validator = MessageActivityValidator()
-    activity_message = createActivityTemplate(ActivityType.PLUGIN)
+    activity_message = create_activity_template(ActivityType.PLUGIN)
     activity_message.message_id = str(uuid.uuid4())
     activity_message.activity_id = str(uuid.uuid4())
     activity_message.agent_id = str(uuid.uuid4())
@@ -95,7 +95,7 @@ def test_message_activity_validator_required_and_optional_shell():
     """This test should be true all required fields are defined as well as all
     optional fields"""
     validator = MessageActivityValidator()
-    activity_message = createActivityTemplate(ActivityType.SHELL)
+    activity_message = create_activity_template(ActivityType.SHELL)
     activity_message.message_id = str(uuid.uuid4())
     activity_message.activity_id = str(uuid.uuid4())
     activity_message.agent_id = str(uuid.uuid4())

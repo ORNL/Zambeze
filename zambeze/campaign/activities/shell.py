@@ -9,7 +9,7 @@ import logging
 import time
 import uuid
 
-from typing import Optional
+from typing import Optional, Union
 from .abstract_activity import Activity
 
 from zambeze.orchestration.message.abstract_message import AbstractMessage
@@ -39,13 +39,13 @@ class ShellActivity(Activity):
     def __init__(
         self,
         name: str,
-        files: list[str] = [],
-        command: Optional[str] = None,
-        arguments: list[str] = [],
-        logger: Optional[logging.Logger] = None,
-        campaign_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        message_id: Optional[str] = None,
+        files: list[str],
+        command: str,
+        arguments: list[str],
+        logger: logging.Logger,
+        campaign_id: Union[str, None] = None,
+        agent_id: Union[str, None] = None,
+        message_id: Union[str, None] = None,
         **kwargs
     ) -> None:
         """Create an object of a unix shell activity."""

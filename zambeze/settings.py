@@ -153,7 +153,8 @@ class ZambezeSettings:
         :return: True if the plugin has been configured.
         :rtype: bool
         """
-        return plugin_name in self.plugins.configured
+        print(self.plugins.configured)
+        return plugin_name.lower() in self.plugins.configured
 
     def __set_default(
         self, key: str, value: Union[int, float, str, dict], base: dict

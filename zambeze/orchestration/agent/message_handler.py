@@ -1,8 +1,8 @@
 
 import pickle
-import pika
 import threading
 import time
+import dill
 import zmq
 
 from queue import Queue
@@ -13,6 +13,8 @@ from zambeze.orchestration.message.abstract_message import AbstractMessage
 
 from zambeze.orchestration.queue.queue_factory import QueueFactory
 from zambeze.orchestration.zambeze_types import QueueType, MessageType
+
+from .temp_activity_to_plugin_map import activity_to_plugin_map
 
 
 class MessageHandler(threading.Thread):
@@ -74,7 +76,7 @@ class MessageHandler(threading.Thread):
 
             # Use ZMQ to receive activities from campaign.
             activity_bytestring = self._zmq_socket.recv()
-            self._zmq_socket.send(b"FOOBAR")
+            self._zmq_socket.send(b"FOOBAR")  # TODO... send something cleaner.
             self._logger.debug("[recv_activities_from_campaign] Received an activity bytestring!")
             activity = pickle.loads(activity_bytestring)
 
@@ -84,15 +86,16 @@ class MessageHandler(threading.Thread):
 
             try:
                 activity_message: AbstractMessage = activity.generate_message()
+
             except Exception as e:
-                self._logger.error("ERROR IN MESSAGE HANDLER")
-                self._logger.error(e)
+                self._logger.error(f'CANT GENERATE MESSAGE IN MSG HANDLER! {e}')
 
             self._logger.info(
-                f"Dispatching message activity_id: {activity.activity_id} "
+                f"[recv_activities_from_campaign] Dispatching message activity_id: {activity.activity_id} "
                 f"message_id: {activity_message.data.message_id}"
             )
-            self._logger.debug(f"[recv_activities_from_campaign] Received message from campaign: {activity_message}")
+            self._logger.debug(
+                f"[recv_activities_from_campaign] Received message from campaign: {activity_message}")
 
             activity_model = ActivityModel(
                 agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
@@ -102,6 +105,59 @@ class MessageHandler(threading.Thread):
             self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
 
             self.msg_handler_send_activity_q.put(activity_message)
+
+    # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
+    def _callback(self, ch, method, properties, body):
+        self._logger.info(f"[recv_activity] receiving activity...")
+        activity = dill.loads(body)
+
+        # TODO: is this doing anything?
+        self.check_activity_q.put(activity)
+
+        if activity.type != MessageType.ACTIVITY:
+            # TODO: I don't think this is necessary, as we're pulling from activity channel...
+            print("Non activity detected")
+            self._logger.debug(
+                "Non-activity message received on" "ACTIVITY channel"
+            )
+
+        # TODO: should be able to require a list of plugins (not just one).
+        # TODO: move these to agent-init.
+
+        required_plugin = activity_to_plugin_map[activity.data.body.type]
+        # cmd_str =
+
+        plugins_are_configured = self.are_plugins_configured(required_plugin)
+        # plugins_are_ready = self.message_to_plugin_validator(required_plugin,
+        #                                                      cmd=activity['cmd'])
+
+        should_ack = plugins_are_configured  # and plugins_are_ready
+
+        # TODO: additional functionalities
+        # 1. Pulling down messages based on metadata filters rather than pulling down anything.
+        # 2. Initial 'broadcast' check to see if there is a single agent capable of running each activity?
+        # 3. Agent thinks it can run activity. Hits some sort of failure case (either in execution or configuration)
+        #   ... wrap this up as a new Error-flag activity, and let it be handled accordingly.
+        # ROUTING: https://www.rabbitmq.com/tutorials/tutorial-four-python.html
+
+        self._logger.debug(f"Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}")
+        did_except = False
+        try:
+            if should_ack:
+                ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+                self._logger.debug("[recv activity] ACKED message.")
+            else:
+                ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
+                self._logger.debug("[recv activity] NACKED message.")
+                # stuck in NACK loop.
+                time.sleep(1)  # TODO !!!!!!!!!!!!!
+        except Exception as e:
+            did_except = True
+            self._logger.error(f"[Message Handler] AG CAUGHT: {e}")
+
+        # Test line to see if this function is reaching here without exception
+        with open('/Users/6o1/Desktop/file.txt', 'w') as f:
+            f.write(f"IN CALLBACK: {should_ack} | {did_except}")
 
     def recv_activity(self):
         """
@@ -115,53 +171,8 @@ class MessageHandler(threading.Thread):
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
-        def callback(ch, method, _, body):
-            self._logger.info(f"[recv_activity] receiving activity...")
-            activity = pickle.loads(body)
-
-            self.check_activity_q.put(activity)
-            parseable_activity = activity.generate_message()
-
-            self._logger.debug("Message received")
-            self._logger.debug(parseable_activity)
-
-            if activity.type != MessageType.ACTIVITY:
-                print("Non activity detected")
-                self._logger.debug(
-                    "Non-activity message received on" "ACTIVITY channel"
-                )
-
-            # TODO: should be able to require a list of plugins (not just one).
-            # TODO: move these to agent-init.
-            plugins_are_configured = self.are_plugins_configured(parseable_activity['plugin'])
-            plugins_are_ready = self.message_to_plugin_validator(parseable_activity['plugin'],
-                                                                 cmd=parseable_activity['cmd'])
-
-            should_ack = plugins_are_configured and plugins_are_ready
-
-            # TODO: additional functionalities
-            # 1. Pulling down messages based on metadata filters rather than pulling down anything.
-            # 2. Initial 'broadcast' check to see if there is a single agent capable of running each activity?
-            # 3. Agent thinks it can run activity. Hits some sort of failure case (either in execution or configuration)
-            #   ... wrap this up as a new Error-flag activity, and let it be handled accordingly.
-            # ROUTING: https://www.rabbitmq.com/tutorials/tutorial-four-python.html
-
-            self._logger.debug(f"Should ack: {should_ack} | Plugins Configured: {plugins_are_configured} | "
-                               f"Plugins Ready: {plugins_are_ready}")
-            try:
-                if should_ack:
-                    ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
-                    self._logger.debug("[recv activity] ACKED message.")
-                else:
-                    ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
-                    self._logger.debug("[recv activity] NACKED message.")
-                    # stuck in NACK loop.
-                    time.sleep(1)   # TODO !!!!!!!!!!!!!
-            except Exception as e:
-                self._logger.error(f"[Message Handler] CAUGHT: {e}")
-
         self._logger.debug(' [*] Waiting for ACTIVITY messages. To exit press CTRL+C')
-        queue_client.listen_and_do_callback(callback_func=callback,
+        queue_client.listen_and_do_callback(callback_func=self._callback,
                                             channel_to_listen="ACTIVITIES",
                                             should_auto_ack=False)
 
@@ -177,13 +188,16 @@ class MessageHandler(threading.Thread):
         while True:
             self._logger.info(f"[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
+            self._logger.info("HOY")
+            #activity_msg = activity.generate_message()
 
             self._logger.info(
-                f"Dispatching message activity_id: {activity_msg.data.activity_id} "
+                f"[send_activity] Dispatching message activity_id: {activity_msg.data.activity_id} "
                 f"message_id: {activity_msg.data.message_id}"
             )
 
-            self._logger.info(f"[activity structure] {activity_msg}")
+            # TODO: need to unpack the message in the print...
+            self._logger.info(f"[send_activity] {activity_msg}")
 
             self._logger.info(f"[send_activity] Message received! Sending...")
             try:

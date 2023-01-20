@@ -14,7 +14,7 @@ async def factory_nats(queue):
     await queue.subscribe(ChannelType.TEST)
     original_number = random.randint(0, 100000000000)
     await queue.send(ChannelType.TEST, {"value": original_number})
-    returned_msg = await queue.nextMsg(ChannelType.TEST)
+    returned_msg = await queue.next_msg(ChannelType.TEST)
     assert returned_msg["value"] == original_number
     await queue.close()
 
