@@ -56,8 +56,6 @@ class Agent:
         )
         self._executor.start()
 
-        self._logger.info("EARTH TO JOSH A")
-
         # Create and start a MessageHandler thread object.
         try:
             self._msg_handler_thd = MessageHandler(
@@ -68,8 +66,6 @@ class Agent:
             self._logger.error(f"Error of type: {type(e).__name__}: {e}")
             self._logger.error("[AGENT] TERMINATING AGENT...")
             exit(1)
-
-        self._logger.info("EARTH TO JOSH B")
 
         # Create and start the sorter threads!
         _activity_sorter_thd = threading.Thread(
