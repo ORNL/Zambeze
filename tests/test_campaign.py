@@ -1,7 +1,7 @@
 # Local imports
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.campaign.campaign import Campaign
-from zambeze.orchestration.identity import validUUID
+from zambeze.orchestration.identity import valid_uuid
 
 # Standard imports
 import pytest
@@ -40,5 +40,5 @@ def test_campaign():
 
     # Check that the campaign id is correctly added to teh activity
     campaign.add_activity(activity)
-    assert validUUID(campaign.activities[0].campaign_id)
+    assert valid_uuid(campaign.activities[0].campaign_id)
     assert campaign.activities[0].campaign_id == campaign.campaign_id

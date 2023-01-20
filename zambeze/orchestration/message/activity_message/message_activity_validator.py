@@ -10,7 +10,7 @@ from .message_activity_template_generator import (
     REQUIRED_ACTIVITY_COMPONENTS,
     OPTIONAL_ACTIVITY_COMPONENTS,
 )
-from zambeze.orchestration.identity import validUUID
+from zambeze.orchestration.identity import valid_uuid
 
 
 class MessageActivityValidator(AbstractMessageValidator):
@@ -27,7 +27,7 @@ class MessageActivityValidator(AbstractMessageValidator):
         return self._required_keys
 
     def _checkUUIDs(self, message: Any):
-        if not validUUID(message.activity_id, 4):
+        if not valid_uuid(message.activity_id, 4):
             return (
                 False,
                 (
@@ -36,7 +36,7 @@ class MessageActivityValidator(AbstractMessageValidator):
                 ),
             )
 
-        if not validUUID(message.campaign_id, 4):
+        if not valid_uuid(message.campaign_id, 4):
             return (
                 False,
                 (
@@ -45,7 +45,7 @@ class MessageActivityValidator(AbstractMessageValidator):
                 ),
             )
 
-        if not validUUID(message.agent_id, 4):
+        if not valid_uuid(message.agent_id, 4):
             return (
                 False,
                 (
@@ -114,4 +114,4 @@ class MessageActivityValidator(AbstractMessageValidator):
                 ),
             )
 
-        return (True, "")
+        return True, ""

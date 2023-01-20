@@ -1,5 +1,5 @@
 from ..abstract_uri_separator import URISeparator
-from ...identity import validUUID
+from ...identity import valid_uuid
 
 import logging
 import os
@@ -76,11 +76,12 @@ class GlobusURISeparator(URISeparator):
         UUID = UUID_and_path[0:36]
         print(f"UUID from path is {UUID}")
         file_and_path = UUID_and_path
-        valid_uuid = default_uuid
+
+        legal_uuid = default_uuid
         # Check if the first 36 chars contains os.sep it is probably a file_path
         # in which case the default uuid should be provided
         if os.sep not in UUID:
-            if not validUUID(UUID):
+            if not valid_uuid(UUID):
                 error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
                 error_msg += "character valid UUID of the form "
                 error_msg += "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
@@ -89,7 +90,7 @@ class GlobusURISeparator(URISeparator):
                 error_msg += "it must also conform to RFC4122"
                 package["error_message"] = error_msg
                 return package
-            valid_uuid = UUID
+            legal_uuid = UUID
             file_and_path = UUID_and_path[36:]
         else:
             if default_uuid is None:
@@ -110,7 +111,7 @@ class GlobusURISeparator(URISeparator):
         if not path.endswith(os.sep):
             path = path + os.sep
 
-        package["uuid"] = valid_uuid
+        package["uuid"] = legal_uuid
         package["path"] = path
         package["file_name"] = os.path.basename(file_and_path)
         return package

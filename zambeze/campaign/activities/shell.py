@@ -9,7 +9,7 @@ import logging
 import time
 import uuid
 
-from typing import Optional
+from typing import Optional, Union
 from .abstract_activity import Activity
 
 from zambeze.orchestration.message.abstract_message import AbstractMessage
@@ -39,14 +39,14 @@ class ShellActivity(Activity):
     def __init__(
         self,
         name: str,
-        files: list[str] = [],
-        command: Optional[str] = None,
-        arguments: list[str] = [],
-        logger: Optional[logging.Logger] = None,
-        campaign_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        message_id: Optional[str] = None,
-        **kwargs
+        files: list[str],
+        command: str,
+        arguments: list[str],
+        logger: logging.Logger,
+        campaign_id: Union[str, None] = None,
+        agent_id: Union[str, None] = None,
+        message_id: Union[str, None] = None,
+        **kwargs,
     ) -> None:
         """Create an object of a unix shell activity."""
         super().__init__(
@@ -71,27 +71,30 @@ class ShellActivity(Activity):
         else:
             self.env_vars = {}
 
-        print("Printing files after init in SHell")
-        print(self.files)
+        self.logger.info("[activities/shell.py] Printing files after init in SHELL")
+        self.logger.info(self.files)
 
     def generate_message(self) -> AbstractMessage:
 
-        factory = MessageFactory()
+        factory = MessageFactory(logger=self.logger)
         template = factory.createTemplate(
             MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
         )
 
-        template[1].activity_id = self.activity_id
-        template[1].message_id = self.message_id
-        template[1].agent_id = self.agent_id
-        template[1].campaign_id = self.campaign_id
-        template[1].credential = {}
-        template[1].submission_time = str(int(time.time()))
-        template[1].body.type = "SHELL"
-        template[1].body.shell = "bash"
-        template[1].body.files = self.files
-        template[1].body.parameters.program = self.command
-        template[1].body.parameters.args = self.arguments
-        template[1].body.parameters.env_vars = self.env_vars
+        try:
+            template[1].activity_id = self.activity_id
+            template[1].message_id = self.message_id
+            template[1].agent_id = self.agent_id
+            template[1].campaign_id = self.campaign_id
+            template[1].credential = {}
+            template[1].submission_time = str(int(time.time()))
+            template[1].body.type = "SHELL"
+            template[1].body.shell = "bash"
+            template[1].body.files = self.files
+            template[1].body.parameters.program = self.command
+            template[1].body.parameters.args = self.arguments
+            template[1].body.parameters.env_vars = self.env_vars
+        except Exception as e:
+            self.logger.info(f"Error is here: {e}")
 
         return factory.create(template)

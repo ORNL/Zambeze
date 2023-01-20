@@ -3,7 +3,7 @@ import re
 from uuid import UUID
 
 
-def validUUID(uuid_to_test: str, version=None) -> bool:
+def valid_uuid(uuid_to_test: str, version=None) -> bool:
     """Check if uuid_to_test is a valid UUID.
 
     :param uuid_to_test: The 36 character UUID
@@ -18,9 +18,9 @@ def validUUID(uuid_to_test: str, version=None) -> bool:
 
     Examples
     --------
-    >>> validUUID('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
+    >>> valid_uuid('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
     True
-    >>> validUUID('c9bf9e58')
+    >>> valid_uuid('c9bf9e58')
     False
 
     Function was taken from
@@ -41,7 +41,7 @@ def validUUID(uuid_to_test: str, version=None) -> bool:
     return str(uuid_obj).lower() == str(uuid_to_test).lower()
 
 
-def validEmail(email: str) -> bool:
+def valid_email(email: str) -> bool:
     regexp = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     if re.match(regexp, email):
         return True

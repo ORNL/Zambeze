@@ -21,7 +21,7 @@ import os
 import subprocess
 
 
-def checkInputs(variable, left_pattern, right_pattern):
+def check_inputs(variable, left_pattern, right_pattern):
     # find returns -1 if no match was found
     if len(variable) == 0:
         return "", -1, -1
@@ -36,7 +36,7 @@ def checkInputs(variable, left_pattern, right_pattern):
         raise Exception("Cannot identify inner pattern ambiguous patterns used")
 
 
-def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
+def get_inner_pattern(variable: str, left_pattern: str, right_pattern: str):
     """Finds the value between two patterns
 
     :Example:
@@ -50,7 +50,7 @@ def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
 
     match: Nested, start: 27, end: 36
     """
-    checkInputs(variable, left_pattern, right_pattern)
+    check_inputs(variable, left_pattern, right_pattern)
 
     left_index = variable.find(left_pattern, 0, len(variable))
     right_index = variable.rfind(right_pattern, 0, len(variable))
@@ -63,7 +63,7 @@ def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
         if inner_match_left_index < right_index and right_index > -1:
             inner_match_right_index = right_index
 
-        if left_index < inner_match_right_index and left_index > -1:
+        if inner_match_right_index > left_index > -1:
             inner_match_left_index = left_index
 
         match = ""
@@ -88,7 +88,7 @@ def getInnerPattern(variable: str, left_pattern: str, right_pattern: str):
             right_index = variable.rfind(right_pattern, 0, right_index)
 
 
-def mergeEnvVariables(current_vars: dict, new_vars: dict) -> dict:
+def merge_env_variables(current_vars: dict, new_vars: dict) -> dict:
     """Function supports merging env variables
 
     This function also supports ${} notation, where ${var} where
@@ -96,12 +96,12 @@ def mergeEnvVariables(current_vars: dict, new_vars: dict) -> dict:
     """
     for key in new_vars.keys():
         value = new_vars[key]
-        match, index_left, index_right = getInnerPattern(value, "${", "}")
+        match, index_left, index_right = get_inner_pattern(value, "${", "}")
         while len(match) > 0:
             if match in current_vars.keys():
                 value = value[:index_left] + current_vars[match] + value[index_right:]
                 new_vars[key] = value
-            match, index_left, index_right = getInnerPattern(value, "${", "}")
+            match, index_left, index_right = get_inner_pattern(value, "${", "}")
 
     # If new vars have the same named key it will overwrite current vars
     return {**current_vars, **new_vars}
@@ -161,9 +161,9 @@ class Shell(Plugin):
 
         :Example:
 
-        >>> arguments = [ {
-        >>>   "bash": { }
-        >>> }]
+        arguments = [ {
+            "bash": { }
+            }]
 
         """
 
@@ -256,7 +256,9 @@ class Shell(Plugin):
                 # env_tup : (key, value)
                 # Check if dict is empty
                 if data["bash"]["env_vars"]:
-                    merged_env = mergeEnvVariables(parent_env, data["bash"]["env_vars"])
+                    merged_env = merge_env_variables(
+                        parent_env, data["bash"]["env_vars"]
+                    )
             #                for env_tup in data["bash"]["env_vars"]:
             #                    parent_env[env_tup[0]] = env_tup[1]
             except ValueError as e:
@@ -272,8 +274,8 @@ class Shell(Plugin):
             #       if cmd coming from untrusted source. See:
             # https://stackoverflow.com/questions/21009416/python-subprocess-security)
             # shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
-            print(shell_cmd)
-            print(parent_env)
-            print(merged_env)
+            # print(shell_cmd)
+            # print(parent_env)
+            # print(merged_env)
             shell_exec = subprocess.Popen(shell_cmd, shell=True, env=merged_env)
             shell_exec.wait()

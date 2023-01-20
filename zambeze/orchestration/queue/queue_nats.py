@@ -125,7 +125,7 @@ class QueueNATS(AbstractQueue):
         await self._sub[channel].unsubscribe()
         self._sub[channel] = None
 
-    async def nextMsg(self, channel: ChannelType):
+    async def next_msg(self, channel: ChannelType):
         if not self._sub:
             raise Exception(
                 "Cannot get next message client is not subscribed \

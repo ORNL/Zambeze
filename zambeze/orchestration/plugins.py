@@ -25,10 +25,10 @@ import logging
 
 
 class PluginChecks(dict):
-    def __init__(self, val: dict = {}):
+    def __init__(self, val: dict):
         super().__init__(val)
 
-    def errorDetected(self) -> bool:
+    def error_detected(self) -> bool:
         """Detects if an error was found in the results of the plugin checks"""
         for key in self.keys():
             for item in self[key]:
@@ -70,15 +70,6 @@ class Plugins:
 
         :return: Returns the names of all the plugins that have been registered
         :rtype: list[str]
-
-        :Example:
-
-        >>> Plugins plugins
-        >>> for plugin_inst in plugins.registered:
-        >>>    print(plugin)
-        >>> globus
-        >>> shell
-        >>> rsync
         """
         plugins: list[str] = []
         for module_name in self.__module_names:
@@ -86,7 +77,8 @@ class Plugins:
         return plugins
 
     def configure(self, config: dict):
-        """Configuration options for each plugin
+        """
+        Configuration options for each plugin
 
         This method is responsible for initializing all the plugins that
         are supported in the plugin_modules folder. It should be called before the
@@ -102,20 +94,20 @@ class Plugins:
         The configuration options for each plugin will appear under their name
         in the configuration parameter.
 
-        I.e. for plugins "globus" and "shell"
+        I.e. for plugins 'globus' and 'shell'
 
-        >>> config = {
-        >>>     "globus": {
-        >>>         "authentication flow": {
-        >>>             "type": "credential flow",
-        >>>             "secret": "blahblah"
-        >>>     },
-        >>>     "shell": {
-        >>>         "arguments" : [""]
-        >>>     }
-        >>> }
-        >>> plugins = Plugins()
-        >>> plugins.configure(config, ["shell"])
+        config = {
+            'globus': {
+                'authentication flow': {
+                    'type': 'credential flow',
+                    'secret': "blahblah"
+                    },
+                'shell': {
+                    'arguments' : ['']
+                    }
+                    }
+            plugins = Plugins()
+            plugins.configure(config, ['shell'])
 
         This will just configure the "shell" plugin
         """
@@ -148,19 +140,19 @@ class Plugins:
 
         :Example: If nothing has been configured
 
-        >>> plugins = Plugins()
-        >>> assert len(plugins.configured) == 0
+        plugins = Plugins()
+        assert len(plugins.configured) == 0
 
         :Example: If globus is configured
 
-        >>> config = {
-        >>>     "globus": {
-        >>>         "client id": "..."
-        >>>     }
-        >>> }
-        >>> plugins.configure(config)
-        >>> assert len(plugins.configured) == 1
-        >>> assert "globus" in plugins.configured
+        config = {
+            "globus": {
+                "client id": "..."
+                }
+            }
+        plugins.configure(config)
+        assert len(plugins.configured) == 1
+        assert "globus" in plugins.configured
         """
         configured_plugins: list[str] = []
         for key in self._plugins:
@@ -182,15 +174,15 @@ class Plugins:
 
         :Example:
 
-        >>> these_plugins = ["globus", "shell"]
-        >>> Plugins plugins
-        >>> plugins.configure(configuration_options)
-        >>> information = plugins.info(these_plugins)
-        >>> print(information)
-        >>> {
-        >>>    "globus": {...}
-        >>>    "shell": {...}
-        >>> }
+        these_plugins = ["globus", "shell"]
+        plugins.configure(configuration_options)
+        information = plugins.info(these_plugins)
+        print(information)
+
+        {
+            "globus": {...}
+            "shell": {...}
+        }
         """
         info = {}
         if "all" in plugins:
@@ -229,34 +221,33 @@ class Plugins:
         is different then it must be specified with the "private_ssh_key" key
         value pair.
 
-        >>> plugins = Plugins()
-        >>> config = {
-        >>>     "rsync": {
-        >>>         "private_ssh_key": "path to private ssh key"
-        >>>     }
-        >>> }
-        >>> plugins.configure(config)
-        >>> arguments = {
-        >>>     "transfer": {
-        >>>         "source": {
-        >>>             "ip": local_ip,
-        >>>             "user": current_user,
-        >>>             "path": current_valid_path,
-        >>>         },
-        >>>         "destination": {
-        >>>             "ip": "172.22.1.69",
-        >>>             "user": "cades",
-        >>>             "path": "/home/cades/josh-testing",
-        >>>         },
-        >>>         "arguments": ["-a"],
-        >>>     }
-        >>> }
-        >>> checked_args = plugins.check("rsync", arguments)
-        >>> print(checked_args)
-        >>> # Should print
-        >>> # {
-        >>> #   "rsync": { "transfer": (True, "") }
-        >>> # {
+        plugins = Plugins()
+        config = {
+            "rsync": {
+                "private_ssh_key": "path to private ssh key"
+                }
+            }
+        plugins.configure(config)
+        arguments = {
+            "transfer": {
+                "source": {
+                    "ip": local_ip,
+                    user": current_user,
+                    "path": current_valid_path,
+                    },
+                "destination": {
+                    "ip": "172.22.1.69",
+                    "user": "cades",
+                    "path": "/home/cades/josh-testing",
+                    },
+            "arguments": ["-a"],
+            }
+        }
+        checked_args = plugins.check("rsync", arguments)
+        print(checked_args)
+        >> {
+        >>     "rsync": { "transfer": (True, "") }
+        >> }
         """
         if isinstance(msg, AbstractMessage):
             # pyre-ignore[16]
@@ -305,6 +296,7 @@ class Plugins:
         check_results = {}
         print("Plugin keys are")
         print(self._plugins.keys)
+
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
                 {"configured": (False, f"{plugin_name} is not configured.")}
@@ -332,10 +324,6 @@ class Plugins:
     def run(self, msg: str, arguments: dict = {}) -> None:
         ...
 
-    #    @overload
-    #    def run(self, plugin_name: str, arguments: dict) -> None:
-    #        ...
-    #
     def run(self, msg, arguments=None) -> None:
         """Run a specific plugins.
 
@@ -346,33 +334,33 @@ class Plugins:
 
         :Example:
 
-        >>> plugins = Plugins()
-        >>> config = {
-        >>>         "rsync": {
-        >>>                 "ssh_key": "path to private ssh key"
-        >>>         }
-        >>> }
-        >>> plugins.configure(config)
-        >>> arguments = {
-        >>>         "transfer": {
-        >>>                 "source": {
-        >>>                         "ip":
-        >>>                         "hostname":
-        >>>                         "path":
-        >>>                 },
-        >>>                 "destination": {
-        >>>                         "ip":
-        >>>                         "hostname":
-        >>>                         "path":
-        >>>                 }
-        >>>         }
-        >>> }
-        >>> # Should return True for each action that was found to be
-        >>> # correctly validated
-        >>> checks = plugins.check('rsync', arguments)
-        >>> print(checks)
-        >>> # Should print { "rsync": { "transfer": True } }
-        >>> plugins.run('rsync', arguments)
+        plugins = Plugins()
+        config = {
+            "rsync": {
+                "ssh_key": "path to private ssh key"
+                }
+            }
+        plugins.configure(config)
+        arguments = {
+            "transfer": {
+                "source": {
+                    "ip":
+                    "hostname":
+                    "path":
+                    },
+                "destination": {
+                    "ip":
+                    "hostname":
+                    "path":
+                    }
+                }
+            }
+        # Should return True for each action that was found to be
+        # correctly validated
+        checks = plugins.check('rsync', arguments)
+        print(checks)
+        # Should print { "rsync": { "transfer": True } }
+        plugins.run('rsync', arguments)
         """
         if isinstance(msg, AbstractMessage):
             # pyre-ignore[16]
