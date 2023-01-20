@@ -61,8 +61,8 @@ class Executor(threading.Thread):
         self._logger.info("[EXECUTOR] Successfully initialized Executor!")
 
     def run(self):
-        """ Override the Thread 'run' method to instead run our
-         process when Thread.start() is called! """
+        """Override the Thread 'run' method to instead run our
+        process when Thread.start() is called!"""
         # Create persisent "__process()"
         self.__process()
 
@@ -77,7 +77,9 @@ class Executor(threading.Thread):
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
         ]
-        self._logger.info(f"[EXECUTOR] Moving to working directory {default_working_dir}")
+        self._logger.info(
+            f"[EXECUTOR] Moving to working directory {default_working_dir}"
+        )
         os.chdir(default_working_dir)
 
         while True:

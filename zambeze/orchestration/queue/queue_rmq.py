@@ -1,5 +1,7 @@
 import logging
-from .abstract_queue import AbstractQueue  # TODO: Tyler unable to use until we remove async requirement.
+from .abstract_queue import (
+    AbstractQueue,
+)  # TODO: Tyler unable to use until we remove async requirement.
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 import dill
@@ -8,9 +10,7 @@ import pika
 
 # TODO: should inherit AbstractQueue class (make it allow a listen).
 class QueueRMQ:
-    def __init__(
-        self, queue_config: dict, logger: logging.Logger
-    ) -> None:
+    def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
 
         self._queue_type = QueueType.RABBITMQ
         self._logger = logger
@@ -29,15 +29,11 @@ class QueueRMQ:
 
     def __disconnected(self):
         if self._logger:
-            self._logger.info(
-                f"Disconnected from RabbitMQ... {self._ip}:{self._port}"
-            )
+            self._logger.info(f"Disconnected from RabbitMQ... {self._ip}:{self._port}")
 
     def __reconnected(self):
         if self._logger:
-            self._logger.info(
-                f"Reconnected to RabbitMQ... {self._ip}:{self._port}"
-            )
+            self._logger.info(f"Reconnected to RabbitMQ... {self._ip}:{self._port}")
 
     @property
     def type(self) -> QueueType:
@@ -73,10 +69,12 @@ class QueueRMQ:
             self._logger.info("[Queue RMQ] Creating RabbitMQ channels...")
 
             # TODO: perhaps this should be 'subscribed'?
-            self._rmq_channel.queue_declare(queue='ACTIVITIES')
+            self._rmq_channel.queue_declare(queue="ACTIVITIES")
             # self.callback_queue = activities_q_declare.method.queue
 
-            self._rmq_channel.queue_declare(queue='CONTROL')  # TODO: don't auto-sub to control.
+            self._rmq_channel.queue_declare(
+                queue="CONTROL"
+            )  # TODO: don't auto-sub to control.
         except Exception:
             if self._logger:
                 # pyre-ignore[16]
@@ -107,15 +105,17 @@ class QueueRMQ:
         return False
 
     def listen_and_do_callback(self, callback_func, channel_to_listen, should_auto_ack):
-        """ Listen for messages on a persistent websocket connection;
-            --> do action in callback function on receipt. """
+        """Listen for messages on a persistent websocket connection;
+        --> do action in callback function on receipt."""
 
         listen_on_channel = self._rmq_channel
 
-        self._logger.info(' [*] Waiting for messages. To exit press CTRL+C')
-        listen_on_channel.basic_consume(queue=channel_to_listen,
-                                        on_message_callback=callback_func,
-                                        auto_ack=should_auto_ack)
+        self._logger.info(" [*] Waiting for messages. To exit press CTRL+C")
+        listen_on_channel.basic_consume(
+            queue=channel_to_listen,
+            on_message_callback=callback_func,
+            auto_ack=should_auto_ack,
+        )
         listen_on_channel.start_consuming()
 
     @property
@@ -131,7 +131,8 @@ class QueueRMQ:
     def subscribe(self, channel: ChannelType):
         if self._rmq is None:
             raise Exception(
-                "Cannot subscribe to topic, client is not " "connected to a RabbitMQ queue"
+                "Cannot subscribe to topic, client is not "
+                "connected to a RabbitMQ queue"
             )
         self._sub[channel] = self._rmq.subscribe(channel.value)
 
@@ -181,7 +182,7 @@ class QueueRMQ:
                 self._sub[channel].nack()
 
     def send(self, channel: ChannelType, exchange, body):
-        """ In 'send activity', body is activity message!"""
+        """In 'send activity', body is activity message!"""
         if self._rmq is None:
             raise Exception(
                 "Cannot send message to RabbitMQ, client is "
@@ -191,9 +192,9 @@ class QueueRMQ:
         self._logger.info(body.data)
         self._logger.info(type(body.data))
 
-        self._rmq_channel.basic_publish(exchange=exchange,
-                                        routing_key=channel,
-                                        body=dill.dumps(body))
+        self._rmq_channel.basic_publish(
+            exchange=exchange, routing_key=channel, body=dill.dumps(body)
+        )
 
     def close(self):
         if self._sub:

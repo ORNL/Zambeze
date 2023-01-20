@@ -2,12 +2,16 @@
 from .abstract_message import AbstractMessage
 from .activity_message.message_activity import MessageActivity
 from .activity_message.message_activity_validator import MessageActivityValidator
-from .activity_message.message_activity_template_generator import create_activity_template
+from .activity_message.message_activity_template_generator import (
+    create_activity_template,
+)
 from .status_message.message_status import MessageStatus
 from .status_message.message_status_validator import MessageStatusValidator
 from .status_message.message_status_template_generator import createStatusTemplate
 from zambeze.orchestration.plugins_message_validator import PluginsMessageValidator
-from zambeze.orchestration.plugins_message_template_engine import PluginsMessageTemplateEngine
+from zambeze.orchestration.plugins_message_template_engine import (
+    PluginsMessageTemplateEngine,
+)
 
 
 from ..zambeze_types import MessageType, ActivityType

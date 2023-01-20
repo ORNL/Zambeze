@@ -18,7 +18,7 @@ def test_imagemagick_files():
     print(f"image_magick_example {image_magick_example}")
 
     # Step 3 remove a.gif if exists locally
-    home_dir = os.path.expanduser('~')
+    home_dir = os.path.expanduser("~")
     print(f"Home dir {home_dir}")
 
     final_file_path = home_dir + "/a.gif"
@@ -26,14 +26,12 @@ def test_imagemagick_files():
     if os.path.exists(final_file_path):
         os.remove(final_file_path)
 
-    command = ['python3', image_magick_example]
+    command = ["python3", image_magick_example]
 
     # Step 4 launch example
     process = subprocess.Popen(
-        command,
-        shell=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.STDOUT)
+        command, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+    )
 
     assert True  # TODO: If we uncomment the lines below, the test never stops.
     # process.communicate()

@@ -1,4 +1,3 @@
-
 import os
 import time
 import socket
@@ -19,19 +18,25 @@ class TransferHippo:
         self._msg_factory = MessageFactory(logger=self._logger)
 
     def pack(self, transfer_type, file_url, activity_id, campaign_id):
-        """ Use templates to pack a transfer hippo with file(s) to move. """
+        """Use templates to pack a transfer hippo with file(s) to move."""
 
         messages = []
 
         if transfer_type == "globus":
 
-            self._logger.info(f"Starting Globus configuration for file at {file_url.path}")
+            self._logger.info(
+                f"Starting Globus configuration for file at {file_url.path}"
+            )
 
             # Check if we have plugin
             source_file_name = os.path.basename(file_url.path)
-            default_endpoint = self._settings.settings["plugins"]["globus"]["config"]["default_endpoint"]
+            default_endpoint = self._settings.settings["plugins"]["globus"]["config"][
+                "default_endpoint"
+            ]
 
-            default_working_dir = self._settings.settings["plugins"]["All"]["default_working_directory"]
+            default_working_dir = self._settings.settings["plugins"]["All"][
+                "default_working_directory"
+            ]
             print(f"default working directory {default_working_dir}")
 
             local_globus_uri = (
@@ -55,14 +60,14 @@ class TransferHippo:
             msg_template_transfer[1].credential = {}
             msg_template_transfer[1].submission_time = str(int(time.time()))
             msg_template_transfer[1].body.transfer.type = "synchronous"
-            msg_template_transfer[1].body.transfer.items[
-                0
-            ].source = file_url.geturl()
+            msg_template_transfer[1].body.transfer.items[0].source = file_url.geturl()
             msg_template_transfer[1].body.transfer.items[0].destination = (
                 local_globus_uri,
             )
 
-            self._logger.debug(f"Creating mutable message of: {asdict(msg_template_transfer)}")
+            self._logger.debug(
+                f"Creating mutable message of: {asdict(msg_template_transfer)}"
+            )
             # Will validate the message fields and then make it immutable
             immutable_msg = self._msg_factory.create(msg_template_transfer)
 
@@ -87,8 +92,12 @@ class TransferHippo:
             move_tmpl8[1].campaign_id = campaign_id
             move_tmpl8[1].credential = {}
             move_tmpl8[1].submission_time = str(int(time.time()))
-            move_tmpl8[1].body.move_to_globus_collection.items[0].source = local_globus_uri
-            move_tmpl8[1].body.move_to_globus_collection.items[0].destination = local_posix_uri
+            move_tmpl8[1].body.move_to_globus_collection.items[
+                0
+            ].source = local_globus_uri
+            move_tmpl8[1].body.move_to_globus_collection.items[
+                0
+            ].destination = local_posix_uri
 
             # Make the message immutable.
             immutable_msg_move = self._msg_factory.create(move_tmpl8)
@@ -108,9 +117,15 @@ class TransferHippo:
             msg_template[1].body.transfer.items[0].source.ip = file_url.netloc
             msg_template[1].body.transfer.items[0].source.path = file_url.path
             msg_template[1].body.transfer.items[0].source.username = file_url.username
-            msg_template[1].body.transfer.items[0].destination.ip = socket.gethostbyname(socket.gethostname())
-            msg_template[1].body.transfer.items[0].destination.path = str(pathlib.Path().resolve())
-            msg_template[1].body.transfer.items[0].destination.username = getpass.getuser()
+            msg_template[1].body.transfer.items[
+                0
+            ].destination.ip = socket.gethostbyname(socket.gethostname())
+            msg_template[1].body.transfer.items[0].destination.path = str(
+                pathlib.Path().resolve()
+            )
+            msg_template[1].body.transfer.items[
+                0
+            ].destination.username = getpass.getuser()
             # Will validate the message fields and then make it immutable
             msg = self._msg_factory.create(msg_template)
 
@@ -121,5 +136,3 @@ class TransferHippo:
             self._logger.info("Local file; creating no activity messages!")
 
         return messages
-
-

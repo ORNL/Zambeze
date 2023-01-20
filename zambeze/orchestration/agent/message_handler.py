@@ -1,4 +1,3 @@
-
 import pickle
 import threading
 import time
@@ -33,13 +32,17 @@ class MessageHandler(threading.Thread):
 
         self.queue_factory = QueueFactory(logger=self._logger)
 
-        self._logger.info("[Message Handler] RabbitMQ broker and channel both created successfully!")
+        self._logger.info(
+            "[Message Handler] RabbitMQ broker and channel both created successfully!"
+        )
 
         self._activity_dao = ActivityDAO(self._logger)
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
-        self._logger.info(f"[Message Handler] Binding to ZMQ: {self._settings.get_zmq_connection_uri()}")
+        self._logger.info(
+            f"[Message Handler] Binding to ZMQ: {self._settings.get_zmq_connection_uri()}"
+        )
         self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
 
         # Queues to allow safe inter-thread communication.
@@ -51,7 +54,9 @@ class MessageHandler(threading.Thread):
         self._logger.info("[Message Handler] Message handler successfully initialized!")
 
         # THREAD 1: recv activities from campaign
-        campaign_listener = threading.Thread(target=self.recv_activities_from_campaign, args=())
+        campaign_listener = threading.Thread(
+            target=self.recv_activities_from_campaign, args=()
+        )
         # THREAD 2: recv activities from rmq
         activity_listener = threading.Thread(target=self.recv_activity, args=())
         # THREAD 3: recv control from RMQ
@@ -72,12 +77,16 @@ class MessageHandler(threading.Thread):
         """
 
         while True:
-            self._logger.info("[recv_activities_from_campaign] Waiting for messages from campaign...")
+            self._logger.info(
+                "[recv_activities_from_campaign] Waiting for messages from campaign..."
+            )
 
             # Use ZMQ to receive activities from campaign.
             activity_bytestring = self._zmq_socket.recv()
             self._zmq_socket.send(b"FOOBAR")  # TODO... send something cleaner.
-            self._logger.debug("[recv_activities_from_campaign] Received an activity bytestring!")
+            self._logger.debug(
+                "[recv_activities_from_campaign] Received an activity bytestring!"
+            )
             activity = pickle.loads(activity_bytestring)
 
             activity.agent_id = self.agent_id
@@ -88,19 +97,22 @@ class MessageHandler(threading.Thread):
                 activity_message: AbstractMessage = activity.generate_message()
 
             except Exception as e:
-                self._logger.error(f'CANT GENERATE MESSAGE IN MSG HANDLER! {e}')
+                self._logger.error(f"CANT GENERATE MESSAGE IN MSG HANDLER! {e}")
 
             self._logger.info(
                 f"[recv_activities_from_campaign] Dispatching message activity_id: {activity.activity_id} "
                 f"message_id: {activity_message.data.message_id}"
             )
             self._logger.debug(
-                f"[recv_activities_from_campaign] Received message from campaign: {activity_message}")
+                f"[recv_activities_from_campaign] Received message from campaign: {activity_message}"
+            )
 
             activity_model = ActivityModel(
                 agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
             )
-            self._logger.debug(f"[recv_activities_from_campaign] Creating activity in the DB: {activity}")
+            self._logger.debug(
+                f"[recv_activities_from_campaign] Creating activity in the DB: {activity}"
+            )
             self._activity_dao.insert(activity_model)
             self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
 
@@ -117,9 +129,7 @@ class MessageHandler(threading.Thread):
         if activity.type != MessageType.ACTIVITY:
             # TODO: I don't think this is necessary, as we're pulling from activity channel...
             print("Non activity detected")
-            self._logger.debug(
-                "Non-activity message received on" "ACTIVITY channel"
-            )
+            self._logger.debug("Non-activity message received on" "ACTIVITY channel")
 
         # TODO: should be able to require a list of plugins (not just one).
         # TODO: move these to agent-init.
@@ -140,7 +150,9 @@ class MessageHandler(threading.Thread):
         #   ... wrap this up as a new Error-flag activity, and let it be handled accordingly.
         # ROUTING: https://www.rabbitmq.com/tutorials/tutorial-four-python.html
 
-        self._logger.debug(f"Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}")
+        self._logger.debug(
+            f"Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}"
+        )
         did_except = False
         try:
             if should_ack:
@@ -156,7 +168,7 @@ class MessageHandler(threading.Thread):
             self._logger.error(f"[Message Handler] AG CAUGHT: {e}")
 
         # Test line to see if this function is reaching here without exception
-        with open('/Users/6o1/Desktop/file.txt', 'w') as f:
+        with open("/Users/6o1/Desktop/file.txt", "w") as f:
             f.write(f"IN CALLBACK: {should_ack} | {did_except}")
 
     def recv_activity(self):
@@ -167,21 +179,27 @@ class MessageHandler(threading.Thread):
         If we have the correct plugins, then we keep it (ack). Otherwise, we put it back (nack).
         """
 
-        self._logger.info(f"[Message Handler] Connecting to RabbitMQ RECV ACTIVITY broker...")
+        self._logger.info(
+            f"[Message Handler] Connecting to RabbitMQ RECV ACTIVITY broker..."
+        )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
-        self._logger.debug(' [*] Waiting for ACTIVITY messages. To exit press CTRL+C')
-        queue_client.listen_and_do_callback(callback_func=self._callback,
-                                            channel_to_listen="ACTIVITIES",
-                                            should_auto_ack=False)
+        self._logger.debug(" [*] Waiting for ACTIVITY messages. To exit press CTRL+C")
+        queue_client.listen_and_do_callback(
+            callback_func=self._callback,
+            channel_to_listen="ACTIVITIES",
+            should_auto_ack=False,
+        )
 
     def send_activity(self):
         """
         (from agent.py) input activity; send to "ACTIVITIES" queue.
         """
 
-        self._logger.info(f"[Message Handler] Connecting to RabbitMQ SEND ACTIVITY broker...")
+        self._logger.info(
+            f"[Message Handler] Connecting to RabbitMQ SEND ACTIVITY broker..."
+        )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
@@ -189,7 +207,7 @@ class MessageHandler(threading.Thread):
             self._logger.info(f"[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
             self._logger.info("HOY")
-            #activity_msg = activity.generate_message()
+            # activity_msg = activity.generate_message()
 
             self._logger.info(
                 f"[send_activity] Dispatching message activity_id: {activity_msg.data.activity_id} "
@@ -201,9 +219,7 @@ class MessageHandler(threading.Thread):
 
             self._logger.info(f"[send_activity] Message received! Sending...")
             try:
-                queue_client.send(exchange="",
-                                  channel="ACTIVITIES",
-                                  body=activity_msg)
+                queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
             except Exception as e:
                 self._logger.error(f"CAUGHT: {e}")
             self._logger.debug(f"[send_activity] Successfully sent activity!")
@@ -213,7 +229,9 @@ class MessageHandler(threading.Thread):
         Receive messages from the control channel!
         """
 
-        self._logger.info(f"[Message Handler] Connecting to RabbitMQ RECV CONTROL broker...")
+        self._logger.info(
+            f"[Message Handler] Connecting to RabbitMQ RECV CONTROL broker..."
+        )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
@@ -224,16 +242,18 @@ class MessageHandler(threading.Thread):
             self._logger.info(" [x recv_activity] Received %r" % activity)
             self._recv_control_q.put(activity)
 
-        queue_client.listen_and_do_callback(channel_to_listen='CONTROL',
-                                            callback_func=callback,
-                                            should_auto_ack=True)
+        queue_client.listen_and_do_callback(
+            channel_to_listen="CONTROL", callback_func=callback, should_auto_ack=True
+        )
 
     def send_control(self):
         """
         (from agent.py) input control message; send to "CONTROL" queue.
         """
 
-        self._logger.info(f"[Message Handler] Connecting to RabbitMQ SEND CONTROL broker...")
+        self._logger.info(
+            f"[Message Handler] Connecting to RabbitMQ SEND CONTROL broker..."
+        )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
@@ -243,15 +263,13 @@ class MessageHandler(threading.Thread):
 
             self._logger.debug(f"[send_activity] Message received! Sending...")
             try:
-                queue_client.send(exchange='',
-                                  channel='CONTROL',
-                                  body=activity_msg)
+                queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
             except Exception as e:
                 self._logger.info(f"Caught error: {e}")
             self._logger.info(f"[send_activity] Successfully sent activity!")
 
     def message_to_plugin_validator(self, plugin, cmd):
-        """ Determine whether plugin can execute based on plugin input schema.
+        """Determine whether plugin can execute based on plugin input schema.
 
         # Running Checks
         # Returned results should be double nested dict with a tuple of

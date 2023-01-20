@@ -20,6 +20,7 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
+
 @pytest.mark.unit
 def test_registered_plugins():
     """Test checks that you can get a list of all the registered plugins"""
