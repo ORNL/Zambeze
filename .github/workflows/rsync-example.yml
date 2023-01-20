@@ -1,4 +1,4 @@
-name: Rsync Example as Integration Test
+name: Rsync Example as Integration Test - RabbitMQ
 on: [push, pull_request]
 
 jobs:
@@ -11,13 +11,13 @@ jobs:
     - name: Launch Docker Compose
       run: | # We only need CONTAINER_VOL_MNT_POINT because we couldn't make the volume mount for dev work in GitHub VM 
         export CONTAINER_VOL_MNT_POINT=/unused
-        docker compose -f deployment/compose.yml up -d
+        docker compose -f deployment/compose-rabbit.yml up -d
     - name: Sleep 
       run: |
         echo "I'm going to sleep hoping the services will be up when I wake up... zzz..."
         sleep 15
     - name: Run Tests
-      run: docker compose -f deployment/compose.yml exec zambeze_agent2 python3 -m pytest -m integration -vs
+      run: docker compose -f deployment/compose-rabbit.yml exec zambeze_agent2 python3 -m pytest -m integration -vs
     - name: Cleanup
       run: |
-        docker compose -f deployment/compose.yml down
+        docker compose -f deployment/compose-rabbit.yml down
