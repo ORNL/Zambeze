@@ -89,7 +89,7 @@ async def queue_nats_send_subscribe_nextMsg(config, original_number):
     await queue.connect()
     await queue.subscribe(ChannelType.TEST)
     await queue.send(ChannelType.TEST, {"value": original_number})
-    returned_msg = await queue.nextMsg(ChannelType.TEST)
+    returned_msg = await queue.next_msg(ChannelType.TEST)
     assert returned_msg["value"] == original_number
     await queue.close()
 

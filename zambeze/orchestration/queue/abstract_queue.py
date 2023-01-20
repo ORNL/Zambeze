@@ -102,7 +102,7 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    async def nextMsg(self, channel: ChannelType) -> dict:
+    async def next_msg(self, channel: ChannelType) -> dict:
         raise NotImplementedError(
             "nextMsg - method does not exist for:" f"{self._queue_type.value}"
         )
