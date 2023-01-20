@@ -12,11 +12,13 @@ import os
 import pwd
 import pytest
 
+import logging
 import random
 import socket
 import time
 import uuid
 
+logger = logging.getLogger(__name__)
 
 @pytest.mark.unit
 def test_registered_plugins():
@@ -87,7 +89,7 @@ def test_shell_plugin_check():
     file_path = current_valid_path + "/" + file_name
     original_number = random.randint(0, 100000000000)
 
-    factory = MessageFactory()
+    factory = MessageFactory(logger=logger)
     msg_template = factory.createTemplate(
         MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
     )
@@ -119,7 +121,7 @@ def test_shell_plugin_run():
     file_path = current_valid_path + "/" + file_name
     original_number = random.randint(0, 100000000000)
 
-    factory = MessageFactory()
+    factory = MessageFactory(logger=logger)
     msg_template = factory.createTemplate(
         MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
     )
@@ -161,7 +163,7 @@ def test_rsync_plugin_check():
 
     neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
 
-    factory = MessageFactory()
+    factory = MessageFactory(logger=logger)
     msg_template = factory.createTemplate(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
@@ -249,7 +251,7 @@ def test_rsync_plugin_run():
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
-    factory = MessageFactory()
+    factory = MessageFactory(logger=logger)
     msg_template = factory.createTemplate(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
