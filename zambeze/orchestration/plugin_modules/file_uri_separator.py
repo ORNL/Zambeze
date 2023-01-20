@@ -41,7 +41,7 @@ class FileURISeparator(URISeparator):
             package["error_messag"] = error_msg
             return package
 
-        file_and_path = uri[len(file_uri_tag):]
+        file_and_path = uri[len(file_uri_tag) :]
         path = os.path.dirname(file_and_path)
 
         if not path.startswith(os.sep):

@@ -7,7 +7,7 @@
 # it under the terms of the MIT License.
 
 import logging
-import pathlib
+import os
 
 from zambeze import Campaign, ShellActivity
 
@@ -25,11 +25,8 @@ logger.addHandler(ch)
 # create campaign
 campaign = Campaign("My ImageMagick Campaign", logger=logger)
 
-print("AA")
-
 # define an activity
-curr_dir = pathlib.Path().resolve()
-print("BB")
+curr_dir = os.path.dirname(__file__)
 activity = ShellActivity(
     name="ImageMagick",
     files=[
@@ -50,10 +47,7 @@ activity = ShellActivity(
     env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
 )
 
-print("CC")
 campaign.add_activity(activity)
 
-print("DD")
 # run the campaign
 campaign.dispatch()
-print("EE")
