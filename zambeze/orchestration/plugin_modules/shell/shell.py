@@ -256,7 +256,9 @@ class Shell(Plugin):
                 # env_tup : (key, value)
                 # Check if dict is empty
                 if data["bash"]["env_vars"]:
-                    merged_env = merge_env_variables(parent_env, data["bash"]["env_vars"])
+                    merged_env = merge_env_variables(
+                        parent_env, data["bash"]["env_vars"]
+                    )
             #                for env_tup in data["bash"]["env_vars"]:
             #                    parent_env[env_tup[0]] = env_tup[1]
             except ValueError as e:

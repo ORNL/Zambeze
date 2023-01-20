@@ -79,8 +79,8 @@ class Agent:
 
     # TODO: CHANGE THE WORD FROM SORT, PLEASE.
     def send_control_thd(self):
-        """ Move processable control messages to the message_handler from executor.
-            OBSERVES message_handler (via send_control_q)
+        """Move processable control messages to the message_handler from executor.
+        OBSERVES message_handler (via send_control_q)
         """
         self._logger.info("Starting send control thread!")
         while True:
@@ -89,19 +89,21 @@ class Agent:
             self._logger.debug("Put new activity into message handler control queue!")
 
     def recv_activity_process_thd(self):
-        """ Move process-eligible activities to the executor's to_process_q!
-            OBSERVES message_handler (via to_process_q)
+        """Move process-eligible activities to the executor's to_process_q!
+        OBSERVES message_handler (via to_process_q)
         """
         self._logger.info("Starting activity sorter thread!")
         while True:
             activ_to_sort = self._msg_handler_thd.check_activity_q.get()
-            self._logger.info(f"[agent recv activity thd] Received activity: {activ_to_sort}")
+            self._logger.info(
+                f"[agent recv activity thd] Received activity: {activ_to_sort}"
+            )
             self._executor.to_process_q.put(activ_to_sort)
             self._logger.debug("Put new activity into executor processing queue!")
 
     def send_activity_thd(self):
-        """ We created an activity! Now enqueue it in Zambeze's central queue...
-            OBSERVES executor (via to_new_activity_q)
+        """We created an activity! Now enqueue it in Zambeze's central queue...
+        OBSERVES executor (via to_new_activity_q)
 
         """
         self._logger.info("Starting send activity thread!")

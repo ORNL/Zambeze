@@ -46,7 +46,7 @@ class ShellActivity(Activity):
         campaign_id: Union[str, None] = None,
         agent_id: Union[str, None] = None,
         message_id: Union[str, None] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Create an object of a unix shell activity."""
         super().__init__(
