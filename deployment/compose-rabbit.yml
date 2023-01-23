@@ -15,7 +15,12 @@ services:
       PYTHONWARNINGS: "ignore::DeprecationWarning"
     container_name: zambeze1
     image: zambeze/zambeze:latest
-    command: [/bin/sh, -c, 'zambeze agent start & sleep 2 && tail -f /root/.zambeze/logs/`ls -t /root/.zambeze/logs/ | head -n 1`']
+#    volumes:
+#      - ../db:/zambeze/db
+#      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only to facilitate development.
+#      # The env var $CONTAINER_VOL_MNT_POINT is only set in the CI (see rsync-example.yml).
+#      # If running for local dev, you don't need to set any env var or change anything here.
+    command: [/bin/sh, -c, 'sleep 10 && zambeze agent start & sleep 2 && tail -f /root/.zambeze/logs/`ls -t /root/.zambeze/logs/ | head -n 1`']
     depends_on:
       -  rabbitmq
 
@@ -26,11 +31,11 @@ services:
       PYTHONWARNINGS: "ignore::DeprecationWarning"
     container_name: zambeze2
     image: zambeze/zambeze:latest
-    volumes:
-      - ../db:/zambeze/db
-      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only to facilitate development.
-      # The env var $CONTAINER_VOL_MNT_POINT is only set in the CI (see rsync-example.yml).
-      # If running for local dev, you don't need to change set any env var or change anything here.
+#    volumes:
+#      - ../db:/zambeze/db
+#      - ../:${CONTAINER_VOL_MNT_POINT:-/zambeze}  # This line is needed only to facilitate development.
+#      # The env var $CONTAINER_VOL_MNT_POINT is only set in the CI (see rsync-example.yml).
+#      # If running for local dev, you don't need to set any env var or change anything here.
     command: [/bin/sh, -c , 'echo "Im idle!" & tail -f /dev/null']
     depends_on:
       -  zambeze_agent1 # Needed when launching command on startup

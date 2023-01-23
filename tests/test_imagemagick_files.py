@@ -3,6 +3,7 @@ import time
 import subprocess
 import os
 
+from examples.imagemagick_files import main
 
 @pytest.mark.integration
 def test_imagemagick_files():
@@ -28,12 +29,14 @@ def test_imagemagick_files():
 
     command = ["python3", image_magick_example]
 
-    # Step 4 launch example
-    process = subprocess.Popen(
-        command, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
-    )
+    # # Step 4 launch example
+    # process = subprocess.Popen(
+    #     command, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+    # )
+    #
+    # process.communicate()
 
-    process.communicate()
+    main()
 
     # Step 5 wait for example to complete
     count = 0

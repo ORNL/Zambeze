@@ -156,7 +156,7 @@ class Executor(threading.Thread):
         transfer_type = None
         for file_path in files:
             file_url = urlparse(file_path)
-            print(f"File to parse {file_url}")
+            self._logger.debug(f"File to parse {file_url}")
 
             # If file scheme local, then do not upgrade to transfer!
             if file_url.scheme == "file":
