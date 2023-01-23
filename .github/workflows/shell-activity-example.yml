@@ -1,4 +1,4 @@
-name: Rsync Example as Integration Test - RabbitMQ
+name: ShellActivity Example as Integration Test - RabbitMQ
 on: [push, pull_request]
 
 jobs:
