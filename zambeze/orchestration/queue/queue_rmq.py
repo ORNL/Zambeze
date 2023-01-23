@@ -1,4 +1,5 @@
 import logging
+
 # from .abstract_queue import (
 #     AbstractQueue,
 # )  # TODO: Tyler unable to use until we remove async requirement.
@@ -42,8 +43,7 @@ class QueueRMQ:
 
     @property
     def uri(self) -> str:
-        """We don't use RabbitMQ URI to connect.
-        """
+        """We don't use RabbitMQ URI to connect."""
         raise NotImplementedError()
 
     @property

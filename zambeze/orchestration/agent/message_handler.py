@@ -101,7 +101,8 @@ class MessageHandler(threading.Thread):
             self._logger.info(
                 "[recv_activities_from_campaign] Dispatching message "
                 f"activity_id: {activity.activity_id} "
-                f"message_id: {activity_message.data.message_id}")
+                f"message_id: {activity_message.data.message_id}"
+            )
             self._logger.debug(
                 "[recv_activities_from_campaign] Received message from "
                 f"campaign: {activity_message}"
@@ -223,7 +224,8 @@ class MessageHandler(threading.Thread):
             self._logger.info(
                 "[send_activity] Dispatching message "
                 f"activity_id: {activity_msg.data.activity_id} "
-                f"message_id: {activity_msg.data.message_id}")
+                f"message_id: {activity_msg.data.message_id}"
+            )
 
             # TODO: need to unpack the message in the print...
             self._logger.info(f"[send_activity] {activity_msg}")

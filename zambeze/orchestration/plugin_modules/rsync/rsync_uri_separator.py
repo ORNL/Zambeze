@@ -49,7 +49,7 @@ class RsyncURISeparator(URISeparator):
             package["error_messag"] = error_msg
             return package
 
-        file_and_path = uri[len(file_uri_tag):]
+        file_and_path = uri[len(file_uri_tag) :]
         print(f"After removing rsync:// path is {file_and_path}")
         path = os.path.dirname(file_and_path)
         print(f"Removing file from path {path}")
