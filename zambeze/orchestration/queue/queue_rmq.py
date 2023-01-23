@@ -48,21 +48,18 @@ class QueueRMQ(AbstractQueue):
     def connected(self) -> bool:
         return self._rmq is not None
 
-    # TODO: Tyler 1 -- finish this.
     def connect(self) -> tuple[bool, str]:
         try:
             self._rmq = pika.BlockingConnection(pika.ConnectionParameters(self._ip))
             self._rmq_channel = self._rmq.channel()
             self._logger.info("[Queue RMQ] Creating RabbitMQ channels...")
 
-            # TODO: perhaps this should be 'subscribed'?
+            # These are the two queues we listen on.
+            # Note: these are *not subscriptions*; subscribing to filters not yet supported.
             self._rmq_channel.queue_declare(queue="ACTIVITIES")
-            # self.callback_queue = activities_q_declare.method.queue
+            self._rmq_channel.queue_declare(queue="CONTROL")
 
-            self._rmq_channel.queue_declare(
-                queue="CONTROL"
-            )  # TODO: don't auto-sub to control.
-        except Exception:
+        except Exception as e:
             if self._logger:
                 self._logger.debug(
                     f"Unable to connect to RabbitMQ server at {self._ip}:{self._port}\n"
@@ -71,6 +68,7 @@ class QueueRMQ(AbstractQueue):
                     "3. The correct ip address and port have been specified.\n"
                     "4. That an agent.yaml file exists for the zambeze agent.\n"
                 )
+                self._logger.error()
                 self._rmq = None
                 self._rmq_channel = None
 
@@ -96,7 +94,10 @@ class QueueRMQ(AbstractQueue):
 
         listen_on_channel = self._rmq_channel
 
-        self._logger.info(" [*] Waiting for messages. To exit press CTRL+C")
+        self._logger.debug(f"[message_handler] "
+                           f"[***] Waiting using persistent listener on "
+                           f"RabbitMQ {channel_to_listen} channel.")
+
         listen_on_channel.basic_consume(
             queue=channel_to_listen,
             on_message_callback=callback_func,
@@ -116,11 +117,7 @@ class QueueRMQ(AbstractQueue):
 
     def subscribe(self, channel: ChannelType):
         if self._rmq is None:
-            raise Exception(
-                "Cannot subscribe to topic, client is not "
-                "connected to a RabbitMQ queue"
-            )
-        self._sub[channel] = self._rmq.subscribe(channel.value)
+            self._sub[channel] = self._rmq.subscribe(channel.value)
 
     def unsubscribe(self, channel: ChannelType):
         if not self._sub:
