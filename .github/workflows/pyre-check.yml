@@ -3,7 +3,7 @@ name: Pyre
 on: [push]
 
 jobs:
-  build:
+  type-check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
