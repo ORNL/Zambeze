@@ -23,7 +23,7 @@ from typing import Optional
 
 
 class MessageFactory:
-    def __init__(self, logger: Optional[logging.Logger]):
+    def __init__(self, logger: logging.Logger):
 
         self._logger = logger
         self._plugins_message_template_generators = PluginsMessageTemplateEngine(logger)
@@ -54,7 +54,7 @@ class MessageFactory:
 
         :Example:
 
-        factory = MessageFactory()
+        factory = MessageFactory(logger)
         activity_msg_globus = factory.createTemplate(
                                                  MessageType.ACTIVITY,
                                                  ActivityType.PLUGIN,
@@ -152,7 +152,7 @@ class MessageFactory:
         ( MessageType.ACTIVITY, activity_msg )
 
         ```python
-        factory = MessageFactory()
+        factory = MessageFactory(logger)
         msg_template = factory.createTemplate(
                                 MessageType.ACTIVITY,
                                 "rsync",

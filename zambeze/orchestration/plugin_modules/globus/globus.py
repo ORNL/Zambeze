@@ -242,6 +242,7 @@ class Globus(Plugin):
         If the type is asynchrouns a runTransfer will return a callback action
         that can be executed to check the status of the generated task
         """
+        transfer_result: dict
 
         for item in transfer["items"]:
             source_globus_uri = self.__globus_uri_separator.separate(
@@ -268,7 +269,6 @@ class Globus(Plugin):
 
             self._logger.info("Packet to be transferred by Globus.")
             self._logger.info(json.dumps(dict(tdata), indent=4))
-            transfer_result = {}
             if "synchronous" == transfer["type"].lower():
                 transfer_result = self.__tc.submit_transfer(tdata)
                 self._logger.info(transfer_result)

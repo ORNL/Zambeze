@@ -77,7 +77,6 @@ class QueueRMQ:
             )  # TODO: don't auto-sub to control.
         except Exception:
             if self._logger:
-                # pyre-ignore[16]
                 self._logger.debug(
                     f"Unable to connect to RabbitMQ server at {self.uri}"
                     "1. Make sure your firewall ports are open.\n"

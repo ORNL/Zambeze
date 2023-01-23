@@ -59,7 +59,6 @@ class MessageStatusValidator(AbstractMessageValidator):
     def check(self, message) -> tuple[bool, str]:
         """Will ensure that the values of the message have the expected
         format and values"""
-        # pyre-ignore[6]
         if not isinstance(message, StatusTemplate):
             return (
                 False,

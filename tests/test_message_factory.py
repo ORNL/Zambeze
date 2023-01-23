@@ -1,19 +1,18 @@
 # Local imports
 from zambeze.orchestration.message.message_factory import MessageFactory
-
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
-from zambeze.orchestration.plugins import Plugins
 
 # Standard imports
 import pytest
 import time
 import uuid
+import logging
 
 
 @pytest.mark.unit
 def test_factory_fail():
-    plugins = Plugins()
-    msg_factory = MessageFactory(plugins)
+    logger = logging.getLogger(__name__)
+    msg_factory = MessageFactory(logger)
 
     """Following should generate all the required and optional fields for
     creating a status message, The returned tuple with have the
@@ -60,8 +59,8 @@ def test_factory_fail():
 def test_factory_activity_template_plugin_globus():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    plugins = Plugins()
-    msg_factory = MessageFactory(plugins)
+    logger = logging.getLogger(__name__)
+    msg_factory = MessageFactory(logger)
     activity_template = msg_factory.createTemplate(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
@@ -92,8 +91,8 @@ def test_factory_activity_template_plugin_globus():
 def test_factory_activity_template_plugin_rsync():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    plugins = Plugins()
-    msg_factory = MessageFactory(plugins)
+    logger = logging.getLogger(__name__)
+    msg_factory = MessageFactory(logger)
     activity_template = msg_factory.createTemplate(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
@@ -126,8 +125,8 @@ def test_factory_activity_template_plugin_rsync():
 def test_factory_activity_template_shell():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    plugins = Plugins()
-    msg_factory = MessageFactory(plugins)
+    logger = logging.getLogger(__name__)
+    msg_factory = MessageFactory(logger)
     activity_template = msg_factory.createTemplate(
         MessageType.ACTIVITY, ActivityType.SHELL, args={"shell": "bash"}
     )[1]
@@ -151,8 +150,8 @@ def test_factory_activity_template_shell():
 
 @pytest.mark.unit
 def test_factory_success_status():
-    plugins = Plugins()
-    msg_factory = MessageFactory(plugins)
+    logger = logging.getLogger(__name__)
+    msg_factory = MessageFactory(logger)
 
     """Following should generate all the required and optional fields for
     creating a status message, The returned tuple with have the
@@ -196,8 +195,8 @@ def test_factory_success_status():
 def test_factory_create_plugin_rsync():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    plugins = Plugins()
-    msg_factory = MessageFactory(plugins)
+    logger = logging.getLogger(__name__)
+    msg_factory = MessageFactory(logger)
     activity_tuple = msg_factory.createTemplate(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
