@@ -140,6 +140,7 @@ class ZambezeSettings:
         :return: ZMQ connection URI
         :rtype: str
         """
+        # TODO: consider renaming this function to get_zmq_binding_uri
         port = self.settings["zmq"]["port"]
         return f"tcp://*:{port}"
 

@@ -16,6 +16,8 @@ from .activities.abstract_activity import Activity
 from zambeze.orchestration.agent.commands import agent_start
 from typing import Optional
 
+from zambeze.config import HOST, ZMQ_PORT
+
 
 class Campaign:
     """A Scientific Campaign.
@@ -51,7 +53,7 @@ class Campaign:
 
         # TODO: this needs to be REFACTORED AND UNHARDCODED
         #  (use the get_zmq_connection_uri) after we move it somewhere nice.
-        self._zmq_socket.connect("tcp://localhost:5558")
+        self._zmq_socket.connect(f"tcp://{HOST}:{ZMQ_PORT}")
 
         self._logger.info("[CAMPAIGN] Starting agent...")
         agent_start(self._logger)
@@ -75,7 +77,7 @@ class Campaign:
 
             # Dump dict into bytestring (.dumps)
             serial_activity = pickle.dumps(activity)
-            self._logger.debug("11")
+            self._logger.debug("Sending serial activity")
             self._zmq_socket.send(serial_activity)
-            self._logger.debug("22")
+            self._logger.debug("Serial activity sent.")
             self._logger.info(f"REPLY: {self._zmq_socket.recv()}")
