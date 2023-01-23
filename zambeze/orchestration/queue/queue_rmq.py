@@ -1,7 +1,7 @@
 import logging
-from .abstract_queue import (
-    AbstractQueue,
-)  # TODO: Tyler unable to use until we remove async requirement.
+# from .abstract_queue import (
+#     AbstractQueue,
+# )  # TODO: Tyler unable to use until we remove async requirement.
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 import dill
@@ -9,7 +9,8 @@ import pika
 
 
 # TODO: should inherit AbstractQueue class (make it allow a listen).
-class QueueRMQ(AbstractQueue):
+# class QueueRMQ(AbstractQueue):
+class QueueRMQ:
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
 
         self._queue_type = QueueType.RABBITMQ
