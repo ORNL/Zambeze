@@ -16,7 +16,7 @@ jobs:
         sleep 15
     - name: Generating SSH Keys
       run: |
-        ssh-keygen 
+        ssh-keygen -b 2048 -t rsa -q -N "" -f ./id_rsa
     - name: Run Tests
       run: |
         export ZAMBEZE_CI_TEST_RSYNC_IP="null"

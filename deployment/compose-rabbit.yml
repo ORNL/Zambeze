@@ -13,8 +13,6 @@ services:
       RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
       PYTHONWARNINGS: "ignore::DeprecationWarning"
-      ZAMBEZE_CI_TEST_RSYNC_IP: "null"
-      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "null"
     container_name: zambeze1
     image: zambeze/zambeze:latest
     # Uncomment volumes if you want to sync your local dev. disk with the container's.
@@ -24,12 +22,16 @@ services:
     command: [/bin/sh, -c, 'sleep 10 && zambeze agent start & sleep 2 && tail -f /root/.zambeze/logs/`ls -t /root/.zambeze/logs/ | head -n 1`']
     depends_on:
       -  rabbitmq
+    ports:
+      - 22:22
 
   zambeze_agent2:
     environment:
       RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
       PYTHONWARNINGS: "ignore::DeprecationWarning"
+      ZAMBEZE_CI_TEST_RSYNC_IP: zambeze_agent1
+      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "null"
     container_name: zambeze2
     image: zambeze/zambeze:latest
 #    volumes:

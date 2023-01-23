@@ -151,7 +151,7 @@ def test_shell_plugin_run():
         assert lines[0].strip() == str(original_number)
 
 
-@pytest.mark.internal_integration
+@pytest.mark.integration
 def test_rsync_plugin_check():
     plugins = Plugins()
     plugins.configure({"shell": {}, "rsync": {}})
@@ -208,7 +208,7 @@ def test_rsync_plugin_check():
     assert not checked_actions["rsync"][0]["transfer"][0]
 
 
-@pytest.mark.internal_integration
+@pytest.mark.integration
 def test_rsync_plugin_run():
     """This test is designed to test the rsync plugin plugin
 
@@ -229,7 +229,7 @@ def test_rsync_plugin_run():
 
     Once those env variables are defined the tests can be run with.
 
-    python3 -m pytest -m internal_integration
+    python3 -m pytest -m integration
     """
     plugins = Plugins()
 
