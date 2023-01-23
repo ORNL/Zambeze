@@ -9,7 +9,7 @@ import pika
 
 
 # TODO: should inherit AbstractQueue class (make it allow a listen).
-class QueueRMQ:
+class QueueRMQ(AbstractQueue):
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
 
         self._queue_type = QueueType.RABBITMQ
@@ -166,7 +166,9 @@ class QueueRMQ:
 
         # TODO: change to rabbitmq timeout.
         except Exception as e:
-            raise QueueTimeoutException("nextMsg call - checking RabbitMQ")
+            error_msg = "next_msg call - checking RabbitMQ"
+            error_msg += f" error: {e}"
+            raise QueueTimeoutException(error_msg)
 
         return data
 

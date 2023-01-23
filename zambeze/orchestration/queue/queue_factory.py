@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from .queue_nats import QueueNATS
 from .queue_rmq import QueueRMQ

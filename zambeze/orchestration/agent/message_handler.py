@@ -41,7 +41,8 @@ class MessageHandler(threading.Thread):
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
         self._logger.info(
-            f"[Message Handler] Binding to ZMQ: {self._settings.get_zmq_connection_uri()}"
+            "[Message Handler] Binding to ZMQ: "
+            f"{self._settings.get_zmq_connection_uri()}"
         )
         self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
 
@@ -100,34 +101,38 @@ class MessageHandler(threading.Thread):
                 self._logger.error(f"CANT GENERATE MESSAGE IN MSG HANDLER! {e}")
 
             self._logger.info(
-                f"[recv_activities_from_campaign] Dispatching message activity_id: {activity.activity_id} "
-                f"message_id: {activity_message.data.message_id}"
-            )
+                "[recv_activities_from_campaign] Dispatching message "
+                f"activity_id: {activity.activity_id} "
+                f"message_id: {activity_message.data.message_id}")
             self._logger.debug(
-                f"[recv_activities_from_campaign] Received message from campaign: {activity_message}"
+                "[recv_activities_from_campaign] Received message from "
+                f"campaign: {activity_message}"
             )
 
             activity_model = ActivityModel(
                 agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
             )
             self._logger.debug(
-                f"[recv_activities_from_campaign] Creating activity in the DB: {activity}"
+                "[recv_activities_from_campaign] Creating activity in the"
+                f" DB: {activity}"
             )
             self._activity_dao.insert(activity_model)
             self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
 
             self.msg_handler_send_activity_q.put(activity_message)
 
-    # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
+    # Custom RabbitMQ callback; made decision to put here so that we can
+    # access the messages.
     def _callback(self, ch, method, properties, body):
-        self._logger.info(f"[recv_activity] receiving activity...")
+        self._logger.info("[recv_activity] receiving activity...")
         activity = dill.loads(body)
 
         # TODO: is this doing anything?
         self.check_activity_q.put(activity)
 
         if activity.type != MessageType.ACTIVITY:
-            # TODO: I don't think this is necessary, as we're pulling from activity channel...
+            # TODO: I don't think this is necessary, as we're pulling from activity
+            # channel...
             print("Non activity detected")
             self._logger.debug("Non-activity message received on" "ACTIVITY channel")
 
@@ -144,10 +149,17 @@ class MessageHandler(threading.Thread):
         should_ack = plugins_are_configured  # and plugins_are_ready
 
         # TODO: additional functionalities
-        # 1. Pulling down messages based on metadata filters rather than pulling down anything.
-        # 2. Initial 'broadcast' check to see if there is a single agent capable of running each activity?
-        # 3. Agent thinks it can run activity. Hits some sort of failure case (either in execution or configuration)
-        #   ... wrap this up as a new Error-flag activity, and let it be handled accordingly.
+        #
+        # 1. Pulling down messages based on metadata filters rather than pulling
+        # down anything.
+        #
+        # 2. Initial 'broadcast' check to see if there is a single agent capable
+        # of running each activity?
+        #
+        # 3. Agent thinks it can run activity. Hits some sort of failure case
+        # (either in execution or configuration) ... wrap this up as a new
+        # Error-flag activity, and let it be handled accordingly.
+        #
         # ROUTING: https://www.rabbitmq.com/tutorials/tutorial-four-python.html
 
         self._logger.debug(
@@ -176,11 +188,12 @@ class MessageHandler(threading.Thread):
         >> Async
 
         Get activity from 'ACTIVITIES' queue.
-        If we have the correct plugins, then we keep it (ack). Otherwise, we put it back (nack).
+        If we have the correct plugins, then we keep it (ack). Otherwise, we
+        put it back (nack).
         """
 
         self._logger.info(
-            f"[Message Handler] Connecting to RabbitMQ RECV ACTIVITY broker..."
+            "[Message Handler] Connecting to RabbitMQ RECV ACTIVITY broker..."
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
@@ -198,31 +211,31 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(
-            f"[Message Handler] Connecting to RabbitMQ SEND ACTIVITY broker..."
+            "[Message Handler] Connecting to RabbitMQ SEND ACTIVITY broker..."
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
         while True:
-            self._logger.info(f"[send_activity] Waiting for messages...")
+            self._logger.info("[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
             self._logger.info("HOY")
             # activity_msg = activity.generate_message()
 
             self._logger.info(
-                f"[send_activity] Dispatching message activity_id: {activity_msg.data.activity_id} "
-                f"message_id: {activity_msg.data.message_id}"
-            )
+                "[send_activity] Dispatching message "
+                f"activity_id: {activity_msg.data.activity_id} "
+                f"message_id: {activity_msg.data.message_id}")
 
             # TODO: need to unpack the message in the print...
             self._logger.info(f"[send_activity] {activity_msg}")
 
-            self._logger.info(f"[send_activity] Message received! Sending...")
+            self._logger.info("[send_activity] Message received! Sending...")
             try:
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
             except Exception as e:
                 self._logger.error(f"CAUGHT: {e}")
-            self._logger.debug(f"[send_activity] Successfully sent activity!")
+            self._logger.debug("[send_activity] Successfully sent activity!")
 
     def recv_control(self):
         """
@@ -230,12 +243,12 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(
-            f"[Message Handler] Connecting to RabbitMQ RECV CONTROL broker..."
+            "[Message Handler] Connecting to RabbitMQ RECV CONTROL broker..."
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
-        self._logger.info(f"[recv_control] receiving activity...")
+        self._logger.info("[recv_control] receiving activity...")
 
         def callback(_1, _2, _3, body):
             activity = pickle.loads(body)
@@ -252,21 +265,21 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(
-            f"[Message Handler] Connecting to RabbitMQ SEND CONTROL broker..."
+            "[Message Handler] Connecting to RabbitMQ SEND CONTROL broker..."
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
         while True:
-            self._logger.debug(f"[send_activity] Waiting for messages...")
+            self._logger.debug("[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 
-            self._logger.debug(f"[send_activity] Message received! Sending...")
+            self._logger.debug("[send_activity] Message received! Sending...")
             try:
                 queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
             except Exception as e:
                 self._logger.info(f"Caught error: {e}")
-            self._logger.info(f"[send_activity] Successfully sent activity!")
+            self._logger.info("[send_activity] Successfully sent activity!")
 
     def message_to_plugin_validator(self, plugin, cmd):
         """Determine whether plugin can execute based on plugin input schema.

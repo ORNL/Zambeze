@@ -60,7 +60,7 @@ class GitURISeparator(URISeparator):
             package["error_messag"] = error_msg
             return package
 
-        file_and_path_project_owner = uri[len(file_uri_tag) :]
+        file_and_path_project_owner = uri[len(file_uri_tag):]
 
         # There needs to be at least two / left in the string after removing
         # the git:// prefix, becuase the git URI must contain a project and

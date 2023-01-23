@@ -38,7 +38,6 @@ class Executor(threading.Thread):
         logger: Optional[logging.Logger] = None,
         agent_id: Optional[str] = None,
     ) -> None:
-
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
         self._settings = settings
@@ -152,7 +151,8 @@ class Executor(threading.Thread):
 
         self._logger.debug("Processing files...")
 
-        # TODO: we raise exceptions and handle them in __process with an agent shutdown?!
+        # TODO: we raise exceptions and handle them in __process with an agent
+        # shutdown?!
         transfer_type = None
         for file_path in files:
             file_url = urlparse(file_path)
