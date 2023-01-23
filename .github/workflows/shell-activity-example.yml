@@ -9,9 +9,7 @@ jobs:
     - name: Build Zambeze image
       run: docker build -t zambeze/zambeze -f deployment/Dockerfile .
     - name: Launch Docker Compose
-      run: | # We only need CONTAINER_VOL_MNT_POINT because we couldn't make the volume mount for dev work in GitHub VM 
-        export CONTAINER_VOL_MNT_POINT=/unused
-        docker compose -f deployment/compose-rabbit.yml up -d
+      run: docker compose -f deployment/compose-rabbit.yml up -d
     - name: Sleep 
       run: |
         echo "I'm going to sleep hoping the services will be up when I wake up... zzz..."
@@ -19,5 +17,4 @@ jobs:
     - name: Run Tests
       run: docker compose -f deployment/compose-rabbit.yml exec zambeze_agent2 python3 -m pytest -m integration -vs
     - name: Cleanup
-      run: |
-        docker compose -f deployment/compose-rabbit.yml down
+      run: docker compose -f deployment/compose-rabbit.yml down
