@@ -157,12 +157,12 @@ class QueueRMQ(AbstractQueue):
 
         return data
 
-    def ackMsg(self, channel: ChannelType):
+    def ack_msg(self, channel: ChannelType):
         if self._sub:
             if channel in self._sub:
                 self._sub[channel].ack()
 
-    def nackMsg(self, channel: ChannelType):
+    def nack_msg(self, channel: ChannelType):
         if self._sub:
             if channel in self._sub:
                 self._sub[channel].nack()
