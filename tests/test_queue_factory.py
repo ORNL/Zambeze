@@ -7,6 +7,7 @@ import asyncio
 import pytest
 import os
 import random
+import logging
 
 
 async def factory_nats(queue):
@@ -22,7 +23,8 @@ async def factory_nats(queue):
 @pytest.mark.gitlab_runner
 def test_factory_nats():
 
-    factory = QueueFactory()
+    logger = logging.getLogger(__name__)
+    factory = QueueFactory(logger)
     config = {}
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
