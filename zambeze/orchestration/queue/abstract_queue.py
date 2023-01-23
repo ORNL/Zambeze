@@ -119,7 +119,7 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    def send(self, channel: ChannelType, body: dict):
+    def send(self, channel: ChannelType, exchange: str, body: dict):
         raise NotImplementedError(
             "send - method does not exist for:" f"{self._queue_type.value}"
         )
