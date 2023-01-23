@@ -1,7 +1,8 @@
 import logging
-from .abstract_queue import (
-    AbstractQueue,
-)  # TODO: Tyler unable to use until we remove async requirement.
+
+# from .abstract_queue import (
+#     AbstractQueue,
+# )  # TODO: Tyler unable to use until we remove async requirement.
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 import dill
@@ -9,6 +10,7 @@ import pika
 
 
 # TODO: should inherit AbstractQueue class (make it allow a listen).
+# class QueueRMQ(AbstractQueue):
 class QueueRMQ:
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
 
@@ -41,8 +43,7 @@ class QueueRMQ:
 
     @property
     def uri(self) -> str:
-        """We don't use RabbitMQ URI to connect.
-        """
+        """We don't use RabbitMQ URI to connect."""
         raise NotImplementedError()
 
     @property
@@ -154,7 +155,9 @@ class QueueRMQ:
 
         # TODO: change to rabbitmq timeout.
         except Exception as e:
-            raise QueueTimeoutException("nextMsg call - checking RabbitMQ")
+            error_msg = "next_msg call - checking RabbitMQ"
+            error_msg += f" error: {e}"
+            raise QueueTimeoutException(error_msg)
 
         return data
 
