@@ -27,13 +27,13 @@ class QueueNATS(AbstractQueue):
     async def __disconnected(self):
         if self._logger:
             self._logger.info(
-                f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
+                f"Disconnected from nats... {self.uri}"
             )
 
     async def __reconnected(self):
         if self._logger:
             self._logger.info(
-                f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
+                f"Reconnected to nats... {self.uri}"
             )
 
     @property
@@ -72,7 +72,6 @@ class QueueNATS(AbstractQueue):
             )
         except Exception:
             if self._logger:
-                # pyre-ignore[16]
                 self._logger.debug(
                     f"Unable to connect to nats server at {self.uri}"
                     "1. Make sure your firewall ports are open.\n"

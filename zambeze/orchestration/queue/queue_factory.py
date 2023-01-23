@@ -11,7 +11,7 @@ from ..zambeze_types import QueueType
 
 
 class QueueFactory:
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: logging.Logger):
         self._logger = logger
 
     def create(self, queue_type: QueueType, args: dict):
