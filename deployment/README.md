@@ -18,7 +18,7 @@ Agent1 is idle, listening to the MQ and, the other is stopped waiting to be
  executed using the API.
 
 ```shell
-$ docker compose -f deployment/compose.yml down  && docker compose -f deployment/compose.yml up
+$ docker compose -f deployment/compose-rabbit.yml down  && docker compose -f deployment/compose-rabbit.yml up
 ```
 
 Go to a different terminal tab and make sure the three containers are running:
@@ -46,8 +46,9 @@ And run:
 ```shell
 $ python imagemagick-files.py
 ```
+# TODO: needs to change this for RabbitMQ
 
-You're supposed to see messages coming in the nats output. And the exepcted
+You're supposed to see messages coming in the nats output. And the expected
 output for this agent is:
 
 ```shell
