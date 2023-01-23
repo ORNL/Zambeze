@@ -9,7 +9,7 @@ import logging
 import time
 import uuid
 
-from typing import Optional, Union
+from typing import Union
 from .abstract_activity import Activity
 
 from zambeze.orchestration.message.abstract_message import AbstractMessage
@@ -60,7 +60,7 @@ class ShellActivity(Activity):
             message_id,
             activity_id=str(uuid.uuid4()),
         )
-        self.logger: Optional[logging.Logger] = (
+        self.logger: logging.Logger = (
             logger if logger else logging.getLogger(__name__)
         )
         # Pull out environment variables, IF users submitted them.
