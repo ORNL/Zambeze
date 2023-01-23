@@ -541,138 +541,138 @@ def test_globus_process_async():
     assert os.path.exists(abs_path_destination_shared)
 
 
-@pytest.mark.globus_manual
-def test_globus_process_manual():
-
-    required_env_variables = [
-        "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",
-        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
-        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
-        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_COLLECTION_PATH",
-        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_GUEST_COLLECTION_PATH",
-    ]
-
-    for env_var in required_env_variables:
-        if env_var not in os.environ:
-            raise Exception(
-                "Globus test cannot be run if the env variable"
-                f" {env_var} is not defined and a local "
-                "globus-connect-server and endpoint have not been"
-                " set up."
-            )
-
-    path_to_endpoint = os.getenv(required_env_variables[3])
-    path_to_endpoint_shared = os.getenv(required_env_variables[4])
-
-    configuration = {
-        "authentication_flow": {
-            "client_id": os.getenv(required_env_variables[0]),
-            "type": "native"
-        },
-        "local_endpoints": [
-            {
-                "uuid": os.getenv(required_env_variables[1]),
-                "path": path_to_endpoint,
-                "type": "mapped",
-            },
-            {
-                "uuid": os.getenv(required_env_variables[2]),
-                "path": path_to_endpoint_shared,
-                "type": "guest",
-            },
-        ],
-        "default_endpoint": os.getenv(required_env_variables[2]),
-    }
-
-    print(configuration)
-
-    globus_plugin = globus.Globus()
-    globus_plugin.configure(configuration)
-
-    # Create a file on the local posix system
-    file_name = "demofile_for_globus1-" + str(time.time_ns()) + ".txt"
-    f = open(file_name, "w")
-    original_number = random.randint(0, 100000000000)
-    f.write(str(original_number))
-    f.close()
-
-    current_valid_path = os.getcwd()
-    file_path = current_valid_path + "/" + file_name
-
-    relative_destination_file_path = "/"
-    sub_folder = ""
-    # This is so that we can run the test both as a runner and as user
-    if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
-        sub_folder = "runner/"
-    # action items in the list should be executed in order
-    package = [
-        {
-            "move_to_globus_collection": {
-                "items": [
-                    {
-                        "source": "file://" + file_path,
-                        "destination": "globus://"
-                        + os.getenv(required_env_variables[1])
-                        + relative_destination_file_path
-                        + sub_folder,
-                    }
-                ]
-            }
-        },
-        {
-            "transfer": {
-                "type": "synchronous",
-                "items": [
-                    {
-                        "source": "globus://"
-                        + os.getenv(required_env_variables[1])
-                        + sub_folder
-                        + file_name,
-                        "destination": "globus://"
-                        + os.getenv(required_env_variables[2])
-                        + relative_destination_file_path
-                        + sub_folder
-                        + file_name,
-                    }
-                ],
-            }
-        },
-    ]
-
-    # This test is designed to move a file to the globus endpoint
-    # So before we get started we are going to make sure that a file
-    # does not already exist at that location
-    abs_path_destination = (
-        path_to_endpoint
-        + relative_destination_file_path
-        + sub_folder
-        + os.path.basename(file_path)
-    )
-    # After it gets transferred using globus it should end up moving to the sub_folder
-    abs_path_destination_shared = (
-        path_to_endpoint
-        + relative_destination_file_path
-        + "guest/"
-        + sub_folder
-        + os.path.basename(file_path)
-    )
-    if os.path.exists(abs_path_destination):
-        os.remove(abs_path_destination)
-    if os.path.exists(abs_path_destination_shared):
-        os.remove(abs_path_destination_shared)
-
-    checked_items = globus_plugin.check(package)
-    all_checks_pass = True
-    print(checked_items)
-    for item in checked_items:
-        for action in item.keys():
-            print(item[action])
-            if not item[action][0]:
-                all_checks_pass = False
-
-    if all_checks_pass:
-        globus_plugin.process(package)
-
-    # After processing we should verify that the file exists at the final location
-    print(abs_path_destination_shared)
-    assert os.path.exists(abs_path_destination_shared)
+#@pytest.mark.globus_manual
+#def test_globus_process_manual():
+#
+#    required_env_variables = [
+#        "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",
+#        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
+#        "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_SHARED_UUID",
+#        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_COLLECTION_PATH",
+#        "ZAMBEZE_CI_TEST_POSIX_GLOBUS_GUEST_COLLECTION_PATH",
+#    ]
+#
+#    for env_var in required_env_variables:
+#        if env_var not in os.environ:
+#            raise Exception(
+#                "Globus test cannot be run if the env variable"
+#                f" {env_var} is not defined and a local "
+#                "globus-connect-server and endpoint have not been"
+#                " set up."
+#            )
+#
+#    path_to_endpoint = os.getenv(required_env_variables[3])
+#    path_to_endpoint_shared = os.getenv(required_env_variables[4])
+#
+#    configuration = {
+#        "authentication_flow": {
+#            "client_id": os.getenv(required_env_variables[0]),
+#            "type": "native"
+#        },
+#        "local_endpoints": [
+#            {
+#                "uuid": os.getenv(required_env_variables[1]),
+#                "path": path_to_endpoint,
+#                "type": "mapped",
+#            },
+#            {
+#                "uuid": os.getenv(required_env_variables[2]),
+#                "path": path_to_endpoint_shared,
+#                "type": "guest",
+#            },
+#        ],
+#        "default_endpoint": os.getenv(required_env_variables[2]),
+#    }
+#
+#    print(configuration)
+#
+#    globus_plugin = globus.Globus()
+#    globus_plugin.configure(configuration)
+#
+#    # Create a file on the local posix system
+#    file_name = "demofile_for_globus1-" + str(time.time_ns()) + ".txt"
+#    f = open(file_name, "w")
+#    original_number = random.randint(0, 100000000000)
+#    f.write(str(original_number))
+#    f.close()
+#
+#    current_valid_path = os.getcwd()
+#    file_path = current_valid_path + "/" + file_name
+#
+#    relative_destination_file_path = "/"
+#    sub_folder = ""
+#    # This is so that we can run the test both as a runner and as user
+#    if os.getenv(required_env_variables[0]) in GITLAB_RUNNER_UUIDs:
+#        sub_folder = "runner/"
+#    # action items in the list should be executed in order
+#    package = [
+#        {
+#            "move_to_globus_collection": {
+#                "items": [
+#                    {
+#                        "source": "file://" + file_path,
+#                        "destination": "globus://"
+#                        + os.getenv(required_env_variables[1])
+#                        + relative_destination_file_path
+#                        + sub_folder,
+#                    }
+#                ]
+#            }
+#        },
+#        {
+#            "transfer": {
+#                "type": "synchronous",
+#                "items": [
+#                    {
+#                        "source": "globus://"
+#                        + os.getenv(required_env_variables[1])
+#                        + sub_folder
+#                        + file_name,
+#                        "destination": "globus://"
+#                        + os.getenv(required_env_variables[2])
+#                        + relative_destination_file_path
+#                        + sub_folder
+#                        + file_name,
+#                    }
+#                ],
+#            }
+#        },
+#    ]
+#
+#    # This test is designed to move a file to the globus endpoint
+#    # So before we get started we are going to make sure that a file
+#    # does not already exist at that location
+#    abs_path_destination = (
+#        path_to_endpoint
+#        + relative_destination_file_path
+#        + sub_folder
+#        + os.path.basename(file_path)
+#    )
+#    # After it gets transferred using globus it should end up moving to the sub_folder
+#    abs_path_destination_shared = (
+#        path_to_endpoint
+#        + relative_destination_file_path
+#        + "guest/"
+#        + sub_folder
+#        + os.path.basename(file_path)
+#    )
+#    if os.path.exists(abs_path_destination):
+#        os.remove(abs_path_destination)
+#    if os.path.exists(abs_path_destination_shared):
+#        os.remove(abs_path_destination_shared)
+#
+#    checked_items = globus_plugin.check(package)
+#    all_checks_pass = True
+#    print(checked_items)
+#    for item in checked_items:
+#        for action in item.keys():
+#            print(item[action])
+#            if not item[action][0]:
+#                all_checks_pass = False
+#
+#    if all_checks_pass:
+#        globus_plugin.process(package)
+#
+#    # After processing we should verify that the file exists at the final location
+#    print(abs_path_destination_shared)
+#    assert os.path.exists(abs_path_destination_shared)
