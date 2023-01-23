@@ -6,7 +6,6 @@ jobs:
   check-formatting:
     name: Code Formatting
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     steps:
     - uses: JoshuaSBrown/cpp-py-formatter/check@v0.2.3
       with:

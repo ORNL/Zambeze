@@ -5,7 +5,7 @@ import getpass
 import pathlib
 
 from dataclasses import asdict
-from zambeze.orchestration.zambeze_types import MessageType, ActivityType, ChannelType
+from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 from zambeze.orchestration.message.message_factory import MessageFactory
 
 
