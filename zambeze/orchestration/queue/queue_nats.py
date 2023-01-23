@@ -27,13 +27,13 @@ class QueueNATS(AbstractQueue):
     async def __disconnected(self):
         if self._logger:
             self._logger.info(
-                f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
+                f"Disconnected from nats... {self.uri}"
             )
 
     async def __reconnected(self):
         if self._logger:
             self._logger.info(
-                f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
+                f"Reconnected to nats... {self.uri}"
             )
 
     @property
