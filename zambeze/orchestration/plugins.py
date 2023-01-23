@@ -250,9 +250,7 @@ class Plugins:
         >> }
         """
         if isinstance(msg, AbstractMessage):
-            # pyre-ignore[16]
-            print("msg is AbstractMessage")
-
+            
             if msg.data.type == "ACTIVITY":
                 if msg.data.body.type == "PLUGIN":
                     arguments = asdict(msg.data.body.parameters)
@@ -363,7 +361,6 @@ class Plugins:
         plugins.run('rsync', arguments)
         """
         if isinstance(msg, AbstractMessage):
-            # pyre-ignore[16]
             if msg.data.body.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.body.plugin.lower()

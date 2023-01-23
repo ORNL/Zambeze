@@ -119,6 +119,7 @@ def agent_stop(logger: logging.Logger) -> None:
     """
     logger.info("Received stop signal.")
 
+    old_state: dict
     # Check to make sure agent is *supposed to be* running.
     if state_path.is_file():
         with state_path.open("r") as f:
