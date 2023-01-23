@@ -41,21 +41,9 @@ class QueueRMQ:
 
     @property
     def uri(self) -> str:
-        """Get the RabbitMQ connection URI.
-
-        :returns: RabbitMQ connection URI
-        :rtype: str
-
-        Raises:
-        :raises Exception: if no ip address to NATS is provided
-        :raises Exception: if no port for NATS is provided
+        """We don't use RabbitMQ URI to connect.
         """
-        if self._ip is None:
-            raise Exception("No ip specified for RabbitMQ queue")
-        if self._port is None:
-            raise Exception("No port specified for RabbitMQ queue")
-
-        return f"nats://{self._ip}:{self._port}"
+        raise NotImplementedError()
 
     @property
     def connected(self) -> bool:
@@ -78,7 +66,7 @@ class QueueRMQ:
         except Exception:
             if self._logger:
                 self._logger.debug(
-                    f"Unable to connect to RabbitMQ server at {self.uri}"
+                    f"Unable to connect to RabbitMQ server at {self._ip}:{self._port}\n"
                     "1. Make sure your firewall ports are open.\n"
                     "2. That the rabbitmq-service is up and running.\n"
                     "3. The correct ip address and port have been specified.\n"
@@ -88,11 +76,11 @@ class QueueRMQ:
                 self._rmq_channel = None
 
         if self.connected:
-            return True, f"Able to connect to RabbitMQ at {self.uri}"
+            return True, f"Able to connect to RabbitMQ at {self._ip}:{self._port}"
         return (
             False,
             "Connection attempt timed out while trying to connect to RabbitMQ "
-            f"at {self.uri}",
+            f"at {self._ip}:{self._port}",
         )
 
     @property
