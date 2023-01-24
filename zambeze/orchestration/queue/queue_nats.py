@@ -1,5 +1,6 @@
 import logging
 import nats
+
 # from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
