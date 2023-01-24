@@ -23,14 +23,10 @@ class MessageHandler(threading.Thread):
         self._settings = settings
         self._logger = logger
 
-        # TODO: fix to rmq here... then don't mention rmq again in this file.
-
         self.mq_args = {
             "ip": self._settings.settings["rmq"]["host"],
             "port": self._settings.settings["rmq"]["port"],
         }
-
-        self._logger.info("EARTH TO JOSH C")
 
         self.queue_factory = QueueFactory(logger=self._logger)
 
@@ -90,16 +86,8 @@ class MessageHandler(threading.Thread):
                 "[recv_activities_from_campaign] Received an activity bytestring!"
             )
             activity = pickle.loads(activity_bytestring)
-
             activity.agent_id = self.agent_id
-
-            self._logger.debug(f"Here is the activity: {activity}")
-
-            try:
-                activity_message: AbstractMessage = activity.generate_message()
-
-            except Exception as e:
-                self._logger.error(f"CANT GENERATE MESSAGE IN MSG HANDLER! {e}")
+            activity_message: AbstractMessage = activity.generate_message()
 
             self._logger.info(
                 f"[recv_activities_from_campaign] Dispatching message activity_id: {activity.activity_id} "
@@ -122,7 +110,7 @@ class MessageHandler(threading.Thread):
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
-    def _callback(self, ch, method, properties, body):
+    def _callback(self, ch, method, _properties, body):
         self._logger.info(f"[recv_activity] receiving activity...")
         activity = dill.loads(body)
 
@@ -151,10 +139,12 @@ class MessageHandler(threading.Thread):
             else:
                 ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] NACKED activity message.")
-                # stuck in NACK loop.
+                # stuck in NACK loop; sleep helps alleviate what happens when
+                #   a task can't get picked up by anyone (temporary).
                 time.sleep(1)  # TODO: *add git issue for proper filtering*
         except Exception as e:
-            self._logger.error(f"[Message Handler] AG CAUGHT: {e}")
+            self._logger.error(f"[Message Handler] COULD NOT ACK! CAUGHT: "
+                               f"{type(e).__name__}: {e}")
 
     def recv_activity(self):
         """
@@ -192,8 +182,6 @@ class MessageHandler(threading.Thread):
         while True:
             self._logger.info(f"[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
-            self._logger.info("HOY")
-            # activity_msg = activity.generate_message()
 
             self._logger.info(
                 f"[send_activity] Dispatching message activity_id: {activity_msg.data.activity_id} "
@@ -207,8 +195,10 @@ class MessageHandler(threading.Thread):
             try:
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
             except Exception as e:
-                self._logger.error(f"CAUGHT: {e}")
-            self._logger.debug(f"[send_activity] Successfully sent activity!")
+                self._logger.error(f"[Message Handler] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: "
+                                   f"{type(e).__name__}: {e}")
+            else:
+                self._logger.debug(f"[send_activity] Successfully sent activity!")
 
     def recv_control(self):
         """
@@ -220,8 +210,6 @@ class MessageHandler(threading.Thread):
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
-
-        self._logger.info(f"[recv_control] receiving activity...")
 
         def callback(_1, _2, _3, body):
             activity = pickle.loads(body)
@@ -244,15 +232,17 @@ class MessageHandler(threading.Thread):
         queue_client.connect()
 
         while True:
-            self._logger.debug(f"[send_activity] Waiting for messages...")
+            self._logger.debug(f"[send_control] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 
-            self._logger.debug(f"[send_activity] Message received! Sending...")
+            self._logger.debug(f"[send_control] Message received! Sending...")
             try:
                 queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
             except Exception as e:
-                self._logger.info(f"Caught error: {e}")
-            self._logger.info(f"[send_activity] Successfully sent activity!")
+                self._logger.error(f"[Message Handler] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
+                                   f"{type(e).__name__}: {e}")
+            else:
+                self._logger.info(f"[send_control] Successfully sent control message!")
 
     def message_to_plugin_validator(self, plugin, cmd):
         """Determine whether plugin can execute based on plugin input schema.

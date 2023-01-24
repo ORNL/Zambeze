@@ -143,12 +143,7 @@ class QueueRMQ(AbstractQueue):
 
         try:
             msg = self._sub[channel].next_msg(timeout=1)
-            print("Received data")
             data = dill.loads(msg.data)
-            print("After dill loads")
-            print(data)
-
-        # TODO: change to rabbitmq timeout.
         except Exception as e:
             raise QueueTimeoutException("nextMsg call - checking RabbitMQ")
 
