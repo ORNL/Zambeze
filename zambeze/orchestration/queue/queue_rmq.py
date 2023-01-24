@@ -115,8 +115,9 @@ class QueueRMQ(AbstractQueue):
         return active_subscriptions
 
     def subscribe(self, channel: ChannelType):
-        if self._rmq is None:
-            self._sub[channel] = self._rmq.subscribe(channel.value)
+        raise NotImplementedError()
+        # if self._rmq is None:
+        #     self._sub[channel] = self._rmq.subscribe(channel.value)
 
     def unsubscribe(self, channel: ChannelType):
         if not self._sub:
