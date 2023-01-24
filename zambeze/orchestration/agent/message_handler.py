@@ -112,11 +112,10 @@ class MessageHandler(threading.Thread):
 
             self.msg_handler_send_activity_q.put(activity_message)
 
-
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
     def _callback(self, ch, method, _properties, body):
-        self._logger.info(f"[recv_activity] receiving activity...")
+        self._logger.info("[recv_activity] receiving activity...")
         activity = dill.loads(body)
 
         # TODO: *add git issue* should be able to require a list of plugins (not just one).
@@ -211,7 +210,7 @@ class MessageHandler(threading.Thread):
                 self._logger.error(f"[Message Handler] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: "
                                    f"{type(e).__name__}: {e}")
             else:
-                self._logger.debug(f"[send_activity] Successfully sent activity!")
+                self._logger.debug("[send_activity] Successfully sent activity!")
 
     def recv_control(self):
         """
@@ -246,17 +245,17 @@ class MessageHandler(threading.Thread):
 
         while True:
 
-            self._logger.debug(f"[send_control] Waiting for messages...")
+            self._logger.debug("[send_control] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 
-            self._logger.debug(f"[send_control] Message received! Sending...")
+            self._logger.debug("[send_control] Message received! Sending...")
             try:
                 queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
             except Exception as e:
                 self._logger.error(f"[Message Handler] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
                                    f"{type(e).__name__}: {e}")
             else:
-                self._logger.info(f"[send_control] Successfully sent control message!")
+                self._logger.info("[send_control] Successfully sent control message!")
 
     def message_to_plugin_validator(self, plugin, cmd):
         """Determine whether plugin can execute based on plugin input schema.
