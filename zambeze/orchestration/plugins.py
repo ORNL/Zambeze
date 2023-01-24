@@ -250,7 +250,6 @@ class Plugins:
         >> }
         """
         if isinstance(msg, AbstractMessage):
-            
             if msg.data.type == "ACTIVITY":
                 if msg.data.body.type == "PLUGIN":
                     arguments = asdict(msg.data.body.parameters)

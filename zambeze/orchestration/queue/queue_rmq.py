@@ -40,8 +40,7 @@ class QueueRMQ(AbstractQueue):
 
     @property
     def uri(self) -> str:
-        """We don't use RabbitMQ URI to connect.
-        """
+        """We don't use RabbitMQ URI to connect."""
         raise NotImplementedError()
 
     @property
@@ -145,7 +144,9 @@ class QueueRMQ(AbstractQueue):
             msg = self._sub[channel].next_msg(timeout=1)
             data = dill.loads(msg.data)
         except Exception as e:
-            raise QueueTimeoutException("nextMsg call - checking RabbitMQ")
+            error_msg = "next_msg call - checking RabbitMQ"
+            error_msg += f" error: {e}"
+            raise QueueTimeoutException(error_msg)
 
         return data
 

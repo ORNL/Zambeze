@@ -19,7 +19,6 @@ from ..zambeze_types import MessageType, ActivityType
 # Standard imports
 import logging
 import uuid
-from typing import Optional
 
 
 class MessageFactory:
