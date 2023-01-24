@@ -25,8 +25,8 @@ class MessageFactory:
     def __init__(self, logger: logging.Logger):
 
         self._logger = logger
-        self._plugins_message_template_generators = PluginsMessageTemplateEngine(logger)
-        self._plugins_message_validators = PluginsMessageValidator(logger)
+        self._plugins_msg_template_generators = PluginsMessageTemplateEngine(logger)
+        self._plugins_msg_validators = PluginsMessageValidator(logger)
 
     def create_template(
         self,
@@ -104,10 +104,9 @@ class MessageFactory:
                 if "plugin" in args:
                     if args["plugin"] is not None:
                         activity.body.plugin = args["plugin"]
-                        activity.body.parameters = \
-                            self._plugins_message_template_generators.generate(
-                                args["plugin"], args["action"]
-                            )
+                        activity.body.parameters = self._plugins_msg_template_generators.generate(
+                            args["plugin"], args["action"]
+                        )
                 else:
                     raise Exception(
                         "Missing required arguments to initialize"
@@ -175,7 +174,7 @@ class MessageFactory:
             if result[0]:
                 if args[1].body.type == "PLUGIN":
                     plugin_name = args[1].body.plugin
-                    results = self._plugins_message_validators.validate(
+                    results = self._plugins_msg_validators.validate(
                         plugin_name, args[1].body.parameters
                     )
                     print(f"Printing results {results}")
