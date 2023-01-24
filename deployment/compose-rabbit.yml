@@ -13,8 +13,8 @@ services:
       RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
       PYTHONWARNINGS: "ignore::DeprecationWarning"
-      ZAMBEZE_CI_TEST_RSYNC_IP: "null"
-      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "null"
+      ZAMBEZE_CI_TEST_RSYNC_IP: ${ZAMBEZE_CI_TEST_RSYNC_IP} # when running locally, for development, you don't need to set these env vars.
+      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: ${ZAMBEZE_CI_TEST_RSYNC_SSH_KEY}
     container_name: zambeze1
     image: zambeze/zambeze:latest
     # Uncomment volumes if you want to sync your local dev. disk with the container's.
