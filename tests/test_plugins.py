@@ -91,7 +91,7 @@ def test_shell_plugin_check():
     original_number = random.randint(0, 100000000000)
 
     factory = MessageFactory(logger=logger)
-    msg_template = factory.createTemplate(
+    msg_template = factory.create_template(
         MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
     )
 
@@ -123,7 +123,7 @@ def test_shell_plugin_run():
     original_number = random.randint(0, 100000000000)
 
     factory = MessageFactory(logger=logger)
-    msg_template = factory.createTemplate(
+    msg_template = factory.create_template(
         MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
     )
 
@@ -165,7 +165,7 @@ def test_rsync_plugin_check():
     neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
 
     factory = MessageFactory(logger=logger)
-    msg_template = factory.createTemplate(
+    msg_template = factory.create_template(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
         {"plugin": "rsync", "action": "transfer"},
@@ -253,7 +253,7 @@ def test_rsync_plugin_run():
     local_ip = socket.gethostbyname(hostname)
 
     factory = MessageFactory(logger=logger)
-    msg_template = factory.createTemplate(
+    msg_template = factory.create_template(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
         {"plugin": "rsync", "action": "transfer"},
@@ -289,7 +289,7 @@ def test_rsync_plugin_run():
     template_engine = PluginsMessageTemplateEngine()
     msg_template_return = template_engine.generate("rsync", "transfer")
 
-    msg_template_return = factory.createTemplate(
+    msg_template_return = factory.create_template(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
         {"plugin": "rsync", "action": "transfer"},

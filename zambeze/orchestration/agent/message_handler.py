@@ -153,8 +153,9 @@ class MessageHandler(threading.Thread):
                 #   a task can't get picked up by anyone (temporary).
                 time.sleep(1)  # TODO: *add git issue for proper filtering*
         except Exception as e:
-            self._logger.error(f"[Message Handler] COULD NOT ACK! CAUGHT: "
-                               f"{type(e).__name__}: {e}")
+            self._logger.error(
+                f"[Message Handler] COULD NOT ACK! CAUGHT: " f"{type(e).__name__}: {e}"
+            )
 
     def recv_activity(self):
         """
@@ -201,14 +202,18 @@ class MessageHandler(threading.Thread):
             )
 
             # TODO: need to unpack the message in the print...
-            self._logger.info(f"[send_activity] Message received: {activity_msg} \n"
-                              f"..... Sending to activities channel...")
+            self._logger.info(
+                f"[send_activity] Message received: {activity_msg} \n"
+                f"..... Sending to activities channel..."
+            )
 
             try:
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
             except Exception as e:
-                self._logger.error(f"[Message Handler] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: "
-                                   f"{type(e).__name__}: {e}")
+                self._logger.error(
+                    f"[Message Handler] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: "
+                    f"{type(e).__name__}: {e}"
+                )
             else:
                 self._logger.debug("[send_activity] Successfully sent activity!")
 
@@ -252,8 +257,10 @@ class MessageHandler(threading.Thread):
             try:
                 queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
             except Exception as e:
-                self._logger.error(f"[Message Handler] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
-                                   f"{type(e).__name__}: {e}")
+                self._logger.error(
+                    f"[Message Handler] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
+                    f"{type(e).__name__}: {e}"
+                )
             else:
                 self._logger.info("[send_control] Successfully sent control message!")
 

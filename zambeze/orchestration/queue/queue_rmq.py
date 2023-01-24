@@ -1,7 +1,5 @@
 import logging
-from .abstract_queue import (
-    AbstractQueue,
-)
+from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 import dill
@@ -93,9 +91,11 @@ class QueueRMQ(AbstractQueue):
 
         listen_on_channel = self._rmq_channel
 
-        self._logger.debug(f"[message_handler] "
-                           f"[***] Waiting using persistent listener on "
-                           f"RabbitMQ {channel_to_listen} channel.")
+        self._logger.debug(
+            f"[message_handler] "
+            f"[***] Waiting using persistent listener on "
+            f"RabbitMQ {channel_to_listen} channel."
+        )
 
         listen_on_channel.basic_consume(
             queue=channel_to_listen,

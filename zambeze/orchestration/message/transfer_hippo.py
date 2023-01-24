@@ -47,7 +47,7 @@ class TransferHippo:
                 f"file://{default_working_dir}{os.sep}" f"{source_file_name}"
             )
 
-            msg_template_transfer = self._msg_factory.createTemplate(
+            msg_template_transfer = self._msg_factory.create_template(
                 MessageType.ACTIVITY,
                 ActivityType.PLUGIN,
                 {"plugin": "globus", "action": "transfer"},
@@ -76,7 +76,7 @@ class TransferHippo:
 
             # Move from the Globus collection to the default working
             # directory
-            move_tmpl8 = self._msg_factory.createTemplate(
+            move_tmpl8 = self._msg_factory.create_template(
                 MessageType.ACTIVITY,
                 ActivityType.PLUGIN,
                 {"plugin": "globus", "action": "move_from_globus_collection"},
@@ -106,7 +106,7 @@ class TransferHippo:
             messages.append(immutable_msg_move)
 
         elif transfer_type == "rsync":
-            msg_template = self._msg_factory.createTemplate(
+            msg_template = self._msg_factory.create_template(
                 MessageType.ACTIVITY,
                 ActivityType.PLUGIN,
                 {"plugin": "rsync", "action": "transfer"},

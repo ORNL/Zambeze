@@ -28,7 +28,7 @@ class MessageFactory:
         self._plugins_message_template_generators = PluginsMessageTemplateEngine(logger)
         self._plugins_message_validators = PluginsMessageValidator(logger)
 
-    def createTemplate(
+    def create_template(
         self,
         message_type: MessageType,
         activity_type: ActivityType = ActivityType.SHELL,
@@ -104,11 +104,10 @@ class MessageFactory:
                 if "plugin" in args:
                     if args["plugin"] is not None:
                         activity.body.plugin = args["plugin"]
-                        activity.body.parameters = (
+                        activity.body.parameters = \
                             self._plugins_message_template_generators.generate(
                                 args["plugin"], args["action"]
                             )
-                        )
                 else:
                     raise Exception(
                         "Missing required arguments to initialize"
@@ -124,12 +123,11 @@ class MessageFactory:
                         "Missing required arguments to initialize"
                         " SHELL activity i.e. args={'shell': 'bash'}"
                     )
-
-            return (message_type, activity)
+            return message_type, activity
 
         elif message_type == MessageType.STATUS:
             status = createStatusTemplate()
-            return (message_type, status)
+            return message_type, status
         else:
             raise Exception(
                 "Unrecognized message type cannot createTemplate: "

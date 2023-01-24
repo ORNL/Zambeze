@@ -75,7 +75,7 @@ class ShellActivity(Activity):
     def generate_message(self) -> AbstractMessage:
 
         factory = MessageFactory(logger=self.logger)
-        template = factory.createTemplate(
+        template = factory.create_template(
             MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
         )
 

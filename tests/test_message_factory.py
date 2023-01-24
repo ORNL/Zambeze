@@ -34,7 +34,7 @@ def test_factory_fail():
         }
     )
     """
-    status_tuple = msg_factory.createTemplate(MessageType.STATUS)
+    status_tuple = msg_factory.create_template(MessageType.STATUS)
     """At this point the template can be used to fill in the items required
     to exceute the message after it is sent"""
     print(status_tuple)
@@ -61,7 +61,7 @@ def test_factory_activity_template_plugin_globus():
     optional fields"""
     logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
-    activity_template = msg_factory.createTemplate(
+    activity_template = msg_factory.create_template(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
         args={"plugin": "globus", "action": "transfer"},
@@ -93,7 +93,7 @@ def test_factory_activity_template_plugin_rsync():
     optional fields"""
     logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
-    activity_template = msg_factory.createTemplate(
+    activity_template = msg_factory.create_template(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
         {"plugin": "rsync", "action": "transfer"},
@@ -127,7 +127,7 @@ def test_factory_activity_template_shell():
     optional fields"""
     logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
-    activity_template = msg_factory.createTemplate(
+    activity_template = msg_factory.create_template(
         MessageType.ACTIVITY, ActivityType.SHELL, args={"shell": "bash"}
     )[1]
     print(activity_template)
@@ -173,7 +173,7 @@ def test_factory_success_status():
         }
     )
     """
-    status_tuple = msg_factory.createTemplate(MessageType.STATUS)
+    status_tuple = msg_factory.create_template(MessageType.STATUS)
     """At this point the template can be used to fill in the items required
     to exceute the message after it is sent"""
     status_tuple[1].message_id = str(uuid.uuid4())
@@ -197,7 +197,7 @@ def test_factory_create_plugin_rsync():
     optional fields"""
     logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
-    activity_tuple = msg_factory.createTemplate(
+    activity_tuple = msg_factory.create_template(
         MessageType.ACTIVITY,
         ActivityType.PLUGIN,
         {"plugin": "rsync", "action": "transfer"},
