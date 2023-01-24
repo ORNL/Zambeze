@@ -51,6 +51,7 @@ class MessageHandler(threading.Thread):
         self.msg_handler_send_activity_q = Queue()
         self.send_control_q = Queue()
         self._recv_control_q = Queue()
+        self.check_activity_q = Queue()
 
         self._logger.info("[Message Handler] Message handler successfully initialized!")
 
@@ -146,6 +147,7 @@ class MessageHandler(threading.Thread):
             if should_ack:
                 ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] ACKED activity message.")
+                self.check_activity_q.put(activity)
             else:
                 ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] NACKED activity message.")
