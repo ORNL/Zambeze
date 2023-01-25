@@ -1,15 +1,12 @@
 import logging
-from .abstract_queue import (
-    AbstractQueue,
-)  # TODO: Tyler unable to use until we remove async requirement.
+from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 import dill
 import pika
 
 
-# TODO: should inherit AbstractQueue class (make it allow a listen).
-class QueueRMQ:
+class QueueRMQ(AbstractQueue):
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
 
         self._queue_type = QueueType.RABBITMQ
@@ -41,29 +38,25 @@ class QueueRMQ:
 
     @property
     def uri(self) -> str:
-        """We don't use RabbitMQ URI to connect.
-        """
+        """We don't use RabbitMQ URI to connect."""
         raise NotImplementedError()
 
     @property
     def connected(self) -> bool:
         return self._rmq is not None
 
-    # TODO: Tyler 1 -- finish this.
     def connect(self) -> tuple[bool, str]:
         try:
             self._rmq = pika.BlockingConnection(pika.ConnectionParameters(self._ip))
             self._rmq_channel = self._rmq.channel()
             self._logger.info("[Queue RMQ] Creating RabbitMQ channels...")
 
-            # TODO: perhaps this should be 'subscribed'?
+            # These are the two queues we listen on.
+            # Note: these are *not subscriptions*; subscribing to filters not yet supported.
             self._rmq_channel.queue_declare(queue="ACTIVITIES")
-            # self.callback_queue = activities_q_declare.method.queue
+            self._rmq_channel.queue_declare(queue="CONTROL")
 
-            self._rmq_channel.queue_declare(
-                queue="CONTROL"
-            )  # TODO: don't auto-sub to control.
-        except Exception:
+        except Exception as e:
             if self._logger:
                 self._logger.debug(
                     f"Unable to connect to RabbitMQ server at {self._ip}:{self._port}\n"
@@ -72,6 +65,7 @@ class QueueRMQ:
                     "3. The correct ip address and port have been specified.\n"
                     "4. That an agent.yaml file exists for the zambeze agent.\n"
                 )
+                self._logger.error(f"CAUGHT: {e}")
                 self._rmq = None
                 self._rmq_channel = None
 
@@ -97,7 +91,12 @@ class QueueRMQ:
 
         listen_on_channel = self._rmq_channel
 
-        self._logger.info(" [*] Waiting for messages. To exit press CTRL+C")
+        self._logger.debug(
+            f"[message_handler] "
+            f"[***] Waiting using persistent listener on "
+            f"RabbitMQ {channel_to_listen} channel."
+        )
+
         listen_on_channel.basic_consume(
             queue=channel_to_listen,
             on_message_callback=callback_func,
@@ -116,12 +115,9 @@ class QueueRMQ:
         return active_subscriptions
 
     def subscribe(self, channel: ChannelType):
-        if self._rmq is None:
-            raise Exception(
-                "Cannot subscribe to topic, client is not "
-                "connected to a RabbitMQ queue"
-            )
-        self._sub[channel] = self._rmq.subscribe(channel.value)
+        raise NotImplementedError()
+        # if self._rmq is None:
+        #     self._sub[channel] = self._rmq.subscribe(channel.value)
 
     def unsubscribe(self, channel: ChannelType):
         if not self._sub:
@@ -147,23 +143,20 @@ class QueueRMQ:
 
         try:
             msg = self._sub[channel].next_msg(timeout=1)
-            print("Received data")
             data = dill.loads(msg.data)
-            print("After dill loads")
-            print(data)
-
-        # TODO: change to rabbitmq timeout.
         except Exception as e:
-            raise QueueTimeoutException("nextMsg call - checking RabbitMQ")
+            error_msg = "next_msg call - checking RabbitMQ"
+            error_msg += f" error: {e}"
+            raise QueueTimeoutException(error_msg)
 
         return data
 
-    def ackMsg(self, channel: ChannelType):
+    def ack_msg(self, channel: ChannelType):
         if self._sub:
             if channel in self._sub:
                 self._sub[channel].ack()
 
-    def nackMsg(self, channel: ChannelType):
+    def nack_msg(self, channel: ChannelType):
         if self._sub:
             if channel in self._sub:
                 self._sub[channel].nack()

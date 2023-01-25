@@ -11,6 +11,7 @@ import os
 
 from zambeze import Campaign, ShellActivity
 
+
 def main():
     # logging (for debugging purposes)
     logger = logging.getLogger(__name__)
