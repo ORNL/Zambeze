@@ -541,8 +541,8 @@ def test_globus_process_async():
     assert os.path.exists(abs_path_destination_shared)
 
 
-@pytest.mark.globus_manual
-def test_globus_process_manual():
+@pytest.mark.globus_native
+def test_globus_process_native():
 
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",

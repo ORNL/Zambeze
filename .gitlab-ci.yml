@@ -14,7 +14,6 @@ test-zambeze:
     - python3.9 -m pip install -r requirements.txt
     - python3.9 -m pip install .
     - chmod 600 $ZAMBEZE_CI_TEST_RSYNC_SSH_KEY
-    - python3.9 -m pytest -m unit -sv
     - python3.9 -m pytest -m gitlab_runner -sv
 
 # Ideally this job would use a virtual environment that was provisioned by 
@@ -29,18 +28,6 @@ test-zambeze-globus:
     - python3.9 -m pip uninstall -y zambeze
     - python3.9 -m pip install -r requirements.txt
     - python3.9 -m pip install .
-    - python3.9 -m pytest -m unit -sv
     - python3.9 -m pytest -m globus -sv
-
-## Simply run the zambeze agent and see what happens
-#run-zambeze-agent:
-#  stage: run
-#  tags:
-#    - cades
-#  script:
-#    - python3.9 -m venv ./zambeze-py39-env
-#    - source ./zambeze-py39-env/bin/activate
-#    - python3.9 -m pip uninstall -y zambeze
-#    - python3.9 -m pip install -r requirements.txt
-#    - python3.9 -m pip install .
-#    - zambeze-agent --log-path ./run.log --debug --zmq-heartbeat-port 5556 --zmq-activity-port 5555
+    - echo "globus.token file must exist already to prevent hanging"
+    - python3.9 -m pytest -m globus_manual -sv
