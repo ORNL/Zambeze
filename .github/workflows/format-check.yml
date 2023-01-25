@@ -15,7 +15,7 @@ jobs:
   format-check:
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: check-formatting
+    # needs: check-formatting
     strategy:
       matrix:
         python-version: [ "3.9", "3.10" ]
