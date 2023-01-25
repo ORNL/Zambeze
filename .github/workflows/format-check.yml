@@ -3,19 +3,19 @@ name: Format Check
 on: push
 
 jobs:
-  check-formatting:
-    name: Code Formatting
-    runs-on: ubuntu-latest
-    steps:
-    - uses: JoshuaSBrown/cpp-py-formatter/check@v0.2.3
-      with:
-        clangFormatVersion: 8
-        token: ${{ secrets.GITHUB_TOKEN }}
+#  check-formatting:
+#    name: Code Formatting
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: JoshuaSBrown/cpp-py-formatter/check@v0.2.3
+#      with:
+#        clangFormatVersion: 8
+#        token: ${{ secrets.GITHUB_TOKEN }}
 
   format-check:
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: check-formatting
+    # needs: check-formatting
     strategy:
       matrix:
         python-version: [ "3.9", "3.10" ]
@@ -30,7 +30,9 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get install -y python3-sphinx sphinx-rtd-theme-common
-          pip install sphinx_rtd_theme recommonmark flake8 pytest pytest-cov
+          pip install sphinx_rtd_theme recommonmark flake8 black pytest pytest-cov
+      - name: Black formatting checks
+        run: black --check .
       - name: Lint with flake8
         run: |
           flake8 --count --select=E9,F63,F7,F82 --show-source --statistics .
