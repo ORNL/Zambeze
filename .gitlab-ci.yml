@@ -30,4 +30,4 @@ test-zambeze-globus:
     - python3.9 -m pip install .
     - python3.9 -m pytest -m globus -sv
     - echo "globus.token file must exist already to prevent hanging"
-    - python3.9 -m pytest -m globus_manual -sv
+    - python3.9 -m pytest -m globus_native -sv
