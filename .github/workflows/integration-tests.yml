@@ -19,8 +19,8 @@ jobs:
         ssh-keygen -b 2048 -t rsa -q -N "" -f ./id_rsa
     - name: Run Tests
       run: |
-        export ZAMBEZE_CI_TEST_RSYNC_IP="null"
-        export ZAMBEZE_CI_TEST_RSYNC_SSH_KEY="null"
+        export ZAMBEZE_CI_TEST_RSYNC_IP="add something"
+        export ZAMBEZE_CI_TEST_RSYNC_SSH_KEY="add something"
         docker compose -f deployment/compose-rabbit.yml exec zambeze_agent2 python3 -m pytest -m integration -vs
     - name: Cleanup
       run: docker compose -f deployment/compose-rabbit.yml down
