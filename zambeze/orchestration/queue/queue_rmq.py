@@ -106,6 +106,11 @@ class QueueRMQ(AbstractQueue):
 
     @property
     def subscriptions(self) -> list[ChannelType]:
+
+
+
+        
+
         active_subscriptions = []
         if not self._sub:
             return active_subscriptions
