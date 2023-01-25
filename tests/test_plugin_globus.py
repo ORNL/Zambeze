@@ -567,7 +567,7 @@ def test_globus_process_manual():
     configuration = {
         "authentication_flow": {
             "client_id": os.getenv(required_env_variables[0]),
-            "type": "native"
+            "type": "native",
         },
         "local_endpoints": [
             {
