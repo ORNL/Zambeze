@@ -25,6 +25,7 @@ test-zambeze-globus:
   script:
     - python3.9 -m venv ./zambeze-py39-env
     - source ./zambeze-py39-env/bin/activate
+    - env
     - python3.9 -m pip uninstall -y zambeze
     - python3.9 -m pip install -r requirements.txt
     - python3.9 -m pip install .
