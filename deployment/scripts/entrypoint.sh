@@ -1,17 +1,17 @@
 #!/bin/bash
 
-/usr/sbin/sshd
+sudo /usr/sbin/sshd
 
-echo "Arguments are"
-echo "$@"
+echo "[entrypoint.sh] Arguments are: $@"
+USER=$(whoami)
+echo "[entrypoint.sh] Running as user: $USER"
+echo "[entrypoint.sh] Home is: $HOME"
 if [[ $# -gt 2 ]]
-  # Explanation
-  # "-" - means start the shell as a login shell
-  # "zambeze" - enter as the "zambeze" user
-  # "--session-command" - get rid of annoying warning about no job control
-  #then su - "zambeze" "$@"
-  #else su - "zambeze" --session-command "/bin/bash"
-  then exec "$@"
-  else exec "/bin/bash"
+  then 
+    echo "[entrypoint.sh] Running: /bin/bash $@"
+    export USER=$USER && export HOME=$HOME && /bin/bash $@
+  else
+    echo "[entrypoint.sh] Running: /bin/bash"
+    export USER=$USER && export HOME=$HOME && /bin/bash
 fi
 

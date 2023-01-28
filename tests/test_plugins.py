@@ -163,7 +163,7 @@ def test_rsync_plugin_check():
     local_ip = socket.gethostbyname(hostname)
 
     neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
-
+    rsync_user = os.getenv("ZAMBEZE_CI_TESTS_RSYNC_USER")
     factory = MessageFactory(logger=logger)
     msg_template = factory.create_template(
         MessageType.ACTIVITY,
@@ -182,7 +182,7 @@ def test_rsync_plugin_check():
     msg_template[1].body.parameters.transfer.items[0].source.user = current_user
     msg_template[1].body.parameters.transfer.items[0].source.path = current_valid_path
     msg_template[1].body.parameters.transfer.items[0].destination.ip = neighbor_vm_ip
-    msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
+    msg_template[1].body.parameters.transfer.items[0].destination.user = rsync_user
     msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
 
     msg = factory.create(msg_template)
@@ -235,6 +235,7 @@ def test_rsync_plugin_run():
 
     neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
+    rsync_user = os.getenv("ZAMBEZE_CI_TESTS_RSYNC_USER")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
     # Attaching a timestamp to avoid concurrent runs overwriting files
@@ -271,7 +272,7 @@ def test_rsync_plugin_run():
     msg_template[1].body.parameters.transfer.items[0].source.user = current_user
     msg_template[1].body.parameters.transfer.items[0].source.path = file_path
     msg_template[1].body.parameters.transfer.items[0].destination.ip = neighbor_vm_ip
-    msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
+    msg_template[1].body.parameters.transfer.items[0].destination.user = rsync_user
     msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
 
     msg = factory.create(msg_template)
@@ -302,7 +303,7 @@ def test_rsync_plugin_run():
     msg_template_return[1].credential = {}
     msg_template_return[1].submission_time = str(int(time.time()))
     msg_template_return[1].body.parameters.transfer.items[0].source.ip = neighbor_vm_ip
-    msg_template_return[1].body.parameters.transfer.items[0].source.user = "cades"
+    msg_template_return[1].body.parameters.transfer.items[0].source.user = rsync_user
     msg_template_return[1].body.parameters.transfer.items[0].source.path = (
         "/tmp/" + file_name
     )

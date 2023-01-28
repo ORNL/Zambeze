@@ -1,18 +1,33 @@
 #!/bin/bash
 
-# Generate ssh keys
-ssh-keygen -b 2048 -t rsa -f $HOME/.ssh/id_rsa -q -N ""
-# Copy our key to shared path
-cp $HOME/.ssh/id_rsa.pub /srv/shared/id_rsa_zambeze2.pub
+SCRIPT=$(realpath "$0")
+SOURCE=$(dirname "$SCRIPT")
+source ${SOURCE}/common.sh
 
-while [ ! "$(ls -A /srv/shared/ | grep 'id_rsa_zambeze1.pub' )" ]
-do
-  sleep 1
-  echo "Waiting for zambeze1 ssh public key..."
-done
+echo "[zambeze_agent2_start.sh] Home is: $HOME"
+USER=$(whoami)
+echo "[zambeze_agent2_start.sh] User is: $USER"
+HOSTNAME=$(hostname)
+echo "[zambeze_agent2_start.sh] Hostname is: $HOSTNAME"
 
-# Register as an authorized host
-cat /srv/shared/id_rsa_zambeze1.pub > $HOME/.ssh/authorized_keys
-chmod 600 $HOME/.ssh/authorized_keys
+expected_foreign_keys=1
+ssh_setup
 
-echo "Im idle!" & tail -f /dev/null
+zambeze1_ip=$(nslookup zambeze1 | grep -A1 zambeze1 | grep Address | awk '{print $2}')
+#export ZAMBEZE_CI_TEST_RSYNC_IP="$zambeze1_ip"
+#export ZAMBEZE_CI_TEST_RSYNC_SSH_KEY="/home/zambeze/.ssh/id_rsa"
+ls -la /etc | grep profile
+sudo grep -qxF "export ZAMBEZE_CI_TEST_RSYNC_IP=$zambeze1_ip" /etc/profile || \
+  echo "export ZAMBEZE_CI_TEST_RSYNC_IP=$zambeze1_ip" | \
+  sudo tee /etc/profile
+sudo grep -qxF "export ZAMBEZE_CI_TEST_RSYNC_SSH_KEY=/home/zambeze/.ssh/id_rsa" \
+  /etc/profile || echo \
+  "export ZAMBEZE_CI_TEST_RSYNC_SSH_KEY=/home/zambeze/.ssh/id_rsa" | \
+  sudo tee /etc/profile
+grep -qxF "export ZAMBEZE_CI_TEST_RSYNC_IP=$zambeze1_ip" /home/zambeze/.bashrc \
+  || echo "export ZAMBEZE_CI_TEST_RSYNC_IP=$zambeze1_ip" >> /home/zambeze/.bashrc
+grep -qxF "export ZAMBEZE_CI_TEST_RSYNC_SSH_KEY=/home/zambeze/.ssh/id_rsa" \
+  /home/zambeze/.bashrc || echo \
+  "export ZAMBEZE_CI_TEST_RSYNC_SSH_KEY=/home/zambeze/.ssh/id_rsa" >> /home/zambeze/.bashrc
+
+echo "[zambeze_agent2_start.sh] I'm idle!" & tail -f /dev/null

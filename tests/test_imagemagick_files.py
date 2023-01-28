@@ -5,7 +5,7 @@ import os
 from examples.imagemagick_files import main as imagemagick_main
 
 
-@pytest.mark.end-to-end
+@pytest.mark.end_to_end
 def test_imagemagick_files():
     """This test assumes that docker compose is already up and running with
     two agents and a nats queue"""
