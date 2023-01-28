@@ -1,4 +1,4 @@
-name: Internal Integration Tests
+name: Integration Tests
 on: [push, pull_request]
 
 jobs:
