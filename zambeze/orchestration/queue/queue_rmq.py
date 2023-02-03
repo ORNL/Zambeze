@@ -8,7 +8,6 @@ import pika
 
 class QueueRMQ(AbstractQueue):
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
-
         self._queue_type = QueueType.RABBITMQ
         self._logger = logger
         self._ip = "127.0.0.1"

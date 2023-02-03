@@ -61,7 +61,6 @@ def test_registered_plugins():
 
 @pytest.mark.unit
 def test_check_configured_plugins():
-
     plugins = Plugins()
 
     assert len(plugins.configured) == 0

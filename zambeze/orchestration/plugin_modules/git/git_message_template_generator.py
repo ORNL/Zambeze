@@ -29,7 +29,6 @@ class GitCredentialTemplate:
 
 @dataclass
 class GitCommitTemplateInner:
-
     destination: str
     commit_message: str
     credentials: GitCredentialTemplate
@@ -43,7 +42,6 @@ class GitCommitTemplate:
 
 @dataclass
 class GitDownloadTemplateInner:
-
     destination: str
     credentials: GitCredentialTemplate
     items: list = field(default_factory=list)
@@ -70,7 +68,6 @@ class GitMessageTemplateGenerator(PluginMessageTemplateGenerator):
                 )
             )
         elif args == "download":
-
             return GitDownloadTemplate(
                 GitDownloadTemplateInner(
                     "", GitCredentialTemplate("", "", ""), [Source("")]

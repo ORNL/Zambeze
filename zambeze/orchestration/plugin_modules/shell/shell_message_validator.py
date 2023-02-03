@@ -22,7 +22,6 @@ class ShellMessageValidator(PluginMessageValidator):
         super().__init__("shell", logger=logger)
 
     def __validateEnvVars(self, action: str, arguments: dict):
-
         # Make sure all of the values provided in the env_vars dict
         # are of type string
         checks = []
@@ -75,7 +74,6 @@ class ShellMessageValidator(PluginMessageValidator):
         return checks
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
-
         print("Shell validate action")
         if not isinstance(arguments, dict):
             print("Converting to dict if dataclass")

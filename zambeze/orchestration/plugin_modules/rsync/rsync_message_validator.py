@@ -24,7 +24,6 @@ class RsyncMessageValidator(PluginMessageValidator):
         super().__init__(PLUGIN_NAME, logger=logger)
 
     def _validateAction(self, action: str, checks: list, arguments: dict):
-
         if not isinstance(arguments, dict):
             arguments = asdict(arguments)
 

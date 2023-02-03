@@ -10,7 +10,6 @@ import pytest
 
 @pytest.mark.unit
 def test_rsync_messageTemplate():
-
     instance = RsyncMessageTemplateGenerator()
     rsync_template = instance.generate()
     print(rsync_template)

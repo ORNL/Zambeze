@@ -28,7 +28,6 @@ class GitMessageValidator(PluginMessageValidator):
         # Start by checking that all the files have been provided
         action = "commit"
         for item in commit_arguments["items"]:
-
             if not item["source"].startswith("file://"):
                 error_msg = "Error detected for commit source. The file to "
                 error_msg += "commit must be located on the posix file system"
@@ -53,7 +52,6 @@ class GitMessageValidator(PluginMessageValidator):
     def _validateDownload(self, download_arguments, checks):
         action = "download"
         for item in download_arguments["items"]:
-
             if not item["source"].startswith("git://"):
                 error_msg = "Error detected for download source. The git URI "
                 error_msg += "must begin with git://"
