@@ -18,7 +18,9 @@ services:
       RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
       PYTHONWARNINGS: "ignore::DeprecationWarning"
-      ZAMBEZE_CI_TESTS_RSYNC_USER: "zambeze"
+      ZAMBEZE_CI_TEST_RSYNC_USER: "zambeze"
+      ZAMBEZE_CI_TEST_RSYNC_IP: "zambeze2"
+      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "/home/zambeze/.ssh/id_rsa"
     container_name: zambeze1
     hostname: zambeze1
     image: zambeze/zambeze:latest
@@ -39,7 +41,9 @@ services:
       RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
       PYTHONWARNINGS: "ignore::DeprecationWarning"
-      ZAMBEZE_CI_TESTS_RSYNC_USER: "zambeze"
+      ZAMBEZE_CI_TEST_RSYNC_USER: "zambeze"
+      ZAMBEZE_CI_TEST_RSYNC_IP: "zambeze1"
+      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "/home/zambeze/.ssh/id_rsa"
     container_name: zambeze2
     hostname: zambeze2
     image: zambeze/zambeze:latest

@@ -11,6 +11,7 @@ import copy
 import os
 import pwd
 import pytest
+import re
 
 import logging
 import random
@@ -19,6 +20,23 @@ import time
 import uuid
 
 logger = logging.getLogger(__name__)
+
+
+def getIP(address_or_hostname: str):
+    # Check if this is an ip address, if not check to see if we can
+    # resolve to an IP address by assuming it is a hostname
+    if re.search("[a-zA-Z]", address_or_hostname):
+        # assuming that because it contains characters it is a hostname
+        try:
+            neighbor_vm_ip = socket.gethostbyname(address_or_hostname)
+        except Exception as e:
+            print(e)
+            raise Exception(
+                "Unable resolze ZAMBEZE_CI_TEST_RSYNC_IP to an IP" " Address"
+            )
+    else:
+        neighbor_vm_ip = address_or_hostname
+    return neighbor_vm_ip
 
 
 @pytest.mark.unit
@@ -159,11 +177,14 @@ def test_rsync_plugin_check():
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     current_user = pwd.getpwuid(os.geteuid())[0]
+    print(os.environ)
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
-    neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
-    rsync_user = os.getenv("ZAMBEZE_CI_TESTS_RSYNC_USER")
+    neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    neighbor_vm_ip = getIP(neighbor_vm)
+
+    rsync_user = os.getenv("ZAMBEZE_CI_TEST_RSYNC_USER")
     factory = MessageFactory(logger=logger)
     msg_template = factory.create_template(
         MessageType.ACTIVITY,
@@ -233,9 +254,11 @@ def test_rsync_plugin_run():
     """
     plugins = Plugins()
 
-    neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    print(os.environ)
+    neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    neighbor_vm_ip = getIP(neighbor_vm)
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
-    rsync_user = os.getenv("ZAMBEZE_CI_TESTS_RSYNC_USER")
+    rsync_user = os.getenv("ZAMBEZE_CI_TEST_RSYNC_USER")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
     # Attaching a timestamp to avoid concurrent runs overwriting files
