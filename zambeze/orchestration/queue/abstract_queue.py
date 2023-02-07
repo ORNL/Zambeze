@@ -3,6 +3,8 @@ from ..zambeze_types import QueueType, ChannelType
 
 
 class AbstractQueue(ABC):
+    _queue_type: QueueType
+
     @property
     @abstractmethod
     def type(self) -> QueueType:
@@ -29,16 +31,15 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    async def connect(self) -> (bool, str):
+    def connect(self) -> tuple[bool, str]:
         """This method will attempt to connect the client to the Queue.
 
         :return: if able to connect will return True with a string saying as
         much, if unable to connect will return False with an error message.
-        :rtype: tuple(bool, str)
+        :rtype: tuple[bool, str]
 
         Example:
-
-        >>> val = await queue.connect()
+        `val = await queue.connect()`
         """
         raise NotImplementedError(
             "connect - method does not exist for:" f"{self._queue_type.value}"
@@ -46,7 +47,7 @@ class AbstractQueue(ABC):
 
     @property
     @abstractmethod
-    def subscribed(self, channel: ChannelType = None) -> bool:
+    def subscribed(self, channel: ChannelType) -> bool:
         """Checks to see if the client is subscribed to a particular channel.
 
         :param channel: This is the channel that we are checking to see if
@@ -62,22 +63,24 @@ class AbstractQueue(ABC):
         This example assumes the following code is called from within an async
         function.
 
-        >>> queue = factory.create(QueueType.NATS, config)
-        >>> assert queue.subscribed is False
-        >>> await queue.connect()
-        >>> assert queue.subscribed is False
-        >>> await queue.subscribe(ChannelType.STATUS)
-        >>> assert queue.subscribed is True
-        >>> assert queue.subscribed(ChannelType.STATUS) is True
-        >>> await queue.unsubscribe(ChannelType.STATUS)
-        >>> assert queue.subscribed(ChannelType.STATUS) is False
+        ```
+        queue = factory.create(QueueType.NATS, config)
+        assert queue.subscribed is False
+        await queue.connect()
+        assert queue.subscribed is False
+        queue.subscribe(ChannelType.STATUS)
+        assert queue.subscribed is True
+        assert queue.subscribed(ChannelType.STATUS) is True
+        await queue.unsubscribe(ChannelType.STATUS)
+        assert queue.subscribed(ChannelType.STATUS) is False
+        ```
         """
         raise NotImplementedError(
             "subscribed - method does not exist for:" f"{self._queue_type.value}"
         )
 
     @abstractmethod
-    async def subscribe(self, channel: ChannelType):
+    def subscribe(self, channel: ChannelType):
         """Subscribe to a channel.
 
         There are no limits to the number of channels that can be subscribed
@@ -100,29 +103,29 @@ class AbstractQueue(ABC):
         )
 
     @abstractmethod
-    async def nextMsg(self, channel: ChannelType) -> dict:
+    def next_msg(self, channel: ChannelType) -> dict:
         raise NotImplementedError(
             "nextMsg - method does not exist for:" f"{self._queue_type.value}"
         )
 
-    async def ackMsg(self):
+    def ack_msg(self):
         raise NotImplementedError(
             "ackMsg - method does not exist for:" f"{self._queue_type.value}"
         )
 
-    async def nackMsg(self):
+    def nack_msg(self):
         raise NotImplementedError(
             "nackMsg - method does not exist for:" f"{self._queue_type.value}"
         )
 
     @abstractmethod
-    async def send(self, channel: ChannelType, body: dict):
+    def send(self, channel: ChannelType, exchange: str, body: dict):
         raise NotImplementedError(
             "send - method does not exist for:" f"{self._queue_type.value}"
         )
 
     @abstractmethod
-    async def close(self):
+    def close(self):
         raise NotImplementedError(
             "close - method does not exist for:" f"{self._queue_type.value}"
         )

@@ -12,9 +12,8 @@ import pathlib
 import yaml
 from typing import Optional, Union
 
-from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT
+from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT, RABBIT_HOST, RABBIT_PORT
 from .orchestration.plugins import Plugins
-
 from .orchestration.db.dao.dao_utils import create_local_db
 
 
@@ -28,6 +27,10 @@ class ZambezeSettings:
     :type logger: Optional[logging.Logger]
     """
 
+    _conf_file: Optional[pathlib.Path] = (
+        pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml")
+    )
+
     def __init__(
         self,
         conf_file: Optional[pathlib.Path] = None,
@@ -38,7 +41,9 @@ class ZambezeSettings:
             logging.getLogger(__name__) if logger is None else logger
         )
         # set default values
-        self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
+        # TODO: get the queue bits out of here (and into queue folder)
+        self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}
+        self.plugins = Plugins(logger=self._logger)
         self.load_settings(conf_file)
 
     def load_settings(self, conf_file: Optional[pathlib.Path] = None) -> None:
@@ -48,15 +53,19 @@ class ZambezeSettings:
         :param conf_file: Path to configuration file
         :type conf_file: Optional[pathlib.Path]
         """
-        self._conf_file = pathlib.Path(conf_file)
+        if conf_file:
+            self._conf_file = pathlib.Path(conf_file)
 
         zambeze_folder = pathlib.Path.home().joinpath(".zambeze")
         if not zambeze_folder.exists():
             zambeze_folder.mkdir(parents=True, exist_ok=True)
 
         default_conf = zambeze_folder.joinpath("agent.yaml")
+        # pyre-ignore[6]
         if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
+            # pyre-ignore[16]
             if not self._conf_file.exists():
+                # pyre-ignore[16]
                 self._conf_file.touch()
                 default_settings = {
                     "nats": {"host": NATS_HOST, "port": NATS_PORT},
@@ -65,7 +74,9 @@ class ZambezeSettings:
                         "All": {"default_working_directory": os.path.expanduser("~")},
                     },
                     "zmq": {"host": HOST, "port": ZMQ_PORT},
+                    "rmq": {"host": RABBIT_HOST, "port": RABBIT_PORT},
                 }
+                # pyre-ignore[6]
                 with open(self._conf_file, "w") as f:
                     yaml.dump(default_settings, f)
 
@@ -73,6 +84,7 @@ class ZambezeSettings:
         #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
 
         self._logger.info(f"Loading settings from config file: {self._conf_file}")
+        # pyre-ignore[6]
         with open(self._conf_file, "r") as cf:
             self.settings.update(yaml.safe_load(cf))
 
@@ -82,6 +94,8 @@ class ZambezeSettings:
         self.__set_default("port", NATS_PORT, self.settings["nats"])
         self.__set_default("host", HOST, self.settings["zmq"])
         self.__set_default("port", ZMQ_PORT, self.settings["zmq"])
+        self.__set_default("host", RABBIT_HOST, self.settings["rmq"])
+        self.__set_default("port", RABBIT_PORT, self.settings["rmq"])
         self.__set_default("plugins", {"All": {}}, self.settings)
         self.__set_default("All", {}, self.settings["plugins"])
         self.__set_default(
@@ -99,7 +113,6 @@ class ZambezeSettings:
         """
         Load and configure Zambeze plugins.
         """
-        self.plugins = Plugins(logger=self._logger)
         config = {}
 
         for plugin_name in self.plugins.registered:
@@ -127,6 +140,7 @@ class ZambezeSettings:
         :return: ZMQ connection URI
         :rtype: str
         """
+        # TODO: consider renaming this function to get_zmq_binding_uri
         port = self.settings["zmq"]["port"]
         return f"tcp://*:{port}"
 
@@ -140,7 +154,8 @@ class ZambezeSettings:
         :return: True if the plugin has been configured.
         :rtype: bool
         """
-        return plugin_name in self.plugins.configured
+        print(self.plugins.configured)
+        return plugin_name.lower() in self.plugins.configured
 
     def __set_default(
         self, key: str, value: Union[int, float, str, dict], base: dict
@@ -162,5 +177,6 @@ class ZambezeSettings:
         """
         Save properties file.
         """
+        # pyre-ignore[6]
         with open(self._conf_file, "w") as file:
             yaml.dump(self.settings, file)

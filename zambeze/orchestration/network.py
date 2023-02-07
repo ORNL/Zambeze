@@ -1,5 +1,7 @@
 # Standard imports
 import http.client as httplib
+import re
+import socket
 
 import ipaddress
 
@@ -21,7 +23,7 @@ def externalNetworkConnectionDetected() -> bool:
         connection.close()
 
 
-def isAddressValid(address: str, version="IPv4") -> bool:
+def isAddressValid(address: str, version: str = "IPv4") -> bool:
     if version == "IPv4":
         try:
             ipaddress.ip_address(address)
@@ -34,3 +36,30 @@ def isAddressValid(address: str, version="IPv4") -> bool:
             return False
     else:
         raise Exception(f"Unsupported IP version {version}")
+
+
+def getIP(address_or_hostname: str):
+    """Check if this is an ip address
+
+    if not check to see if we can resolve to an IP address by assuming it is a hostname
+
+    :Example
+
+    >>> ip = getIP("zambeze1")
+
+    :Example
+
+    Or does nothing if already an ip
+
+    >>> ip = getIP("127.0.0.1")
+    """
+    if re.search("[a-zA-Z]", address_or_hostname):
+        # assuming that because it contains characters it is a hostname
+        try:
+            neighbor_vm_ip = socket.gethostbyname(address_or_hostname)
+        except Exception as e:
+            print(e)
+            raise Exception(f"Unable resolze {address_or_hostname} to an IP" " Address")
+    else:
+        neighbor_vm_ip = address_or_hostname
+    return neighbor_vm_ip

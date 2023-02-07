@@ -1,17 +1,19 @@
-import json
 import logging
 import nats
-from .abstract_queue import AbstractQueue
+
+# from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
 from typing import Optional
+import dill
 
 
-class QueueNATS(AbstractQueue):
+# class QueueNATS(AbstractQueue):
+# TODO: either remove NATS or fix inheritance inconsistencies reported by pyre
+class QueueNATS:
     def __init__(
         self, queue_config: dict, logger: Optional[logging.Logger] = None
     ) -> None:
-
         self._queue_type = QueueType.NATS
         self._logger = logger
         self._ip = "127.0.0.1"
@@ -26,15 +28,11 @@ class QueueNATS(AbstractQueue):
 
     async def __disconnected(self):
         if self._logger:
-            self._logger.info(
-                f"Disconnected from nats... {self._settings.get_nats_connection_uri()}"
-            )
+            self._logger.info(f"Disconnected from nats... {self.uri}")
 
     async def __reconnected(self):
         if self._logger:
-            self._logger.info(
-                f"Reconnected to nats... {self._settings.get_nats_connection_uri()}"
-            )
+            self._logger.info(f"Reconnected to nats... {self.uri}")
 
     @property
     def type(self) -> QueueType:
@@ -62,7 +60,7 @@ class QueueNATS(AbstractQueue):
     def connected(self) -> bool:
         return self._nc is not None
 
-    async def connect(self) -> (bool, str):
+    async def connect(self) -> tuple[bool, str]:
         try:
             self._nc = await nats.connect(
                 self.uri,
@@ -71,14 +69,15 @@ class QueueNATS(AbstractQueue):
                 connect_timeout=1,
             )
         except Exception:
-            self._logger.debug(
-                f"Unable to connect to nats server at {self.uri}"
-                "1. Make sure your firewall ports are open.\n"
-                "2. That the nats service is up and running.\n"
-                "3. The correct ip address and port have been specified.\n"
-                "4. That an agent.yaml file exists for the zambeze agent.\n"
-            )
-            self._nc = None
+            if self._logger:
+                self._logger.debug(
+                    f"Unable to connect to nats server at {self.uri}"
+                    "1. Make sure your firewall ports are open.\n"
+                    "2. That the nats service is up and running.\n"
+                    "3. The correct ip address and port have been specified.\n"
+                    "4. That an agent.yaml file exists for the zambeze agent.\n"
+                )
+                self._nc = None
 
         if self.connected:
             return (True, f"Able to connect to NATS machine at {self.uri}")
@@ -123,7 +122,7 @@ class QueueNATS(AbstractQueue):
         await self._sub[channel].unsubscribe()
         self._sub[channel] = None
 
-    async def nextMsg(self, channel: ChannelType) -> dict:
+    async def next_msg(self, channel: ChannelType):
         if not self._sub:
             raise Exception(
                 "Cannot get next message client is not subscribed \
@@ -137,7 +136,10 @@ class QueueNATS(AbstractQueue):
 
         try:
             msg = await self._sub[channel].next_msg(timeout=1)
-            data = json.loads(msg.data.decode())
+            print("Received data")
+            data = dill.loads(msg.data)
+            print("After dill loads")
+            print(data)
 
         except nats.errors.TimeoutError:
             raise QueueTimeoutException("nextMsg call - checking NATS")
@@ -154,13 +156,15 @@ class QueueNATS(AbstractQueue):
             if channel in self._sub:
                 await self._sub[channel].nack()
 
-    async def send(self, channel: ChannelType, body: dict):
+    async def send(self, channel: ChannelType, body):
         if self._nc is None:
             raise Exception(
                 "Cannot send message to NATS, client is "
                 "not connected to a NATS queue"
             )
-        await self._nc.publish(channel.value, json.dumps(body).encode())
+        print("Queue is sending")
+        print(body)
+        await self._nc.publish(channel.value, dill.dumps(body))
 
     async def close(self):
         if self._sub:

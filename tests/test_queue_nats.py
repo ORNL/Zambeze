@@ -17,7 +17,6 @@ def test_queue_nats_type():
 
 @pytest.mark.unit
 def test_queue_nats_uri():
-
     queue = QueueNATS({})
     assert queue.uri == "nats://127.0.0.1:4222"
 
@@ -30,7 +29,6 @@ def test_queue_nats_uri():
 
 @pytest.mark.unit
 def test_queue_nats_connected():
-
     queue = QueueNATS({})
     assert queue.uri == "nats://127.0.0.1:4222"
 
@@ -53,7 +51,6 @@ async def queue_nats_connect_close(config):
 
 @pytest.mark.gitlab_runner
 def test_queue_nats_connect_close():
-
     config = {}
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
@@ -77,7 +74,6 @@ async def queue_nats_subscribe(config):
 
 @pytest.mark.gitlab_runner
 def test_queue_nats_subscribe():
-
     config = {}
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")
@@ -89,14 +85,13 @@ async def queue_nats_send_subscribe_nextMsg(config, original_number):
     await queue.connect()
     await queue.subscribe(ChannelType.TEST)
     await queue.send(ChannelType.TEST, {"value": original_number})
-    returned_msg = await queue.nextMsg(ChannelType.TEST)
+    returned_msg = await queue.next_msg(ChannelType.TEST)
     assert returned_msg["value"] == original_number
     await queue.close()
 
 
 @pytest.mark.gitlab_runner
 def test_queue_nats_send_subscribe_nextMsg():
-
     config = {}
     config["ip"] = os.getenv("ZAMBEZE_CI_TEST_NATS_IP")
     config["port"] = os.getenv("ZAMBEZE_CI_TEST_NATS_PORT")

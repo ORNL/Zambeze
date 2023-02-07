@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import Any
 from ..zambeze_types import MessageType
 
 
@@ -7,4 +8,4 @@ class AbstractMessage(ABC):
 
     type: MessageType
     """Returns the Message as a dict"""
-    message: dict
+    data: Any

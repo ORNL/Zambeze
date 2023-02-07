@@ -3,7 +3,7 @@ name: Pyre
 on: [push]
 
 jobs:
-  build:
+  type-check:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,7 +17,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyre-check
+        pip install pyre-check==0.9.17 watchman
+        pip install -r requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pyre --source-directory . check
+        pyre --search-path $(python -c 'import site; print(site.getsitepackages()[0])') --search-path $(python -m pip show pip | grep Location | awk '{print $2}') --search-path . --source-directory zambeze check
+        pyre --search-path $(python -c 'import site; print(site.getsitepackages()[0])') --search-path $(python -m pip show pip | grep Location | awk '{print $2}') --search-path . --source-directory tests check
+        pyre --search-path $(python -c 'import site; print(site.getsitepackages()[0])') --search-path $(python -m pip show pip | grep Location | awk '{print $2}') --search-path . --source-directory examples check

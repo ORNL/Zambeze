@@ -9,12 +9,14 @@
 import logging
 import zmq
 import pickle
+import uuid
 
 from .activities.abstract_activity import Activity
 
 from zambeze.orchestration.agent.commands import agent_start
-
 from typing import Optional
+
+from zambeze.config import HOST, ZMQ_PORT
 
 
 class Campaign:
@@ -31,7 +33,7 @@ class Campaign:
     def __init__(
         self,
         name: str,
-        activities: Optional[list[Activity]] = [],
+        activities: list[Activity] = [],
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a science campaign."""
@@ -39,12 +41,21 @@ class Campaign:
             logging.getLogger(__name__) if logger is None else logger
         )
         self.name: str = name
+
+        self.campaign_id = str(uuid.uuid4())
+
         self.activities: list[Activity] = activities
+        for index in range(0, len(self.activities)):
+            self.activities[index].campaign_id = self.campaign_id
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
-        self._zmq_socket.connect("tcp://localhost:5555")
 
+        # TODO: this needs to be REFACTORED AND UNHARDCODED
+        #  (use the get_zmq_connection_uri) after we move it somewhere nice.
+        self._zmq_socket.connect(f"tcp://{HOST}:{ZMQ_PORT}")
+
+        self._logger.info("[CAMPAIGN] Starting agent...")
         agent_start(self._logger)
 
     def add_activity(self, activity: Activity) -> None:
@@ -54,6 +65,7 @@ class Campaign:
         :type activity: Activity
         """
         self._logger.debug(f"Adding activity: {activity.name}")
+        activity.campaign_id = self.campaign_id
         self.activities.append(activity)
 
     def dispatch(self) -> None:
@@ -63,8 +75,9 @@ class Campaign:
         for activity in self.activities:
             self._logger.debug(f"Running activity: {activity.name}")
 
-            # Dump dict into string (.dumps) and serialize string
-            #   as bytestring (.encode)
+            # Dump dict into bytestring (.dumps)
             serial_activity = pickle.dumps(activity)
+            self._logger.debug("Sending serial activity")
             self._zmq_socket.send(serial_activity)
+            self._logger.debug("Serial activity sent.")
             self._logger.info(f"REPLY: {self._zmq_socket.recv()}")

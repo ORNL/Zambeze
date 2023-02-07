@@ -12,13 +12,13 @@ $ docker build -t zambeze/zambeze -f deployment/Dockerfile .
 
 ## Docker compose
 
-The compose file will launch a nats-server container and two containers for 
+The compose file will launch a rabbitmq-server container and two containers for 
 Zambeze agents, zambeze_agent1 and zambeze_agent2. 
 Agent1 is idle, listening to the MQ and, the other is stopped waiting to be
  executed using the API.
 
 ```shell
-$ docker compose -f deployment/compose.yml down  && docker compose -f deployment/compose.yml up
+$ docker compose -f deployment/compose-rabbit.yml down  && docker compose -f deployment/compose-rabbit.yml up
 ```
 
 Go to a different terminal tab and make sure the three containers are running:
@@ -46,8 +46,9 @@ And run:
 ```shell
 $ python imagemagick-files.py
 ```
+# TODO: needs to change this for RabbitMQ
 
-You're supposed to see messages coming in the nats output. And the exepcted
+You're supposed to see messages coming in the rabbit output. And the expected
 output for this agent is:
 
 ```shell

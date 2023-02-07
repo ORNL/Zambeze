@@ -1,0 +1,61 @@
+version: '3.9'
+name: zambeze
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.11-management
+    ports:
+    - 5672:5672
+    - 15672:15672
+    healthcheck:
+        test: rabbitmq-diagnostics -q ping
+        interval: 15s
+        timeout: 10s
+        retries: 10
+
+  zambeze_agent1:
+    environment:
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      PYTHONWARNINGS: "ignore::DeprecationWarning"
+      ZAMBEZE_CI_TEST_RSYNC_USER: "zambeze"
+      ZAMBEZE_CI_TEST_RSYNC_IP: "zambeze2"
+      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "/home/zambeze/.ssh/id_rsa"
+    container_name: zambeze1
+    hostname: zambeze1
+    image: zambeze/zambeze:latest
+    volumes:
+      - './scripts/zambeze_agent1_start.sh:/bin/zambeze_agent1_start.sh'
+      - './scripts/common.sh:/bin/common.sh'
+      - 'zambeze_agent_shared:/srv/shared:rw'
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    command: ['/bin/zambeze_agent1_start.sh']
+# Uncomment volumes if you want to sync your local dev. disk with the container's.
+#      - ../db:/zambeze/db
+#      - ../:/zambeze
+
+  zambeze_agent2:
+    environment:
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      PYTHONWARNINGS: "ignore::DeprecationWarning"
+      ZAMBEZE_CI_TEST_RSYNC_USER: "zambeze"
+      ZAMBEZE_CI_TEST_RSYNC_IP: "zambeze1"
+      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "/home/zambeze/.ssh/id_rsa"
+    container_name: zambeze2
+    hostname: zambeze2
+    image: zambeze/zambeze:latest
+    volumes:
+      - './scripts/zambeze_agent2_start.sh:/bin/zambeze_agent2_start.sh'
+      - './scripts/common.sh:/bin/common.sh'
+      - 'zambeze_agent_shared:/srv/shared:rw'
+#      - ../db:/zambeze/db
+#      - ../:/zambeze
+    command: ['/bin/zambeze_agent2_start.sh']
+    depends_on:
+      -  zambeze_agent1 # Needed when launching command on startup
+
+volumes:
+  zambeze_agent_shared:

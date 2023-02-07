@@ -12,6 +12,8 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Optional
 
+from zambeze.orchestration.message.abstract_message import AbstractMessage
+
 
 class ActivityStatus(Enum):
     CREATED = auto()
@@ -36,23 +38,38 @@ class Activity(ABC):
     :type logger: Optional[logging.Logger]
     """
 
+    files: list[str]
+    command: Optional[str]
+    arguments: list[str]
+    logger: Optional[logging.Logger]
+    campaign_id: Optional[str]
+    agent_id: Optional[str]
+    message_id: Optional[str]
+    activity_id: Optional[str]
+
     def __init__(
         self,
         name: str,
-        files: Optional[list[str]] = [],
+        files: list[str] = [],
         command: Optional[str] = None,
-        arguments: Optional[list[str]] = [],
+        arguments: list[str] = [],
         logger: Optional[logging.Logger] = None,
+        campaign_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        message_id: Optional[str] = None,
+        activity_id: Optional[str] = None,
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
-        self.logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        self.logger = logging.getLogger(__name__) if logger is None else logger
         self.name: str = name
-        self.files: list[str] = files
-        self.command: str = command
-        self.arguments: list[str] = arguments
+        self.files = files
+        self.command = command
+        self.arguments = arguments
+        self.campaign_id = campaign_id
+        self.agent_id = agent_id
+        self.message_id = message_id
+        self.activity_id = activity_id
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
 
@@ -105,7 +122,7 @@ class Activity(ABC):
         return self.status
 
     @abstractmethod
-    def generate_message(self) -> dict:
+    def generate_message(self) -> AbstractMessage:
         raise NotImplementedError(
             "Method to generate message has not been instantiated."
         )
