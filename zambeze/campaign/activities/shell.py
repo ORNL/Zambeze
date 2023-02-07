@@ -18,7 +18,7 @@ from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
 class ShellActivity(Activity):
-    """A Unix Shell script activity.
+    """A Unix Shell script/command activity.
 
     :param name: Campaign activity name.
     :type name: str

@@ -10,7 +10,7 @@ from zambeze.orchestration.network import getIP
 @pytest.mark.end_to_end
 def test_imagemagick_files():
     """This test assumes that docker compose is already up and running with
-    two agents and a nats queue"""
+    two agents and a queue that is compatible with zambeze"""
     # Step 1 get current working dir
     current_folder = os.path.dirname(__file__)
     print(f"Current folder {current_folder}")
