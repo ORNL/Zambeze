@@ -34,8 +34,8 @@ def test_globus_basic1():
 
     """Requires that the env variable is provided"""
     configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
+            "client_id": os.getenv(required_env_variables[0]),
             "type": "client credential",
             "secret": os.getenv(required_env_variables[1]),
         },
@@ -76,8 +76,8 @@ def test_globus_basic2():
     in order for the move to globus endpoint and move from
     globus endpoint to local posix file system to work."""
     configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
+            "client_id": os.getenv(required_env_variables[0]),
             "type": "client credential",
             "secret": os.getenv(required_env_variables[1]),
         },
@@ -115,8 +115,8 @@ def test_globus_move_check():
             )
 
     configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
+            "client_id": os.getenv(required_env_variables[0]),
             "type": "client credential",
             "secret": os.getenv(required_env_variables[1]),
         },
@@ -189,8 +189,8 @@ def test_globus_transfer_check():
             )
 
     configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
+            "client_id": os.getenv(required_env_variables[0]),
             "type": "client credential",
             "secret": os.getenv(required_env_variables[1]),
         },
@@ -290,8 +290,8 @@ def test_globus_process():
     path_to_endpoint_shared = os.getenv(required_env_variables[5])
 
     configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
+            "client_id": os.getenv(required_env_variables[0]),
             "type": "client credential",
             "secret": os.getenv(required_env_variables[1]),
         },
@@ -426,8 +426,8 @@ def test_globus_process_async():
     path_to_endpoint_shared = os.getenv(required_env_variables[5])
 
     configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
         "authentication_flow": {
+            "client_id": os.getenv(required_env_variables[0]),
             "type": "client credential",
             "secret": os.getenv(required_env_variables[1]),
         },
@@ -541,8 +541,8 @@ def test_globus_process_async():
     assert os.path.exists(abs_path_destination_shared)
 
 
-@pytest.mark.globus_manual
-def test_globus_process_manual():
+@pytest.mark.globus_native
+def test_globus_process_native():
 
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",
@@ -565,8 +565,10 @@ def test_globus_process_manual():
     path_to_endpoint_shared = os.getenv(required_env_variables[4])
 
     configuration = {
-        "client_id": os.getenv(required_env_variables[0]),
-        "authentication_flow": {"type": "native"},
+        "authentication_flow": {
+            "client_id": os.getenv(required_env_variables[0]),
+            "type": "native",
+        },
         "local_endpoints": [
             {
                 "uuid": os.getenv(required_env_variables[1]),
