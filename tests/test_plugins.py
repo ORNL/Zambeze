@@ -12,7 +12,6 @@ import copy
 import os
 import pwd
 import pytest
-import re
 
 import logging
 import random
