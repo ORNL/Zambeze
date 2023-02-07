@@ -537,7 +537,6 @@ def test_globus_process_async():
 
 @pytest.mark.globus_native
 def test_globus_process_native():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",
