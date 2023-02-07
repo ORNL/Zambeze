@@ -1,4 +1,4 @@
-from .abstract_uri_separator import URISeparator
+from .abstract_uri_separator import AbstractURISeparator
 
 # Standard imports
 import logging
@@ -6,7 +6,7 @@ import os
 from typing import Optional
 
 
-class FileURISeparator(URISeparator):
+class FileURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("file", logger=logger)
 

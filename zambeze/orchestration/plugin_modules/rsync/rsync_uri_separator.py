@@ -1,4 +1,5 @@
-from ..abstract_uri_separator import URISeparator
+from ..abstract_uri_separator import AbstractURISeparator
+from zambeze.orchestration.network import isAddressValid, isValidDomainName
 
 # Standard imports
 import logging
@@ -6,14 +7,14 @@ import os
 from typing import Optional
 
 
-class RsyncURISeparator(URISeparator):
+class RsyncURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__("rsync", logger=logger)
 
     def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a rsync URI and break it into its components
 
-        :param uri: Rsync uri should be like rsync://path/file.txt
+        :param uri: Rsync uri should be like rsync://127.0.0.1/path/file.txt
         :type uri: str
 
         :Example:
@@ -24,6 +25,7 @@ class RsyncURISeparator(URISeparator):
         >>> print( uri_components["path"] ) # Path
         >>> print( uri_components["file_name"]) # File name
         >>> print( uri_components["error_message"] ) # Error message
+        >>> print( uri_components["netloc"] ) # ip or domain
 
         The output should be
 
@@ -39,6 +41,7 @@ class RsyncURISeparator(URISeparator):
             "error_message": "",
             "path": "",
             "file_name": "",
+            "netloc": "",
         }
 
         print(f"URI is {uri}")
@@ -50,6 +53,18 @@ class RsyncURISeparator(URISeparator):
             return package
 
         file_and_path = uri[len(file_uri_tag) :]
+
+        print(file_and_path)
+        if "/" in file_and_path:
+            print(file_and_path.index("/"))
+            potential_netloc = file_and_path[: file_and_path.index("/")]
+            if isAddressValid(potential_netloc):
+                file_and_path = file_and_path.removeprefix(potential_netloc)
+                package["netloc"] = potential_netloc
+            elif isValidDomainName(potential_netloc):
+                file_and_path = file_and_path.removeprefix(potential_netloc)
+                package["netloc"] = potential_netloc
+
         print(f"After removing rsync:// path is {file_and_path}")
         path = os.path.dirname(file_and_path)
         print(f"Removing file from path {path}")
