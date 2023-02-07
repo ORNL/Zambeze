@@ -83,11 +83,11 @@ class Globus(Plugin):
         >>>         "type": "mapped"}
         >>>   ],
         >>>   "authentication_flow": {
+        >>>       "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021"
         >>>       "type": "'native' or 'client credential'"
         >>>       "secret": "blahblah"
         >>>   },
         >>>   "default_endpoint": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5"
-        >>>   "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021"
         >>> }
         """
 
@@ -545,11 +545,11 @@ class Globus(Plugin):
                 "type": "mapped"}
           ],
           "authentication_flow": {
-              "type": "'native' or 'client credential'"
+              "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021",
+              "type": "'native' or 'client credential'",
               "secret": "blahblah"
           },
           "default_endpoint": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5"
-          "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021"
         }
         """
         self.__validConfig(config)
@@ -620,7 +620,7 @@ class Globus(Plugin):
             " authentication_flow:\n"
             "   type: 'native'\n"
             "   secret: 'my_secret'\n"
-            " client_id: '9c9fee8f-f686-4e28-a961-647af41fe02'\n"
+            "   client_id: '9c9fee8f-f686-4e28-a961-647af41fe02'\n"
         )
         return message
 
