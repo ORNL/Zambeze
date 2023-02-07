@@ -39,7 +39,7 @@ def isAddressValid(address: str, version: str = "IPv4") -> bool:
 
 
 def getIP(address_or_hostname: str):
-    """ Check if this is an ip address
+    """Check if this is an ip address
 
     if not check to see if we can resolve to an IP address by assuming it is a hostname
 
@@ -59,10 +59,7 @@ def getIP(address_or_hostname: str):
             neighbor_vm_ip = socket.gethostbyname(address_or_hostname)
         except Exception as e:
             print(e)
-            raise Exception(
-                f"Unable resolze {address_or_hostname} to an IP" " Address"
-            )
+            raise Exception(f"Unable resolze {address_or_hostname} to an IP" " Address")
     else:
         neighbor_vm_ip = address_or_hostname
     return neighbor_vm_ip
-

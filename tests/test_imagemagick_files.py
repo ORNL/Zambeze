@@ -48,12 +48,11 @@ def test_imagemagick_files():
 
         def exists_remote(host, path):
             """Test if a file exists at path on a host accessible with SSH."""
-            exists = subprocess.call(
-                ['ssh', host, f"test -f {path}"])
+            exists = subprocess.call(["ssh", host, f"test -f {path}"])
             if exists == 0:
                 return True
             if exists == 1:
                 return False
-            raise Exception('SSH failed')
+            raise Exception("SSH failed")
 
         assert exists_remote(neighbor_vm_ip, "/home/zambeze/a.gif")
