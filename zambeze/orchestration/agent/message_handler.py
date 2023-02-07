@@ -249,7 +249,6 @@ class MessageHandler(threading.Thread):
         queue_client.connect()
 
         while True:
-
             self._logger.debug("[send_control] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 

@@ -15,7 +15,6 @@ import pytest
 
 @pytest.mark.unit
 def test_shell_messageTemplate_and_validate():
-
     instance = GitMessageTemplateGenerator()
     git_template_commit = instance.generate("commit")
 

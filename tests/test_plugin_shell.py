@@ -22,7 +22,6 @@ from dataclasses import asdict
 
 @pytest.mark.unit
 def test_shell_get_inner_pattern():
-
     variable = "My${Long}string${Containing${Nested}Patterns}"
 
     print("From unit")
@@ -38,7 +37,6 @@ def test_shell_get_inner_pattern():
 
 @pytest.mark.unit
 def test_shell_get_inner_pattern2():
-
     variable = "heMMheyMMnoBByoyoBB_MMyesBB"
     #           012345678901234567890123456
 
@@ -55,7 +53,6 @@ def test_shell_get_inner_pattern2():
 
 @pytest.mark.unit
 def test_shell_merge_env_variables():
-
     env_vars = {
         "PATH": "/home/bob",
         "RAND": "2324",
@@ -100,7 +97,6 @@ def test_shell():
 
 @pytest.mark.unit
 def test_shell_check():
-
     file_name = "shell_file.txt"
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name

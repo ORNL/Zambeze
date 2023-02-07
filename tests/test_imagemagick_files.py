@@ -1,11 +1,13 @@
 import pytest
 import time
 import os
+import subprocess
 
 from examples.imagemagick_files import main as imagemagick_main
+from zambeze.orchestration.network import getIP
 
 
-@pytest.mark.integration
+@pytest.mark.end_to_end
 def test_imagemagick_files():
     """This test assumes that docker compose is already up and running with
     two agents and a nats queue"""
@@ -39,4 +41,18 @@ def test_imagemagick_files():
 
     # Step 6 check that a.gif exists
     print(f"Now asserting file {final_file_path} exists.")
-    assert os.path.exists(final_file_path)
+    if not os.path.exists(final_file_path):
+        # Check to see if it exists remotely
+        neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+        neighbor_vm_ip = getIP(neighbor_vm)
+
+        def exists_remote(host, path):
+            """Test if a file exists at path on a host accessible with SSH."""
+            exists = subprocess.call(["ssh", host, f"test -f {path}"])
+            if exists == 0:
+                return True
+            if exists == 1:
+                return False
+            raise Exception("SSH failed")
+
+        assert exists_remote(neighbor_vm_ip, "/home/zambeze/a.gif")

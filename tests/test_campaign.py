@@ -11,7 +11,6 @@ import pathlib
 
 @pytest.mark.unit
 def test_campaign():
-
     logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
     activity = ShellActivity(

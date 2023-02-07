@@ -19,7 +19,6 @@ class ComputeActionExcept(ActionExcept):
 
 
 class Action:
-
     _payload = {}
 
     def display(self):
@@ -33,7 +32,6 @@ class Action:
 
 
 class ControlAction(Action):
-
     _payload = {}
 
     def __init__(self, payload):
