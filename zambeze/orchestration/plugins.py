@@ -6,15 +6,15 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-# Required to occur first
+"""Required to occur first"""
 from __future__ import annotations
 
-# Local imports
+"""Local imports"""
 from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
 
-# Standard imports
+"""Standard imports"""
 from copy import deepcopy
 from dataclasses import asdict
 from importlib import import_module
