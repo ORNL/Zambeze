@@ -12,9 +12,7 @@ Installing and Testing Zambeze
 1. Checkout or Download the latest release from the `Github <https://github.com/ORNL/zambeze>`_.
 2. From the terminal in the zambeze directory run the following:
    
-   ``
-   pip install -e .
-   ``
+   `pip install -e .`
 
 3. Ensure that you have a RabbitMQ server is running and you are able to reach it. You may verify this by telnet'ing the rabbitmq server like so:
    
