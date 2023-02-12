@@ -16,12 +16,12 @@ Installing and Testing Zambeze
 
 3. Ensure that you have a RabbitMQ server is running and you are able to reach it. You may verify this by telnet'ing the rabbitmq server like so:
    
-   `telnet rabbitmq.server 5672`
+   `telnet <rabbitmq.server> 5672`
 
 4. Navigate to the examples directory and run the python program `imagemagick_files.py` like so:
 
    `python3 imagemagick_files.py`
    
-   If all goes well, you will see a new file called `a.gif` in your home directory.
+   If all goes well, the command will finish with no errors and you will see a new file called `a.gif` in your home directory.
 
 
