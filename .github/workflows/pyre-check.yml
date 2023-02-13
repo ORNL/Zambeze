@@ -19,7 +19,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyre-check==0.9.17 watchman
         pip install -r requirements.txt
-    - name: Analysing the code with pylint
+    - name: Analysing the code with pyre
       run: |
         pyre --search-path $(python -c 'import site; print(site.getsitepackages()[0])') --search-path $(python -m pip show pip | grep Location | awk '{print $2}') --search-path . --source-directory zambeze check
         pyre --search-path $(python -c 'import site; print(site.getsitepackages()[0])') --search-path $(python -m pip show pip | grep Location | awk '{print $2}') --search-path . --source-directory tests check
