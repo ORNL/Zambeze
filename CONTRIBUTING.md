@@ -94,3 +94,8 @@ Priority: Medium - is important to the completion of a milestone but does not re
 Priority: High - is essential to the completion of a milestone
 DevOps: CI – branch associated with 
 
+# Zambeze Style Guide
+
+* Code style guides should follow those of pep8 see link for details https://peps.python.org/pep-0008/
+* Doc strings should follow those of the Sphinx style guide https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html
+* In code comments can be made with '#'
