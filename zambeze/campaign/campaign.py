@@ -12,6 +12,7 @@ import pickle
 import uuid
 
 from .activities.abstract_activity import Activity
+from .activities.dag import DAG
 
 from zambeze.orchestration.agent.commands import agent_start
 from typing import Optional
@@ -72,12 +73,26 @@ class Campaign:
         """Dispatch the set of current activities in the campaign."""
         self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
 
+        # Create and pack a sequential DAG (TODO: relax sequential requirement).
+        dag = DAG()
+        last_activity = None
         for activity in self.activities:
-            self._logger.debug(f"Running activity: {activity.name}")
+            if last_activity is None:
+                last_activity = "MONITOR"
+                # Add one node explicitly
+                dag.add_node("MONITOR")
+            # Rest of nodes added implicitly via edge.
+            dag.add_edge(last_activity, activity.activity_id)
+            last_activity = activity.activity_id
+        dag.add_edge(last_activity, "TERMINATOR")
 
-            # Dump dict into bytestring (.dumps)
-            serial_activity = pickle.dumps(activity)
-            self._logger.debug("Sending serial activity")
-            self._zmq_socket.send(serial_activity)
-            self._logger.debug("Serial activity sent.")
-            self._logger.info(f"REPLY: {self._zmq_socket.recv()}")
+        self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
+
+        # Dump dict into bytestring. NetworkX prefers breaking up into nodes and edges.
+        serial_dag = pickle.dumps({"nodes": dag.nodes(data=True),
+                                   "edges": dag.edges(data=True)})
+
+        self._logger.debug("Activity DAG sending via ZMQ...")
+        self._zmq_socket.send(serial_dag)
+        self._logger.debug("Activity DAG successfully sent!")
+        self._logger.info(f"REPLY: {self._zmq_socket.recv()}")
