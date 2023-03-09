@@ -101,6 +101,19 @@ class Agent:
             self._executor.to_process_q.put(activ_to_sort)
             self._logger.debug("Put new activity into executor processing queue!")
 
+    def recv_control_thd(self):
+        """Move process-eligible activities to the executor's to_process_q!
+        OBSERVES message_handler (via to_process_q)
+        """
+        self._logger.info("Starting activity sorter thread!")
+        while True:
+            activ_to_sort = self._msg_handler_thd._recv_control_q.get()
+            self._logger.info(
+                f"[agent recv activity thd] Received activity: {activ_to_sort}"
+            )
+            self._executor.to_process_q.put(activ_to_sort)
+            self._logger.debug("Put new activity into executor processing queue!")
+
     def send_activity_thd(self):
         """We created an activity! Now enqueue it in Zambeze's central queue...
         OBSERVES executor (via to_new_activity_q)

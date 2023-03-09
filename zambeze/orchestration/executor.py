@@ -48,6 +48,7 @@ class Executor(threading.Thread):
         self.to_process_q = Queue()
         self.to_status_q = Queue()
         self.to_new_activity_q = Queue()
+        self.to_monitor_q = Queue()
 
         self._logger.info("[EXECUTOR] Created executor! ")
         self._agent_id = agent_id
@@ -85,6 +86,34 @@ class Executor(threading.Thread):
             try:
                 self._logger.info("[EXECUTOR] Retrieving a message! ")
                 msg = self.to_process_q.get()
+
+                # Check 1. If MONITOR, then we want to STICK the process.
+                monitor_term = False
+                if msg.data.activity == "MONITOR":
+
+                    # Now we want to hold (and periodically log) until all subtasks are complete.
+                    dag = msg.data.dag
+                    dag_dict = dict()
+
+                    for activity in dag['nodes']:
+                        dag_dict[activity.activity_id] = "PROCESSING"
+
+                    while True:
+                        # Quick check to see if all values are NOT "PROCESSING"
+                        proc_count = sum(x == 'PROCESSING' for x in dag_dict.values())
+
+                        if proc_count == 0:
+                            monitor_term = True
+                            break
+
+                        status_msg = self.to_monitor_q.get()
+                        if status_msg.activity_id in dag_dict:
+                            status = status_msg.status
+                            dag_dict[status_msg.activity_id] = status
+
+                # If we were just monitoring, go to top of loop; start over.
+                if monitor_term:
+                    continue
 
                 # if we need files, check if present (and if not, go get them).
                 self._logger.info("[Executor] Message received:")

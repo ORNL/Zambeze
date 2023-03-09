@@ -97,15 +97,18 @@ class MessageHandler(threading.Thread):
 
             for activity in activity_dag_data:
 
+                # Put the entire DAG into the activity.
+                activity.dag_data = activity_dag_data
+
+                activity_message: AbstractMessage = activity.generate_message()
+
                 activity_model = ActivityModel(
                     agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
                 )
                 self._activity_dao.insert(activity_model)
                 self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
 
-                # Put the entire DAG into the activity.
-                activity.dag_data = activity_dag_data
-                self.msg_handler_send_activity_q.put(activity)
+                self.msg_handler_send_activity_q.put(activity_message)
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
@@ -221,6 +224,8 @@ class MessageHandler(threading.Thread):
         queue_client.listen_and_do_callback(
             channel_to_listen="CONTROL", callback_func=callback, should_auto_ack=True
         )
+
+
 
     def send_control(self):
         """
