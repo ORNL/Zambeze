@@ -146,6 +146,8 @@ class Executor(threading.Thread):
                     # self._logger.info("[EXECUTOR] Command to be executed.")
                     # self._logger.info(json.dumps(data["cmd"], indent=4))
 
+                    # TODO: TYLER -- WAIT until we have the eligible resources.
+
                     checked_result = self._settings.plugins.check(msg)
                     self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
 
