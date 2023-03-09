@@ -54,21 +54,21 @@ class MessageHandler(threading.Thread):
 
         # THREAD 1: recv activities from campaign
         campaign_listener = threading.Thread(
-            target=self.recv_activities_from_campaign, args=()
+            target=self.recv_activity_dag_from_campaign, args=()
         )
         # THREAD 2: recv activities from rmq
         activity_listener = threading.Thread(target=self.recv_activity, args=())
         # THREAD 3: recv control from RMQ
         control_listener = threading.Thread(target=self.recv_control, args=())
         # THREAD 4: send activity to RMQ
-        activity_sender = threading.Thread(target=self.send_activity, args=())
+        activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
         campaign_listener.start()
         activity_listener.start()
         control_listener.start()
         activity_sender.start()
 
-    def recv_activities_from_campaign(self):
+    def recv_activity_dag_from_campaign(self):
         """
         >> Async
 
@@ -81,36 +81,31 @@ class MessageHandler(threading.Thread):
             )
 
             # Use ZMQ to receive activities from campaign.
-            activity_bytestring = self._zmq_socket.recv()
+            dag_bytestring = self._zmq_socket.recv()
             self._zmq_socket.send(b"Notification of activity receipt by ZMQ...")
             self._logger.debug(
-                "[recv_activities_from_campaign] Received an activity bytestring!"
+                "[recv_activity_dag_from_campaign] Received an activity DAG bytestring!"
             )
-            activity = pickle.loads(activity_bytestring)
-            activity.agent_id = self.agent_id
-            activity_message: AbstractMessage = activity.generate_message()
 
-            self._logger.info(
-                "[recv_activities_from_campaign] Dispatching message "
-                f"activity_id: {activity.activity_id} "
-                f"message_id: {activity_message.data.message_id}"
-            )
+            activity_dag_data = pickle.loads(dag_bytestring)
+            activity_dag_data.agent_id = self.agent_id
+
             self._logger.debug(
-                "[recv_activities_from_campaign] Received message from "
-                f"campaign: {activity_message}"
+                "[recv_activity_dag_from_campaign] Received message from "
+                f"campaign: {activity_dag_data}"
             )
 
-            activity_model = ActivityModel(
-                agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
-            )
-            self._logger.debug(
-                "[recv_activities_from_campaign] Creating activity in the"
-                f" DB: {activity}"
-            )
-            self._activity_dao.insert(activity_model)
-            self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
+            for activity in activity_dag_data:
 
-            self.msg_handler_send_activity_q.put(activity_message)
+                activity_model = ActivityModel(
+                    agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
+                )
+                self._activity_dao.insert(activity_model)
+                self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
+
+                # Put the entire DAG into the activity.
+                activity.dag_data = activity_dag_data
+                self.msg_handler_send_activity_q.put(activity)
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
@@ -180,7 +175,7 @@ class MessageHandler(threading.Thread):
             should_auto_ack=False,
         )
 
-    def send_activity(self):
+    def send_activity_dag(self):
         """
         (from agent.py) input activity; send to "ACTIVITIES" queue.
         """
@@ -195,17 +190,7 @@ class MessageHandler(threading.Thread):
             self._logger.info("[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 
-            self._logger.info(
-                "[send_activity] Dispatching message "
-                f"activity_id: {activity_msg.data.activity_id} "
-                f"message_id: {activity_msg.data.message_id}"
-            )
-
-            # TODO: need to unpack the message in the print...
-            self._logger.info(
-                f"[send_activity] Message received: {activity_msg} \n"
-                f"..... Sending to activities channel..."
-            )
+            self._logger.info(f"[send_activity] Dispatching message: {activity_msg}...")
 
             try:
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)

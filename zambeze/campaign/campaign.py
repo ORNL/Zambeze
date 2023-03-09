@@ -80,10 +80,15 @@ class Campaign:
             if last_activity is None:
                 last_activity = "MONITOR"
                 # Add one node explicitly
-                dag.add_node("MONITOR")
+                dag.add_node("MONITOR", activity="MONITOR")
+                continue
+
+            dag.add_node(activity.activity_id, activity=activity)
+
             # Rest of nodes added implicitly via edge.
             dag.add_edge(last_activity, activity.activity_id)
             last_activity = activity.activity_id
+
         dag.add_edge(last_activity, "TERMINATOR")
 
         self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
