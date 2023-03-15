@@ -60,7 +60,9 @@ class MessageHandler(threading.Thread):
         activity_listener = threading.Thread(target=self.recv_activity, args=())
         # THREAD 3: recv control from RMQ
         control_listener = threading.Thread(target=self.recv_control, args=())
-        # THREAD 4: send activity to RMQ
+        # THREAD 4: recv control from RMQ
+        control_sender = threading.Thread(target=self.send_control, args=())
+        # THREAD 5: send activity to RMQ
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
         campaign_listener.start()
@@ -224,8 +226,6 @@ class MessageHandler(threading.Thread):
         queue_client.listen_and_do_callback(
             channel_to_listen="CONTROL", callback_func=callback, should_auto_ack=True
         )
-
-
 
     def send_control(self):
         """
