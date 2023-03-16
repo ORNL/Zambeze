@@ -83,7 +83,7 @@ class Campaign:
                 # Add one node explicitly
                 dag.add_node("MONITOR", activity="MONITOR", campaign_id=self.campaign_id)
 
-            dag.add_node(activity.activity_id, activity=activity, campaign_id=self.campaign_id)
+            dag.add_node(activity.activity_id, activity=activity.generate_message(), campaign_id=self.campaign_id)
 
             # Rest of nodes added implicitly via edge.
             dag.add_edge(last_activity, activity.activity_id)
