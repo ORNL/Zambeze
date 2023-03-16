@@ -71,9 +71,9 @@ class MessageHandler(threading.Thread):
 
         campaign_listener.start()
         activity_listener.start()
-        #control_listener.start()
+        control_listener.start()
         activity_sender.start()
-        #control_sender.start()
+        control_sender.start()
 
     def recv_activity_dag_from_campaign(self):
         """

@@ -77,13 +77,13 @@ class Agent:
     def executor(self) -> Executor:
         return self._executor
 
-    # TODO: CHANGE THE WORD FROM SORT, PLEASE.
     def send_control_thd(self):
         """Move processable control messages to the message_handler from executor.
         OBSERVES message_handler (via send_control_q)
         """
         self._logger.info("Starting send control thread!")
         while True:
+            # TODO: CHANGE THE WORD FROM SORT, PLEASE.
             activ_to_sort = self._executor.to_status_q.get()
             self._msg_handler_thd.send_control_q.put(activ_to_sort)
             self._logger.debug("Put new activity into message handler control queue!")
