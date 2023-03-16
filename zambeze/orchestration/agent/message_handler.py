@@ -70,7 +70,7 @@ class MessageHandler(threading.Thread):
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
         campaign_listener.start()
-        #activity_listener.start()
+        activity_listener.start()
         #control_listener.start()
         activity_sender.start()
         #control_sender.start()
@@ -116,7 +116,7 @@ class MessageHandler(threading.Thread):
                         activity.agent_id = self.agent_id
                         self._logger.info("FINALLY SOME MEAT@")
                         self._logger.info(activity)
-                        # node[1]["activity"] = activity.generate_message()
+                        node[1]["activity"] = activity.generate_message()
                 except Exception as e:
                     self._logger.error(e)
                 self._logger.info("ZOOBER")
@@ -144,10 +144,18 @@ class MessageHandler(threading.Thread):
         self._logger.info("[recv_activity] receiving activity...")
         activity = dill.loads(body)
 
-        # TODO: *add git issue* should be able to require a list of plugins (not just one).
-        required_plugin = activity_to_plugin_map[activity.data.body.type]
+        self._logger.info(f"DEBOOG: HERE IS ACTIVITY: {activity}")
 
-        plugins_are_configured = self.are_plugins_configured(required_plugin)
+        # TODO: *add git issue* should be able to require a list of plugins (not just one).
+        # Anyone can monitor or terminate.
+        if activity[0] in ["MONITOR", "TERMINATOR"]:
+            plugins_are_configured = True
+
+        else:
+            self._logger.info("BAZINGA??")
+            required_plugin = activity_to_plugin_map[activity[1]['activity'].data.body.type]
+            self._logger.info("BAZOOOOOOOONGA??")
+            plugins_are_configured = self.are_plugins_configured(required_plugin)
         should_ack = plugins_are_configured
 
         # TODO: *add git issue*  additional functionalities to be added as git issues

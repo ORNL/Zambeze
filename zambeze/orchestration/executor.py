@@ -84,6 +84,7 @@ class Executor(threading.Thread):
 
         while True:
             try:
+                # TODO: TYLER START HERE!!!
                 self._logger.info("[EXECUTOR] Retrieving a message! ")
                 msg = self.to_process_q.get()
 
