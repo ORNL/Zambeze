@@ -113,12 +113,16 @@ class Executor(threading.Thread):
 
                         status_msg = self.to_monitor_q.get()
                         if status_msg.activity_id in dag_dict:
-                            status = status_msg.status
-                            dag_dict[status_msg.activity_id] = status
+                            status = status_msg["status"]
+                            dag_dict[status_msg['activity_id']] = status
 
                 elif dag_msg[0] == "TERMINATOR":
-                    # TODO: TERMINATE AND SEND BACK!
-                    pass
+                    status_msg = {
+                        'status': 'COMPLETED',
+                        'activity_id': dag_msg[0],
+                        'msg': 'TERMINATION CONDITION ACTIVATED.'
+                    }
+                    self.to_status_q.put(status_msg)
 
                 # If we were just monitoring, go to top of loop; start over.
                 if monitor_term:
@@ -128,6 +132,34 @@ class Executor(threading.Thread):
                 # if we need files, check if present (and if not, go get them).
                 self._logger.info("[Executor] Message received:")
                 self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
+
+                # NOW WE CREATE A WAIT-LOOP TO DETERMINE WHEN WE CAN PROCESS.
+                any_upstream_failures = False
+                marked_predecessors = []
+                while True:
+                    control_msg = self.to_monitor_q.get()
+                    if control_msg["activity_id"] in dag_msg[1]['predecessors']:
+                        marked_predecessors.append(control_msg["activity_id"])
+
+                        # Something upstream failed :(
+                        if control_msg['status'] == "FAILED":
+                            any_upstream_failures = True
+
+                        # If we have all of the predecessors, break loop!
+                        if len(dag_msg[1]['predecessors']) == len(marked_predecessors):
+                            break
+
+                # Now we decide if we give up before we start OR keep going
+                if any_upstream_failures:
+                    # If there is a failure, mark this as failed and move on.
+                    status_msg = {
+                        'status': 'FAILED',
+                        'activity_id': dag_msg[0],
+                        'msg': 'UPSTREAM FAILURE ACKNOWLEDGED.'
+                    }
+                    self.to_status_q.put(status_msg)
+                    continue
+
                 if activity_msg.data.body.type == "SHELL":
                     self._logger.info("[Executor] Message received:")
                     self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
@@ -167,8 +199,17 @@ class Executor(threading.Thread):
                         self._logger.debug(
                             "Skipping run - error detected when running " "plugin check"
                         )
+
                 else:
                     raise Exception("Only SHELL currently supported")
+
+                # If we get here, it should be because nothing failed # TODO: confirm (unit-test somehow)
+                status_msg = {
+                    'status': 'COMPLETED',
+                    'activity_id': dag_msg[0],
+                    'msg': 'SUCCESSFULLY COMPLETED TASK.'
+                }
+                self.to_status_q.put(status_msg)
 
                 self._logger.info("[EXECUTOR] Waiting for messages")
 
