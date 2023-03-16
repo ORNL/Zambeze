@@ -84,20 +84,24 @@ class Executor(threading.Thread):
 
         while True:
             try:
-                # TODO: TYLER START HERE!!!
+
                 self._logger.info("[EXECUTOR] Retrieving a message! ")
-                msg = self.to_process_q.get()
+                dag_msg = self.to_process_q.get()
 
                 # Check 1. If MONITOR, then we want to STICK the process.
                 monitor_term = False
-                if msg.data.activity == "MONITOR":
+
+                self._logger.info(f"EXECUTOR!!! {dag_msg}")
+                if dag_msg[0] == "MONITOR":
 
                     # Now we want to hold (and periodically log) until all subtasks are complete.
-                    dag = msg.data.dag
                     dag_dict = dict()
 
-                    for activity in dag['nodes']:
-                        dag_dict[activity.activity_id] = "PROCESSING"
+                    # Add all activities (besides the monitor) to our dict.
+                    for activity_id in dag_msg[1]["all_activity_ids"]:
+                        if activity_id == "MONITOR":
+                            continue
+                        dag_dict[activity_id] = "PROCESSING"
 
                     while True:
                         # Quick check to see if all values are NOT "PROCESSING"
@@ -112,25 +116,30 @@ class Executor(threading.Thread):
                             status = status_msg.status
                             dag_dict[status_msg.activity_id] = status
 
+                elif dag_msg[0] == "TERMINATOR":
+                    # TODO: TERMINATE AND SEND BACK!
+                    pass
+
                 # If we were just monitoring, go to top of loop; start over.
                 if monitor_term:
                     continue
 
+                activity_msg = dag_msg[1]['activity']
                 # if we need files, check if present (and if not, go get them).
                 self._logger.info("[Executor] Message received:")
-                self._logger.info(json.dumps(asdict(msg.data), indent=4))
-                if msg.data.body.type == "SHELL":
+                self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
+                if activity_msg.data.body.type == "SHELL":
                     self._logger.info("[Executor] Message received:")
-                    self._logger.info(json.dumps(asdict(msg.data), indent=4))
+                    self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
                     # Determine if the shell activity has files that
                     # Need to be moved to be executed
-                    if msg.data.body.files:
-                        if len(msg.data.body.files) > 0:
+                    if activity_msg.data.body.files:
+                        if len(activity_msg.data.body.files) > 0:
                             self.__process_files(
-                                msg.data.body.files,
-                                msg.data.campaign_id,
-                                msg.data.activity_id,
+                                activity_msg.data.body.files,
+                                activity_msg.data.campaign_id,
+                                activity_msg.data.activity_id,
                             )
 
                     # Running Checks
@@ -149,11 +158,11 @@ class Executor(threading.Thread):
 
                     # TODO: TYLER -- WAIT until we have the eligible resources.
 
-                    checked_result = self._settings.plugins.check(msg)
+                    checked_result = self._settings.plugins.check(dag_msg)
                     self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
 
                     if checked_result.error_detected() is False:
-                        self._settings.plugins.run(msg)
+                        self._settings.plugins.run(activity_msg)
                     else:
                         self._logger.debug(
                             "Skipping run - error detected when running " "plugin check"

@@ -106,6 +106,9 @@ class MessageHandler(threading.Thread):
             # Iterating over nodes in NetworkX DAG
             for node in activity_dag.nodes(data=True):
 
+                if node[0] == "MONITOR":
+                    node[1]["all_activity_ids"] = list(activity_dag.nodes)
+
                 # Append agent_id to each node.
                 node[1]["agent_id"] = self.agent_id
                 activity = node[1]["activity"]
