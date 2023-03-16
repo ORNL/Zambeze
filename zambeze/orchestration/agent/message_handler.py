@@ -2,7 +2,11 @@ import pickle
 import threading
 import time
 import dill
+import json
+import networkx
+import base64
 import zmq
+import codecs
 
 from queue import Queue
 
@@ -66,9 +70,10 @@ class MessageHandler(threading.Thread):
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
         campaign_listener.start()
-        activity_listener.start()
-        control_listener.start()
+        #activity_listener.start()
+        #control_listener.start()
         activity_sender.start()
+        #control_sender.start()
 
     def recv_activity_dag_from_campaign(self):
         """
@@ -89,20 +94,40 @@ class MessageHandler(threading.Thread):
                 "[recv_activity_dag_from_campaign] Received an activity DAG bytestring!"
             )
 
+            # try:
             activity_dag_data = pickle.loads(dag_bytestring)
-            activity_dag_data.agent_id = self.agent_id
+            activity_dag = networkx.node_link_graph(activity_dag_data)
 
             self._logger.debug(
                 "[recv_activity_dag_from_campaign] Received message from "
                 f"campaign: {activity_dag_data}"
             )
 
-            for activity in activity_dag_data:
+            # Iterating over nodes in NetworkX DAG
+            for node in activity_dag.nodes(data=True):
+
+                # Append agent_id to each node.
+                node[1]["agent_id"] = self.agent_id
+                activity = node[1]["activity"]
+
+                # If not monitor or terminator
+                try:
+                    if type(activity) != str:
+                        activity.agent_id = self.agent_id
+                        self._logger.info("FINALLY SOME MEAT@")
+                        self._logger.info(activity)
+                        # node[1]["activity"] = activity.generate_message()
+                except Exception as e:
+                    self._logger.error(e)
+                self._logger.info("ZOOBER")
+                node[1]["successors"] = list(activity_dag.predecessors(node[0]))
+                node[1]["predecessors"] = list(activity_dag.successors(node[0]))
+
+                self._logger.info("The activity_node to send...")
+                self._logger.info(node)
 
                 # Put the entire DAG into the activity.
-                activity.dag_data = activity_dag_data
-
-                activity_message: AbstractMessage = activity.generate_message()
+                # activity_message: AbstractMessage = activity.generate_message()
 
                 activity_model = ActivityModel(
                     agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
@@ -110,7 +135,8 @@ class MessageHandler(threading.Thread):
                 self._activity_dao.insert(activity_model)
                 self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
 
-                self.msg_handler_send_activity_q.put(activity_message)
+                self.msg_handler_send_activity_q.put(node)
+                self._logger.debug("[recv_activities_from_campaign] Sent node!")
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
