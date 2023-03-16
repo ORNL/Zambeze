@@ -10,6 +10,7 @@ import logging
 import zmq
 import pickle
 import uuid
+import networkx as nx  # TODO: move to dag object.
 
 from .activities.abstract_activity import Activity
 from .activities.dag import DAG
@@ -80,22 +81,21 @@ class Campaign:
             if last_activity is None:
                 last_activity = "MONITOR"
                 # Add one node explicitly
-                dag.add_node("MONITOR", activity="MONITOR")
-                continue
+                dag.add_node("MONITOR", activity="MONITOR", campaign_id=self.campaign_id)
 
-            dag.add_node(activity.activity_id, activity=activity)
+            dag.add_node(activity.activity_id, activity=activity, campaign_id=self.campaign_id)
 
             # Rest of nodes added implicitly via edge.
             dag.add_edge(last_activity, activity.activity_id)
             last_activity = activity.activity_id
 
+        dag.add_node("TERMINATOR", activity="TERMINATOR", campaign_id=self.campaign_id)
         dag.add_edge(last_activity, "TERMINATOR")
 
         self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
 
-        # Dump dict into bytestring. NetworkX prefers breaking up into nodes and edges.
-        serial_dag = pickle.dumps({"nodes": dag.nodes(data=True),
-                                   "edges": dag.edges(data=True)})
+        # Dump dict into bytestring. NetworkX prefers breaking up into nodes and edges (and pickling)
+        serial_dag = pickle.dumps(nx.node_link_data(dag))
 
         self._logger.debug("Activity DAG sending via ZMQ...")
         self._zmq_socket.send(serial_dag)
