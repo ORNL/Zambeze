@@ -1,5 +1,6 @@
 import pickle
 import threading
+import pathlib
 import time
 import dill
 import zmq
@@ -36,13 +37,39 @@ class MessageHandler(threading.Thread):
 
         self._activity_dao = ActivityDAO(self._logger)
 
+        # try:
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
         self._logger.info(
             "[Message Handler] Binding to ZMQ: "
             f"{self._settings.get_zmq_connection_uri()}"
         )
-        self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
+        # self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
+        # Bind to a random available port in the range 60000-65000
+        port_message = self._zmq_socket.bind_to_random_port("tcp://*", min_port=60000, max_port=65000)
+
+        zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
+        state_path = zambeze_base_dir.joinpath("agent.state")
+
+        import json
+        with open(state_path, 'r') as f:
+            the_json = json.load(f)
+            the_json["zmq_activity_port"] = port_message
+
+        with open(state_path, 'w') as g:
+            json.dump(the_json, g)
+
+        # port_message = self._zmq_socket.bind_to.decode('utf-8')
+
+        self._logger.info(f"Wrote port to state file: {port_message}")
+        # except Exception as e:
+        # self._logger.error(e)
+
+        # # Send the port number to the client
+        # try:
+        #     self._zmq_socket.send_string(str(port_message))
+        # except Exception as e:
+        #     self._logger.info(f"PROBLEM IN HERE: {e}")
 
         # Queues to allow safe inter-thread communication.
         self.msg_handler_send_activity_q = Queue()

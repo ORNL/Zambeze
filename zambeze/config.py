@@ -2,10 +2,19 @@
 A file to keep all global constants and settings, particularly environment vars.
 """
 import os
+import json
+import pathlib
 
 # This is the hostname of THIS service.
 HOST = os.getenv("HOST", "127.0.0.1")
-ZMQ_PORT = int(os.getenv("ZMQ_PORT", 5555))
+
+zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
+state_path = zambeze_base_dir.joinpath("agent.state")
+
+if os.path.isfile(state_path):
+    ZMQ_PORT = json.load(open(state_path, 'r'))['zmq_activity_port']
+else:
+    ZMQ_PORT = int(os.getenv("ZMQ_PORT", 5555))
 
 # Hostname and port of the NATS queueing system
 NATS_HOST = os.getenv("NATS_HOST", "127.0.0.1")

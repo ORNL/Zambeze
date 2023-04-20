@@ -51,12 +51,12 @@ class Campaign:
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
 
-        # TODO: this needs to be REFACTORED AND UNHARDCODED
-        #  (use the get_zmq_connection_uri) after we move it somewhere nice.
+        print(f"ZMQ PORT: {ZMQ_PORT}")
+
         self._zmq_socket.connect(f"tcp://{HOST}:{ZMQ_PORT}")
 
         self._logger.info("[CAMPAIGN] Starting agent...")
-        agent_start(self._logger)
+        # agent_start(self._logger)
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
