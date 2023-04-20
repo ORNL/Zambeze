@@ -94,6 +94,8 @@ class Executor(threading.Thread):
                 self._logger.info(f"EXECUTOR!!! {dag_msg}")
                 if dag_msg[0] == "MONITOR":
 
+                    self._logger.info(f"[EXECUTOR] ENTERED MONITOR TASK!")
+
                     # Now we want to hold (and periodically log) until all subtasks are complete.
                     dag_dict = dict()
 
