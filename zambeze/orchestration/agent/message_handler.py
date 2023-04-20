@@ -40,14 +40,12 @@ class MessageHandler(threading.Thread):
         # try:
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
-        self._logger.info(
-            "[Message Handler] Binding to ZMQ: "
-            f"{self._settings.get_zmq_connection_uri()}"
-        )
+        self._logger.info("[Message Handler] Binding to random ZMQ port...")
         # self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
         # Bind to a random available port in the range 60000-65000
         port_message = self._zmq_socket.bind_to_random_port("tcp://*", min_port=60000, max_port=65000)
 
+        # TODO: clean this up a bit.
         zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
         state_path = zambeze_base_dir.joinpath("agent.state")
 
@@ -113,9 +111,16 @@ class MessageHandler(threading.Thread):
             self._logger.debug(
                 "[recv_activities_from_campaign] Received an activity bytestring!"
             )
-            activity = pickle.loads(activity_bytestring)
-            activity.agent_id = self.agent_id
-            activity_message: AbstractMessage = activity.generate_message()
+
+            import traceback
+
+            try:
+                activity = pickle.loads(activity_bytestring)
+                activity.agent_id = self.agent_id
+                activity_message: AbstractMessage = activity.generate_message()
+            except Exception as e:
+                self._logger.error(f"CAUGHT ERROR IN MSG_HANDLER: {e}")
+                self._logger.error(f"TRACEBACK: {traceback.format_exc()}")
 
             self._logger.info(
                 "[recv_activities_from_campaign] Dispatching message "
