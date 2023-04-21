@@ -49,13 +49,17 @@ class Executor(threading.Thread):
         self.to_status_q = Queue()
         self.to_new_activity_q = Queue()
 
-        self._logger.info("[EXECUTOR] Created executor! ")
+        self._logger.info("[EXECUTOR] Creating executor...")
         self._agent_id = agent_id
 
-        self._msg_factory = MessageFactory(logger=self._logger)
-        self._transfer_hippo = TransferHippo(
-            agent_id=self._agent_id, logger=self._logger, settings=self._settings
-        )
+        try:
+            self._msg_factory = MessageFactory(logger=self._logger)
+            self._transfer_hippo = TransferHippo(
+                agent_id=self._agent_id, logger=self._logger, settings=self._settings
+            )
+        except Exception as e:
+            self._logger.info("WHAT IS WRONG???")
+            self._logger.info(str(e))
 
         self._logger.info("[EXECUTOR] Successfully initialized Executor!")
 
