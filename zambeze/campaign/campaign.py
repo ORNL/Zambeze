@@ -15,8 +15,10 @@ from .activities.abstract_activity import Activity
 
 from zambeze.orchestration.agent.commands import agent_start
 from typing import Optional
+# from
 
-from zambeze.config import HOST, ZMQ_PORT
+# from zambeze.config import HOST
+from zambeze.settings import ZambezeSettings
 
 
 class Campaign:
@@ -51,13 +53,12 @@ class Campaign:
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REQ)
 
-        print(f"ZMQ PORT: {ZMQ_PORT}")
+        self._settings = ZambezeSettings()
 
-        self._zmq_socket.connect(f"tcp://{HOST}:{ZMQ_PORT}")
+        ZMQ_HOST = self._settings.settings['zmq']['host']
+        ZMQ_PORT = self._settings.settings['zmq']['port']
 
-
-        # self._logger.info("[CAMPAIGN] Starting agent...")
-        # agent_start(self._logger)
+        self._zmq_socket.connect(f"tcp://{ZMQ_HOST}:{ZMQ_PORT}")
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.

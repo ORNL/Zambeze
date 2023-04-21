@@ -12,7 +12,7 @@ import pathlib
 import yaml
 from typing import Optional, Union
 
-from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT, RABBIT_HOST, RABBIT_PORT
+from .config import HOST, NATS_HOST, NATS_PORT, RABBIT_HOST, RABBIT_PORT
 from .orchestration.plugins import Plugins
 from .orchestration.db.dao.dao_utils import create_local_db
 
@@ -61,6 +61,7 @@ class ZambezeSettings:
             zambeze_folder.mkdir(parents=True, exist_ok=True)
 
         default_conf = zambeze_folder.joinpath("agent.yaml")
+        # TODO: this is over-coded.
         # pyre-ignore[6]
         if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
             # pyre-ignore[16]
@@ -73,7 +74,7 @@ class ZambezeSettings:
                         "shell": {"config": {}},
                         "All": {"default_working_directory": os.path.expanduser("~")},
                     },
-                    "zmq": {"host": HOST, "port": ZMQ_PORT},
+                    "zmq": {"host": HOST},
                     "rmq": {"host": RABBIT_HOST, "port": RABBIT_PORT},
                 }
                 # pyre-ignore[6]
@@ -93,7 +94,7 @@ class ZambezeSettings:
         self.__set_default("host", NATS_HOST, self.settings["nats"])
         self.__set_default("port", NATS_PORT, self.settings["nats"])
         self.__set_default("host", HOST, self.settings["zmq"])
-        self.__set_default("port", ZMQ_PORT, self.settings["zmq"])
+        # self.__set_default("port", ZMQ_PORT, self.settings["zmq"])
         self.__set_default("host", RABBIT_HOST, self.settings["rmq"])
         self.__set_default("port", RABBIT_PORT, self.settings["rmq"])
         self.__set_default("plugins", {"All": {}}, self.settings)
@@ -180,3 +181,10 @@ class ZambezeSettings:
         # pyre-ignore[6]
         with open(self._conf_file, "w") as file:
             yaml.dump(self.settings, file)
+
+    def flush(self):
+        """
+        Save updated properties to file (external callable function).
+        """
+        # pyre-ignore[6]
+        self.__save()

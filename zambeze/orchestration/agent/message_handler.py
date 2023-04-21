@@ -1,6 +1,5 @@
 import pickle
 import threading
-import pathlib
 import time
 import dill
 import zmq
@@ -45,21 +44,25 @@ class MessageHandler(threading.Thread):
         # Bind to a random available port in the range 60000-65000
         port_message = self._zmq_socket.bind_to_random_port("tcp://*", min_port=60000, max_port=65000)
 
+        # Set ZMQ port in settings (and flush to file)
+        self._settings.settings["zmq"]["port"] = port_message
+        self._settings.flush()
+
         # TODO: clean this up a bit.
-        zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
-        state_path = zambeze_base_dir.joinpath("agent.state")
+        # zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
+        # state_path = zambeze_base_dir.joinpath("agent.state")
 
-        import json
-        with open(state_path, 'r') as f:
-            the_json = json.load(f)
-            the_json["zmq_activity_port"] = port_message
-
-        with open(state_path, 'w') as g:
-            json.dump(the_json, g)
+        #        import json
+        # with open(state_path, 'r') as f:
+        #     the_json = json.load(f)
+        #     the_json["zmq_activity_port"] = port_message
+        #
+        # with open(state_path, 'w') as g:
+        #     json.dump(the_json, g)
 
         # port_message = self._zmq_socket.bind_to.decode('utf-8')
 
-        self._logger.info(f"Wrote port to state file: {port_message}")
+        self._logger.info(f"Wrote port to agent.yaml file: {port_message}")
         # except Exception as e:
         # self._logger.error(e)
 
