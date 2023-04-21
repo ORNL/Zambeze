@@ -3,14 +3,8 @@ A file to keep all global constants and settings, particularly environment vars.
 """
 import os
 
-# from zambeze.settings import ZambezeSettings
-
 # This is the hostname of THIS service.
 HOST = os.getenv("HOST", "127.0.0.1")
-
-# zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
-# state_path = zambeze_base_dir.joinpath("agent.state")
-
 
 # Hostname and port of the NATS queueing system
 NATS_HOST = os.getenv("NATS_HOST", "127.0.0.1")

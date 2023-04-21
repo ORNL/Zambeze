@@ -50,29 +50,7 @@ class MessageHandler(threading.Thread):
         self._settings.settings["zmq"]["port"] = port_message
         self._settings.flush()
 
-        # TODO: clean this up a bit.
-        # zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
-        # state_path = zambeze_base_dir.joinpath("agent.state")
-
-        #        import json
-        # with open(state_path, 'r') as f:
-        #     the_json = json.load(f)
-        #     the_json["zmq_activity_port"] = port_message
-        #
-        # with open(state_path, 'w') as g:
-        #     json.dump(the_json, g)
-
-        # port_message = self._zmq_socket.bind_to.decode('utf-8')
-
-        self._logger.info(f"Wrote port to agent.yaml file: {port_message}")
-        # except Exception as e:
-        # self._logger.error(e)
-
-        # # Send the port number to the client
-        # try:
-        #     self._zmq_socket.send_string(str(port_message))
-        # except Exception as e:
-        #     self._logger.info(f"PROBLEM IN HERE: {e}")
+        self._logger.info(f"Advertised port in agent.yaml file: {port_message}")
 
         # Queues to allow safe inter-thread communication.
         self.msg_handler_send_activity_q = Queue()
