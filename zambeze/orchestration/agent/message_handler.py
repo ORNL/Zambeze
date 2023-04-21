@@ -42,7 +42,9 @@ class MessageHandler(threading.Thread):
         self._logger.info("[Message Handler] Binding to random ZMQ port...")
         # self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
         # Bind to a random available port in the range 60000-65000
-        port_message = self._zmq_socket.bind_to_random_port("tcp://*", min_port=60000, max_port=65000)
+        port_message = self._zmq_socket.bind_to_random_port(
+            "tcp://*", min_port=60000, max_port=65000
+        )
 
         # Set ZMQ port in settings (and flush to file)
         self._settings.settings["zmq"]["port"] = port_message

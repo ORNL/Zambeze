@@ -2,6 +2,7 @@
 A file to keep all global constants and settings, particularly environment vars.
 """
 import os
+
 # from zambeze.settings import ZambezeSettings
 
 # This is the hostname of THIS service.

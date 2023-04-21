@@ -13,11 +13,8 @@ import uuid
 
 from .activities.abstract_activity import Activity
 
-from zambeze.orchestration.agent.commands import agent_start
 from typing import Optional
-# from
 
-# from zambeze.config import HOST
 from zambeze.settings import ZambezeSettings
 
 
@@ -55,10 +52,10 @@ class Campaign:
 
         self._settings = ZambezeSettings()
 
-        ZMQ_HOST = self._settings.settings['zmq']['host']
-        ZMQ_PORT = self._settings.settings['zmq']['port']
+        zmq_host = self._settings.settings["zmq"]["host"]
+        zmq_port = self._settings.settings["zmq"]["port"]
 
-        self._zmq_socket.connect(f"tcp://{ZMQ_HOST}:{ZMQ_PORT}")
+        self._zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
 
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
