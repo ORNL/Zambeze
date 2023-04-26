@@ -186,5 +186,4 @@ class ZambezeSettings:
         """
         Save updated properties to file (external callable function).
         """
-        # pyre-ignore[6]
         self.__save()
