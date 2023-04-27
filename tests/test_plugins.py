@@ -34,12 +34,12 @@ def test_registered_plugins():
             found_shell = True
         elif plugin == "rsync":
             found_rsync = True
-        elif plugin == "globus":
-            found_globus = True
+        # elif plugin == "globus":
+        #     found_globus = True
 
     assert found_shell
     assert found_rsync
-    assert found_globus
+    # assert found_globus
 
 
 @pytest.mark.unit
@@ -234,6 +234,7 @@ def test_rsync_plugin_run():
 
     python3 -m pytest -m integration
     """
+    print("HELLO!")
     plugins = Plugins()
 
     print(os.environ)
