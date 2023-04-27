@@ -74,7 +74,7 @@ class ZambezeSettings:
                         "shell": {"config": {}},
                         "All": {"default_working_directory": os.path.expanduser("~")},
                     },
-                    "zmq": {"host": HOST},
+                    "zmq": {"host": HOST, "port": 5555},
                     "rmq": {"host": RABBIT_HOST, "port": RABBIT_PORT},
                 }
                 # pyre-ignore[6]

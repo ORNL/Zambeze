@@ -47,16 +47,6 @@ class Campaign:
         for index in range(0, len(self.activities)):
             self.activities[index].campaign_id = self.campaign_id
 
-        self._zmq_context = zmq.Context()
-        self._zmq_socket = self._zmq_context.socket(zmq.REQ)
-
-        self._settings = ZambezeSettings()
-
-        zmq_host = self._settings.settings["zmq"]["host"]
-        zmq_port = self._settings.settings["zmq"]["port"]
-
-        self._zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
-
     def add_activity(self, activity: Activity) -> None:
         """Add an activity to the campaign.
 
@@ -71,12 +61,23 @@ class Campaign:
         """Dispatch the set of current activities in the campaign."""
         self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
 
+        # Connecting to ZMQ
+        _zmq_context = zmq.Context()
+        _zmq_socket = _zmq_context.socket(zmq.REQ)
+
+        _settings = ZambezeSettings()
+
+        zmq_host = _settings.settings["zmq"]["host"]
+        zmq_port = _settings.settings["zmq"]["port"]
+
+        _zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
+
         for activity in self.activities:
             self._logger.debug(f"Running activity: {activity.name}")
 
             # Dump dict into bytestring (.dumps)
             serial_activity = pickle.dumps(activity)
             self._logger.debug("Sending serial activity")
-            self._zmq_socket.send(serial_activity)
+            _zmq_socket.send(serial_activity)
             self._logger.debug("Serial activity sent.")
-            self._logger.info(f"REPLY: {self._zmq_socket.recv()}")
+            self._logger.info(f"REPLY: {_zmq_socket.recv()}")
