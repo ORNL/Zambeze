@@ -29,8 +29,7 @@ def registerPlugins(logger: Optional[logging.Logger] = None) -> list:
             and module_name != "abstract_uri_separator"
             and module_name != "file_uri_separator"
         ):
-
-            module_path = module_name.replace('.', os.path.sep)
+            module_path = module_name.replace(".", os.path.sep)
             full_module_path = os.path.join(plugin_path[0], module_path)
             # Make sure we are only grabbing zambeze plugins and not modules
             # from elsewhere in the Python path
