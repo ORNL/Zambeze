@@ -11,7 +11,7 @@ ZMQ_PORT = int(os.getenv("ZMQ_PORT", 5555))
 NATS_HOST = os.getenv("NATS_HOST", "127.0.0.1")
 NATS_PORT = int(os.getenv("NATS_PORT", 4222))
 
-# Hostname and port of the NATS queueing system
+# Hostname and port of the RabbitMQ queueing system
 RABBIT_HOST = os.getenv("RABBIT_HOST", "127.0.0.1")
 RABBIT_PORT = int(os.getenv("RABBIT_PORT", 5672))
 

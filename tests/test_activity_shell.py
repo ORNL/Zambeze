@@ -12,7 +12,6 @@ import uuid
 
 @pytest.mark.unit
 def test_shell_activity_generate_message():
-
     logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
     activity = ShellActivity(

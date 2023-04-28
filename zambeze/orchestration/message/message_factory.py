@@ -23,7 +23,6 @@ import uuid
 
 class MessageFactory:
     def __init__(self, logger: logging.Logger):
-
         self._logger = logger
         self._plugins_msg_template_generators = PluginsMessageTemplateEngine(logger)
         self._plugins_msg_validators = PluginsMessageValidator(logger)
@@ -169,7 +168,6 @@ class MessageFactory:
         args[1].message_id = str(uuid.uuid4())
 
         if args[0] == MessageType.ACTIVITY:
-
             validator = MessageActivityValidator()
             result = validator.check(args[1])
             print(result)

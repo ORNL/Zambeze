@@ -18,7 +18,7 @@ from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
 class ShellActivity(Activity):
-    """A Unix Shell script activity.
+    """A Unix Shell script/command activity.
 
     :param name: Campaign activity name.
     :type name: str
@@ -73,7 +73,6 @@ class ShellActivity(Activity):
         self.logger.info(self.files)
 
     def generate_message(self) -> AbstractMessage:
-
         factory = MessageFactory(logger=self.logger)
         template = factory.create_template(
             MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}

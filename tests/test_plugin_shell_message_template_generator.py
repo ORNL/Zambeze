@@ -10,7 +10,6 @@ import pytest
 
 @pytest.mark.unit
 def test_shell_messageTemplate():
-
     instance = ShellMessageTemplateGenerator()
     shell_template = instance.generate()
     print(shell_template)

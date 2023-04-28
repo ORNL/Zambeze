@@ -177,7 +177,6 @@ class Rsync(Plugin):
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
-
                 schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
@@ -188,7 +187,6 @@ class Rsync(Plugin):
                         continue
 
                 if action == "transfer":
-
                     match_host = isTheHostTheSourceOrDestination(
                         arguments[index][action]["items"][0], self._local_ip
                     )

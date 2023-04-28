@@ -1,2 +1,4 @@
 # Elevator pitch for Zambeze
 
+Zambeze is a distributed task orchestration system to orchestrate science application tasks across the large-scale and edge computing systems.
+

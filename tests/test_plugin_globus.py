@@ -12,7 +12,6 @@ GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
 
 @pytest.mark.globus
 def test_globus_basic1():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
@@ -52,7 +51,6 @@ def test_globus_basic1():
 
 @pytest.mark.globus
 def test_globus_basic2():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
@@ -98,7 +96,6 @@ def test_globus_basic2():
 
 @pytest.mark.globus
 def test_globus_move_check():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
@@ -171,7 +168,6 @@ def test_globus_move_check():
 
 @pytest.mark.globus
 def test_globus_transfer_check():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
@@ -267,7 +263,6 @@ def test_globus_transfer_check():
 
 @pytest.mark.globus
 def test_globus_process():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
@@ -402,7 +397,6 @@ def test_globus_process():
 
 @pytest.mark.globus
 def test_globus_process_async():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_APP_KEY",
@@ -543,7 +537,6 @@ def test_globus_process_async():
 
 @pytest.mark.globus_native
 def test_globus_process_native():
-
     required_env_variables = [
         "ZAMBEZE_CI_TEST_GLOBUS_NATIVE_CLIENT_ID",
         "ZAMBEZE_CI_TEST_GLOBUS_COLLECTION_UUID",

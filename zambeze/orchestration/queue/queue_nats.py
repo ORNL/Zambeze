@@ -14,7 +14,6 @@ class QueueNATS:
     def __init__(
         self, queue_config: dict, logger: Optional[logging.Logger] = None
     ) -> None:
-
         self._queue_type = QueueType.NATS
         self._logger = logger
         self._ip = "127.0.0.1"
