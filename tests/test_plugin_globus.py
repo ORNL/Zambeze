@@ -625,7 +625,7 @@ def test_globus_process_native():
                 "items": [
                     {
                         "source": "globus://"
-                        + os.getenv(required_env_variables[1])
+                        + os.getenv(required_env_variables[1]) + os.sep
                         + sub_folder
                         + file_name,
                         "destination": "globus://"
