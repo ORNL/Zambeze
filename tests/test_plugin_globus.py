@@ -349,7 +349,7 @@ def test_globus_process():
                 "items": [
                     {
                         "source": "globus://"
-                        + os.getenv(required_env_variables[2])
+                        + os.getenv(required_env_variables[2]) + os.sep
                         + sub_folder
                         + file_name,
                         "destination": "globus://"
@@ -386,12 +386,11 @@ def test_globus_process():
         os.remove(abs_path_destination_shared)
 
     checked_items = globus_plugin.check(package)
+    print(checked_items)
     all_checks_pass = True
     for item in checked_items:
         for action in item.keys():
             if not item[action][0]:
-                print("Something went wrong.")
-                print(item[action][1])
                 all_checks_pass = False
 
     if all_checks_pass:
@@ -484,7 +483,7 @@ def test_globus_process_async():
                 "items": [
                     {
                         "source": "globus://"
-                        + os.getenv(required_env_variables[2])
+                        + os.getenv(required_env_variables[2]) + os.sep
                         + sub_folder
                         + file_name,
                         "destination": "globus://"
@@ -523,6 +522,7 @@ def test_globus_process_async():
         os.remove(abs_path_destination_shared)
 
     checked_actions = globus_plugin.check(package)
+    print(checked_actions)
     for item in checked_actions:
         for action in item.keys():
             assert item[action][0]
@@ -666,7 +666,6 @@ def test_globus_process_native():
     print(checked_items)
     for item in checked_items:
         for action in item.keys():
-            print(item[action])
             if not item[action][0]:
                 all_checks_pass = False
 

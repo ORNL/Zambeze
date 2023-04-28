@@ -139,3 +139,20 @@ def test_globus_uri_separator8():
     assert result["path"] == "/"
     assert result["file_name"] == file_name
     assert len(result["error_message"]) == 0
+
+
+@pytest.mark.unit
+def test_globus_uri_separator9():
+    separator = GlobusURISeparator()
+    # "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXXfile.txt"
+    valid_uuid = str(uuid.uuid4())
+    default_uuid = str(uuid.uuid4())
+    file_path = ""
+    file_name = "file.txt"
+    uri = "globus://" + valid_uuid + file_path + file_name
+    result = separator.separate(uri, default_uuid)
+
+    assert len(result["error_message"]) > 0
+
+
+

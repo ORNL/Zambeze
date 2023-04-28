@@ -284,7 +284,6 @@ class Globus(Plugin):
                     "callback": {"get_task_status": {"task_id": result["task_id"]}},
                     "result": {"status": result["code"], "message": result["message"]},
                 }
-
         return transfer_result
 
     def __runGetTaskStatus(self, action_package: dict):
@@ -438,6 +437,20 @@ class Globus(Plugin):
         >>>     ]
         >>> }
         """
+        for item in action_package["items"]:
+            globus_sep_uri = self.__globus_uri_separator.separate(
+                item["destination"], self.__default_endpoint
+            )
+            if globus_sep_uri['error_message']:
+                return (False, "Destination URI - " + globus_sep_uri['error_message'])
+
+        for item in action_package["items"]:
+            globus_sep_uri = self.__globus_uri_separator.separate(
+                item["source"], self.__default_endpoint
+            )
+            if globus_sep_uri['error_message']:
+                return (False, "Source URI - " + globus_sep_uri['error_message'])
+
 
         # Any agent with the globus plugin can submit a job to globus if it
         # has access to the globus cloud
@@ -451,6 +464,9 @@ class Globus(Plugin):
             globus_sep_uri = self.__globus_uri_separator.separate(
                 item["destination"], self.__default_endpoint
             )
+            if globus_sep_uri['error_message']:
+                return (False, globus_sep_uri['error_message'])
+
             if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
                 error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"move_from_globus_collection' item: {item}"
@@ -460,6 +476,8 @@ class Globus(Plugin):
                 return (False, error_msg)
 
             file_sep_uri = self.__file_uri_separator.separate(item["source"])
+            if file_sep_uri['error_message']:
+                return (False, file_sep_uri['error_message'])
             file_path = file_sep_uri["path"] + file_sep_uri["file_name"]
             if not exists(file_path):
                 return False, f"Item does not exist {file_path}"
@@ -493,6 +511,9 @@ class Globus(Plugin):
             globus_sep_uri = self.__globus_uri_separator.separate(
                 item["source"], self.__default_endpoint
             )
+            if globus_sep_uri['error_message']:
+                return (False, globus_sep_uri['error_message'])
+
             if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
                 error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"'move_from_globus_collection' item: {item} "
@@ -556,15 +577,10 @@ class Globus(Plugin):
         """
         self.__validConfig(config)
 
-        print("Config is")
-        print(config)
         self._logger.debug(json.dumps(config, indent=4))
         if "authentication_flow" in config:
             if "client_id" in config["authentication_flow"]:
                 self.__client_id = config["authentication_flow"]["client_id"]
-
-        print("Client id is ")
-        print(self.__client_id)
 
         # Detect hostname
         self.__hostname = gethostname()
