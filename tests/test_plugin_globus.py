@@ -344,7 +344,8 @@ def test_globus_process():
                 "items": [
                     {
                         "source": "globus://"
-                        + os.getenv(required_env_variables[2]) + os.sep
+                        + os.getenv(required_env_variables[2])
+                        + os.sep
                         + sub_folder
                         + file_name,
                         "destination": "globus://"
@@ -477,7 +478,8 @@ def test_globus_process_async():
                 "items": [
                     {
                         "source": "globus://"
-                        + os.getenv(required_env_variables[2]) + os.sep
+                        + os.getenv(required_env_variables[2])
+                        + os.sep
                         + sub_folder
                         + file_name,
                         "destination": "globus://"
@@ -618,7 +620,8 @@ def test_globus_process_native():
                 "items": [
                     {
                         "source": "globus://"
-                        + os.getenv(required_env_variables[1]) + os.sep
+                        + os.getenv(required_env_variables[1])
+                        + os.sep
                         + sub_folder
                         + file_name,
                         "destination": "globus://"

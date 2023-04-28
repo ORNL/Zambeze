@@ -153,6 +153,3 @@ def test_globus_uri_separator9():
     result = separator.separate(uri, default_uuid)
 
     assert len(result["error_message"]) > 0
-
-
-
