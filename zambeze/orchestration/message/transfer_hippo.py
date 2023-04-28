@@ -11,7 +11,6 @@ from zambeze.orchestration.message.message_factory import MessageFactory
 
 class TransferHippo:
     def __init__(self, agent_id, settings, logger):
-
         self._logger = logger
         self._settings = settings
         self._agent_id = agent_id
@@ -23,7 +22,6 @@ class TransferHippo:
         messages = []
 
         if transfer_type == "globus":
-
             self._logger.info(
                 f"Starting Globus configuration for file at {file_url.path}"
             )

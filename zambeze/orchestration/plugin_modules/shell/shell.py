@@ -59,7 +59,6 @@ def get_inner_pattern(variable: str, left_pattern: str, right_pattern: str):
     inner_match_right_index = -1
 
     while True:
-
         if inner_match_left_index < right_index and right_index > -1:
             inner_match_right_index = right_index
 

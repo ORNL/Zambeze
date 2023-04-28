@@ -598,7 +598,6 @@ class Git(Plugin):
         file_path += destination_split_uri["file_name"]
         print(f"File to write to is {file_path}")
         with open(file_path, "w+") as f:
-
             clean_source_path_and_file = source_split_uri["path"]
             clean_source_path_and_file += source_split_uri["file_name"]
             if clean_source_path_and_file.startswith("/"):
@@ -740,7 +739,6 @@ class Git(Plugin):
         checks = []
         for index in range(len(arguments)):
             for action in arguments[index]:
-
                 if action not in self.__supported_actions:
                     checks.append({action: (False, "action is not supported.")})
                     continue

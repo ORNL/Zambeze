@@ -351,7 +351,6 @@ class Globus(Plugin):
             destination_path += destination_sep_globus_uri["path"]
 
             if isdir(destination_path):
-
                 if len(destination_file_name) > 0:
                     # /mnt/globus/collections + /file_path/ + file.txt
                     destination_path = destination_path + destination_file_name
@@ -406,7 +405,6 @@ class Globus(Plugin):
             source_path = source_path + source_file_name
 
             if isdir(destination_path):
-
                 if len(destination_file_name) > 0:
                     # /mnt/globus/collections + /file_path/ + file.txt
                     destination_path = destination_path + destination_file_name
@@ -729,7 +727,6 @@ class Globus(Plugin):
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
-
                 schema_checks = self._message_validator.validateAction(
                     arguments[index], action
                 )
@@ -847,7 +844,6 @@ class Globus(Plugin):
         for action_obj in arguments:
             # Make sure that the action is supported
             for key in action_obj:
-
                 if key not in self.__supported_actions:
                     raise Exception(f"{key} is not supported.")
 

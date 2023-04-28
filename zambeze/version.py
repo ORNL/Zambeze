@@ -6,4 +6,4 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-__version__ = "0.1-dev"
+__version__ = "0.1"

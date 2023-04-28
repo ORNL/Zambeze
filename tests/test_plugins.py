@@ -5,6 +5,7 @@ from zambeze.orchestration.plugins_message_template_engine import (
 )
 from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
+from zambeze.orchestration.network import getIP
 
 # Standard imports
 import copy
@@ -43,7 +44,6 @@ def test_registered_plugins():
 
 @pytest.mark.unit
 def test_check_configured_plugins():
-
     plugins = Plugins()
 
     assert len(plugins.configured) == 0
@@ -151,7 +151,7 @@ def test_shell_plugin_run():
         assert lines[0].strip() == str(original_number)
 
 
-@pytest.mark.gitlab_runner
+@pytest.mark.integration
 def test_rsync_plugin_check():
     plugins = Plugins()
     plugins.configure({"shell": {}, "rsync": {}})
@@ -159,11 +159,14 @@ def test_rsync_plugin_check():
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     current_user = pwd.getpwuid(os.geteuid())[0]
+    print(os.environ)
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
-    neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    neighbor_vm_ip = getIP(neighbor_vm)
 
+    rsync_user = os.getenv("ZAMBEZE_CI_TEST_RSYNC_USER")
     factory = MessageFactory(logger=logger)
     msg_template = factory.create_template(
         MessageType.ACTIVITY,
@@ -182,7 +185,7 @@ def test_rsync_plugin_check():
     msg_template[1].body.parameters.transfer.items[0].source.user = current_user
     msg_template[1].body.parameters.transfer.items[0].source.path = current_valid_path
     msg_template[1].body.parameters.transfer.items[0].destination.ip = neighbor_vm_ip
-    msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
+    msg_template[1].body.parameters.transfer.items[0].destination.user = rsync_user
     msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
 
     msg = factory.create(msg_template)
@@ -208,7 +211,7 @@ def test_rsync_plugin_check():
     assert not checked_actions["rsync"][0]["transfer"][0]
 
 
-@pytest.mark.gitlab_runner
+@pytest.mark.integration
 def test_rsync_plugin_run():
     """This test is designed to test the rsync plugin plugin
 
@@ -229,12 +232,15 @@ def test_rsync_plugin_run():
 
     Once those env variables are defined the tests can be run with.
 
-    python3 -m pytest -m gitlab_runner
+    python3 -m pytest -m integration
     """
     plugins = Plugins()
 
-    neighbor_vm_ip = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    print(os.environ)
+    neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
+    neighbor_vm_ip = getIP(neighbor_vm)
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
+    rsync_user = os.getenv("ZAMBEZE_CI_TEST_RSYNC_USER")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})
 
     # Attaching a timestamp to avoid concurrent runs overwriting files
@@ -271,7 +277,7 @@ def test_rsync_plugin_run():
     msg_template[1].body.parameters.transfer.items[0].source.user = current_user
     msg_template[1].body.parameters.transfer.items[0].source.path = file_path
     msg_template[1].body.parameters.transfer.items[0].destination.ip = neighbor_vm_ip
-    msg_template[1].body.parameters.transfer.items[0].destination.user = "cades"
+    msg_template[1].body.parameters.transfer.items[0].destination.user = rsync_user
     msg_template[1].body.parameters.transfer.items[0].destination.path = "/tmp"
 
     msg = factory.create(msg_template)
@@ -302,7 +308,7 @@ def test_rsync_plugin_run():
     msg_template_return[1].credential = {}
     msg_template_return[1].submission_time = str(int(time.time()))
     msg_template_return[1].body.parameters.transfer.items[0].source.ip = neighbor_vm_ip
-    msg_template_return[1].body.parameters.transfer.items[0].source.user = "cades"
+    msg_template_return[1].body.parameters.transfer.items[0].source.user = rsync_user
     msg_template_return[1].body.parameters.transfer.items[0].source.path = (
         "/tmp/" + file_name
     )

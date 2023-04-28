@@ -10,7 +10,6 @@ import pytest
 
 @pytest.mark.unit
 def test_git_messageTemplateCommit():
-
     instance = GitMessageTemplateGenerator()
     git_template_commit = instance.generate("commit")
     print(git_template_commit)
@@ -32,7 +31,6 @@ def test_git_messageTemplateCommit():
 
 @pytest.mark.unit
 def test_git_messageTemplateDownload():
-
     instance = GitMessageTemplateGenerator()
     git_template_download = instance.generate("download")
     print(git_template_download)
