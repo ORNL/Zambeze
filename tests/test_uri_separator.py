@@ -10,16 +10,76 @@ import uuid
 def test_uri_separator1():
     separator = URISeparator()
 
-    URI = "file://dir1/file.txt"
+    URI = "file://hostname/file.txt"
 
     split_uri = separator.separate(URI)
     print(split_uri)
     assert split_uri["protocol"] == "file"
-    assert split_uri["path"] == "/dir1/"
+    assert split_uri["hostname"] == "hostname"
     assert split_uri["file_name"] == "file.txt"
+    assert split_uri["path"] == "/"
 
 
-def test_rsync_uri_separator2():
+@pytest.mark.unit
+def test_uri_separator2():
+    separator = URISeparator()
+
+    URI = "file:///dir1/file.txt"
+
+    split_uri = separator.separate(URI)
+    print(split_uri)
+    assert split_uri["protocol"] == "file"
+    assert split_uri["file_name"] == "file.txt"
+    assert split_uri["path"] == "/dir1/"
+
+
+@pytest.mark.unit
+def test_uri_separator3():
+    separator = URISeparator()
+
+    URI = "file:/dir1/file.txt"
+
+    split_uri = separator.separate(URI)
+    print(split_uri)
+    assert split_uri["protocol"] == "file"
+    assert split_uri["file_name"] == "file.txt"
+    assert split_uri["path"] == "/dir1/"
+
+
+@pytest.mark.unit
+def test_uri_separator4():
+    separator = URISeparator()
+
+    URI = "file://john@localhost:43/dir1/file.txt"
+
+    split_uri = separator.separate(URI)
+    print(split_uri)
+    assert split_uri["protocol"] == "file"
+    assert split_uri["file_name"] == "file.txt"
+    assert split_uri["path"] == "/dir1/"
+    assert split_uri["hostname"] == "localhost"
+    assert split_uri["port"] == "43"
+    assert split_uri["user"] == "john"
+
+
+@pytest.mark.unit
+def test_uri_separator5():
+    separator = URISeparator()
+
+    URI = "file://john@localhost:43"
+
+    split_uri = separator.separate(URI)
+    print(split_uri)
+    assert split_uri["protocol"] == "file"
+    assert split_uri["file_name"] == ""
+    assert split_uri["path"] == ""
+    assert split_uri["hostname"] == "localhost"
+    assert split_uri["port"] == "43"
+    assert split_uri["user"] == "john"
+
+
+@pytest.mark.unit
+def test_rsync_uri_separator1():
     separator = URISeparator()
 
     URI = "rsync://dir1/file.txt"
@@ -32,7 +92,7 @@ def test_rsync_uri_separator2():
 
 
 @pytest.mark.unit
-def test_uri_separator3():
+def test_git_uri_separator1():
     separator = URISeparator()
     URI = "git://org1/awesome_proj/main/file.txt"
 
@@ -47,7 +107,7 @@ def test_uri_separator3():
 
 
 @pytest.mark.unit
-def test_globus_uri_separator4():
+def test_globus_uri_separator1():
     separator = URISeparator()
 
     UUID = uuid.uuid4()

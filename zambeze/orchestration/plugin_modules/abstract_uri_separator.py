@@ -31,6 +31,8 @@ class AbstractURISeparator(ABC):
         "error_message"
         "protocol"
         "file_name"
+        "port"
+        "user"
         "path"
 
         As an example if the following uri was passed in
@@ -40,7 +42,10 @@ class AbstractURISeparator(ABC):
         {
             "error_message": "",
             "protocol": "file",
-            "path": "/home/jb/"
+            "path": "/home/jb/",
+            "hostname": "localhost",
+            "port": "22",
+            "user": "steve",
             "file_name": "awesome.txt"
         }
 

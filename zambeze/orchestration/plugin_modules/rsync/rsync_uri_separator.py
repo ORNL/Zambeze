@@ -14,6 +14,35 @@ class RsyncURISeparator(AbstractURISeparator):
     def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a rsync URI and break it into its components
 
+        NOTE: The rsync sheme URI followed what is specified here:
+        https://www.rfc-editor.org/rfc/rfc5781
+
+       URI scheme syntax: An rsync URI describes a source or destination for
+       the rsync application including a hostname, path, and optional user
+       and port.  The generic form of the rsync URI is:
+
+       rsync://[user@]host[:PORT]/Source
+
+       The rsync URI follows the general syntax from RFC 3986 and is defined
+       by the following ABNF [RFC5234]:
+
+       rsyncuri = "rsync:" hier-part
+                        ; See RFC 3986 for the definition
+                        ; of hier-part
+
+       URI scheme semantics: An rsync URI may be used as either a source or
+       destination for the rsync application.  If the port is not specified,
+       it defaults to 873.
+
+       Encoding considerations: Since the rsync URI is defined using
+       standard elements from RFC 3986, no special encoding considerations
+       are present.
+
+       Applications/protocols that use this URI scheme name: The only
+       application that uses rsync URIs is rsync.
+
+       Interoperability considerations: Since only one application is
+       expected to make use of rsync URIs, this U
         :param uri: Rsync uri should be like rsync://127.0.0.1/path/file.txt
         :type uri: str
 
