@@ -72,9 +72,7 @@ class GlobusURISeparator(AbstractURISeparator):
         # Replace multiple occurances of // with single /
         UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
-        print(f"UUID_and_path is  {UUID_and_path}")
         UUID = UUID_and_path[0:36]
-        print(f"UUID from path is {UUID}")
         file_and_path = UUID_and_path
         valid_uuid = default_uuid
         # Check if the first 36 chars contains os.sep it is probably a file_path
@@ -91,6 +89,18 @@ class GlobusURISeparator(AbstractURISeparator):
                 return package
             valid_uuid = UUID
             file_and_path = UUID_and_path[36:]
+            if len(file_and_path) > 0:
+                # If actual char in path first char should be a separator
+                if file_and_path[0] is not os.sep:
+                    # This should catch errors like this
+                    # globus://XXXXYYYY-XXXX-XXXX-XXXXYYYYXXXXfilepath/file.txt
+                    # which should instead be
+                    # globus://XXXXYYYY-XXXX-XXXX-XXXXYYYYXXXX/filepath/file.txt
+                    error_msg = f"Malformed Globus URI format detected {uri}"
+                    error_msg += f" expected {os.sep} between UUID and file path"
+                    package["error_message"] = error_msg
+                    return package
+
         else:
             if default_uuid is None:
                 error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
