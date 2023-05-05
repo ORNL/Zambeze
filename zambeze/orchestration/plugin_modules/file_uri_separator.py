@@ -99,7 +99,7 @@ class FileURISeparator(AbstractURISeparator):
         elif len(file_host_and_path) > 1:
             file_host_and_path = file_host_and_path[1:]
             file_host_and_path = file_host_and_path.split(os.sep, 1)
-            self._separate_host_username_and_port(package, iile_host_and_path[0])
+            self._separate_host_username_and_port(package, uri, file_host_and_path[0])
 
             if len(file_host_and_path) > 1:
                 file_and_path = file_host_and_path[1]
