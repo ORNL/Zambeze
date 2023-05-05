@@ -1,5 +1,5 @@
 from ..abstract_uri_separator import AbstractURISeparator
-from zambeze.orchestration.network import isAddressValid, isValidDomainName
+from zambeze.orchestration.network import is_address_valid
 
 # Standard imports
 import logging
@@ -87,10 +87,7 @@ class RsyncURISeparator(AbstractURISeparator):
         if "/" in file_and_path:
             print(file_and_path.index("/"))
             potential_netloc = file_and_path[: file_and_path.index("/")]
-            if isAddressValid(potential_netloc):
-                file_and_path = file_and_path.removeprefix(potential_netloc)
-                package["netloc"] = potential_netloc
-            elif isValidDomainName(potential_netloc):
+            if is_address_valid(potential_netloc):
                 file_and_path = file_and_path.removeprefix(potential_netloc)
                 package["netloc"] = potential_netloc
 

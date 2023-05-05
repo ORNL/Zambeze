@@ -72,7 +72,7 @@ def test_uri_separator5():
     print(split_uri)
     assert split_uri["protocol"] == "file"
     assert split_uri["file_name"] == ""
-    assert split_uri["path"] == ""
+    assert split_uri["path"] == "/"
     assert split_uri["hostname"] == "localhost"
     assert split_uri["port"] == "43"
     assert split_uri["user"] == "john"

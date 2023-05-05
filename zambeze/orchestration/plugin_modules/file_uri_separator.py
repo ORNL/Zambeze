@@ -57,17 +57,21 @@ class FileURISeparator(AbstractURISeparator):
             return package
 
         file_host_and_path = uri[len(file_uri_prefix) :]
+        file_and_path = ""
 
         if not file_host_and_path[0].startswith(os.sep):
             # Will assume there is no host
-            file_and_path = file_host_and_path[1:]
+            file_and_path = file_host_and_path
+            print(f"1 {file_and_path}")
         elif file_host_and_path.startswith(os.sep + os.sep):
             # Will assume there is no host
             file_and_path = file_host_and_path[2:]
+            print(f"2 {file_and_path}")
         elif len(file_host_and_path) > 1:
-            host_username_port = file_host_and_path[1:]
-            host_username_port = host_username_port.split(os.sep, 1)[0]
-            file_and_path = host_username_port.split(os.sep, 1)[1]
+            file_host_and_path = file_host_and_path[1:]
+            file_host_and_path = file_host_and_path.split(os.sep, 1)
+            host_username_port = file_host_and_path[0]
+            print(f"3 {file_and_path}")
             count_at = host_username_port.count("@")
             if count_at == 0:
                 host_port = host_username_port
@@ -93,6 +97,11 @@ class FileURISeparator(AbstractURISeparator):
                 host_port = host_port.split(":", 1)
                 package["hostname"] = host_port[0]
                 package["port"] = host_port[1]
+
+            if len(file_host_and_path) > 1:
+                file_and_path = file_host_and_path[1]
+            else:
+                file_and_path = ""
 
         path = os.path.dirname(file_and_path)
 

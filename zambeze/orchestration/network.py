@@ -6,7 +6,7 @@ import socket
 import ipaddress
 
 
-def externalNetworkConnectionDetected() -> bool:
+def external_network_connection_detected() -> bool:
     """Check if we can connect to external network.
 
     :returns: True if can connect to google server, false otherwise
@@ -23,7 +23,7 @@ def externalNetworkConnectionDetected() -> bool:
         connection.close()
 
 
-def isAddressValid(address: str, version: str = "IPv4") -> bool:
+def is_address_valid(address: str, version: str = "IPv4") -> bool:
     if version == "IPv4":
         try:
             ipaddress.ip_address(address)
@@ -38,20 +38,20 @@ def isAddressValid(address: str, version: str = "IPv4") -> bool:
         raise Exception(f"Unsupported IP version {version}")
 
 
-def getIP(address_or_hostname: str):
+def get_ip(address_or_hostname: str):
     """Check if this is an ip address
 
     if not check to see if we can resolve to an IP address by assuming it is a hostname
 
     :Example
 
-    >>> ip = getIP("zambeze1")
+    >>> ip = get_ip("zambeze1")
 
     :Example
 
     Or does nothing if already an ip
 
-    >>> ip = getIP("127.0.0.1")
+    >>> ip = get_ip("127.0.0.1")
     """
     if re.search("[a-zA-Z]", address_or_hostname):
         # assuming that because it contains characters it is a hostname
