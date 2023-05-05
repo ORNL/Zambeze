@@ -13,7 +13,6 @@ def test_uri_separator1():
     URI = "file://hostname/file.txt"
 
     split_uri = separator.separate(URI)
-    print(split_uri)
     assert split_uri["protocol"] == "file"
     assert split_uri["hostname"] == "hostname"
     assert split_uri["file_name"] == "file.txt"
@@ -27,7 +26,6 @@ def test_uri_separator2():
     URI = "file:///dir1/file.txt"
 
     split_uri = separator.separate(URI)
-    print(split_uri)
     assert split_uri["protocol"] == "file"
     assert split_uri["file_name"] == "file.txt"
     assert split_uri["path"] == "/dir1/"
@@ -40,7 +38,6 @@ def test_uri_separator3():
     URI = "file:/dir1/file.txt"
 
     split_uri = separator.separate(URI)
-    print(split_uri)
     assert split_uri["protocol"] == "file"
     assert split_uri["file_name"] == "file.txt"
     assert split_uri["path"] == "/dir1/"
@@ -53,7 +50,6 @@ def test_uri_separator4():
     URI = "file://john@localhost:43/dir1/file.txt"
 
     split_uri = separator.separate(URI)
-    print(split_uri)
     assert split_uri["protocol"] == "file"
     assert split_uri["file_name"] == "file.txt"
     assert split_uri["path"] == "/dir1/"
@@ -69,7 +65,6 @@ def test_uri_separator5():
     URI = "file://john@localhost:43"
 
     split_uri = separator.separate(URI)
-    print(split_uri)
     assert split_uri["protocol"] == "file"
     assert split_uri["file_name"] == ""
     assert split_uri["path"] == "/"
@@ -85,7 +80,6 @@ def test_rsync_uri_separator1():
     URI = "rsync://dir1/file.txt"
 
     split_uri = separator.separate(URI)
-    print(split_uri)
     assert split_uri["protocol"] == "rsync"
     assert split_uri["path"] == "/dir1/"
     assert split_uri["file_name"] == "file.txt"
@@ -114,7 +108,6 @@ def test_globus_uri_separator1():
     URI = f"globus://{UUID}/file.txt"
 
     split_uri = separator.separate(URI)
-    print(split_uri)
     assert split_uri["protocol"] == "globus"
     assert split_uri["uuid"] == str(UUID)
     assert split_uri["path"] == "/"
