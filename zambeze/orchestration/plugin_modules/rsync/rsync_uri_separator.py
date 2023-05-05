@@ -9,7 +9,10 @@ from typing import Optional
 
 class RsyncURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("rsync", logger=logger)
+        super().__init__(logger=logger)
+
+    def name(self) -> str:
+        return "rsync"
 
     def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a rsync URI and break it into its components

@@ -9,7 +9,6 @@ class AbstractURISeparator(ABC):
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self._name = name
 
     @property
     def name(self) -> str:
@@ -20,7 +19,7 @@ class AbstractURISeparator(ABC):
         :return: Name of the separator
         :rtype: string
         """
-        return self._name
+        raise NotImplementedError("Name method has not been implemented.")
 
     @abstractmethod
     def separate(self, uri: str, extra_args=None) -> dict:

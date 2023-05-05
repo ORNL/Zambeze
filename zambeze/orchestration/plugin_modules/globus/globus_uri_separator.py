@@ -9,7 +9,10 @@ from typing import Optional
 
 class GlobusURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("globus", logger=logger)
+        super().__init__(logger=logger)
+
+    def name(self) -> str:
+        return "globus"
 
     def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a globus URI and break it into its components

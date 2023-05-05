@@ -2,13 +2,42 @@ from .abstract_uri_separator import AbstractURISeparator
 
 # Standard imports
 import logging
-import os
 from typing import Optional
 
 
 class FileURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("file", logger=logger)
+        super().__init__(logger=logger)
+
+    def name(self) -> str:
+        return "file"
+
+    def _separate_host_username_and_port(self, package, host_username_port):
+        count_at = host_username_port.count("@")
+        if count_at == 0:
+            host_port = host_username_port
+        elif count_at > 1:
+            error_msg = f"Incompatible file URI format {uri} cannot contain"
+            error_msg += "more than one @ in hostname section"
+            package["error_messag"] = error_msg
+            return package
+        else:
+            host_username_port = host_username_port.split("@", 1)
+            package["user"] = host_username_port[0]
+            host_port = host_username_port[1]
+
+        count_colon = host_port.count(":")
+        if count_colon == 0:
+            package["hostname"] = host_port
+        elif count_at > 1:
+            error_msg = f"Incompatible file URI format {uri} cannot contain"
+            error_msg += "more than one : in hostname section"
+            package["error_messag"] = error_msg
+            return package
+        else:
+            host_port = host_port.split(":", 1)
+            package["hostname"] = host_port[0]
+            package["port"] = host_port[1]
 
     def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a file URI and break it into its components
@@ -68,32 +97,7 @@ class FileURISeparator(AbstractURISeparator):
         elif len(file_host_and_path) > 1:
             file_host_and_path = file_host_and_path[1:]
             file_host_and_path = file_host_and_path.split(os.sep, 1)
-            host_username_port = file_host_and_path[0]
-            count_at = host_username_port.count("@")
-            if count_at == 0:
-                host_port = host_username_port
-            elif count_at > 1:
-                error_msg = f"Incompatible file URI format {uri} cannot contain"
-                error_msg += "more than one @ in hostname section"
-                package["error_messag"] = error_msg
-                return package
-            else:
-                host_username_port = host_username_port.split("@", 1)
-                package["user"] = host_username_port[0]
-                host_port = host_username_port[1]
-
-            count_colon = host_port.count(":")
-            if count_colon == 0:
-                package["hostname"] = host_port
-            elif count_at > 1:
-                error_msg = f"Incompatible file URI format {uri} cannot contain"
-                error_msg += "more than one : in hostname section"
-                package["error_messag"] = error_msg
-                return package
-            else:
-                host_port = host_port.split(":", 1)
-                package["hostname"] = host_port[0]
-                package["port"] = host_port[1]
+            self._separate_host_username_and_port(package, file_host_and_path[0])
 
             if len(file_host_and_path) > 1:
                 file_and_path = file_host_and_path[1]
