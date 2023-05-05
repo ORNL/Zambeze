@@ -41,14 +41,14 @@ class FileURISeparator(AbstractURISeparator):
         file_uri_prefix = "file:/"
 
         package = {
-                "protocol": "file",
-                "error_message": "",
-                "path": "",
-                "file_name": "",
-                "port": "",
-                "hostname": "",
-                "user": ""
-                }
+            "protocol": "file",
+            "error_message": "",
+            "path": "",
+            "file_name": "",
+            "port": "",
+            "hostname": "",
+            "user": "",
+        }
         # Start by ensuring the start of the uri begins with globus://
         if not uri.startswith(file_uri_prefix):
             error_msg = f"Incompatible file URI format {uri} must start with "
