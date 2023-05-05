@@ -5,7 +5,7 @@ from zambeze.orchestration.plugins_message_template_engine import (
 )
 from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
-from zambeze.orchestration.network import getIP
+from zambeze.orchestration.network import get_ip
 
 # Standard imports
 import copy
@@ -164,7 +164,7 @@ def test_rsync_plugin_check():
     local_ip = socket.gethostbyname(hostname)
 
     neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
-    neighbor_vm_ip = getIP(neighbor_vm)
+    neighbor_vm_ip = get_ip(neighbor_vm)
 
     rsync_user = os.getenv("ZAMBEZE_CI_TEST_RSYNC_USER")
     factory = MessageFactory(logger=logger)
@@ -238,7 +238,7 @@ def test_rsync_plugin_run():
 
     print(os.environ)
     neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
-    neighbor_vm_ip = getIP(neighbor_vm)
+    neighbor_vm_ip = get_ip(neighbor_vm)
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
     rsync_user = os.getenv("ZAMBEZE_CI_TEST_RSYNC_USER")
     plugins.configure({"rsync": {"private_ssh_key": path_to_ssh_key}})

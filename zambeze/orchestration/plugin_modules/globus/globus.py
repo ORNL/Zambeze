@@ -11,7 +11,7 @@ from .globus_common import (
 from .globus_uri_separator import GlobusURISeparator
 from ..file_uri_separator import FileURISeparator
 from .globus_message_validator import GlobusMessageValidator
-from ...network import externalNetworkConnectionDetected
+from ...network import external_network_connection_detected
 
 # Third party imports
 from globus_sdk import GlobusError
@@ -533,7 +533,7 @@ class Globus(Plugin):
         """Will check if we can reach the internet and caches access to globus
         cloud if cannot reach it.
         """
-        if externalNetworkConnectionDetected() is False:
+        if external_network_connection_detected() is False:
             self._logger.debug(
                 "Unable to connect to external network access to globus cloud denied"
             )

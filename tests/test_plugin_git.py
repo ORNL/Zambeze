@@ -34,7 +34,7 @@ def test_git_checkCommitSuccess():
 
     template = generator.generate("commit")
 
-    template.commit.items[0].source = "file://" + current_dir + "/" + file_name
+    template.commit.items[0].source = "file://localhost" + current_dir + "/" + file_name
     template.commit.destination = "git://Zambeze84/TestRepo/main/" + file_name
     template.commit.commit_message = ("Adding a file",)
     template.commit.credentials.user_name = "zambeze84"
@@ -68,7 +68,7 @@ def test_git_checkCommitFailure1():
 
     template = generator.generate("commit")
 
-    template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
+    template.commit.items[0].source = "file://localhost" + current_dir + "/" + file_name
     template.commit.destination = "git://Zambeze84/main/" + file_name
     template.commit.commit_message = ("Adding a file",)
     template.commit.credentials.user_name = "zambeze84"
@@ -135,7 +135,7 @@ def test_git_checkCommitFailure3():
 
     template = generator.generate("commit")
 
-    template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
+    template.commit.items[0].source = "file://localhost" + current_dir + "/" + file_name
     template.commit.destination = "git://Zambeze84/main/" + file_name
     template.commit.commit_message = ("Adding a file",)
 
@@ -174,7 +174,7 @@ def test_git_processCommitAndDownload():
 
     print(f"Current dir {current_dir}")
 
-    template.commit.items[0].source = "file:/" + current_dir + "/" + file_name
+    template.commit.items[0].source = "file://localhost" + current_dir + "/" + file_name
     template.commit.destination = "git://Zambeze84/TestRepo/main/" + file_name
     template.commit.commit_message = "Adding a file"
     template.commit.credentials.user_name = "zambeze84"
@@ -193,7 +193,7 @@ def test_git_processCommitAndDownload():
 
     template = generator.generate("download")
 
-    template.download.destination = "file:/" + current_dir + "/" + file_name2
+    template.download.destination = "file://localhost" + current_dir + "/" + file_name2
     template.download.items[0].source = "git://Zambeze84/TestRepo/main/" + file_name
     template.download.credentials.user_name = "zambeze84"
     template.download.credentials.access_token = access_token

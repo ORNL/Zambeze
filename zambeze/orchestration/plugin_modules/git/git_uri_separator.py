@@ -1,4 +1,4 @@
-from ..abstract_uri_separator import URISeparator
+from ..abstract_uri_separator import AbstractURISeparator
 
 # Standard imports
 import logging
@@ -6,9 +6,9 @@ import os
 from typing import Optional
 
 
-class GitURISeparator(URISeparator):
+class GitURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("git", logger=logger)
+        super().__init__(logger=logger)
 
     def __removeConsecutiveDuplicates(self, s, char):
         if len(s) < 2:
@@ -18,6 +18,10 @@ class GitURISeparator(URISeparator):
             if s[0] == s[1]:
                 return self.__removeConsecutiveDuplicates(s[1:], char)
         return s[0] + self.__removeConsecutiveDuplicates(s[1:], char)
+
+    @property
+    def name(self):
+        return "git"
 
     def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a file URI and break it into its components

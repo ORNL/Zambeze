@@ -4,14 +4,14 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 
-class URISeparator(ABC):
-    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
+class AbstractURISeparator(ABC):
+    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self._name = name
 
     @property
+    @abstractmethod
     def name(self) -> str:
         """Returns the name of the separator.
 
@@ -20,7 +20,7 @@ class URISeparator(ABC):
         :return: Name of the separator
         :rtype: string
         """
-        return self._name
+        raise NotImplementedError("Name method has not been implemented.")
 
     @abstractmethod
     def separate(self, uri: str, extra_args=None) -> dict:
@@ -31,6 +31,8 @@ class URISeparator(ABC):
         "error_message"
         "protocol"
         "file_name"
+        "port"
+        "user"
         "path"
 
         As an example if the following uri was passed in
@@ -40,7 +42,10 @@ class URISeparator(ABC):
         {
             "error_message": "",
             "protocol": "file",
-            "path": "/home/jb/"
+            "path": "/home/jb/",
+            "hostname": "localhost",
+            "port": "22",
+            "user": "steve",
             "file_name": "awesome.txt"
         }
 

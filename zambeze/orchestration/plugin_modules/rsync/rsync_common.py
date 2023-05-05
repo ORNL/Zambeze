@@ -8,7 +8,7 @@
 
 # Local imports
 from ...system_utils import userExists
-from ...network import isAddressValid
+from ...network import is_address_valid
 
 # Standard imports
 from dataclasses import asdict
@@ -49,13 +49,13 @@ def validateRequiredSourceAndDestinationValuesValid(
     if not isinstance(action_inst, dict):
         action_inst = asdict(action_inst)
 
-    if not isAddressValid(action_inst["source"]["ip"]):
+    if not is_address_valid(action_inst["source"]["ip"]):
         return (
             False,
             f"Invalid 'source' ip address detected: {action_inst['source']['ip']}",
         )
 
-    if not isAddressValid(action_inst["destination"]["ip"]):
+    if not is_address_valid(action_inst["destination"]["ip"]):
         return (
             False,
             (
@@ -129,20 +129,20 @@ def isTheHostTheSourceOrDestination(action_inst, host_ip: str) -> str:
     """
     print(f"action_inst is {action_inst}")
     if hasattr(action_inst, "source"):
-        if isAddressValid(action_inst.source.ip):
+        if is_address_valid(action_inst.source.ip):
             if action_inst.source.ip == host_ip:
                 return "source"
 
-        if isAddressValid(action_inst.destination.ip):
+        if is_address_valid(action_inst.destination.ip):
             if action_inst.destination.ip == host_ip:
                 return "destination"
 
     else:
-        if isAddressValid(action_inst["source"]["ip"]):
+        if is_address_valid(action_inst["source"]["ip"]):
             if action_inst["source"]["ip"] == host_ip:
                 return "source"
 
-        if isAddressValid(action_inst["destination"]["ip"]):
+        if is_address_valid(action_inst["destination"]["ip"]):
             if action_inst["destination"]["ip"] == host_ip:
                 return "destination"
 

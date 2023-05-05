@@ -1,4 +1,4 @@
-from ..abstract_uri_separator import URISeparator
+from ..abstract_uri_separator import AbstractURISeparator
 from ...identity import valid_uuid
 
 import logging
@@ -7,9 +7,13 @@ import re
 from typing import Optional
 
 
-class GlobusURISeparator(URISeparator):
+class GlobusURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        super().__init__("globus", logger=logger)
+        super().__init__(logger=logger)
+
+    @property
+    def name(self) -> str:
+        return "globus"
 
     def separate(self, uri: str, extra_args=None) -> dict:
         """Will take a globus URI and break it into its components
@@ -74,11 +78,10 @@ class GlobusURISeparator(URISeparator):
 
         UUID = UUID_and_path[0:36]
         file_and_path = UUID_and_path
-
-        legal_uuid = default_uuid
+        uuid_supported = default_uuid
         # Check if the first 36 chars contains os.sep it is probably a file_path
         # in which case the default uuid should be provided
-        if os.sep not in UUID:
+        if os.sep not in UUID and len(UUID) == 36:
             if not valid_uuid(UUID):
                 error_msg = f"Incompatible Globus URI format {uri} must contain 36 "
                 error_msg += "character valid UUID of the form "
@@ -88,7 +91,7 @@ class GlobusURISeparator(URISeparator):
                 error_msg += "it must also conform to RFC4122"
                 package["error_message"] = error_msg
                 return package
-            legal_uuid = UUID
+            uuid_supported = UUID
             file_and_path = UUID_and_path[36:]
             if len(file_and_path) > 0:
                 # If actual char in path first char should be a separator
@@ -121,7 +124,7 @@ class GlobusURISeparator(URISeparator):
         if not path.endswith(os.sep):
             path = path + os.sep
 
-        package["uuid"] = legal_uuid
+        package["uuid"] = uuid_supported
         package["path"] = path
         package["file_name"] = os.path.basename(file_and_path)
         return package

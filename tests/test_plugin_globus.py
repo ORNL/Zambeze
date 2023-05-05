@@ -151,7 +151,7 @@ def test_globus_move_check():
             "move_to_globus_collection": {
                 "items": [
                     {
-                        "source": "file://" + file_path,
+                        "source": "file://localhost" + file_path,
                         "destination": "globus://"
                         + os.getenv(required_env_variables[2])
                         + destination_path
@@ -224,7 +224,7 @@ def test_globus_transfer_check():
             "move_to_globus_collection": {
                 "items": [
                     {
-                        "source": "file:/" + file_path,
+                        "source": "file://localhost" + file_path,
                         "destination": "globus://"
                         + os.getenv(required_env_variables[2])
                         + os.sep
@@ -329,7 +329,7 @@ def test_globus_process():
             "move_to_globus_collection": {
                 "items": [
                     {
-                        "source": "file://" + file_path,
+                        "source": "file://localhost" + file_path,
                         "destination": "globus://"
                         + os.getenv(required_env_variables[2])
                         + relative_destination_file_path

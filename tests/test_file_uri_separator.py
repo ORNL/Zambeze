@@ -10,7 +10,7 @@ import os
 def test_file_uri_separator():
     separator = FileURISeparator()
 
-    URI = "file://dir1/file.txt"
+    URI = "file:/dir1/file.txt"
 
     split_uri = separator.separate(URI)
     print(split_uri)
@@ -26,7 +26,7 @@ def test_file_uri_separator2():
     # globus://file_path/file.txt
     file_path = "file_path/"
     file_name = "file.txt"
-    uri = "file://" + file_path + file_name
+    uri = "file:///" + file_path + file_name
     split_uri = separator.separate(uri)
 
     assert split_uri["protocol"] == "file"
@@ -41,9 +41,10 @@ def test_file_uri_separator3():
     # file://file.txt
     file_path = ""
     file_name = "file.txt"
-    uri = "file://" + file_path + file_name
+    uri = "file:///" + file_path + file_name
     split_uri = separator.separate(uri)
-
+    print("split_uri")
+    print(split_uri)
     assert split_uri["protocol"] == "file"
     assert split_uri["path"] == "/"
     assert split_uri["file_name"] == file_name
@@ -56,7 +57,7 @@ def test_file_uri_separator4():
     # file:///
     file_path = "/"
     file_name = ""
-    uri = "file://" + file_path + file_name
+    uri = "file:///" + file_path + file_name
     split_uri = separator.separate(uri)
 
     assert split_uri["protocol"] == "file"
@@ -71,7 +72,7 @@ def test_file_uri_separator5():
     # "file:// "
     file_path = " "
     file_name = ""
-    uri = "file://" + file_path + file_name
+    uri = "file:///" + file_path + file_name
     split_uri = separator.separate(uri)
 
     assert split_uri["protocol"] == "file"
@@ -86,7 +87,7 @@ def test_file_uri_separator6():
     # "  file:// "
     file_path = " "
     file_name = ""
-    uri = "  file://" + file_path + file_name
+    uri = "  file:///" + file_path + file_name
     split_uri = separator.separate(uri)
 
     assert split_uri["protocol"] == "file"

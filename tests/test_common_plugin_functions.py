@@ -2,9 +2,7 @@
 from zambeze.orchestration.plugin_modules.common_plugin_functions import registerPlugins
 
 # Standard imports
-import os
 import pytest
-import uuid
 
 
 @pytest.mark.unit

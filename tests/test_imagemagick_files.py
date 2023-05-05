@@ -4,7 +4,7 @@ import os
 import subprocess
 
 from examples.imagemagick_files import main as imagemagick_main
-from zambeze.orchestration.network import getIP
+from zambeze.orchestration.network import get_ip
 
 
 @pytest.mark.end_to_end
@@ -44,7 +44,7 @@ def test_imagemagick_files():
     if not os.path.exists(final_file_path):
         # Check to see if it exists remotely
         neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
-        neighbor_vm_ip = getIP(neighbor_vm)
+        neighbor_vm_ip = get_ip(neighbor_vm)
 
         def exists_remote(host, path):
             """Test if a file exists at path on a host accessible with SSH."""
