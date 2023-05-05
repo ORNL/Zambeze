@@ -11,6 +11,7 @@ class RsyncURISeparator(AbstractURISeparator):
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(logger=logger)
 
+    @property
     def name(self) -> str:
         return "rsync"
 
