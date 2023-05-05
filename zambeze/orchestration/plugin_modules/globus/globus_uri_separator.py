@@ -77,7 +77,6 @@ class GlobusURISeparator(AbstractURISeparator):
         uuid_supported = default_uuid
         # Check if the first 36 chars contains os.sep it is probably a file_path
         # in which case the default uuid should be provided
-        print(f"UUID Is {UUID}")
         if os.sep not in UUID and len(UUID) == 36:
             if not valid_uuid(UUID):
                 error_msg = f"Incompatible Globus URI format {uri} must contain 36 "

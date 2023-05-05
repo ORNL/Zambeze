@@ -73,7 +73,6 @@ class RsyncURISeparator(AbstractURISeparator):
             "netloc": "",
         }
 
-        print(f"URI is {uri}")
         # Start by ensuring the start of the uri begins with globus://
         if not uri.startswith(file_uri_tag):
             error_msg = f"Incompatible rsync URI format {uri} must start with "
@@ -83,25 +82,19 @@ class RsyncURISeparator(AbstractURISeparator):
 
         file_and_path = uri[len(file_uri_tag) :]
 
-        print(file_and_path)
         if "/" in file_and_path:
-            print(file_and_path.index("/"))
             potential_netloc = file_and_path[: file_and_path.index("/")]
             if is_address_valid(potential_netloc):
                 file_and_path = file_and_path.removeprefix(potential_netloc)
                 package["netloc"] = potential_netloc
 
-        print(f"After removing rsync:// path is {file_and_path}")
         path = os.path.dirname(file_and_path)
-        print(f"Removing file from path {path}")
 
         if not path.startswith(os.sep):
             path = os.sep + path
-            print(f"1: {path}")
 
         if not path.endswith(os.sep):
             path += os.sep
-            print(f"2: {path}")
 
         package["path"] = path
         package["file_name"] = os.path.basename(file_and_path)
