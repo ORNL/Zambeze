@@ -14,7 +14,7 @@ class FileURISeparator(AbstractURISeparator):
     def name(self) -> str:
         return "file"
 
-    def _separate_host_username_and_port(self, package, host_username_port):
+    def _separate_host_username_and_port(self, package, uri, host_username_port):
         count_at = host_username_port.count("@")
         if count_at == 0:
             host_port = host_username_port
@@ -99,7 +99,7 @@ class FileURISeparator(AbstractURISeparator):
         elif len(file_host_and_path) > 1:
             file_host_and_path = file_host_and_path[1:]
             file_host_and_path = file_host_and_path.split(os.sep, 1)
-            self._separate_host_username_and_port(package, file_host_and_path[0])
+            self._separate_host_username_and_port(package, iile_host_and_path[0])
 
             if len(file_host_and_path) > 1:
                 file_and_path = file_host_and_path[1]
