@@ -276,5 +276,17 @@ class Rsync(Plugin):
                     # only support one item
                     break
 
-                subprocess.call(command_list)
+                #subprocess.call(command_list)
+                shell_exec = subprocess.Popen(
+                    command_list,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True,
+                    bufsize=1)
+
+                for line in shell_exec.stdout:
+                    self._logger.debug(line)
+
+                return_code = shell_exec.wait()
+                self._logger.debug(f"Return Code: {return_code}")
         return {}

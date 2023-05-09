@@ -19,6 +19,7 @@ from typing import Optional
 import logging
 import os
 import subprocess
+import sys
 
 
 def check_inputs(variable, left_pattern, right_pattern):
@@ -276,5 +277,17 @@ class Shell(Plugin):
             # print(shell_cmd)
             # print(parent_env)
             # print(merged_env)
-            shell_exec = subprocess.Popen(shell_cmd, shell=True, env=merged_env)
-            shell_exec.wait()
+            shell_exec = subprocess.Popen(
+                    shell_cmd,
+                    shell=True,
+                    env=merged_env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    universal_newlines=True,
+                    bufsize=1)
+
+            for line in shell_exec.stdout:
+                self._logger.debug(line)
+
+            return_code = shell_exec.wait()
+            self._logger.debug(f"Return Code: {return_code}")
