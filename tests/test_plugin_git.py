@@ -45,7 +45,7 @@ def test_git_checkCommitSuccess():
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -79,7 +79,7 @@ def test_git_checkCommitFailure1():
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -113,7 +113,7 @@ def test_git_checkCommitFailure2():
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -143,7 +143,7 @@ def test_git_checkCommitFailure3():
     template.commit.destination = "git://Zambeze84/main/" + file_name
     template.commit.commit_message = ("Adding a file",)
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -187,7 +187,7 @@ def test_git_processCommitAndDownload():
 
     print("Template is")
     print(template)
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
     arguments = asdict(template)
     git_plugin.check([arguments])
@@ -203,7 +203,7 @@ def test_git_processCommitAndDownload():
     template.download.credentials.access_token = access_token
     template.download.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
