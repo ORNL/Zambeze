@@ -134,6 +134,7 @@ def test_log_manager4():
             assert f"Count_{i}" in file_data
 
 
+# This test is making sure that the logger is capturing output from a subprocess
 @pytest.mark.internal_integration
 def test_shell_plugin_run_with_log():
     current_valid_path = os.getcwd()
@@ -161,7 +162,7 @@ def test_shell_plugin_run_with_log():
     msg_template[1].submission_time = str(int(time.time()))
     # This section will get replaced with a single rsync uri in the future
     msg_template[1].body.parameters.program = "echo"
-    msg_template[1].body.parameters.args = ["$RAN"]
+    msg_template[1].body.parameters.args = ["This-is-my-number $RAN"]
     msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
 
     msg = factory.create(msg_template)
@@ -174,7 +175,8 @@ def test_shell_plugin_run_with_log():
         # Now we will verify that it is the same file that was sent
         file_data = f.read()
         # Should be a single line
-        assert str(original_number) in file_data
+        message = "This-is-my-number " + str(original_number)
+        assert message in file_data
 
 
 
