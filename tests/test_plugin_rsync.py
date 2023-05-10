@@ -1,16 +1,19 @@
 # Local imports
 import zambeze.orchestration.plugin_modules.rsync.rsync as rsync
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import os
 import pytest
 import random
 import socket
 
+logger = LogManager(logging.DEBUG, name="test_plugin_rsync")
 
 @pytest.mark.unit
 def test_rsync():
-    instance = rsync.Rsync()
+    instance = rsync.Rsync(logger)
 
     assert instance.name == "rsync"
 

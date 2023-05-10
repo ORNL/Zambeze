@@ -11,6 +11,8 @@ from ..abstract_plugin import Plugin
 from .git_uri_separator import GitURISeparator
 from ..file_uri_separator import FileURISeparator
 
+from zambeze.log_manager import LogManager
+
 # Third party imports
 import base64
 import json
@@ -23,7 +25,7 @@ import logging
 
 
 class Git(Plugin):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         self.__name = "git"
         super().__init__(self.__name, logger=logger)
         self.__git_uri_separator = GitURISeparator(logger=logger)

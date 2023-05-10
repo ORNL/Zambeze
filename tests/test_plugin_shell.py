@@ -11,14 +11,17 @@ from zambeze.\
 from zambeze.orchestration.plugin_modules.shell.shell_message_validator import (
     ShellMessageValidator,
 )
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import os
 import pytest
 import random
 
 from dataclasses import asdict
 
+logger = LogManager(logging.DEBUG, name="test_plugin_shell")
 
 @pytest.mark.unit
 def test_shell_get_inner_pattern():
@@ -76,7 +79,7 @@ def test_shell_merge_env_variables():
 
 @pytest.mark.unit
 def test_shell():
-    instance = shell.Shell()
+    instance = shell.Shell(logger)
 
     assert instance.name == "shell"
 
@@ -102,12 +105,12 @@ def test_shell_check():
     file_path = current_valid_path + "/" + file_name
     original_number = random.randint(0, 100000000000)
 
-    shell_plugin = shell.Shell()
+    shell_plugin = shell.Shell(logger)
 
     config = {}
     shell_plugin.configure(config)
 
-    shell_template_generator = ShellMessageTemplateGenerator()
+    shell_template_generator = ShellMessageTemplateGenerator(logger)
     shell_template = shell_template_generator.generate()
     shell_template.bash.program = "echo"
 
@@ -120,7 +123,7 @@ def test_shell_check():
     ]
     shell_template.bash.env_vars = {"NAME": str(name), "RAN": str(original_number)}
 
-    validator = ShellMessageValidator()
+    validator = ShellMessageValidator(logger)
     # Checks that the schema is valid
     schema_checks = validator.validateMessage(shell_template)
     assert schema_checks[0]["bash"][0]

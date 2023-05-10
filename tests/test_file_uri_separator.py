@@ -1,14 +1,17 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.file_uri_separator import FileURISeparator
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 import os
 
+logger = LogManager(logging.DEBUG, name="test_file_uri_separtor")
 
 @pytest.mark.unit
 def test_file_uri_separator():
-    separator = FileURISeparator()
+    separator = FileURISeparator(logger)
 
     URI = "file:/dir1/file.txt"
 
@@ -21,7 +24,7 @@ def test_file_uri_separator():
 
 @pytest.mark.unit
 def test_file_uri_separator2():
-    separator = FileURISeparator()
+    separator = FileURISeparator(logging)
 
     # globus://file_path/file.txt
     file_path = "file_path/"
@@ -37,7 +40,7 @@ def test_file_uri_separator2():
 
 @pytest.mark.unit
 def test_file_uri_separator3():
-    separator = FileURISeparator()
+    separator = FileURISeparator(logging)
     # file://file.txt
     file_path = ""
     file_name = "file.txt"
@@ -53,7 +56,7 @@ def test_file_uri_separator3():
 
 @pytest.mark.unit
 def test_file_uri_separator4():
-    separator = FileURISeparator()
+    separator = FileURISeparator(logging)
     # file:///
     file_path = "/"
     file_name = ""
@@ -68,7 +71,7 @@ def test_file_uri_separator4():
 
 @pytest.mark.unit
 def test_file_uri_separator5():
-    separator = FileURISeparator()
+    separator = FileURISeparator(logging)
     # "file:// "
     file_path = " "
     file_name = ""
@@ -83,7 +86,7 @@ def test_file_uri_separator5():
 
 @pytest.mark.unit
 def test_file_uri_separator6():
-    separator = FileURISeparator()
+    separator = FileURISeparator(logging)
     # "  file:// "
     file_path = " "
     file_name = ""

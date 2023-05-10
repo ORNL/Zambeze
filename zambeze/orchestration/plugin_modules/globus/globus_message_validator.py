@@ -7,6 +7,7 @@ from .globus_common import (
 )
 from .globus_uri_separator import GlobusURISeparator
 from ...identity import valid_uuid
+from zambeze.log_manager import LogManager
 
 # Standard imports
 from typing import Optional, overload
@@ -14,10 +15,10 @@ import logging
 
 
 class GlobusMessageValidator(PluginMessageValidator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__("globus", logger=logger)
         self.__known_actions = SUPPORTED_ACTIONS.keys()
-        self.__globus_uri_separator = GlobusURISeparator()
+        self.__globus_uri_separator = GlobusURISeparator(logger)
 
     def __runTransferValidationCheck(self, action_package: dict) -> tuple[bool, str]:
         """Checks to ensure that the action_package has the right format and

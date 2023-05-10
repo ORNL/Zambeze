@@ -2,15 +2,18 @@
 from zambeze.orchestration.plugin_modules.globus.globus_uri_separator import (
     GlobusURISeparator,
 )
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 import uuid
 
+logger = LogManager(logging.DEBUG, name="test_globus_uri_separtor")
 
 @pytest.mark.unit
 def test_globus_uri_separator():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
 
     UUID = uuid.uuid4()
     URI = f"globus://{UUID}/file.txt"
@@ -25,7 +28,7 @@ def test_globus_uri_separator():
 
 @pytest.mark.unit
 def test_globus_uri_separator2():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file_path/file.txt
     valid_uuid = str(uuid.uuid4())
     default_uuid = str(uuid.uuid4())
@@ -42,7 +45,7 @@ def test_globus_uri_separator2():
 
 @pytest.mark.unit
 def test_globus_uri_separator3():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/file.txt
     valid_uuid = str(uuid.uuid4())
     default_uuid = str(uuid.uuid4())
@@ -59,7 +62,7 @@ def test_globus_uri_separator3():
 
 @pytest.mark.unit
 def test_globus_uri_separator4():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/
     valid_uuid = str(uuid.uuid4())
     default_uuid = str(uuid.uuid4())
@@ -76,7 +79,7 @@ def test_globus_uri_separator4():
 
 @pytest.mark.unit
 def test_globus_uri_separator5():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX "
     valid_uuid = str(uuid.uuid4())
     default_uuid = str(uuid.uuid4())
@@ -93,7 +96,7 @@ def test_globus_uri_separator5():
 
 @pytest.mark.unit
 def test_globus_uri_separator6():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # "  globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX "
     valid_uuid = str(uuid.uuid4())
     default_uuid = str(uuid.uuid4())
@@ -110,7 +113,7 @@ def test_globus_uri_separator6():
 
 @pytest.mark.unit
 def test_globus_uri_separator7():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX////file.txt"
     valid_uuid = str(uuid.uuid4())
     default_uuid = str(uuid.uuid4())
@@ -127,7 +130,7 @@ def test_globus_uri_separator7():
 
 @pytest.mark.unit
 def test_globus_uri_separator8():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # "globus://////file.txt "
     default_uuid = str(uuid.uuid4())
     file_path = "////"
@@ -143,7 +146,7 @@ def test_globus_uri_separator8():
 
 @pytest.mark.unit
 def test_globus_uri_separator9():
-    separator = GlobusURISeparator()
+    separator = GlobusURISeparator(logging)
     # "globus://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXXfile.txt"
     valid_uuid = str(uuid.uuid4())
     default_uuid = str(uuid.uuid4())

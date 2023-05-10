@@ -1,6 +1,7 @@
 # Local imports
 from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
+from zambeze.log_manager import LogManager
 
 # Standard imports
 import pytest
@@ -8,10 +9,10 @@ import time
 import uuid
 import logging
 
+logger = LogManager(logging.DEBUG, name="test_message_factory")
 
 @pytest.mark.unit
 def test_factory_fail():
-    logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
 
     """Following should generate all the required and optional fields for
@@ -59,7 +60,6 @@ def test_factory_fail():
 def test_factory_activity_template_plugin_globus():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
     activity_template = msg_factory.create_template(
         MessageType.ACTIVITY,
@@ -91,7 +91,6 @@ def test_factory_activity_template_plugin_globus():
 def test_factory_activity_template_plugin_rsync():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
     activity_template = msg_factory.create_template(
         MessageType.ACTIVITY,
@@ -125,7 +124,6 @@ def test_factory_activity_template_plugin_rsync():
 def test_factory_activity_template_shell():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
     activity_template = msg_factory.create_template(
         MessageType.ACTIVITY, ActivityType.SHELL, args={"shell": "bash"}
@@ -150,7 +148,6 @@ def test_factory_activity_template_shell():
 
 @pytest.mark.unit
 def test_factory_success_status():
-    logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
 
     """Following should generate all the required and optional fields for
@@ -195,7 +192,6 @@ def test_factory_success_status():
 def test_factory_create_plugin_rsync():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    logger = logging.getLogger(__name__)
     msg_factory = MessageFactory(logger)
     activity_tuple = msg_factory.create_template(
         MessageType.ACTIVITY,

@@ -1,13 +1,16 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.common_plugin_functions import registerPlugins
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 
+logger = LogManager(logging.DEBUG, "commput_plugin_functions")
 
 @pytest.mark.unit
 def test_registerPlugins():
-    plugins = registerPlugins()
+    plugins = registerPlugins(logger)
     assert len(plugins) > 0
 
     for plugin in plugins:

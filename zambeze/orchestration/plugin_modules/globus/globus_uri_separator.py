@@ -1,6 +1,9 @@
+# Local imports
 from ..abstract_uri_separator import AbstractURISeparator
 from ...identity import valid_uuid
+from zambeze.log_manager import LogManager
 
+# Standard imports
 import logging
 import os
 import re
@@ -8,7 +11,7 @@ from typing import Optional
 
 
 class GlobusURISeparator(AbstractURISeparator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(logger=logger)
 
     @property

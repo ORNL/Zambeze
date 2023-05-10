@@ -6,6 +6,10 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+# Local imports
+from zambeze.log_manager import LogManager
+
+# Standard imports
 import logging
 
 from abc import ABC, abstractmethod
@@ -21,7 +25,7 @@ class Plugin(ABC):
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, name: str, logger: LogManager) -> None:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )

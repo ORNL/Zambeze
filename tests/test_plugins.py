@@ -6,6 +6,7 @@ from zambeze.orchestration.plugins_message_template_engine import (
 from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 from zambeze.orchestration.network import get_ip
+from zambeze.log_manager import LogManager
 
 # Standard imports
 import copy
@@ -19,13 +20,12 @@ import socket
 import time
 import uuid
 
-logger = logging.getLogger(__name__)
-
+logger = LogManager(logging.DEBUG, name="test_plugins")
 
 @pytest.mark.unit
 def test_registered_plugins():
     """Test checks that you can get a list of all the registered plugins"""
-    plugins = Plugins()
+    plugins = Plugins(logger)
     found_shell = False
     found_rsync = False
     found_globus = False
@@ -44,7 +44,7 @@ def test_registered_plugins():
 
 @pytest.mark.unit
 def test_check_configured_plugins():
-    plugins = Plugins()
+    plugins = Plugins(logger)
 
     assert len(plugins.configured) == 0
 
@@ -56,7 +56,7 @@ def test_check_configured_plugins():
 
 @pytest.mark.unit
 def test_rsync_plugin():
-    plugins = Plugins()
+    plugins = Plugins(logger)
     assert "rsync" not in plugins.configured
     # Only rsync should be configured
     plugins.configure({"rsync": {}})
@@ -66,7 +66,7 @@ def test_rsync_plugin():
 
 @pytest.mark.unit
 def test_rsync_plugin_info():
-    plugins = Plugins()
+    plugins = Plugins(logger)
     # Only rsync should be configured
     plugins.configure({"rsync": {}})
 
@@ -82,7 +82,7 @@ def test_rsync_plugin_info():
 
 @pytest.mark.unit
 def test_shell_plugin_check():
-    plugins = Plugins()
+    plugins = Plugins(logger)
     plugins.configure({"shell": {}})
 
     file_name = "shell_file.txt1"
@@ -114,7 +114,7 @@ def test_shell_plugin_check():
 
 @pytest.mark.unit
 def test_shell_plugin_run():
-    plugins = Plugins()
+    plugins = Plugins(logger)
     plugins.configure({"shell": {}})
 
     file_name = "shell_file2.txt"
@@ -153,7 +153,7 @@ def test_shell_plugin_run():
 
 @pytest.mark.integration
 def test_rsync_plugin_check():
-    plugins = Plugins()
+    plugins = Plugins(logger)
     plugins.configure({"shell": {}, "rsync": {}})
 
     # Grab valid paths, usernames and ip addresses
@@ -234,7 +234,7 @@ def test_rsync_plugin_run():
 
     python3 -m pytest -m integration
     """
-    plugins = Plugins()
+    plugins = Plugins(logger)
 
     print(os.environ)
     neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")

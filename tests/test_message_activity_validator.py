@@ -1,7 +1,4 @@
-import pytest
-import time
-import uuid
-
+# Local imports
 from zambeze.orchestration.message.activity_message.message_activity_validator import (
     MessageActivityValidator,
 )
@@ -11,7 +8,15 @@ from zambeze.orchestration.message.activity_message.\
         message_activity_template_generator import create_activity_template
 # fmt: on
 from zambeze.orchestration.zambeze_types import ActivityType
+from zambeze.log_manager import LogManager
 
+# Standard imports
+import logging
+import pytest
+import time
+import uuid
+
+logger = LogManager(logging.DEBUG, name="test_message_activity_validtor")
 ###############################################################################
 # Testing Action: Control
 ###############################################################################
@@ -30,7 +35,7 @@ def test_message_activity_validator():
         "credential": {},
         "body": {},
     }
-    validator = MessageActivityValidator()
+    validator = MessageActivityValidator(logger)
     result = validator.check(activity_message)
     assert result[0] is False
 
@@ -49,7 +54,7 @@ def test_message_activity_validator_required_shell():
     submission_time: "",
     body: {},
     """
-    validator = MessageActivityValidator()
+    validator = MessageActivityValidator(logger)
     activity_message = create_activity_template(ActivityType.SHELL)
     activity_message.message_id = str(uuid.uuid4())
     activity_message.activity_id = str(uuid.uuid4())
@@ -77,7 +82,7 @@ def test_message_activity_validator_required_plugin():
     submission_time: "",
     body: {},
     """
-    validator = MessageActivityValidator()
+    validator = MessageActivityValidator(logger)
     activity_message = create_activity_template(ActivityType.PLUGIN)
     activity_message.message_id = str(uuid.uuid4())
     activity_message.activity_id = str(uuid.uuid4())
@@ -94,7 +99,7 @@ def test_message_activity_validator_required_plugin():
 def test_message_activity_validator_required_and_optional_shell():
     """This test should be true all required fields are defined as well as all
     optional fields"""
-    validator = MessageActivityValidator()
+    validator = MessageActivityValidator(logger)
     activity_message = create_activity_template(ActivityType.SHELL)
     activity_message.message_id = str(uuid.uuid4())
     activity_message.activity_id = str(uuid.uuid4())
@@ -122,7 +127,7 @@ def test_message_activity_validator_required():
         "body",
     ]
 
-    validator = MessageActivityValidator()
+    validator = MessageActivityValidator(logger)
     assert len(required_fields) == len(validator.requiredKeys)
 
     for item in required_fields:
@@ -144,7 +149,7 @@ def test_message_activity_validator_supported():
         "needs",
     ]
 
-    validator = MessageActivityValidator()
+    validator = MessageActivityValidator(logger)
     assert len(all_fields) >= len(validator.supportedKeys)
 
     for item in all_fields:

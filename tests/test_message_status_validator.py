@@ -1,6 +1,4 @@
-import pytest
-import uuid
-
+# Local imports
 from zambeze.orchestration.message.status_message.message_status_validator import (
     MessageStatusValidator,
 )
@@ -9,7 +7,14 @@ from zambeze.orchestration.message.status_message.message_status_validator impor
 from zambeze.orchestration.message.status_message.\
     message_status_template_generator import createStatusTemplate
 # fmt: on
+from zambeze.log_manager import LogManager
 
+# Standard imports
+import logging
+import pytest
+import uuid
+
+logger = LogManager(logging.DEBUG, name="test_message_status_validator")
 
 ###############################################################################
 # Testing Action: Control
@@ -23,7 +28,7 @@ def test_message_status_validator1():
         "type": "STATUS",
         "activity_id": str(uuid.uuid4()),
     }
-    validator = MessageStatusValidator()
+    validator = MessageStatusValidator(logger)
     result = validator.check(status_message)
     assert result[0] is False
 
@@ -44,7 +49,7 @@ def test_message_status_validator2():
     agent_id: "",
     body: {}
     """
-    validator = MessageStatusValidator()
+    validator = MessageStatusValidator(logger)
     status_message = createStatusTemplate()
     result = validator.check(status_message)
     assert result[0] is False
@@ -66,7 +71,7 @@ def test_message_status_validator3():
     agent_id: "",
     body: {}
     """
-    validator = MessageStatusValidator()
+    validator = MessageStatusValidator(logger)
     status_message = createStatusTemplate()
     status_message.message_id = str(uuid.uuid4())
     status_message.submission_time = "131"
@@ -129,7 +134,7 @@ def test_message_status_validator_required():
         "body",
     ]
 
-    validator = MessageStatusValidator()
+    validator = MessageStatusValidator(logger)
     assert len(required_fields) == len(validator.requiredKeys)
 
     for item in required_fields:
@@ -150,7 +155,7 @@ def test_message_status_validator_supported():
         "body",
     ]
 
-    validator = MessageStatusValidator()
+    validator = MessageStatusValidator(logger)
     assert len(required_fields) >= len(validator.supportedKeys)
 
     for item in required_fields:

@@ -8,6 +8,8 @@ from .activity_message.message_activity_template_generator import (
 from .status_message.message_status import MessageStatus
 from .status_message.message_status_validator import MessageStatusValidator
 from .status_message.message_status_template_generator import createStatusTemplate
+
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.plugins_message_validator import PluginsMessageValidator
 from zambeze.orchestration.plugins_message_template_engine import (
     PluginsMessageTemplateEngine,
@@ -22,7 +24,7 @@ import uuid
 
 
 class MessageFactory:
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, logger: LogManager):
         self._logger = logger
         self._plugins_msg_template_generators = PluginsMessageTemplateEngine(logger)
         self._plugins_msg_validators = PluginsMessageValidator(logger)
@@ -168,7 +170,7 @@ class MessageFactory:
         args[1].message_id = str(uuid.uuid4())
 
         if args[0] == MessageType.ACTIVITY:
-            validator = MessageActivityValidator()
+            validator = MessageActivityValidator(self._logger)
             result = validator.check(args[1])
             print(result)
             if result[0]:
@@ -191,10 +193,10 @@ class MessageFactory:
             else:
                 raise Exception(f"Invalid activity message: {result[1]}")
         elif args[0] == MessageType.STATUS:
-            validator = MessageStatusValidator()
+            validator = MessageStatusValidator(self._logger)
             result = validator.check(args[1])
             if result[0]:
-                return MessageStatus(args[1])
+                return MessageStatus(args[1], self._logger)
             else:
                 raise Exception(f"Invalid status message: {result[1]}")
         else:

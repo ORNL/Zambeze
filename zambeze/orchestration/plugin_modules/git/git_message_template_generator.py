@@ -7,6 +7,7 @@
 # it under the terms of the MIT License.
 
 # Local imports
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.plugin_modules.abstract_plugin_template_generator import (
     PluginMessageTemplateGenerator,
 )
@@ -53,7 +54,7 @@ class GitDownloadTemplate:
 
 
 class GitMessageTemplateGenerator(PluginMessageTemplateGenerator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
         self._supported_actions = SUPPORTED_ACTIONS
 

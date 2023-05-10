@@ -1,8 +1,10 @@
+# Local imports
 from .plugin_modules.file_uri_separator import FileURISeparator
-
 from .plugin_modules.common_plugin_functions import registerPlugins
 from .plugin_modules.abstract_uri_separator import AbstractURISeparator
+from zambeze.log_manager import LogManager
 
+# Standard imports
 import logging
 from typing import Optional
 from urllib.parse import urlparse
@@ -12,12 +14,13 @@ from importlib import import_module
 
 
 class URISeparator:
-    def __init__(self, logger: Optional[logging.Logger] = None):
-        self.__logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
-        self._uri_separators = {"file": FileURISeparator()}
-        self.__module_names = registerPlugins()
+    def __init__(self, logger: LogManager):
+        self.__logger: LogManager = logger
+        #self.__logger: logging.Logger = (
+        #    logging.getLogger(__name__) if logger is None else logger
+        #)
+        self._uri_separators = {"file": FileURISeparator(logger)}
+        self.__module_names = registerPlugins(logger)
         self.__registerURISeparators()
 
     def __registerURISeparators(self) -> None:

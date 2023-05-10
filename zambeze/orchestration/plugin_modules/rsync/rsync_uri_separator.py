@@ -1,5 +1,6 @@
 from ..abstract_uri_separator import AbstractURISeparator
 from zambeze.orchestration.network import is_address_valid
+from zambeze.log_manager import LogManager
 
 # Standard imports
 import logging
@@ -8,7 +9,7 @@ from typing import Optional
 
 
 class RsyncURISeparator(AbstractURISeparator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(logger=logger)
 
     @property

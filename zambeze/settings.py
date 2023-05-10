@@ -12,6 +12,7 @@ import pathlib
 import yaml
 from typing import Optional, Union
 
+from .log_manager import LogManager
 from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT, RABBIT_HOST, RABBIT_PORT
 from .orchestration.plugins import Plugins
 from .orchestration.db.dao.dao_utils import create_local_db
@@ -34,12 +35,12 @@ class ZambezeSettings:
     def __init__(
         self,
         conf_file: Optional[pathlib.Path] = None,
-        logger: Optional[logging.Logger] = None,
+        logger: LogManager,
     ) -> None:
         """Zambeze settings."""
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        #self._logger: logging.Logger = (
+        #    logging.getLogger(__name__) if logger is None else logger
+        #)
         # set default values
         # TODO: get the queue bits out of here (and into queue folder)
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}

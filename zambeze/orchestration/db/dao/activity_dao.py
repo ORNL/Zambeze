@@ -1,7 +1,10 @@
 from zambeze.orchestration.db.dao.dao_utils import get_update_stmt, get_insert_stmt
 from zambeze.orchestration.db.dao.abstract_dao import AbstractDAO
 from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
+from zambeze.log_manager import LogManager
 
+# Standard imports
+import logging
 
 class ActivityDAO(AbstractDAO):
     def insert(self, entity: AbstractEntity) -> None:

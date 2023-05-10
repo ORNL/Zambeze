@@ -17,6 +17,7 @@ from .rsync_common import (
 )
 from .rsync_message_validator import RsyncMessageValidator
 from ...system_utils import isExecutable
+from zambeze.log_manager import LogManager
 
 # Standard imports
 from typing import Optional
@@ -33,7 +34,7 @@ import subprocess
 class Rsync(Plugin):
     """Class serves as an example of a plugin"""
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
         self._configured = False
         self._supported_actions = SUPPORTED_ACTIONS
@@ -276,7 +277,6 @@ class Rsync(Plugin):
                     # only support one item
                     break
 
-                #subprocess.call(command_list)
                 rsync_exec = subprocess.Popen(
                     command_list,
                     stdout=subprocess.PIPE,
@@ -284,9 +284,7 @@ class Rsync(Plugin):
                     universal_newlines=True)
 
 
-                logger.watch([rsync_exec])
-                #for line in shell_exec.stdout:
-                #    self._logger.debug(line)
+                self._logger.watch([rsync_exec])
 
                 return_code = rsync_exec.wait()
                 self._logger.debug(f"Return Code: {return_code}")

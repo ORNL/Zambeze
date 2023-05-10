@@ -3,14 +3,18 @@
 from zambeze.orchestration.plugin_modules.git.\
     git_message_template_generator import GitMessageTemplateGenerator
 # fmt: on
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 
+logger = LogManager(logging.DEBUG,
+name="test_plugin_git_message_Template_generator")
 
 @pytest.mark.unit
 def test_git_messageTemplateCommit():
-    instance = GitMessageTemplateGenerator()
+    instance = GitMessageTemplateGenerator(logger)
     git_template_commit = instance.generate("commit")
     print(git_template_commit)
     # Shell template should have all the following attributes
@@ -31,7 +35,7 @@ def test_git_messageTemplateCommit():
 
 @pytest.mark.unit
 def test_git_messageTemplateDownload():
-    instance = GitMessageTemplateGenerator()
+    instance = GitMessageTemplateGenerator(logger)
     git_template_download = instance.generate("download")
     print(git_template_download)
     # Shell template should have all the following attributes

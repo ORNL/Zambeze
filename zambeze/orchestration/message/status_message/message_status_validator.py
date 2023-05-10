@@ -9,11 +9,12 @@ from .message_status_template_generator import (
     REQUIRED_STATUS_COMPONENTS,
     StatusTemplate,
 )
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.identity import valid_uuid
 
 
 class MessageStatusValidator(AbstractMessageValidator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         self._required_keys = REQUIRED_STATUS_COMPONENTS.keys()
 
     @property

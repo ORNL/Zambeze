@@ -2,14 +2,17 @@
 from zambeze.orchestration.plugin_modules.rsync.rsync_uri_separator import (
     RsyncURISeparator,
 )
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 
+logger = LogManager(logging.DEBUG, name="test_rsync_uri_separtor")
 
 @pytest.mark.unit
 def test_rsync_uri_separator():
-    separator = RsyncURISeparator()
+    separator = RsyncURISeparator(logger)
 
     URI = "rsync://dir1/file.txt"
 

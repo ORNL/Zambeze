@@ -16,6 +16,7 @@ from .activities.abstract_activity import Activity
 from zambeze.orchestration.agent.commands import agent_start
 from typing import Optional
 
+from zambeze.log_manager import LogManager
 from zambeze.config import HOST, ZMQ_PORT
 
 
@@ -34,12 +35,16 @@ class Campaign:
         self,
         name: str,
         activities: list[Activity] = [],
-        logger: Optional[logging.Logger] = None,
+        logger: LogManager = None,
     ) -> None:
         """Create an object that represents a science campaign."""
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        if logger:
+            self._logger: LogManager = logger
+        else:
+            self._logger: LogManager = LogManager(logging.INFO, name=name)
+        #self._logger: logging.Logger = (
+        #    logging.getLogger(__name__) if logger is None else logger
+        #)
         self.name: str = name
 
         self.campaign_id = str(uuid.uuid4())

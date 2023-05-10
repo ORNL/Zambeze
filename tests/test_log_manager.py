@@ -32,9 +32,9 @@ def test_log_manager2():
     if os.path.exists(log_file_path):
         os.remove(log_file_path)
 
-    log_manager = LogManager(logging.DEBUG, log_file_path)
+    log_manager = LogManager(logging.DEBUG, name="log_test2", log_path=log_file_path)
 
-    assert log_manager.name == "zambeze-logger"
+    assert log_manager.name == "log_test2"
     assert log_file_path == log_manager.path
 
     debug_msg = "Debug Message"
@@ -65,7 +65,7 @@ def test_log_manager3():
     if os.path.exists(log_file_path):
         os.remove(log_file_path)
 
-    log_manager = LogManager(logging.DEBUG, log_file_path)
+    log_manager = LogManager(logging.DEBUG, name="log_test3", log_path=log_file_path)
 
     shell_exec = subprocess.Popen(
                     ["echo 'Serenity'"],
@@ -92,7 +92,7 @@ def test_log_manager4():
     if os.path.exists(log_file_path):
         os.remove(log_file_path)
 
-    log_manager = LogManager(logging.DEBUG, log_file_path)
+    log_manager = LogManager(logging.DEBUG, name="log_test4", log_path=log_file_path)
 
     processes = []
 
@@ -143,7 +143,7 @@ def test_shell_plugin_run_with_log():
     if os.path.exists(log_file_path):
         os.remove(log_file_path)
 
-    log_manager = LogManager(logging.DEBUG, log_file_path)
+    log_manager = LogManager(logging.DEBUG, name="log_test5", log_path=log_file_path)
     plugins = Plugins(log_manager)
     plugins.configure({"shell": {}})
 

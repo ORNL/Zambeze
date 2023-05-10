@@ -14,7 +14,7 @@ from zambeze import Campaign, ShellActivity, LogManager
 
 def main():
     # logging (for debugging purposes)
-    logger = LogManager(logging.DEBUG)#logging.getLogger(__name__)
+    logger = LogManager(logging.DEBUG, name="imagemagick_files_example")#logging.getLogger(__name__)
     #logger.setLevel(logging.DEBUG)
     #ch = logging.StreamHandler()
     #ch.setLevel(logging.DEBUG)

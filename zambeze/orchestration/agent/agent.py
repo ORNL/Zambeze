@@ -13,6 +13,7 @@ import threading
 from typing import Optional
 from uuid import uuid4
 
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.agent.message_handler import MessageHandler
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 
@@ -37,12 +38,13 @@ class Agent:
     def __init__(
         self,
         conf_file: Optional[pathlib.Path] = None,
-        logger: Optional[logging.Logger] = None,
+        logger: LogManager,
     ) -> None:
         """Create an object that represents a distributed agent."""
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        self._logger: LogManager = logger
+        #logging.Logger = (
+        #    logging.getLogger(__name__) if logger is None else logger
+        #)
 
         # Create an ID for our agent.
         self._agent_id = str(uuid4())

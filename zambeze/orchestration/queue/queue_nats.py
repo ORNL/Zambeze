@@ -1,18 +1,22 @@
-import logging
-import nats
-
-# from .abstract_queue import AbstractQueue
+# Local imports
+from zambeze.log_manager import LogManager
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
-from typing import Optional
+
+# Third party imports
+import nats
 import dill
+
+# Standard imports
+import logging
+from typing import Optional
 
 
 # class QueueNATS(AbstractQueue):
 # TODO: either remove NATS or fix inheritance inconsistencies reported by pyre
 class QueueNATS:
     def __init__(
-        self, queue_config: dict, logger: Optional[logging.Logger] = None
+        self, queue_config: dict, logger: LogManager
     ) -> None:
         self._queue_type = QueueType.NATS
         self._logger = logger

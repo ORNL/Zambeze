@@ -12,6 +12,7 @@ import uuid
 from typing import Optional
 from .abstract_activity import Activity
 
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.message.abstract_message import AbstractMessage
 from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
@@ -42,7 +43,7 @@ class ShellActivity(Activity):
         files: list[str],
         command: str,
         arguments: list[str],
-        logger: logging.Logger,
+        logger: LogManager,
         campaign_id: Optional[str] = None,
         agent_id: Optional[str] = None,
         message_id: Optional[str] = None,
@@ -60,7 +61,8 @@ class ShellActivity(Activity):
             message_id,
             activity_id=str(uuid.uuid4()),
         )
-        self.logger: logging.Logger = logger if logger else logging.getLogger(__name__)
+        self.logger = logger
+        #self.logger: logging.Logger = logger if logger else logging.getLogger(__name__)
         # Pull out environment variables, IF users submitted them.
         if "env_vars" in kwargs:
             if not isinstance(kwargs.get("env_vars"), dict):

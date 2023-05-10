@@ -9,6 +9,7 @@
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from .shell_message_template_generator import Bash
+from zambeze.log_manager import LogManager
 
 # Standard imports
 from dataclasses import asdict
@@ -18,7 +19,7 @@ import logging
 
 
 class ShellMessageValidator(PluginMessageValidator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__("shell", logger=logger)
 
     def __validateEnvVars(self, action: str, arguments: dict):

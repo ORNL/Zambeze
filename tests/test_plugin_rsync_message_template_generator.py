@@ -3,14 +3,18 @@
 from zambeze.orchestration.plugin_modules.rsync.\
     rsync_message_template_generator import RsyncMessageTemplateGenerator
 # fmt: on
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 
+logger = LogManager(logging.DEBUG,
+name="test_plugin_rsync_message_template_generator")
 
 @pytest.mark.unit
 def test_rsync_messageTemplate():
-    instance = RsyncMessageTemplateGenerator()
+    instance = RsyncMessageTemplateGenerator(logger)
     rsync_template = instance.generate()
     print(rsync_template)
     # Rsync template should have all the following attributes

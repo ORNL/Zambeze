@@ -1,8 +1,12 @@
+
+# Local imports
 from .plugin_modules.common_plugin_functions import registerPlugins
 from .plugin_modules.abstract_plugin_template_generator import (
     PluginMessageTemplateGenerator,
 )
+from zambeze.log_manager import LogManager
 
+# Standard imports
 from importlib import import_module
 from inspect import isclass
 from typing import Optional
@@ -11,12 +15,12 @@ import logging
 
 
 class PluginsMessageTemplateEngine:
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self.__logger = logger
-        if self.__logger is None:
-            self.__logger = logging.Logger(__name__)
+    def __init__(self, logger: LogManager) -> None:
+        self.__logger: LogManager = logger
+        #if self.__logger is None:
+        #    self.__logger = logging.Logger(__name__)
 
-        self.__module_names = registerPlugins()
+        self.__module_names = registerPlugins(self.__logger)
         self._plugin_message_template_generators = {}
         self.__registerPluginTemplateGenerators()
 

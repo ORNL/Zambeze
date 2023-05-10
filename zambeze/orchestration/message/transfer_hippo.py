@@ -5,12 +5,14 @@ import getpass
 import pathlib
 
 from dataclasses import asdict
+
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 from zambeze.orchestration.message.message_factory import MessageFactory
 
 
 class TransferHippo:
-    def __init__(self, agent_id, settings, logger):
+    def __init__(self, agent_id, settings, logger: LogManager):
         self._logger = logger
         self._settings = settings
         self._agent_id = agent_id

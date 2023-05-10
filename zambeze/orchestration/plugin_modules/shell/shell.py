@@ -11,6 +11,7 @@ from ..abstract_plugin import Plugin
 from .shell_message_validator import ShellMessageValidator
 from .shell_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 from ...system_utils import isExecutable
+from zambeze.log_manager import LogManager
 
 # Standard imports
 from shutil import which
@@ -110,7 +111,7 @@ def merge_env_variables(current_vars: dict, new_vars: dict) -> dict:
 class Shell(Plugin):
     """Implementation of a Shell plugin."""
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
         self._configured = False
         self._supported_actions = SUPPORTED_ACTIONS

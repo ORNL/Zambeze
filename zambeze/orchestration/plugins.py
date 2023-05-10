@@ -8,10 +8,13 @@
 
 from __future__ import annotations
 
+# Local imports
 from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
+from zambeze.log_manager import LogManager
 
+# Standard imports
 from copy import deepcopy
 from dataclasses import asdict
 from importlib import import_module
@@ -44,16 +47,17 @@ class Plugins:
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         """Constructor
 
         :param logger: Logger to use, defaults to None
         :type logger: Optional[logging.Logger]
         """
-        self.__logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
-        self.__module_names = registerPlugins()
+        self.__logger: LogManager = logger
+        #self.__logger: logging.Logger = (
+        #    logging.getLogger(__name__) if logger is None else logger
+        #)
+        self.__module_names = registerPlugins(self.__logger)
         self._plugins = {}
 
     @property

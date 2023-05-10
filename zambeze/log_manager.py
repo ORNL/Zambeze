@@ -15,23 +15,26 @@ class LogManager():
     """
     Set the level logging.INFO etc
     """
-    def __init__(self, level, log_path=""):
+    def __init__(self, level, name: str=None, log_path=""):
+
+        self._level = level
+        if name:
+            self._name = name
+        else:
+            self._name = "zambeze-logger"
+        self._logger = logging.getLogger(self._name)
+        self._logger.setLevel(self._level)
 
         # If no log path is specified use default location and type
         if "".__eq__(log_path):
             fmt_str = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-            self._log_file_path = os.path.expanduser('~') + f"/.zambeze/logs/{fmt_str}.log"
+            self._log_file_path = os.path.expanduser('~') + f"/.zambeze/logs/{self._name}-{fmt_str}.log"
         else:
             self._log_file_path = log_path
 
         directory = os.path.dirname(self._log_file_path)
         if not os.path.isdir(directory):
             os.makedirs(directory, exist_ok=True)
-
-        self._level = level
-        self._name = "zambeze-logger"
-        self._logger = logging.getLogger(self._name)
-        self._logger.setLevel(self._level)
 
         # For Handlers
         self._format = "[Zambeze Agent] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
@@ -105,6 +108,7 @@ class LogManager():
             return "ERROR"
         elif self._level == logging.CRITICAL:
             return "CRITICAL"
+        raise Exception("Log level set in LogManager is unrecognized")
 
 
     """

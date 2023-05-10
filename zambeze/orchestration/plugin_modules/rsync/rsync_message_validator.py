@@ -12,6 +12,7 @@ from __future__ import annotations
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from ..common_dataclasses import RsyncTransferTemplate
 from .rsync_common import PLUGIN_NAME, validateRequiredSourceAndDestinationValuesValid
+from zambeze.log_manager import LogManager
 
 # Standard imports
 from dataclasses import asdict
@@ -20,7 +21,7 @@ import logging
 
 
 class RsyncMessageValidator(PluginMessageValidator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
 
     def _validateAction(self, action: str, checks: list, arguments: dict):

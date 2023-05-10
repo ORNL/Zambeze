@@ -1,14 +1,19 @@
 # Local imports
 from zambeze.orchestration.uri_separator import URISeparator
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 import uuid
+
+# File scoped globals
+logger = LogManager(logging.DEBUG, name="test_uri_separator")
 
 
 @pytest.mark.unit
 def test_uri_separator1():
-    separator = URISeparator()
+    separator = URISeparator(logger)
 
     URI = "file://hostname/file.txt"
 
@@ -21,7 +26,7 @@ def test_uri_separator1():
 
 @pytest.mark.unit
 def test_uri_separator2():
-    separator = URISeparator()
+    separator = URISeparator(logger)
 
     URI = "file:///dir1/file.txt"
 
@@ -33,7 +38,7 @@ def test_uri_separator2():
 
 @pytest.mark.unit
 def test_uri_separator3():
-    separator = URISeparator()
+    separator = URISeparator(logger)
 
     URI = "file:/dir1/file.txt"
 
@@ -45,7 +50,7 @@ def test_uri_separator3():
 
 @pytest.mark.unit
 def test_uri_separator4():
-    separator = URISeparator()
+    separator = URISeparator(logger)
 
     URI = "file://john@localhost:43/dir1/file.txt"
 
@@ -60,7 +65,7 @@ def test_uri_separator4():
 
 @pytest.mark.unit
 def test_uri_separator5():
-    separator = URISeparator()
+    separator = URISeparator(logger)
 
     URI = "file://john@localhost:43"
 
@@ -75,7 +80,7 @@ def test_uri_separator5():
 
 @pytest.mark.unit
 def test_rsync_uri_separator1():
-    separator = URISeparator()
+    separator = URISeparator(logger)
 
     URI = "rsync://dir1/file.txt"
 
@@ -87,7 +92,7 @@ def test_rsync_uri_separator1():
 
 @pytest.mark.unit
 def test_git_uri_separator1():
-    separator = URISeparator()
+    separator = URISeparator(logger)
     URI = "git://org1/awesome_proj/main/file.txt"
 
     split_uri = separator.separate(URI)
@@ -102,7 +107,7 @@ def test_git_uri_separator1():
 
 @pytest.mark.unit
 def test_globus_uri_separator1():
-    separator = URISeparator()
+    separator = URISeparator(logger)
 
     UUID = uuid.uuid4()
     URI = f"globus://{UUID}/file.txt"

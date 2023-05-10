@@ -6,12 +6,7 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import json
-import logging
-import os
-import pathlib
-import threading
-
+# Local imports
 from queue import Queue
 from typing import Optional
 from dataclasses import asdict
@@ -21,7 +16,14 @@ from ..settings import ZambezeSettings
 from .message.message_factory import MessageFactory
 from .queue.queue_exceptions import QueueTimeoutException
 from zambeze.orchestration.message.transfer_hippo import TransferHippo
+from zambeze.log_manager import LogManager
 
+# Standard imports
+import json
+import logging
+import os
+import pathlib
+import threading
 
 class Executor(threading.Thread):
     """An Agent executor (formerly the PROCESSOR).
@@ -35,15 +37,16 @@ class Executor(threading.Thread):
     def __init__(
         self,
         settings: ZambezeSettings,
-        logger: Optional[logging.Logger] = None,
+        logger: LogManager,
         agent_id: Optional[str] = None,
     ) -> None:
         """Create an object that represents a distributed agent."""
         threading.Thread.__init__(self)
         self._settings = settings
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        self._logger: LogManager = logger
+        #self._logger: logging.Logger = (
+        #    logging.getLogger(__name__) if logger is None else logger
+        #)
 
         self.to_process_q = Queue()
         self.to_status_q = Queue()

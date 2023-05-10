@@ -16,6 +16,7 @@ import zmq
 from datetime import datetime
 from signal import SIGKILL
 
+from zambeze.log_manager import LogManager
 
 # Pass stdout/stderr to devnull (in subprocesses) to avoid memory issues.
 devnull = open(os.devnull, "wb")
@@ -24,7 +25,7 @@ zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
 state_path = zambeze_base_dir.joinpath("agent.state")
 
 
-def agent_start(logger: logging.Logger) -> None:
+def agent_start(logger: LogManager) -> None:
     """
     Start the agent via the local zambeze-agent utility and save initial state.
 
@@ -110,7 +111,7 @@ def agent_start(logger: logging.Logger) -> None:
         json.dump(agent_state, f)
 
 
-def agent_stop(logger: logging.Logger) -> None:
+def agent_stop(logger: LogManager) -> None:
     """
     Stop the agent by killing its system process and updating the state file.
 
@@ -156,7 +157,7 @@ def agent_stop(logger: logging.Logger) -> None:
     logger.info("Agent successfully stopped!\n")
 
 
-def agent_get_status(logger: logging.Logger) -> None:
+def agent_get_status(logger: LogManager) -> None:
     """
     Get the status of the user's local agent and print it to the console
     (and do nothing else).

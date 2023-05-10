@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Optional
 
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.message.abstract_message import AbstractMessage
 
 
@@ -41,7 +42,7 @@ class Activity(ABC):
     files: list[str]
     command: Optional[str]
     arguments: list[str]
-    logger: Optional[logging.Logger]
+    logger: LogManager 
     campaign_id: Optional[str]
     agent_id: Optional[str]
     message_id: Optional[str]

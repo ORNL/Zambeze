@@ -10,11 +10,12 @@ from .message_activity_template_generator import (
     REQUIRED_ACTIVITY_COMPONENTS,
     OPTIONAL_ACTIVITY_COMPONENTS,
 )
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.identity import valid_uuid
 
 
 class MessageActivityValidator(AbstractMessageValidator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         self._required_keys = REQUIRED_ACTIVITY_COMPONENTS.keys()
         self._optional_keys = OPTIONAL_ACTIVITY_COMPONENTS.keys()
 

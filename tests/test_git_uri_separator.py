@@ -1,13 +1,16 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.git.git_uri_separator import GitURISeparator
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 
+logger = LogManager(logging.DEBUG, name="test_git_uri_separtor")
 
 @pytest.mark.unit
 def test_git_uri_separator1():
-    separator = GitURISeparator()
+    separator = GitURISeparator(logger)
     URI = "git://org1/awesome_proj/main/file.txt"
 
     split_uri = separator.separate(URI)
@@ -22,7 +25,7 @@ def test_git_uri_separator1():
 
 @pytest.mark.unit
 def test_git_uri_separator2():
-    separator = GitURISeparator()
+    separator = GitURISeparator(logger)
     URI = "git://org1/awesome_proj/main/dir1/dir2/file.txt"
 
     split_uri = separator.separate(URI)
