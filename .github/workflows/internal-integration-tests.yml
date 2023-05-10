@@ -3,7 +3,7 @@ name: Internal-Integration-Testing
 on: push
 
 jobs:
-  unit-test:
+  internal-integration-test:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     strategy:
