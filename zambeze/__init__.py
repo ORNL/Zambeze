@@ -10,10 +10,11 @@ from .version import __version__  # noqa: F401
 
 from .campaign import Activity, Campaign  # noqa: F401
 from .campaign.activities import ShellActivity  # noqa: F401
+from .log_manager import LogManager
 
 __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"
 
-import logging
+#import logging
 
-logging.getLogger("zambeze").addHandler(logging.StreamHandler())
+#logging.getLogger("zambeze").addHandler(logging.StreamHandler())

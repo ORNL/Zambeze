@@ -277,16 +277,17 @@ class Rsync(Plugin):
                     break
 
                 #subprocess.call(command_list)
-                shell_exec = subprocess.Popen(
+                rsync_exec = subprocess.Popen(
                     command_list,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                    bufsize=1)
+                    universal_newlines=True)
 
-                for line in shell_exec.stdout:
-                    self._logger.debug(line)
 
-                return_code = shell_exec.wait()
+                logger.watch([rsync_exec])
+                #for line in shell_exec.stdout:
+                #    self._logger.debug(line)
+
+                return_code = rsync_exec.wait()
                 self._logger.debug(f"Return Code: {return_code}")
         return {}

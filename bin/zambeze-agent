@@ -12,6 +12,7 @@ import pathlib
 import os
 
 from datetime import datetime
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.agent.agent import Agent
 
 agent_state = {"conf_file": None}
@@ -32,42 +33,43 @@ def start(
     """
 
     # If no log path is specified use default location and type
-    if "".__eq__(log_path):
-        print("Log path was not specified using default.")
-        fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-        log_path = os.path.expanduser('~') + f"/.zambeze/logs/" + fmt_str + ".log"
+#    if "".__eq__(log_path):
+#        print("Log path was not specified using default.")
+#        fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
+#        log_path = os.path.expanduser('~') + f"/.zambeze/logs/" + fmt_str + ".log"
 
     print(f"Log path: {log_path}")
-    agent_logger = logging.getLogger('agent')
-    fh = logging.FileHandler(log_path)
-    formatter = logging.Formatter(
-        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-    )
-    fh.setFormatter(formatter)
+    logger = LogManager(logging.INFO, log_path)
+    #agent_logger = logging.getLogger('agent')
+    #fh = logging.FileHandler(log_path)
+    #formatter = logging.Formatter(
+        #"[Zambeze Agent] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
+    #)
+    #fh.setFormatter(formatter)
 
     if debug:
-        agent_logger.setLevel(logging.DEBUG)
-    else:
-        agent_logger.setLevel(logging.INFO)
-    agent_logger.addHandler(fh)
+        logger.setLevel(logging.DEBUG)
+    #else:
+    #    logger.setLevel(logging.INFO)
+    #logger.addHandler(fh)
 
-    agent_logger.info("*****************************************************")
-    agent_logger.info("*****************************************************")
-    agent_logger.info("Creating Zambeze agent subprocess with configuration:")
-    agent_logger.info("*****************************************************")
-    agent_logger.info(f"Log Path:\t\t{log_path}")
-    agent_logger.info(f"Config Path:\t\t{config_path}")
-    agent_logger.info(f"Debug Logs:\t\t{debug}")
-    agent_logger.info(f"ZMQ activity port:\t{zmq_activity_port}")
-    agent_logger.info(f"ZMQ heartbeat port:\t{zmq_heartbeat_port}")
-    agent_logger.info("*****************************************************")
-    agent_logger.info("*****************************************************")
+    logger.info("*****************************************************")
+    logger.info("*****************************************************")
+    logger.info("Creating Zambeze agent subprocess with configuration:")
+    logger.info("*****************************************************")
+    logger.info(f"Log Path:\t\t{log_path}")
+    logger.info(f"Config Path:\t\t{config_path}")
+    logger.info(f"Debug Logs:\t\t{debug}")
+    logger.info(f"ZMQ activity port:\t{zmq_activity_port}")
+    logger.info(f"ZMQ heartbeat port:\t{zmq_heartbeat_port}")
+    logger.info("*****************************************************")
+    logger.info("*****************************************************")
 
     # Quick fix to address empty string in CL-args.
     if config_path == "":
         config_path = None
 
-    Agent(conf_file=config_path, logger=agent_logger)
+    Agent(conf_file=config_path, logger=logger)
 
 
 if __name__ == "__main__":
