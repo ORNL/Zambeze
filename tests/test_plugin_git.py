@@ -3,8 +3,10 @@ import zambeze.orchestration.plugin_modules.git.git as git
 from zambeze.orchestration.plugin_modules.git.git_message_template_generator import (
     GitMessageTemplateGenerator,
 )
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import os
 import pytest
 import random
@@ -12,6 +14,7 @@ import time
 
 from dataclasses import asdict
 
+logger = LogManager(logging.DEBUG,name="test_plugin_git")
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitSuccess():
@@ -30,7 +33,7 @@ def test_git_checkCommitSuccess():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -64,7 +67,7 @@ def test_git_checkCommitFailure1():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -98,7 +101,7 @@ def test_git_checkCommitFailure2():
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -131,7 +134,7 @@ def test_git_checkCommitFailure3():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -168,7 +171,7 @@ def test_git_processCommitAndDownload():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
