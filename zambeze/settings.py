@@ -40,6 +40,7 @@ class ZambezeSettings:
         """Zambeze settings."""
         # set default values
         # TODO: get the queue bits out of here (and into queue folder)
+        self._logger = logger
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}
         self.plugins = Plugins(logger=self._logger)
         self.load_settings(conf_file)
