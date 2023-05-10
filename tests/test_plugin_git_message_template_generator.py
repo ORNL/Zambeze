@@ -9,8 +9,8 @@ from zambeze.log_manager import LogManager
 import logging
 import pytest
 
-logger = LogManager(logging.DEBUG,
-name="test_plugin_git_message_Template_generator")
+logger = LogManager(logging.DEBUG, name="test_plugin_git_message_Template_generator")
+
 
 @pytest.mark.unit
 def test_git_messageTemplateCommit():

@@ -11,6 +11,7 @@ import uuid
 
 logger = LogManager(logging.DEBUG, name="test_globus_uri_separtor")
 
+
 @pytest.mark.unit
 def test_globus_uri_separator():
     separator = GlobusURISeparator(logging)

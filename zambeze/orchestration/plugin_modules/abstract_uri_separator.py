@@ -12,9 +12,6 @@ from typing import Optional
 class AbstractURISeparator(ABC):
     def __init__(self, logger: LogManager) -> None:
         self._logger: LogManager = logger
-        #self._logger: logging.Logger = (
-        #    logging.getLogger(__name__) if logger is None else logger
-        #)
 
     @property
     @abstractmethod

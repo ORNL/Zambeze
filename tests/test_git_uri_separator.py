@@ -8,6 +8,7 @@ import pytest
 
 logger = LogManager(logging.DEBUG, name="test_git_uri_separtor")
 
+
 @pytest.mark.unit
 def test_git_uri_separator1():
     separator = GitURISeparator(logger)

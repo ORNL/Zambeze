@@ -10,6 +10,7 @@ import pytest
 
 logger = LogManager(logging.DEBUG, name="test_message_status")
 
+
 @pytest.mark.unit
 def test_message_status_type():
     msg_status = MessageStatus({}, logger)

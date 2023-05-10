@@ -42,7 +42,7 @@ class Activity(ABC):
     files: list[str]
     command: Optional[str]
     arguments: list[str]
-    logger: LogManager 
+    logger: LogManager
     campaign_id: Optional[str]
     agent_id: Optional[str]
     message_id: Optional[str]
@@ -54,7 +54,7 @@ class Activity(ABC):
         files: list[str] = [],
         command: Optional[str] = None,
         arguments: list[str] = [],
-        logger: Optional[logging.Logger] = None,
+        logger: Optional[LogManager] = None,
         campaign_id: Optional[str] = None,
         agent_id: Optional[str] = None,
         message_id: Optional[str] = None,
@@ -62,7 +62,10 @@ class Activity(ABC):
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
-        self.logger = logging.getLogger(__name__) if logger is None else logger
+        if logger:
+            self.logger = logger
+        else:
+            self.logger = LogManager(logging.INFO)
         self.name: str = name
         self.files = files
         self.command = command

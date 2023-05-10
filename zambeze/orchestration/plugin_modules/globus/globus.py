@@ -57,8 +57,8 @@ class Globus(Plugin):
         self.__default_endpoint = None
         self.__supported_actions = SUPPORTED_ACTIONS
         self._message_validator = GlobusMessageValidator(logger)
-        self.__file_uri_separator = FileURISeparator()
-        self.__globus_uri_separator = GlobusURISeparator()
+        self.__file_uri_separator = FileURISeparator(logger)
+        self.__globus_uri_separator = GlobusURISeparator(logger)
         pass
 
     ###################################################################################

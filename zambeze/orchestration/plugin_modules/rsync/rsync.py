@@ -281,8 +281,8 @@ class Rsync(Plugin):
                     command_list,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    universal_newlines=True)
-
+                    universal_newlines=True,
+                )
 
                 self._logger.watch([rsync_exec])
 

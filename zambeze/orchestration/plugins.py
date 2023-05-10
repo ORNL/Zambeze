@@ -54,9 +54,9 @@ class Plugins:
         :type logger: Optional[logging.Logger]
         """
         self.__logger: LogManager = logger
-        #self.__logger: logging.Logger = (
+        # self.__logger: logging.Logger = (
         #    logging.getLogger(__name__) if logger is None else logger
-        #)
+        # )
         self.__module_names = registerPlugins(self.__logger)
         self._plugins = {}
 

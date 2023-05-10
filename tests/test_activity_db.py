@@ -25,8 +25,7 @@ def test_insert_activity():
 @pytest.mark.unit
 def test_insert_returning_id():
     activity = ActivityModel(
-        agent_id="8ecd07db-e6a1-4462-b84c-8e3091738061", created_at=int(time() *
-            1000)
+        agent_id="8ecd07db-e6a1-4462-b84c-8e3091738061", created_at=int(time() * 1000)
     )
     activity_id = _dao.insert_and_return_id(activity)
     assert activity_id is not None
@@ -36,8 +35,7 @@ def test_insert_returning_id():
 @pytest.mark.unit
 def test_update():
     activity = ActivityModel(
-        agent_id="8ecd07db-e6a1-4462-b84c-8e3091738061", created_at=int(time() *
-            1000)
+        agent_id="8ecd07db-e6a1-4462-b84c-8e3091738061", created_at=int(time() * 1000)
     )
     activity_id = _dao.insert_and_return_id(activity)
     assert isinstance(activity_id, int)

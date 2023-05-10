@@ -14,6 +14,7 @@ import pytest
 
 logger = LogManager(logging.DEBUG, "test_plugin_shell_message_validator")
 
+
 @pytest.mark.unit
 def test_shell_messageTemplate_and_validate():
     instance = ShellMessageTemplateGenerator(logger)

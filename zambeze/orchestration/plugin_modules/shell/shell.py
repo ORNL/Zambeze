@@ -70,7 +70,7 @@ def get_inner_pattern(variable: str, left_pattern: str, right_pattern: str):
         match = ""
         if inner_match_right_index > -1 and inner_match_left_index > -1:
             match = variable[
-                inner_match_left_index + len(left_pattern) : inner_match_right_index
+                inner_match_left_index + len(left_pattern): inner_match_right_index
             ]
 
         if (left_index > inner_match_right_index or left_index <= -1) and (
@@ -279,16 +279,17 @@ class Shell(Plugin):
             # print(parent_env)
             # print(merged_env)
             shell_exec = subprocess.Popen(
-                    shell_cmd,
-                    shell=True,
-                    env=merged_env,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                    bufsize=1)
+                shell_cmd,
+                shell=True,
+                env=merged_env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                bufsize=1,
+            )
 
             self._logger.watch([shell_exec])
-            #for line in shell_exec.stdout:
+            # for line in shell_exec.stdout:
             #    self._logger.debug(line)
 
             return_code = shell_exec.wait()

@@ -22,6 +22,7 @@ import uuid
 
 logger = LogManager(logging.DEBUG, name="test_plugins")
 
+
 @pytest.mark.unit
 def test_registered_plugins():
     """Test checks that you can get a list of all the registered plugins"""
@@ -292,7 +293,7 @@ def test_rsync_plugin_run():
     if os.path.exists(file_path_return):
         os.remove(file_path_return)
 
-    template_engine = PluginsMessageTemplateEngine()
+    template_engine = PluginsMessageTemplateEngine(logger)
     msg_template_return = template_engine.generate("rsync", "transfer")
 
     msg_template_return = factory.create_template(

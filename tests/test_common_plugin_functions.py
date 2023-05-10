@@ -8,6 +8,7 @@ import pytest
 
 logger = LogManager(logging.DEBUG, "commput_plugin_functions")
 
+
 @pytest.mark.unit
 def test_registerPlugins():
     plugins = registerPlugins(logger)

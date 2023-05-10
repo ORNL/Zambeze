@@ -34,13 +34,10 @@ class ZambezeSettings:
 
     def __init__(
         self,
-        conf_file: Optional[pathlib.Path] = None,
         logger: LogManager,
+        conf_file: Optional[pathlib.Path] = None,
     ) -> None:
         """Zambeze settings."""
-        #self._logger: logging.Logger = (
-        #    logging.getLogger(__name__) if logger is None else logger
-        #)
         # set default values
         # TODO: get the queue bits out of here (and into queue folder)
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}

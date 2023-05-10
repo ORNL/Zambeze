@@ -40,18 +40,18 @@ def start(
 
     print(f"Log path: {log_path}")
     logger = LogManager(logging.INFO, log_path)
-    #agent_logger = logging.getLogger('agent')
-    #fh = logging.FileHandler(log_path)
-    #formatter = logging.Formatter(
-        #"[Zambeze Agent] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
-    #)
-    #fh.setFormatter(formatter)
+    # agent_logger = logging.getLogger('agent')
+    # fh = logging.FileHandler(log_path)
+    # formatter = logging.Formatter(
+    # "[Zambeze Agent] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
+    # )
+    # fh.setFormatter(formatter)
 
     if debug:
         logger.setLevel(logging.DEBUG)
-    #else:
+    # else:
     #    logger.setLevel(logging.INFO)
-    #logger.addHandler(fh)
+    # logger.addHandler(fh)
 
     logger.info("*****************************************************")
     logger.info("*****************************************************")
@@ -69,7 +69,7 @@ def start(
     if config_path == "":
         config_path = None
 
-    Agent(conf_file=config_path, logger=logger)
+    Agent(logger=logger, conf_file=config_path)
 
 
 if __name__ == "__main__":

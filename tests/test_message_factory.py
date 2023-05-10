@@ -11,6 +11,7 @@ import logging
 
 logger = LogManager(logging.DEBUG, name="test_message_factory")
 
+
 @pytest.mark.unit
 def test_factory_fail():
     msg_factory = MessageFactory(logger)

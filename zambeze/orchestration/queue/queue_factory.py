@@ -1,4 +1,3 @@
-
 # Local imports
 from ..zambeze_types import QueueType
 from zambeze.log_manager import LogManager

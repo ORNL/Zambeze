@@ -23,6 +23,7 @@ from dataclasses import asdict
 
 logger = LogManager(logging.DEBUG, name="test_plugin_shell")
 
+
 @pytest.mark.unit
 def test_shell_get_inner_pattern():
     variable = "My${Long}string${Containing${Nested}Patterns}"
@@ -31,7 +32,7 @@ def test_shell_get_inner_pattern():
     print(variable)
     match, left_ind, right_ind = shell.get_inner_pattern(variable, "${", "}")
 
-    print(variable[0:left_ind] + variable[right_ind : len(variable)])
+    print(variable[0:left_ind] + variable[right_ind: len(variable)])
 
     assert match == "Nested"
     assert left_ind == 27
@@ -47,7 +48,7 @@ def test_shell_get_inner_pattern2():
     print(variable)
     match, left_ind, right_ind = shell.get_inner_pattern(variable, "MM", "BB")
 
-    print(variable[0:left_ind] + variable[right_ind : len(variable)])
+    print(variable[0:left_ind] + variable[right_ind: len(variable)])
 
     assert match == "no"
     assert left_ind == 7

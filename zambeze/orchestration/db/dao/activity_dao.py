@@ -6,6 +6,7 @@ from zambeze.log_manager import LogManager
 # Standard imports
 import logging
 
+
 class ActivityDAO(AbstractDAO):
     def insert(self, entity: AbstractEntity) -> None:
         values = entity.get_all_values()

@@ -16,6 +16,7 @@ import subprocess
 import time
 import uuid
 
+
 @pytest.mark.unit
 def test_log_manager1():
     log_manager = LogManager(logging.DEBUG)
@@ -26,7 +27,6 @@ def test_log_manager1():
 
 @pytest.mark.unit
 def test_log_manager2():
-
     current_valid_path = os.getcwd()
     log_file_path = current_valid_path + os.sep + "test2.log"
     if os.path.exists(log_file_path):
@@ -59,7 +59,6 @@ def test_log_manager2():
 
 @pytest.mark.unit
 def test_log_manager3():
-
     current_valid_path = os.getcwd()
     log_file_path = current_valid_path + os.sep + "test3.log"
     if os.path.exists(log_file_path):
@@ -68,12 +67,13 @@ def test_log_manager3():
     log_manager = LogManager(logging.DEBUG, name="log_test3", log_path=log_file_path)
 
     shell_exec = subprocess.Popen(
-                    ["echo 'Serenity'"],
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                    bufsize=1)
+        ["echo 'Serenity'"],
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+        bufsize=1,
+    )
 
     log_manager.watch([shell_exec])
 
@@ -86,7 +86,6 @@ def test_log_manager3():
 
 @pytest.mark.unit
 def test_log_manager4():
-
     current_valid_path = os.getcwd()
     log_file_path = current_valid_path + os.sep + "test4.log"
     if os.path.exists(log_file_path):
@@ -97,21 +96,21 @@ def test_log_manager4():
     processes = []
 
     shell_exec1 = subprocess.Popen(
-                    ["/bin/bash -c 'for i in {1..2000}; do echo Count_$i; done;'"],
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                    )
+        ["/bin/bash -c 'for i in {1..2000}; do echo Count_$i; done;'"],
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
     processes.append(shell_exec1)
 
     shell_exec2 = subprocess.Popen(
-                    ["/bin/bash -c 'for i in {2001..4000}; do echo Count_$i; done'"],
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                    )
+        ["/bin/bash -c 'for i in {2001..4000}; do echo Count_$i; done'"],
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True,
+    )
     processes.append(shell_exec2)
 
     log_manager.watch(processes)
@@ -124,7 +123,7 @@ def test_log_manager4():
         # Should have at least 12000 lines
         # Might have extra because of spaces
         assert num_lines >= 4000
-    
+
     with open(log_file_path) as f:
         # Should contain an item Count_1, Count_2 ... Count_12000 somewhere in
         # the file
@@ -177,6 +176,3 @@ def test_shell_plugin_run_with_log():
         # Should be a single line
         message = "This-is-my-number " + str(original_number)
         assert message in file_data
-
-
-

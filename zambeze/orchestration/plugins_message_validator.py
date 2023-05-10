@@ -1,4 +1,3 @@
-
 # Local imports
 from .plugin_modules.common_plugin_functions import registerPlugins
 from .plugin_modules.abstract_plugin_message_validator import PluginMessageValidator
@@ -25,7 +24,7 @@ class PluginsMessageValidator:
 
     def __init__(self, logger: LogManager) -> None:
         self.__logger: LogManager = logger
-        #if self.__logger is None:
+        # if self.__logger is None:
         #    self.__logger = logging.Logger(__name__)
 
         self.__module_names = registerPlugins(self.__logger)

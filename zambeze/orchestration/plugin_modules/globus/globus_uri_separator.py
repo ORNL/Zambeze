@@ -75,7 +75,7 @@ class GlobusURISeparator(AbstractURISeparator):
             package["error_message"] = error_msg
             return package
 
-        UUID_and_path = uri[len(globus_uri_tag) :]
+        UUID_and_path = uri[len(globus_uri_tag):]
         # Replace multiple occurances of // with single /
         UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 

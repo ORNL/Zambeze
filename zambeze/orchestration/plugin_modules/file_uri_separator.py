@@ -89,7 +89,7 @@ class FileURISeparator(AbstractURISeparator):
             package["error_messag"] = error_msg
             return package
 
-        file_host_and_path = uri[len(file_uri_prefix) :]
+        file_host_and_path = uri[len(file_uri_prefix):]
         file_and_path = ""
 
         if not file_host_and_path[0].startswith(os.sep):

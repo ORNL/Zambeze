@@ -11,6 +11,7 @@ import socket
 
 logger = LogManager(logging.DEBUG, name="test_plugin_rsync")
 
+
 @pytest.mark.unit
 def test_rsync():
     instance = rsync.Rsync(logger)

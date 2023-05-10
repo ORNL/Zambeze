@@ -12,6 +12,7 @@ import pytest
 
 logger = LogManager(logging.DEBUG, "test_message_activity")
 
+
 @pytest.mark.unit
 def test_message_activity_type():
     msg_activity = MessageActivity({}, logger)

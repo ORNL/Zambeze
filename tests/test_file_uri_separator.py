@@ -9,6 +9,7 @@ import os
 
 logger = LogManager(logging.DEBUG, name="test_file_uri_separtor")
 
+
 @pytest.mark.unit
 def test_file_uri_separator():
     separator = FileURISeparator(logger)

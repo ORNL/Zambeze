@@ -12,9 +12,6 @@ class AbstractDAO(object, metaclass=ABCMeta):
 
     def __init__(self, logger: LogManager):
         self._logger = logger
-        #self._logger: logging.Logger = (
-        #    logging.getLogger(__name__) if logger is None else logger
-        #)
         self._engine = get_db_engine()
 
     @abstractmethod

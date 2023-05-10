@@ -26,9 +26,7 @@ class Plugin(ABC):
     """
 
     def __init__(self, name: str, logger: LogManager) -> None:
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        self._logger: LogManager = logger
         self._name = name
 
     @property

@@ -14,6 +14,7 @@ import pytest
 
 logger = LogManager(logging.DEBUG, name="test_plugin_rsync_message_validator")
 
+
 @pytest.mark.unit
 def test_rsync_messageTemplate_and_validate():
     instance = RsyncMessageTemplateGenerator(logger)

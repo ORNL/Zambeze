@@ -37,20 +37,20 @@ class Agent:
 
     def __init__(
         self,
-        conf_file: Optional[pathlib.Path] = None,
         logger: LogManager,
+        conf_file: Optional[pathlib.Path] = None,
     ) -> None:
         """Create an object that represents a distributed agent."""
         self._logger: LogManager = logger
-        #logging.Logger = (
+        # logging.Logger = (
         #    logging.getLogger(__name__) if logger is None else logger
-        #)
+        # )
 
         # Create an ID for our agent.
         self._agent_id = str(uuid4())
 
         self._activity_dao = ActivityDAO(self._logger)
-        self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
+        self._settings = ZambezeSettings(logger=self._logger, conf_file=conf_file)
 
         # Create and start an executor thread.
         self._executor = Executor(

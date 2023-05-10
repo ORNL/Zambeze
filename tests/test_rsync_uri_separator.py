@@ -10,6 +10,7 @@ import pytest
 
 logger = LogManager(logging.DEBUG, name="test_rsync_uri_separtor")
 
+
 @pytest.mark.unit
 def test_rsync_uri_separator():
     separator = RsyncURISeparator(logger)

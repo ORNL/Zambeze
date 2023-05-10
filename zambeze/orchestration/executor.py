@@ -12,11 +12,11 @@ from typing import Optional
 from dataclasses import asdict
 from urllib.parse import urlparse
 
-from ..settings import ZambezeSettings
 from .message.message_factory import MessageFactory
 from .queue.queue_exceptions import QueueTimeoutException
 from zambeze.orchestration.message.transfer_hippo import TransferHippo
 from zambeze.log_manager import LogManager
+from zambeze.settings import ZambezeSettings
 
 # Standard imports
 import json
@@ -24,6 +24,7 @@ import logging
 import os
 import pathlib
 import threading
+
 
 class Executor(threading.Thread):
     """An Agent executor (formerly the PROCESSOR).
@@ -44,9 +45,9 @@ class Executor(threading.Thread):
         threading.Thread.__init__(self)
         self._settings = settings
         self._logger: LogManager = logger
-        #self._logger: logging.Logger = (
+        # self._logger: logging.Logger = (
         #    logging.getLogger(__name__) if logger is None else logger
-        #)
+        # )
 
         self.to_process_q = Queue()
         self.to_status_q = Queue()
