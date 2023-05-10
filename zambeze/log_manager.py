@@ -13,15 +13,34 @@ import time
 
 class LogManager:
     """
-    Set the level logging.INFO etc
+    LogManager for providing a single consistent interface for logging all
+    output associated with Zambeze
+
+    The log manager should be used in place of logging.Logger from the standard
+    python imports.
+
+    It provides a means of having multiple processes write to the same log file
+    without corruption via the fnctl module. It is also able to capture the
+    output of subprocesses see the 'watch' command below for an example.
     """
 
-    def __init__(self, level, name: str = "", log_path=""):
+    def __init__(self, level, name: str = "zambeze-logger", log_path=""):
+        """
+        Initialization of the LogManager
+
+        :param level: This is a required parameter and can be one of the log
+        levels provided by the logging import module. i.e. logging.INFO,
+        logging.DEBUG, logging.CRITICAL, logging.ERROR, logging.WARNING
+        :type level: This is an int consistent with the logging modules levels
+        :param name: This is the name of the logger, if non is set then the
+        default zambeze-logger will be used
+        :type name: This is a str
+        :param log_path: This is the location and file where the logs will be
+        sent, if none is provided then the logger will be default place logs in
+        ~/.zambeze/logs
+        """
         self._level = level
-        if len(name) > 0:
-            self._name = name
-        else:
-            self._name = "zambeze-logger"
+        self._name = name
         self._logger = logging.getLogger(self._name)
         self._logger.setLevel(self._level)
 
@@ -125,19 +144,21 @@ class LogManager:
 
     """
     Meant to be used with a subprocess instance that has been configured with
-    the following settings
+    the settings shown in the example. 
+
+    NOTE: for this to work all output must be redirected to stdout as shown
 
     :Example"
     process = subprocess.Popen(
                     shell_cmd,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    universal_newlines=True,
-                    bufsize=1)
+                    universal_newlines=True)
 
     log_manager.watch([process])
 
-    # Call wait when you want to ensure the process is complete
+    # Call wait when you want to ensure the process is complete before
+    # continuing. 
     process.wait()
     """
 
