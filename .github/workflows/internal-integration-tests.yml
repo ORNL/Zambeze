@@ -27,7 +27,7 @@ jobs:
       - name: Run tests
         if: github.ref == 'refs/heads/main'
         run: |
-          pytest -m internal-integration -sv --cov=zambeze tests/
+          pytest -m internal_integration -sv --cov=zambeze tests/
       - name: Upload Coverage to Codecov
         if: github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v2
