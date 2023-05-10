@@ -14,7 +14,8 @@ import time
 
 from dataclasses import asdict
 
-logger = LogManager(logging.DEBUG,name="test_plugin_git")
+logger = LogManager(logging.DEBUG, name="test_plugin_git")
+
 
 @pytest.mark.gitlab_runner
 def test_git_checkCommitSuccess():

@@ -70,7 +70,7 @@ def get_inner_pattern(variable: str, left_pattern: str, right_pattern: str):
         match = ""
         if inner_match_right_index > -1 and inner_match_left_index > -1:
             match = variable[
-                inner_match_left_index + len(left_pattern): inner_match_right_index
+                inner_match_left_index + len(left_pattern) : inner_match_right_index
             ]
 
         if (left_index > inner_match_right_index or left_index <= -1) and (

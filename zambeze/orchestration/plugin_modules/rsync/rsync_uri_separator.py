@@ -85,7 +85,7 @@ class RsyncURISeparator(AbstractURISeparator):
             package["error_messag"] = error_msg
             return package
 
-        file_and_path = uri[len(file_uri_tag):]
+        file_and_path = uri[len(file_uri_tag) :]
 
         if "/" in file_and_path:
             potential_netloc = file_and_path[: file_and_path.index("/")]
