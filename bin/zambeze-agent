@@ -32,26 +32,11 @@ def start(
     Start the agent (set logger and ZMQ ports).
     """
 
-    # If no log path is specified use default location and type
-#    if "".__eq__(log_path):
-#        print("Log path was not specified using default.")
-#        fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-#        log_path = os.path.expanduser('~') + f"/.zambeze/logs/" + fmt_str + ".log"
-
     print(f"Log path: {log_path}")
     logger = LogManager(logging.INFO, log_path)
-    # agent_logger = logging.getLogger('agent')
-    # fh = logging.FileHandler(log_path)
-    # formatter = logging.Formatter(
-    # "[Zambeze Agent] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
-    # )
-    # fh.setFormatter(formatter)
 
     if debug:
         logger.setLevel(logging.DEBUG)
-    # else:
-    #    logger.setLevel(logging.INFO)
-    # logger.addHandler(fh)
 
     logger.info("*****************************************************")
     logger.info("*****************************************************")

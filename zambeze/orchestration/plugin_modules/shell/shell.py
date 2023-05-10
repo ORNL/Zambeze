@@ -289,8 +289,6 @@ class Shell(Plugin):
             )
 
             self._logger.watch([shell_exec])
-            # for line in shell_exec.stdout:
-            #    self._logger.debug(line)
 
             return_code = shell_exec.wait()
             self._logger.debug(f"Return Code: {return_code}")

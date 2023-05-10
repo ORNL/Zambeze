@@ -22,7 +22,7 @@ class Plugin(ABC):
     same interface
 
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
     def __init__(self, name: str, logger: LogManager) -> None:

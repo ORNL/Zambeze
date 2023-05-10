@@ -13,15 +13,7 @@ from zambeze import Campaign, ShellActivity
 from zambeze import LogManager
 
 # logging (for debugging purposes)
-logger = LogManager(logging.DEBUG)  # logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
-# ch = logging.StreamHandler()
-# ch.setLevel(logging.DEBUG)
-# formatter = logging.Formatter(
-#    "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-# )
-# ch.setFormatter(formatter)
-# logger.addHandler(ch)
+logger = LogManager(logging.DEBUG, name="imagemagick-globus")
 
 # create campaign
 campaign = Campaign("My ImageMagick-Globus Campaign", logger=logger)

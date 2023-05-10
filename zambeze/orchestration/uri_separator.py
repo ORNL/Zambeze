@@ -16,9 +16,6 @@ from importlib import import_module
 class URISeparator:
     def __init__(self, logger: LogManager):
         self.__logger: LogManager = logger
-        # self.__logger: logging.Logger = (
-        #    logging.getLogger(__name__) if logger is None else logger
-        # )
         self._uri_separators = {"file": FileURISeparator(logger)}
         self.__module_names = registerPlugins(logger)
         self.__registerURISeparators()

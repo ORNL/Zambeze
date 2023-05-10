@@ -32,7 +32,7 @@ class Executor(threading.Thread):
     :param settings: Zambeze settings
     :type settings: ZambezeSettings
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
     def __init__(
@@ -45,9 +45,6 @@ class Executor(threading.Thread):
         threading.Thread.__init__(self)
         self._settings = settings
         self._logger: LogManager = logger
-        # self._logger: logging.Logger = (
-        #    logging.getLogger(__name__) if logger is None else logger
-        # )
 
         self.to_process_q = Queue()
         self.to_status_q = Queue()

@@ -44,19 +44,16 @@ class Plugins:
     Plugins can be added as plugins by creating packages in the plugin_modules
 
     :parameter logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
     def __init__(self, logger: LogManager) -> None:
         """Constructor
 
-        :param logger: Logger to use, defaults to None
-        :type logger: Optional[logging.Logger]
+        :param logger: Logger to use
+        :type logger: LogManager
         """
         self.__logger: LogManager = logger
-        # self.__logger: logging.Logger = (
-        #    logging.getLogger(__name__) if logger is None else logger
-        # )
         self.__module_names = registerPlugins(self.__logger)
         self._plugins = {}
 

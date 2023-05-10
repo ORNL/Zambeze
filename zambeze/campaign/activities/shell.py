@@ -34,7 +34,7 @@ class ShellActivity(Activity):
     :type arguments: Optional[list[str]]
 
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: logManager
     """
 
     def __init__(

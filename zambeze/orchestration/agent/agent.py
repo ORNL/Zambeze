@@ -32,7 +32,7 @@ class Agent:
     :param conf_file: Path to configuration file
     :type conf_file: Optional[pathlib.Path]
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
     def __init__(
@@ -42,9 +42,6 @@ class Agent:
     ) -> None:
         """Create an object that represents a distributed agent."""
         self._logger: LogManager = logger
-        # logging.Logger = (
-        #    logging.getLogger(__name__) if logger is None else logger
-        # )
 
         # Create an ID for our agent.
         self._agent_id = str(uuid4())

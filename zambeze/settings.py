@@ -25,7 +25,7 @@ class ZambezeSettings:
     :param conf_file: Path to configuration file
     :type conf_file: Optional[pathlib.Path]
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
     _conf_file: Optional[pathlib.Path] = (

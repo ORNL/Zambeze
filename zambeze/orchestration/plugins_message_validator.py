@@ -24,13 +24,10 @@ class PluginsMessageValidator:
 
     def __init__(self, logger: LogManager) -> None:
         self.__logger: LogManager = logger
-        # if self.__logger is None:
-        #    self.__logger = logging.Logger(__name__)
 
         self.__module_names = registerPlugins(self.__logger)
         self._plugin_message_validators = {}
 
-        # self.__registerPlugins()
         self.__registerPluginValidators()
 
     def __registerPluginValidators(self) -> None:
