@@ -17,6 +17,7 @@ from zambeze.orchestration.identity import valid_email
 
 # Standard imports
 from dataclasses import asdict
+from typing import overload
 
 
 class GitMessageValidator(PluginMessageValidator):
