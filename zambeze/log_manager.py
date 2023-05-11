@@ -24,32 +24,11 @@ class LogManager:
     without corruption via the fnctl module. It is also able to capture the
     output of subprocesses see the 'watch' command below for an example.
     """
-
-    def _create(self, level: int, name: str, log_path: str):
-        self._level = level
-        self._name = name
-        # Processes that are being watched
-        self._processes = []
-
-        self._logger = logging.getLogger(self._name)
-        self._logger.setLevel(self._level)
-
-        # If no log path is specified use default location and type
-        if "".__eq__(log_path):
-            fmt_str = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-            self._log_file_path = (
-                os.path.expanduser("~") + f"/.zambeze/logs/{self._name}-{fmt_str}.log"
-            )
-        else:
-            self._log_file_path = log_path
-
-        directory = os.path.dirname(self._log_file_path)
-        if not os.path.isdir(directory):
-            os.makedirs(directory, exist_ok=True)
+    def _create_handles(self):
 
         # For Handlers
         self._format = (
-            "[Zambeze Agent] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
+            "[Zambeze] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
         )
         formatter = logging.Formatter(self._format)
 
@@ -74,6 +53,7 @@ class LogManager:
             self._logger.addHandler(self._ch)
         else:
             self._ch = get_handler(self._logger, stream_handler)
+            self._ch.setLevel(self._level)
 
         # Set up File Handler
         file_handler = f"{self._name}-file"
@@ -85,7 +65,31 @@ class LogManager:
             self._logger.addHandler(self._fh)
         else:
             self._fh = get_handler(self._logger, file_handler)
+            self._fh.setLevel(self._level)
 
+    def _create(self, level: int, name: str, log_path: str):
+        self._level = level
+        self._name = name
+        # Processes that are being watched
+        self._processes = []
+
+        self._logger = logging.getLogger(self._name)
+        self._logger.setLevel(self._level)
+
+        # If no log path is specified use default location and type
+        if "" == log_path:
+            fmt_str = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
+            self._log_file_path = (
+                os.path.expanduser("~") + f"/.zambeze/logs/{self._name}-{fmt_str}.log"
+            )
+        else:
+            self._log_file_path = log_path
+
+        directory = os.path.dirname(self._log_file_path)
+        if not os.path.isdir(directory):
+            os.makedirs(directory, exist_ok=True)
+
+        self._create_handles()
         # Needed for locking
         self._log_file_descriptor = self._fh.stream.fileno()
 
@@ -119,7 +123,9 @@ class LogManager:
     def setLevel(self, level):
         # Will change the log level of all the handlers
         self._level = level
-        self._logger.setLevel(level)
+        self._logger.setLevel(self._level)
+        self._ch.setLevel(self._level)
+        self._fh.setLevel(self._level)
 
     def debug(self, msg):
         fcntl.flock(
