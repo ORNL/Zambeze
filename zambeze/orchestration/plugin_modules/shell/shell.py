@@ -11,12 +11,11 @@ from ..abstract_plugin import Plugin
 from .shell_message_validator import ShellMessageValidator
 from .shell_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 from ...system_utils import isExecutable
+from zambeze.log_manager import LogManager
 
 # Standard imports
 from shutil import which
-from typing import Optional
 
-import logging
 import os
 import subprocess
 
@@ -109,7 +108,7 @@ def merge_env_variables(current_vars: dict, new_vars: dict) -> dict:
 class Shell(Plugin):
     """Implementation of a Shell plugin."""
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
         self._configured = False
         self._supported_actions = SUPPORTED_ACTIONS
@@ -276,5 +275,17 @@ class Shell(Plugin):
             # print(shell_cmd)
             # print(parent_env)
             # print(merged_env)
-            shell_exec = subprocess.Popen(shell_cmd, shell=True, env=merged_env)
-            shell_exec.wait()
+            shell_exec = subprocess.Popen(
+                shell_cmd,
+                shell=True,
+                env=merged_env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                bufsize=1,
+            )
+
+            self._logger.watch([shell_exec])
+
+            return_code = shell_exec.wait()
+            self._logger.debug(f"Return Code: {return_code}")

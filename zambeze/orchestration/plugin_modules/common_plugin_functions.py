@@ -1,13 +1,14 @@
+# Local imports
+from zambeze.log_manager import LogManager
+
 # Standard imports
 from pathlib import Path
-from typing import Optional
 
-import logging
 import os
 import pkgutil
 
 
-def registerPlugins(logger: Optional[logging.Logger] = None) -> list:
+def registerPlugins(logger: LogManager) -> list:
     """Will register all the plugins provided in the plugin_modules folder
 
     :return: the names of all the plugins

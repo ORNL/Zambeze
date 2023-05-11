@@ -7,7 +7,6 @@
 # it under the terms of the MIT License.
 
 import json
-import logging
 import os
 import pathlib
 import subprocess
@@ -16,6 +15,7 @@ import zmq
 from datetime import datetime
 from signal import SIGKILL
 
+from zambeze.log_manager import LogManager
 
 # Pass stdout/stderr to devnull (in subprocesses) to avoid memory issues.
 devnull = open(os.devnull, "wb")
@@ -24,7 +24,7 @@ zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
 state_path = zambeze_base_dir.joinpath("agent.state")
 
 
-def agent_start(logger: logging.Logger) -> None:
+def agent_start(logger: LogManager, debug: bool = False) -> None:
     """
     Start the agent via the local zambeze-agent utility and save initial state.
 
@@ -82,16 +82,16 @@ def agent_start(logger: logging.Logger) -> None:
     hb_port = 5556
     # *********** #
 
-    arg_list = [
-        "zambeze-agent",
-        "--log-path",
-        str(zambeze_log_path.resolve()),
-        "--debug",
-        "--zmq-heartbeat-port",
-        str(hb_port),
-        "--zmq-activity-port",
-        str(data_port),
-    ]
+    arg_list = ["zambeze-agent", "--log-path", str(zambeze_log_path.resolve())]
+
+    if debug:
+        arg_list.append("--debug")
+
+    arg_list.append("--zmq-heartbeat-port")
+    arg_list.append(str(hb_port))
+    arg_list.append("--zmq-activity-port")
+    arg_list.append(str(data_port))
+
     logger.info(f"Command: {' '.join(arg_list)}")
 
     # Open the subprocess and save the process state to file (for future access).
@@ -110,7 +110,7 @@ def agent_start(logger: logging.Logger) -> None:
         json.dump(agent_state, f)
 
 
-def agent_stop(logger: logging.Logger) -> None:
+def agent_stop(logger: LogManager) -> None:
     """
     Stop the agent by killing its system process and updating the state file.
 
@@ -156,7 +156,7 @@ def agent_stop(logger: logging.Logger) -> None:
     logger.info("Agent successfully stopped!\n")
 
 
-def agent_get_status(logger: logging.Logger) -> None:
+def agent_get_status(logger: LogManager) -> None:
     """
     Get the status of the user's local agent and print it to the console
     (and do nothing else).

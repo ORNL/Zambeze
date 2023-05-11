@@ -1,13 +1,16 @@
-import logging
+# Local imports
 from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
+from zambeze.log_manager import LogManager
+
+# Third party imports
 import dill
 import pika
 
 
 class QueueRMQ(AbstractQueue):
-    def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
+    def __init__(self, queue_config: dict, logger: LogManager) -> None:
         self._queue_type = QueueType.RABBITMQ
         self._logger = logger
         self._ip = "127.0.0.1"

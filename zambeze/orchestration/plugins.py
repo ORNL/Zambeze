@@ -8,17 +8,18 @@
 
 from __future__ import annotations
 
+# Local imports
 from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
+from zambeze.log_manager import LogManager
 
+# Standard imports
 from copy import deepcopy
 from dataclasses import asdict
 from importlib import import_module
 from inspect import isclass
 from typing import Optional, overload
-
-import logging
 
 
 class PluginChecks(dict):
@@ -41,19 +42,17 @@ class Plugins:
     Plugins can be added as plugins by creating packages in the plugin_modules
 
     :parameter logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         """Constructor
 
-        :param logger: Logger to use, defaults to None
-        :type logger: Optional[logging.Logger]
+        :param logger: Logger to use
+        :type logger: LogManager
         """
-        self.__logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
-        self.__module_names = registerPlugins()
+        self.__logger: LogManager = logger
+        self.__module_names = registerPlugins(self.__logger)
         self._plugins = {}
 
     @property

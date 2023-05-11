@@ -6,6 +6,7 @@ import zmq
 
 from queue import Queue
 
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 from zambeze.orchestration.message.abstract_message import AbstractMessage
@@ -21,7 +22,7 @@ class MessageHandler(threading.Thread):
         threading.Thread.__init__(self)
         self.agent_id = agent_id
         self._settings = settings
-        self._logger = logger
+        self._logger: LogManager = logger
 
         self.mq_args = {
             "ip": self._settings.settings["rmq"]["host"],

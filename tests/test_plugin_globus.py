@@ -1,13 +1,16 @@
 # Local imports
 import zambeze.orchestration.plugin_modules.globus.globus as globus
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import os
 import pytest
 import random
 import time
 
 GITLAB_RUNNER_UUIDs = ["f4e5e85c-3a35-455f-9d91-1ee3a0564935"]
+logger = LogManager(logging.DEBUG, name="test_plugin_globus")
 
 
 @pytest.mark.globus
@@ -26,7 +29,7 @@ def test_globus_basic1():
                 " set up."
             )
 
-    globus_plugin = globus.Globus()
+    globus_plugin = globus.Globus(logger)
 
     assert globus_plugin.name == "globus"
     assert globus_plugin.configured is False
@@ -66,7 +69,7 @@ def test_globus_basic2():
                 " set up."
             )
 
-    globus_plugin = globus.Globus()
+    globus_plugin = globus.Globus(logger)
 
     """Requires that the env variable is provided
 
@@ -127,7 +130,7 @@ def test_globus_move_check():
         "default_endpoint": os.getenv(required_env_variables[2]),
     }
 
-    globus_plugin = globus.Globus()
+    globus_plugin = globus.Globus(logger)
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
@@ -200,7 +203,7 @@ def test_globus_transfer_check():
         "default_endpoint": os.getenv(required_env_variables[2]),
     }
 
-    globus_plugin = globus.Globus()
+    globus_plugin = globus.Globus(logger)
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
@@ -305,7 +308,7 @@ def test_globus_process():
         "default_endpoint": os.getenv(required_env_variables[3]),
     }
 
-    globus_plugin = globus.Globus()
+    globus_plugin = globus.Globus(logger)
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
@@ -440,7 +443,7 @@ def test_globus_process_async():
         "default_endpoint": os.getenv(required_env_variables[3]),
     }
 
-    globus_plugin = globus.Globus()
+    globus_plugin = globus.Globus(logger)
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system
@@ -581,7 +584,7 @@ def test_globus_process_native():
 
     print(configuration)
 
-    globus_plugin = globus.Globus()
+    globus_plugin = globus.Globus(logger)
     globus_plugin.configure(configuration)
 
     # Create a file on the local posix system

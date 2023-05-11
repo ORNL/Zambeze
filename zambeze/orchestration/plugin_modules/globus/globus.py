@@ -1,6 +1,8 @@
 # pyre-ignore-all-errors[13]
 # pyre-ignore-all-errors[6]
 # Local imports
+
+from zambeze.log_manager import LogManager
 from ..abstract_plugin import Plugin
 from .globus_common import (
     localEndpointExists,
@@ -27,7 +29,7 @@ from os.path import exists
 from os.path import isdir
 from os.path import isfile
 from socket import gethostname
-from typing import Optional, Any
+from typing import Any
 
 import json
 import logging
@@ -40,7 +42,7 @@ class Globus(Plugin):
     __scopes: str = ""
     __authorizer: GlobusAuthorizer
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         self.__name = "globus"
         super().__init__(self.__name, logger=logger)
         # Client id is specific to Zambeze project it was created by registering
@@ -55,8 +57,8 @@ class Globus(Plugin):
         self.__default_endpoint = None
         self.__supported_actions = SUPPORTED_ACTIONS
         self._message_validator = GlobusMessageValidator(logger)
-        self.__file_uri_separator = FileURISeparator()
-        self.__globus_uri_separator = GlobusURISeparator()
+        self.__file_uri_separator = FileURISeparator(logger)
+        self.__globus_uri_separator = GlobusURISeparator(logger)
         pass
 
     ###################################################################################

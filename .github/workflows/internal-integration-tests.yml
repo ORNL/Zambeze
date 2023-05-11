@@ -1,9 +1,10 @@
-name: Unit-Testing
+name: Internal-Integration-Testing
 
 on: push
 
 jobs:
-  unit-test:
+  runs-on: self-hosted
+  internal-integration-test:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     strategy:
@@ -27,7 +28,7 @@ jobs:
       - name: Run tests
         if: github.ref == 'refs/heads/main'
         run: |
-          pytest -m unit -sv --cov=zambeze tests/
+          pytest -m internal_integration -sv --cov=zambeze tests/
       - name: Upload Coverage to Codecov
         if: github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v2

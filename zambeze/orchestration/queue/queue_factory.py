@@ -1,16 +1,16 @@
-import logging
+# Local imports
+from ..zambeze_types import QueueType
+from zambeze.log_manager import LogManager
 
 from .queue_nats import QueueNATS
 from .queue_rmq import QueueRMQ
 
 # TODO: this enforces queue factory to be of type AbstractQueue. Needs to
 # allow RMQ protocols before this can occur.
-# from .abstract_queue import AbstractQueue
-from ..zambeze_types import QueueType
 
 
 class QueueFactory:
-    def __init__(self, logger: logging.Logger):
+    def __init__(self, logger: LogManager):
         self._logger = logger
 
     def create(self, queue_type: QueueType, args: dict):

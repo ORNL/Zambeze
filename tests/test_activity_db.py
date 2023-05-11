@@ -1,14 +1,17 @@
+# Local imports
+from zambeze.orchestration.db.dao.dao_utils import create_local_db
+from zambeze.orchestration.db.model.activity_model import ActivityModel
+from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
+from zambeze.log_manager import LogManager
+
+# Standard imports
+import logging
 import pytest
 from time import time
 
-from zambeze.orchestration.db.dao.dao_utils import create_local_db
-
-from zambeze.orchestration.db.model.activity_model import ActivityModel
-from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
-
-
+logger = LogManager(logging.DEBUG, name="activity_test_log")
 create_local_db()
-_dao = ActivityDAO()
+_dao = ActivityDAO(logger)
 
 
 @pytest.mark.unit

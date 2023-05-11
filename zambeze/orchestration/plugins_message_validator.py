@@ -1,11 +1,11 @@
+# Local imports
 from .plugin_modules.common_plugin_functions import registerPlugins
 from .plugin_modules.abstract_plugin_message_validator import PluginMessageValidator
+from zambeze.log_manager import LogManager
 
+# Standard imports
 from importlib import import_module
 from inspect import isclass
-from typing import Optional
-
-import logging
 
 
 class PluginsMessageValidator:
@@ -19,15 +19,12 @@ class PluginsMessageValidator:
 
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self.__logger = logger
-        if self.__logger is None:
-            self.__logger = logging.Logger(__name__)
+    def __init__(self, logger: LogManager) -> None:
+        self.__logger: LogManager = logger
 
-        self.__module_names = registerPlugins()
+        self.__module_names = registerPlugins(self.__logger)
         self._plugin_message_validators = {}
 
-        # self.__registerPlugins()
         self.__registerPluginValidators()
 
     def __registerPluginValidators(self) -> None:

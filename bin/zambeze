@@ -11,6 +11,7 @@ import logging
 import pathlib
 import typer
 
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.agent.agent import ZambezeSettings
 from zambeze.orchestration.agent.commands import agent_start, agent_stop, agent_get_status
 
@@ -20,12 +21,15 @@ app = typer.Typer()
 app.add_typer(agent_app, name="agent")
 
 # Logging and state configuration.
-logger = logging.getLogger()
+logger = LogManager(logging.INFO)
+
 state = {"conf_file": None}
 
 
 @agent_app.command()
-def start():
+def start(
+    debug: bool = typer.Option(False, help="If debug logs are enabled.")
+):
     """
     Start Zambeze agent as its own daemonized subprocess. This will write logs to a user's ~/.zambeze directory and
     automatically select ports for both data and heartbeat communications.
@@ -37,7 +41,7 @@ def start():
 
     """
 
-    agent_start(logger)
+    agent_start(logger, debug=debug)
 
 
 @agent_app.command()
@@ -65,7 +69,7 @@ def config(
     ),
     file: bool = typer.Option(False, "--file", "-f", help="Show config file location."),
 ):
-    settings = ZambezeSettings(conf_file=state["conf_file"], logger=logger)
+    settings = ZambezeSettings(logger=logger, conf_file=state["conf_file"])
     if file:
         typer.echo(f"Zambeze config file: {settings._conf_file}")
     if list:
@@ -82,18 +86,8 @@ def main(
     """
     Zambeze command line interface
     """
-    # logging
-    logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-    )
     if debug:
         logger.setLevel(logging.DEBUG)
-        ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
 
     # configuration file
     if conf_filepath:

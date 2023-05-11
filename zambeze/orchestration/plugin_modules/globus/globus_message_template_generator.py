@@ -1,15 +1,14 @@
 # Local imports
 from ..abstract_plugin_template_generator import PluginMessageTemplateGenerator
 from ..common_dataclasses import Items, Move, TransferTemplateInner, TransferTemplate
+from zambeze.log_manager import LogManager
 
 # Standard imports
 from dataclasses import dataclass
-from typing import Optional
-import logging
 
 
 class GlobusMessageTemplateGenerator(PluginMessageTemplateGenerator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__("globus", logger=logger)
 
     def generate(self, args=None):

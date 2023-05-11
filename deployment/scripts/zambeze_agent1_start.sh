@@ -13,7 +13,7 @@ echo "[zambeze_agent1_start.sh] Hostname is: $HOSTNAME"
 LOG_PATH="$HOME/.zambeze/logs/"
 mkdir -p $LOG_PATH
 
-zambeze agent start
+zambeze agent start --debug
 
 expected_foreign_keys=1
 ssh_setup

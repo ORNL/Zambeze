@@ -3,14 +3,18 @@ import zambeze.orchestration.plugin_modules.git.git as git
 from zambeze.orchestration.plugin_modules.git.git_message_template_generator import (
     GitMessageTemplateGenerator,
 )
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import os
 import pytest
 import random
 import time
 
 from dataclasses import asdict
+
+logger = LogManager(logging.DEBUG, name="test_plugin_git")
 
 
 @pytest.mark.gitlab_runner
@@ -30,7 +34,7 @@ def test_git_checkCommitSuccess():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -41,7 +45,7 @@ def test_git_checkCommitSuccess():
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -64,7 +68,7 @@ def test_git_checkCommitFailure1():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -75,7 +79,7 @@ def test_git_checkCommitFailure1():
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -98,7 +102,7 @@ def test_git_checkCommitFailure2():
     original_number = random.randint(0, 100000000000)
     f.write(str(original_number))
     f.close()
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -109,7 +113,7 @@ def test_git_checkCommitFailure2():
     template.commit.credentials.access_token = access_token
     template.commit.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -131,7 +135,7 @@ def test_git_checkCommitFailure3():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -139,7 +143,7 @@ def test_git_checkCommitFailure3():
     template.commit.destination = "git://Zambeze84/main/" + file_name
     template.commit.commit_message = ("Adding a file",)
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)
@@ -168,7 +172,7 @@ def test_git_processCommitAndDownload():
     f.write(str(original_number))
     f.close()
 
-    generator = GitMessageTemplateGenerator()
+    generator = GitMessageTemplateGenerator(logger)
 
     template = generator.generate("commit")
 
@@ -183,7 +187,7 @@ def test_git_processCommitAndDownload():
 
     print("Template is")
     print(template)
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
     arguments = asdict(template)
     git_plugin.check([arguments])
@@ -199,7 +203,7 @@ def test_git_processCommitAndDownload():
     template.download.credentials.access_token = access_token
     template.download.credentials.email = "zambeze84@gmail.com"
 
-    git_plugin = git.Git()
+    git_plugin = git.Git(logger)
     git_plugin.configure({})
 
     arguments = asdict(template)

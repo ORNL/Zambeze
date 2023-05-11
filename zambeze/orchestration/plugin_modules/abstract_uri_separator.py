@@ -1,14 +1,13 @@
-import logging
+# Local imports
+
+from zambeze.log_manager import LogManager
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class AbstractURISeparator(ABC):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+    def __init__(self, logger: LogManager) -> None:
+        self._logger: LogManager = logger
 
     @property
     @abstractmethod

@@ -6,13 +6,13 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import logging
 import pathlib
 import threading
 
 from typing import Optional
 from uuid import uuid4
 
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.agent.message_handler import MessageHandler
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 
@@ -31,24 +31,22 @@ class Agent:
     :param conf_file: Path to configuration file
     :type conf_file: Optional[pathlib.Path]
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
     def __init__(
         self,
+        logger: LogManager,
         conf_file: Optional[pathlib.Path] = None,
-        logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a distributed agent."""
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+        self._logger: LogManager = logger
 
         # Create an ID for our agent.
         self._agent_id = str(uuid4())
 
         self._activity_dao = ActivityDAO(self._logger)
-        self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
+        self._settings = ZambezeSettings(logger=self._logger, conf_file=conf_file)
 
         # Create and start an executor thread.
         self._executor = Executor(

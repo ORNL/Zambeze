@@ -2,17 +2,20 @@
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.orchestration.zambeze_types import MessageType
 from zambeze.orchestration.identity import valid_uuid
+from zambeze.log_manager import LogManager
 
 # Standard imports
 import pytest
 import logging
 import pathlib
+import pickle
 import uuid
+
+logger = LogManager(logging.DEBUG, "test_activity_shell")
 
 
 @pytest.mark.unit
 def test_shell_activity_generate_message():
-    logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
     activity = ShellActivity(
         name="ImageMagick",
@@ -56,7 +59,6 @@ def test_shell_activity_generate_message():
 @pytest.mark.unit
 def test_shell_activity_attributes():
     # Don't specify agent_id and campaign_id
-    logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
     activity = ShellActivity(
         name="ImageMagick",
@@ -85,3 +87,43 @@ def test_shell_activity_attributes():
     assert activity.command == "convert"
     assert len(activity.arguments) == 6
     assert "PATH" in activity.env_vars
+
+
+@pytest.mark.unit
+def test_shell_activity_pickle_with_log_manager():
+    # This test was needed because the logger stored in the activity makes
+    # use of fnctl - file locks which are not picklable by default, this
+    # tests that the custom addition of __setstate__ and __getstate__ are
+    # working
+    curr_dir = pathlib.Path().resolve()
+    activity = ShellActivity(
+        name="ImageMagick",
+        files=[
+            f"file://{curr_dir}/../tests/campaigns/imagesequence/{i:02d}.jpg"
+            for i in range(1, 11)
+        ],
+        command="convert",
+        arguments=[
+            "-delay",
+            "20",
+            "-loop",
+            "0",
+            f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
+            "a.gif",
+        ],
+        logger=logger,
+        # Uncomment if running on M1 Mac.
+        env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
+        campaign_id=str(uuid.uuid4()),
+        agent_id=str(uuid.uuid4()),
+        message_id=str(uuid.uuid4()),
+    )
+
+    try:
+        pickle.dumps(activity)
+    except Exception as e:
+        print(e)
+        # pickling an activity should be allowed
+        assert False
+
+    assert True

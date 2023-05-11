@@ -6,12 +6,12 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import logging
 import os
 import pathlib
 import yaml
 from typing import Optional, Union
 
+from .log_manager import LogManager
 from .config import HOST, ZMQ_PORT, NATS_HOST, NATS_PORT, RABBIT_HOST, RABBIT_PORT
 from .orchestration.plugins import Plugins
 from .orchestration.db.dao.dao_utils import create_local_db
@@ -24,7 +24,7 @@ class ZambezeSettings:
     :param conf_file: Path to configuration file
     :type conf_file: Optional[pathlib.Path]
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
     _conf_file: Optional[pathlib.Path] = (
@@ -33,15 +33,13 @@ class ZambezeSettings:
 
     def __init__(
         self,
+        logger: LogManager,
         conf_file: Optional[pathlib.Path] = None,
-        logger: Optional[logging.Logger] = None,
     ) -> None:
         """Zambeze settings."""
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
         # set default values
         # TODO: get the queue bits out of here (and into queue folder)
+        self._logger = logger
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}
         self.plugins = Plugins(logger=self._logger)
         self.load_settings(conf_file)

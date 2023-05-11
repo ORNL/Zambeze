@@ -12,16 +12,16 @@ from __future__ import annotations
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from .git_message_template_generator import GitCommitTemplate, GitDownloadTemplate
 from .git_common import PLUGIN_NAME
+from zambeze.log_manager import LogManager
 from zambeze.orchestration.identity import valid_email
 
 # Standard imports
 from dataclasses import asdict
-from typing import Optional, overload
-import logging
+from typing import overload
 
 
 class GitMessageValidator(PluginMessageValidator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
 
     def _validateCommit(self, commit_arguments, checks):

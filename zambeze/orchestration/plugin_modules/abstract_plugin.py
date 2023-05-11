@@ -6,10 +6,10 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import logging
+# Local imports
+from zambeze.log_manager import LogManager
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class Plugin(ABC):
@@ -18,13 +18,11 @@ class Plugin(ABC):
     same interface
 
     :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    :type logger: LogManager
     """
 
-    def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
+    def __init__(self, name: str, logger: LogManager) -> None:
+        self._logger: LogManager = logger
         self._name = name
 
     @property

@@ -1,13 +1,12 @@
 from ..abstract_uri_separator import AbstractURISeparator
+from zambeze.log_manager import LogManager
 
 # Standard imports
-import logging
 import os
-from typing import Optional
 
 
 class GitURISeparator(AbstractURISeparator):
-    def __init__(self, logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, logger: LogManager) -> None:
         super().__init__(logger=logger)
 
     def __removeConsecutiveDuplicates(self, s, char):
