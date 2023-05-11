@@ -8,7 +8,6 @@ import datetime
 import logging
 import os
 import select
-import time
 
 
 class LogManager:
@@ -108,6 +107,9 @@ class LogManager:
         sent, if none is provided then the logger will be default place logs in
         ~/.zambeze/logs
         """
+        self._log_file_path: str = ""
+        self._fh: logging.FileHandler
+        self._ch: logging.FileHandler
         self._create(level, name, log_path)
 
     def __getstate__(self):
@@ -186,7 +188,7 @@ class LogManager:
 
     """
     Meant to be used with a subprocess instance that has been configured with
-    the settings shown in the example. 
+    the settings shown in the example.
 
     NOTE: for this to work all output must be redirected to stdout as shown
 
@@ -200,7 +202,7 @@ class LogManager:
     log_manager.watch([process])
 
     # Call wait when you want to ensure the process is complete before
-    # continuing. 
+    # continuing.
     process.wait()
     """
 

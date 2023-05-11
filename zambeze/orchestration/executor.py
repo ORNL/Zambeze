@@ -20,7 +20,6 @@ from zambeze.settings import ZambezeSettings
 
 # Standard imports
 import json
-import logging
 import os
 import pathlib
 import threading

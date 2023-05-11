@@ -7,7 +7,6 @@ from zambeze.log_manager import LogManager
 # Standard imports
 import logging
 import pytest
-import logging
 import pathlib
 
 logger = LogManager(logging.DEBUG, name="test_campaign")

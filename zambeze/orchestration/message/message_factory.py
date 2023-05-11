@@ -19,7 +19,6 @@ from zambeze.orchestration.plugins_message_template_engine import (
 from ..zambeze_types import MessageType, ActivityType
 
 # Standard imports
-import logging
 import uuid
 
 

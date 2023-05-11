@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Any
-import logging
+from typing import Any
 
 from zambeze.log_manager import LogManager
 from zambeze.orchestration.db.dao.dao_utils import get_db_engine

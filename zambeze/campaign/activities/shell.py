@@ -5,7 +5,6 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import logging
 import time
 import uuid
 
@@ -62,7 +61,6 @@ class ShellActivity(Activity):
             activity_id=str(uuid.uuid4()),
         )
         self.logger = logger
-        # self.logger: logging.Logger = logger if logger else logging.getLogger(__name__)
         # Pull out environment variables, IF users submitted them.
         if "env_vars" in kwargs:
             if not isinstance(kwargs.get("env_vars"), dict):

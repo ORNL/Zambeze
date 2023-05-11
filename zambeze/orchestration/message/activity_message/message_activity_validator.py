@@ -1,7 +1,5 @@
 # Standard imports
-from typing import Optional, Any, overload
-
-import logging
+from typing import Any, overload
 
 # Local imports
 from ..abstract_message_validator import AbstractMessageValidator
