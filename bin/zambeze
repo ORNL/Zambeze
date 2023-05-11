@@ -29,7 +29,7 @@ state = {"conf_file": None}
 @agent_app.command()
 def start(
     debug: bool = typer.Option(False, help="If debug logs are enabled.")
-        ):
+):
     """
     Start Zambeze agent as its own daemonized subprocess. This will write logs to a user's ~/.zambeze directory and
     automatically select ports for both data and heartbeat communications.

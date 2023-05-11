@@ -24,8 +24,8 @@ class LogManager:
     without corruption via the fnctl module. It is also able to capture the
     output of subprocesses see the 'watch' command below for an example.
     """
-    def _create_handles(self):
 
+    def _create_handles(self):
         # For Handlers
         self._format = (
             "[Zambeze] [%(levelname)s] - %(name)s - %(asctime)s - %(message)s"
