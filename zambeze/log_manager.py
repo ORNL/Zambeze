@@ -9,6 +9,8 @@ import logging
 import os
 import select
 
+from typing import Optional
+
 
 class LogManager:
 
@@ -23,6 +25,10 @@ class LogManager:
     without corruption via the fnctl module. It is also able to capture the
     output of subprocesses see the 'watch' command below for an example.
     """
+
+    # Prevent pyre from complaining
+    _fh: Optional[logging.FileHandler] = None
+    _ch: Optional[logging.FileHandler] = None
 
     def _create_handles(self):
         # For Handlers
@@ -108,8 +114,6 @@ class LogManager:
         ~/.zambeze/logs
         """
         self._log_file_path: str = ""
-        self._fh: logging.FileHandler
-        self._ch: logging.FileHandler
         self._create(level, name, log_path)
 
     def __getstate__(self):
