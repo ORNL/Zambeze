@@ -2,9 +2,6 @@
 from ..zambeze_types import QueueType
 from zambeze.log_manager import LogManager
 
-# Standard imports
-import logging
-
 from .queue_nats import QueueNATS
 from .queue_rmq import QueueRMQ
 

@@ -16,9 +16,6 @@ from .git_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 
 # Standard imports
 from dataclasses import dataclass, field
-from typing import Optional
-
-import logging
 
 
 @dataclass

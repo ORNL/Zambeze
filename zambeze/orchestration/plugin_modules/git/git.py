@@ -18,11 +18,6 @@ import base64
 import json
 import requests
 
-# Standard imports
-from typing import Optional
-
-import logging
-
 
 class Git(Plugin):
     def __init__(self, logger: LogManager) -> None:

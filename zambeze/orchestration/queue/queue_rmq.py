@@ -8,9 +8,6 @@ from zambeze.log_manager import LogManager
 import dill
 import pika
 
-# Standard imports
-import logging
-
 
 class QueueRMQ(AbstractQueue):
     def __init__(self, queue_config: dict, logger: LogManager) -> None:

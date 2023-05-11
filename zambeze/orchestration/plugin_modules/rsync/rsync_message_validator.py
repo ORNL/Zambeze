@@ -16,8 +16,7 @@ from zambeze.log_manager import LogManager
 
 # Standard imports
 from dataclasses import asdict
-from typing import Optional, overload
-import logging
+from typing import overload
 
 
 class RsyncMessageValidator(PluginMessageValidator):

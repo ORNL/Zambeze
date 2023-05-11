@@ -21,8 +21,6 @@ from importlib import import_module
 from inspect import isclass
 from typing import Optional, overload
 
-import logging
-
 
 class PluginChecks(dict):
     def __init__(self, val: dict):

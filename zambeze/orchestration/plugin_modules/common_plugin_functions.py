@@ -3,9 +3,7 @@ from zambeze.log_manager import LogManager
 
 # Standard imports
 from pathlib import Path
-from typing import Optional
 
-import logging
 import os
 import pkgutil
 

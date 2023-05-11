@@ -20,9 +20,6 @@ from ...system_utils import isExecutable
 from zambeze.log_manager import LogManager
 
 # Standard imports
-from typing import Optional
-
-import logging
 import pathlib
 import socket
 import subprocess

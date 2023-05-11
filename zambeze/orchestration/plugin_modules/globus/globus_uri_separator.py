@@ -4,10 +4,8 @@ from ...identity import valid_uuid
 from zambeze.log_manager import LogManager
 
 # Standard imports
-import logging
 import os
 import re
-from typing import Optional
 
 
 class GlobusURISeparator(AbstractURISeparator):

@@ -5,8 +5,6 @@ from .plugin_modules.abstract_uri_separator import AbstractURISeparator
 from zambeze.log_manager import LogManager
 
 # Standard imports
-import logging
-from typing import Optional
 from urllib.parse import urlparse
 from inspect import isclass
 import importlib

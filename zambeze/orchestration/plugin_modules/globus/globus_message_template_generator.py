@@ -5,8 +5,6 @@ from zambeze.log_manager import LogManager
 
 # Standard imports
 from dataclasses import dataclass
-from typing import Optional
-import logging
 
 
 class GlobusMessageTemplateGenerator(PluginMessageTemplateGenerator):

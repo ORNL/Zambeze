@@ -15,12 +15,9 @@ from zambeze.log_manager import LogManager
 
 # Standard imports
 from shutil import which
-from typing import Optional
 
-import logging
 import os
 import subprocess
-import sys
 
 
 def check_inputs(variable, left_pattern, right_pattern):

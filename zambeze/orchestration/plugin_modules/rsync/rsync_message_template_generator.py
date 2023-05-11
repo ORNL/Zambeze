@@ -19,11 +19,6 @@ from ..common_dataclasses import (
 from .rsync_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 from zambeze.log_manager import LogManager
 
-# Standard imports
-from typing import Optional
-
-import logging
-
 
 class RsyncMessageTemplateGenerator(PluginMessageTemplateGenerator):
     def __init__(self, logger: LogManager) -> None:

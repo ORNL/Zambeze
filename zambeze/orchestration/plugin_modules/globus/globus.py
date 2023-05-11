@@ -29,7 +29,7 @@ from os.path import exists
 from os.path import isdir
 from os.path import isfile
 from socket import gethostname
-from typing import Optional, Any
+from typing import Any
 
 import json
 import logging

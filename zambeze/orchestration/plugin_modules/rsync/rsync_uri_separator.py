@@ -3,9 +3,7 @@ from zambeze.orchestration.network import is_address_valid
 from zambeze.log_manager import LogManager
 
 # Standard imports
-import logging
 import os
-from typing import Optional
 
 
 class RsyncURISeparator(AbstractURISeparator):

@@ -7,10 +7,6 @@ from ..zambeze_types import ChannelType, QueueType
 import nats
 import dill
 
-# Standard imports
-import logging
-from typing import Optional
-
 
 # class QueueNATS(AbstractQueue):
 # TODO: either remove NATS or fix inheritance inconsistencies reported by pyre

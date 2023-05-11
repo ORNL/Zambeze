@@ -10,8 +10,7 @@ from ...identity import valid_uuid
 from zambeze.log_manager import LogManager
 
 # Standard imports
-from typing import Optional, overload
-import logging
+from typing import overload
 
 
 class GlobusMessageValidator(PluginMessageValidator):

@@ -3,9 +3,7 @@ from .abstract_uri_separator import AbstractURISeparator
 from zambeze.log_manager import LogManager
 
 # Standard imports
-import logging
 import os
-from typing import Optional
 
 
 class FileURISeparator(AbstractURISeparator):

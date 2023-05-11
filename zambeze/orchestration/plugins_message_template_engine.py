@@ -8,9 +8,6 @@ from zambeze.log_manager import LogManager
 # Standard imports
 from importlib import import_module
 from inspect import isclass
-from typing import Optional
-
-import logging
 
 
 class PluginsMessageTemplateEngine:

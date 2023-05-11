@@ -2,11 +2,7 @@
 
 from zambeze.log_manager import LogManager
 
-# Standard imports
-import logging
-
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class AbstractURISeparator(ABC):
