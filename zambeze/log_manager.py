@@ -23,6 +23,7 @@ class LogManager:
     without corruption via the fnctl module. It is also able to capture the
     output of subprocesses see the 'watch' command below for an example.
     """
+    def __init_log(self):
 
     def __init__(self, level, name: str = "zambeze-logger", log_path=""):
         """
@@ -64,25 +65,40 @@ class LogManager:
         formatter = logging.Formatter(self._format)
 
         # Set up StreamHandler
-        ch = logging.StreamHandler()
-        ch.setLevel(self._level)
-        ch.setFormatter(formatter)
-        self._logger.addHandler(ch)
+        self._ch = logging.StreamHandler()
+        self._ch.setLevel(self._level)
+        self._ch.setFormatter(formatter)
+        self._logger.addHandler(self._ch)
 
         # Set up File Handler
-        fh = logging.FileHandler(self._log_file_path)
-        fh.setLevel(self._level)
-        fh.setFormatter(formatter)
-        self._logger.addHandler(fh)
+        self._fh = logging.FileHandler(self._log_file_path)
+        self._fh.setLevel(self._level)
+        self._fh.setFormatter(formatter)
+        self._logger.addHandler(self._fh)
 
         # Needed for locking
-        self._log_file_descriptor = fh.stream.fileno()
+        self._log_file_descriptor = self._fh.stream.fileno()
 
         # Processes that are being watched
         self._processes = []
 
+    def __getstate__(self):
+        return {
+                "level": self._level,
+                "name": self._name,
+                "log_path": self._log_file_path
+                }
+
+    def __setstate__(self, state):
+        self._level = state['level']
+        self._name = state['name']
+        self._log_file_path = state['log_path']
+
+        
+
     def setLevel(self, level):
         # Will change the log level of all the handlers
+        self._level = level
         self._logger.setLevel(level)
 
     def debug(self, msg):
@@ -162,14 +178,16 @@ class LogManager:
     process.wait()
     """
 
-    def watch(self, processes: list):
-        async def write_to_log_async(logger, msg, log_file_descriptor):
+    def watch(self, processes: list, watch_name: str = ""):
+        async def write_to_log_async(logger, msg, log_file_descriptor,
+                watch_name):
             fcntl.flock(log_file_descriptor, fcntl.LOCK_EX)  # Acquire an exclusive lock
-            logger.info(msg)
+            logger.info(f" {watch_name} " + msg)
             fcntl.flock(log_file_descriptor, fcntl.LOCK_UN)  # Release the
 
         # Alternate reading lines from the different processes
-        async def read_subprocess_output(processes, logger, file_descriptor):
+        async def read_subprocess_output(processes, logger, file_descriptor,
+                watch_name):
             # Alter the stdout of the process so that they are non blocking
             for process in processes:
                 stdout_fd = process.stdout.fileno()
@@ -194,18 +212,25 @@ class LogManager:
                     chunk = process.stdout.read()
                     if chunk:
                         asyncio.create_task(
-                            write_to_log_async(logger, chunk, file_descriptor)
+                            write_to_log_async(logger, chunk, file_descriptor,
+                                watch_name + "-" + str(index))
                         )
                     else:
                         processes.pop(index)
 
-        async def watch_subprocesses(processes):
+        async def watch_subprocesses(processes, watch_name):
             tasks = [
                 read_subprocess_output(
-                    processes, self._logger, self._log_file_descriptor
+                    processes, self._logger, self._log_file_descriptor,
+                    watch_name
                 )
             ]
             await asyncio.gather(*tasks)
             [process.stdout.close() for process in processes]
 
-        asyncio.run(watch_subprocesses(copy.copy(processes)))
+        if len(watch_name) == 0:
+            watch_name = "subprocess:anon"
+        else:
+            watch_name = "subprocess:" + watch_name
+
+        asyncio.run(watch_subprocesses(copy.copy(processes), watch_name))

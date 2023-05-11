@@ -33,7 +33,7 @@ def start(
     """
 
     print(f"Log path: {log_path}")
-    logger = LogManager(logging.INFO, log_path)
+    logger = LogManager(logging.INFO, log_path=log_path)
 
     if debug:
         logger.setLevel(logging.DEBUG)
@@ -43,7 +43,8 @@ def start(
     logger.info("Creating Zambeze agent subprocess with configuration:")
     logger.info("*****************************************************")
     logger.info(f"Log Path:\t\t{log_path}")
-    logger.info(f"Config Path:\t\t{config_path}")
+    logger.info(f"Config Path:\t{config_path}")
+    logger.info(f"Log Level:\t\t{logger.level}")
     logger.info(f"Debug Logs:\t\t{debug}")
     logger.info(f"ZMQ activity port:\t{zmq_activity_port}")
     logger.info(f"ZMQ heartbeat port:\t{zmq_heartbeat_port}")

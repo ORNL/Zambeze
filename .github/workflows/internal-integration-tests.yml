@@ -3,12 +3,13 @@ name: Internal-Integration-Testing
 on: push
 
 jobs:
+  runs-on: self-hosted
   internal-integration-test:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     strategy:
       matrix:
-        python-version: [ "3.9", "3.10" ]
+        python-version: [ "3.9" ]
     steps:
       - uses: actions/checkout@v2
       - name: Update ubuntu

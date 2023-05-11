@@ -25,7 +25,7 @@ zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
 state_path = zambeze_base_dir.joinpath("agent.state")
 
 
-def agent_start(logger: LogManager) -> None:
+def agent_start(logger: LogManager, debug: bool = False) -> None:
     """
     Start the agent via the local zambeze-agent utility and save initial state.
 
@@ -86,13 +86,17 @@ def agent_start(logger: LogManager) -> None:
     arg_list = [
         "zambeze-agent",
         "--log-path",
-        str(zambeze_log_path.resolve()),
-        "--debug",
-        "--zmq-heartbeat-port",
-        str(hb_port),
-        "--zmq-activity-port",
-        str(data_port),
+        str(zambeze_log_path.resolve())
     ]
+
+    if debug:
+        arg_list.append("--debug")
+    
+    arg_list.append("--zmq-heartbeat-port")
+    arg_list.append(str(hb_port))
+    arg_list.append("--zmq-activity-port")
+    arg_list.append(str(data_port))
+
     logger.info(f"Command: {' '.join(arg_list)}")
 
     # Open the subprocess and save the process state to file (for future access).
