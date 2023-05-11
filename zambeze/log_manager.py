@@ -9,7 +9,7 @@ import logging
 import os
 import select
 
-from typing import Optional
+from typing import Optional, cast
 
 
 class LogManager:
@@ -29,7 +29,7 @@ class LogManager:
     # Prevent pyre from complaining
     _fh: Optional[logging.FileHandler] = None
     _ch: Optional[logging.FileHandler] = None
-    _log_file_descriptor: Optional[int] = None
+    _log_file_descriptor: int = -1
 
     def _create_handles(self):
         # For Handlers
@@ -96,8 +96,8 @@ class LogManager:
             os.makedirs(directory, exist_ok=True)
 
         self._create_handles()
-        # Needed for locking
-        self._log_file_descriptor = self._fh.stream.fileno()
+        # Needed for locking, cast is used to satisfy pyre
+        self._log_file_descriptor = cast(logging.FileHandler, self._fh).stream.fileno()
 
     def __init__(self, level: int, name: str = "zambeze-logger", log_path: str = ""):
         """
