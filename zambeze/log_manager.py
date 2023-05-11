@@ -29,6 +29,7 @@ class LogManager:
     # Prevent pyre from complaining
     _fh: Optional[logging.FileHandler] = None
     _ch: Optional[logging.FileHandler] = None
+    _log_file_descriptor: Optional[int] = None
 
     def _create_handles(self):
         # For Handlers
