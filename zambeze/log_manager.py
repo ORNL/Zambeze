@@ -12,6 +12,7 @@ import time
 
 
 class LogManager:
+
     """
     LogManager for providing a single consistent interface for logging all
     output associated with Zambeze
@@ -23,25 +24,13 @@ class LogManager:
     without corruption via the fnctl module. It is also able to capture the
     output of subprocesses see the 'watch' command below for an example.
     """
-    def __init_log(self):
 
-    def __init__(self, level, name: str = "zambeze-logger", log_path=""):
-        """
-        Initialization of the LogManager
-
-        :param level: This is a required parameter and can be one of the log
-        levels provided by the logging import module. i.e. logging.INFO,
-        logging.DEBUG, logging.CRITICAL, logging.ERROR, logging.WARNING
-        :type level: This is an int consistent with the logging modules levels
-        :param name: This is the name of the logger, if non is set then the
-        default zambeze-logger will be used
-        :type name: This is a str
-        :param log_path: This is the location and file where the logs will be
-        sent, if none is provided then the logger will be default place logs in
-        ~/.zambeze/logs
-        """
+    def _create(self, level: int, name: str, log_path: str):
         self._level = level
         self._name = name
+        # Processes that are being watched
+        self._processes = []
+
         self._logger = logging.getLogger(self._name)
         self._logger.setLevel(self._level)
 
@@ -64,37 +53,68 @@ class LogManager:
         )
         formatter = logging.Formatter(self._format)
 
+        def handler_exists(logger, handler_name):
+            for handler in logger.handlers:
+                if handler.name == handler_name:
+                    return True
+            return False
+
+        def get_handler(logger, handler_name):
+            for handler in logger.handlers:
+                if handler.name == handler_name:
+                    return handler
+
         # Set up StreamHandler
-        self._ch = logging.StreamHandler()
-        self._ch.setLevel(self._level)
-        self._ch.setFormatter(formatter)
-        self._logger.addHandler(self._ch)
+        stream_handler = f"{self._name}-stream"
+        if not handler_exists(self._logger, stream_handler):
+            self._ch = logging.StreamHandler()
+            self._ch.name = stream_handler
+            self._ch.setLevel(self._level)
+            self._ch.setFormatter(formatter)
+            self._logger.addHandler(self._ch)
+        else:
+            self._ch = get_handler(self._logger, stream_handler)
 
         # Set up File Handler
-        self._fh = logging.FileHandler(self._log_file_path)
-        self._fh.setLevel(self._level)
-        self._fh.setFormatter(formatter)
-        self._logger.addHandler(self._fh)
+        file_handler = f"{self._name}-file"
+        if not handler_exists(self._logger, file_handler):
+            self._fh = logging.FileHandler(self._log_file_path)
+            self._fh.name = file_handler
+            self._fh.setLevel(self._level)
+            self._fh.setFormatter(formatter)
+            self._logger.addHandler(self._fh)
+        else:
+            self._fh = get_handler(self._logger, file_handler)
 
         # Needed for locking
         self._log_file_descriptor = self._fh.stream.fileno()
 
-        # Processes that are being watched
-        self._processes = []
+    def __init__(self, level: int, name: str = "zambeze-logger", log_path: str = ""):
+        """
+        Initialization of the LogManager
+
+        :param level: This is a required parameter and can be one of the log
+        levels provided by the logging import module. i.e. logging.INFO,
+        logging.DEBUG, logging.CRITICAL, logging.ERROR, logging.WARNING
+        :type level: This is an int consistent with the logging modules levels
+        :param name: This is the name of the logger, if non is set then the
+        default zambeze-logger will be used
+        :type name: This is a str
+        :param log_path: This is the location and file where the logs will be
+        sent, if none is provided then the logger will be default place logs in
+        ~/.zambeze/logs
+        """
+        self._create(level, name, log_path)
 
     def __getstate__(self):
         return {
-                "level": self._level,
-                "name": self._name,
-                "log_path": self._log_file_path
-                }
+            "level": self._level,
+            "name": self._name,
+            "log_path": self._log_file_path,
+        }
 
     def __setstate__(self, state):
-        self._level = state['level']
-        self._name = state['name']
-        self._log_file_path = state['log_path']
-
-        
+        self._create(state["level"], state["name"] + "_B", state["log_path"])
 
     def setLevel(self, level):
         # Will change the log level of all the handlers
@@ -179,15 +199,15 @@ class LogManager:
     """
 
     def watch(self, processes: list, watch_name: str = ""):
-        async def write_to_log_async(logger, msg, log_file_descriptor,
-                watch_name):
+        async def write_to_log_async(logger, msg, log_file_descriptor, watch_name):
             fcntl.flock(log_file_descriptor, fcntl.LOCK_EX)  # Acquire an exclusive lock
             logger.info(f" {watch_name} " + msg)
             fcntl.flock(log_file_descriptor, fcntl.LOCK_UN)  # Release the
 
         # Alternate reading lines from the different processes
-        async def read_subprocess_output(processes, logger, file_descriptor,
-                watch_name):
+        async def read_subprocess_output(
+            processes, logger, file_descriptor, watch_name
+        ):
             # Alter the stdout of the process so that they are non blocking
             for process in processes:
                 stdout_fd = process.stdout.fileno()
@@ -212,8 +232,12 @@ class LogManager:
                     chunk = process.stdout.read()
                     if chunk:
                         asyncio.create_task(
-                            write_to_log_async(logger, chunk, file_descriptor,
-                                watch_name + "-" + str(index))
+                            write_to_log_async(
+                                logger,
+                                chunk,
+                                file_descriptor,
+                                watch_name + "-" + str(index),
+                            )
                         )
                     else:
                         processes.pop(index)
@@ -221,8 +245,7 @@ class LogManager:
         async def watch_subprocesses(processes, watch_name):
             tasks = [
                 read_subprocess_output(
-                    processes, self._logger, self._log_file_descriptor,
-                    watch_name
+                    processes, self._logger, self._log_file_descriptor, watch_name
                 )
             ]
             await asyncio.gather(*tasks)

@@ -2,16 +2,19 @@
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.campaign.campaign import Campaign
 from zambeze.orchestration.identity import valid_uuid
+from zambeze.log_manager import LogManager
 
 # Standard imports
+import logging
 import pytest
 import logging
 import pathlib
 
+logger = LogManager(logging.DEBUG, name="test_campaign")
+
 
 @pytest.mark.unit
 def test_campaign():
-    logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
     activity = ShellActivity(
         name="ImageMagick",

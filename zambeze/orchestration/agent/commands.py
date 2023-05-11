@@ -83,15 +83,11 @@ def agent_start(logger: LogManager, debug: bool = False) -> None:
     hb_port = 5556
     # *********** #
 
-    arg_list = [
-        "zambeze-agent",
-        "--log-path",
-        str(zambeze_log_path.resolve())
-    ]
+    arg_list = ["zambeze-agent", "--log-path", str(zambeze_log_path.resolve())]
 
     if debug:
         arg_list.append("--debug")
-    
+
     arg_list.append("--zmq-heartbeat-port")
     arg_list.append(str(hb_port))
     arg_list.append("--zmq-activity-port")

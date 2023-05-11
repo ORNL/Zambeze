@@ -10,6 +10,7 @@ from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 # Standard imports
 import logging
 import os
+import pickle
 import pytest
 import random
 import subprocess
@@ -176,3 +177,41 @@ def test_shell_plugin_run_with_log():
         # Should be a single line
         message = "This-is-my-number " + str(original_number)
         assert message in file_data
+
+
+@pytest.mark.unit
+def test_log_manager_with_pickle():
+    current_valid_path = os.getcwd()
+    log_file_core_name = "test_pickle"
+    log_file_path = current_valid_path + os.sep + f"{log_file_core_name}.log"
+
+    if os.path.exists(log_file_path):
+        os.remove(log_file_path)
+
+    log_manager = LogManager(
+        logging.DEBUG, name=log_file_core_name, log_path=log_file_path
+    )
+
+    log_manager.info("Before pickle - serialization")
+
+    serial_logger = b""
+    try:
+        serial_logger = pickle.dumps(log_manager)
+    except Exception as e:
+        print(e)
+        # The log_manager should be pickleable because of the custom
+        # __setstate__ and __getstate__ methods
+        assert False
+
+    log_manager2 = pickle.loads(serial_logger)
+
+    log_manager2.info("After pickle - serialization and deserialization")
+
+    assert os.path.exists(log_file_path)
+    with open(log_file_path) as f:
+        # Now we will verify that it is the same file that was sent
+        file_data = f.read()
+        # Should be a single line
+        assert file_data.count("\n") == 2
+        assert "Before pickle" in file_data
+        assert "After pickle" in file_data
