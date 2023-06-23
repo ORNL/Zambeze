@@ -2,6 +2,7 @@ import pickle
 import threading
 import time
 import dill
+import networkx
 import zmq
 
 from queue import Queue
@@ -36,21 +37,13 @@ class MessageHandler(threading.Thread):
 
         self._activity_dao = ActivityDAO(self._logger)
 
-        # try:
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
-        self._logger.info("[Message Handler] Binding to random ZMQ port...")
-        # self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
-        # Bind to a random available port in the range 60000-65000
-        port_message = self._zmq_socket.bind_to_random_port(
-            "tcp://*", min_port=60000, max_port=65000
+        self._logger.info(
+            "[Message Handler] Binding to ZMQ: "
+            f"{self._settings.get_zmq_connection_uri()}"
         )
-
-        # Set ZMQ port in settings (and flush to file)
-        self._settings.settings["zmq"]["port"] = port_message
-        self._settings.flush()
-
-        self._logger.info(f"Advertised port in agent.yaml file: {port_message}")
+        self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
 
         # Queues to allow safe inter-thread communication.
         self.msg_handler_send_activity_q = Queue()
@@ -62,21 +55,24 @@ class MessageHandler(threading.Thread):
 
         # THREAD 1: recv activities from campaign
         campaign_listener = threading.Thread(
-            target=self.recv_activities_from_campaign, args=()
+            target=self.recv_activity_dag_from_campaign, args=()
         )
         # THREAD 2: recv activities from rmq
         activity_listener = threading.Thread(target=self.recv_activity, args=())
         # THREAD 3: recv control from RMQ
         control_listener = threading.Thread(target=self.recv_control, args=())
-        # THREAD 4: send activity to RMQ
-        activity_sender = threading.Thread(target=self.send_activity, args=())
+        # THREAD 4: recv control from RMQ
+        control_sender = threading.Thread(target=self.send_control, args=())
+        # THREAD 5: send activity to RMQ
+        activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
         campaign_listener.start()
         activity_listener.start()
         control_listener.start()
         activity_sender.start()
+        control_sender.start()
 
-    def recv_activities_from_campaign(self):
+    def recv_activity_dag_from_campaign(self):
         """
         >> Async
 
@@ -89,43 +85,58 @@ class MessageHandler(threading.Thread):
             )
 
             # Use ZMQ to receive activities from campaign.
-            activity_bytestring = self._zmq_socket.recv()
+            dag_bytestring = self._zmq_socket.recv()
             self._zmq_socket.send(b"Notification of activity receipt by ZMQ...")
             self._logger.debug(
-                "[recv_activities_from_campaign] Received an activity bytestring!"
+                "[recv_activity_dag_from_campaign] Received an activity DAG bytestring!"
             )
 
-            import traceback
+            # try:
+            activity_dag_data = pickle.loads(dag_bytestring)
+            activity_dag = networkx.node_link_graph(activity_dag_data)
 
-            try:
-                activity = pickle.loads(activity_bytestring)
-                activity.agent_id = self.agent_id
-                activity_message: AbstractMessage = activity.generate_message()
-            except Exception as e:
-                self._logger.error(f"CAUGHT ERROR IN MSG_HANDLER: {e}")
-                self._logger.error(f"TRACEBACK: {traceback.format_exc()}")
-
-            self._logger.info(
-                "[recv_activities_from_campaign] Dispatching message "
-                f"activity_id: {activity.activity_id} "
-                f"message_id: {activity_message.data.message_id}"
-            )
             self._logger.debug(
-                "[recv_activities_from_campaign] Received message from "
-                f"campaign: {activity_message}"
+                "[recv_activity_dag_from_campaign] Received message from "
+                f"campaign: {activity_dag_data}"
             )
 
-            activity_model = ActivityModel(
-                agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
-            )
-            self._logger.debug(
-                "[recv_activities_from_campaign] Creating activity in the"
-                f" DB: {activity}"
-            )
-            self._activity_dao.insert(activity_model)
-            self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
+            # Iterating over nodes in NetworkX DAG
+            for node in activity_dag.nodes(data=True):
 
-            self.msg_handler_send_activity_q.put(activity_message)
+                if node[0] == "MONITOR":
+                    node[1]["all_activity_ids"] = list(activity_dag.nodes)
+
+                # Append agent_id to each node.
+                node[1]["agent_id"] = self.agent_id
+                activity = node[1]["activity"]
+
+                # If not monitor or terminator
+                try:
+                    if type(activity) != str:
+                        activity.agent_id = self.agent_id
+                        self._logger.info("FINALLY SOME MEAT@")
+                        self._logger.info(activity)
+                        node[1]["activity"] = activity.generate_message()
+                except Exception as e:
+                    self._logger.error(e)
+                self._logger.info("ZOOBER")
+                node[1]["successors"] = list(activity_dag.predecessors(node[0]))
+                node[1]["predecessors"] = list(activity_dag.successors(node[0]))
+
+                self._logger.info("The activity_node to send...")
+                self._logger.info(node)
+
+                # Put the entire DAG into the activity.
+                # activity_message: AbstractMessage = activity.generate_message()
+
+                activity_model = ActivityModel(
+                    agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
+                )
+                self._activity_dao.insert(activity_model)
+                self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
+
+                self.msg_handler_send_activity_q.put(node)
+                self._logger.debug("[recv_activities_from_campaign] Sent node!")
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
@@ -133,10 +144,18 @@ class MessageHandler(threading.Thread):
         self._logger.info("[recv_activity] receiving activity...")
         activity = dill.loads(body)
 
-        # TODO: *add git issue* should be able to require a list of plugins (not just one).
-        required_plugin = activity_to_plugin_map[activity.data.body.type]
+        self._logger.info(f"DEBOOG: HERE IS ACTIVITY: {activity}")
 
-        plugins_are_configured = self.are_plugins_configured(required_plugin)
+        # TODO: *add git issue* should be able to require a list of plugins (not just one).
+        # Anyone can monitor or terminate.
+        if activity[0] in ["MONITOR", "TERMINATOR"]:
+            plugins_are_configured = True
+
+        else:
+            self._logger.info("BAZINGA??")
+            required_plugin = activity_to_plugin_map[activity[1]['activity'].data.body.type]
+            self._logger.info("BAZOOOOOOOONGA??")
+            plugins_are_configured = self.are_plugins_configured(required_plugin)
         should_ack = plugins_are_configured
 
         # TODO: *add git issue*  additional functionalities to be added as git issues
@@ -195,7 +214,7 @@ class MessageHandler(threading.Thread):
             should_auto_ack=False,
         )
 
-    def send_activity(self):
+    def send_activity_dag(self):
         """
         (from agent.py) input activity; send to "ACTIVITIES" queue.
         """
@@ -210,17 +229,7 @@ class MessageHandler(threading.Thread):
             self._logger.info("[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 
-            self._logger.info(
-                "[send_activity] Dispatching message "
-                f"activity_id: {activity_msg.data.activity_id} "
-                f"message_id: {activity_msg.data.message_id}"
-            )
-
-            # TODO: need to unpack the message in the print...
-            self._logger.info(
-                f"[send_activity] Message received: {activity_msg} \n"
-                f"..... Sending to activities channel..."
-            )
+            self._logger.info(f"[send_activity] Dispatching message: {activity_msg}...")
 
             try:
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)

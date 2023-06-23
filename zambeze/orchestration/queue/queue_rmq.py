@@ -168,9 +168,6 @@ class QueueRMQ(AbstractQueue):
                 "not connected to a RabbitMQ queue"
             )
 
-        self._logger.info(body.data)
-        self._logger.info(type(body.data))
-
         self._rmq_channel.basic_publish(
             exchange=exchange, routing_key=channel, body=dill.dumps(body)
         )
