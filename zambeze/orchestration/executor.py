@@ -124,6 +124,12 @@ class Executor(threading.Thread):
                     checked_result = self._settings.plugins.check(msg)
                     self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
 
+                    # TODO: have psij instead run the plugins.
+
+                    #if psij_flag:
+                    #    Run through psi_j
+
+                    # elif.
                     if checked_result.error_detected() is False:
                         self._settings.plugins.run(msg)
                     else:
