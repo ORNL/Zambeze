@@ -39,11 +39,18 @@ class MessageHandler(threading.Thread):
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
-        self._logger.info(
-            "[Message Handler] Binding to ZMQ: "
-            f"{self._settings.get_zmq_connection_uri()}"
+        self._logger.info("[Message Handler] Binding to random ZMQ port...")
+
+        # Bind to a random available port in the range 60000-65000
+        port_message = self._zmq_socket.bind_to_random_port(
+            "tcp://*", min_port=60000, max_port=65000
         )
-        self._zmq_socket.bind(self._settings.get_zmq_connection_uri())
+
+        # Set ZMQ port in settings (and flush to file)
+        self._settings.settings["zmq"]["port"] = port_message
+        self._settings.flush()
+
+        self._logger.info(f"Advertised port in agent.yaml file: {port_message}")
 
         # Queues to allow safe inter-thread communication.
         self.msg_handler_send_activity_q = Queue()
@@ -119,7 +126,7 @@ class MessageHandler(threading.Thread):
                         node[1]["activity"] = activity.generate_message()
                 except Exception as e:
                     self._logger.error(e)
-                self._logger.info("ZOOBER")
+                self._logger.info("[message_handler] ZOOBER")
                 node[1]["successors"] = list(activity_dag.predecessors(node[0]))
                 node[1]["predecessors"] = list(activity_dag.successors(node[0]))
 
@@ -144,7 +151,7 @@ class MessageHandler(threading.Thread):
         self._logger.info("[recv_activity] receiving activity...")
         activity = dill.loads(body)
 
-        self._logger.info(f"DEBOOG: HERE IS ACTIVITY: {activity}")
+        self._logger.info(f"[MESSAGE HANDLER] DEBOOG: HERE IS ACTIVITY: {activity}")
 
         # TODO: *add git issue* should be able to require a list of plugins (not just one).
         # Anyone can monitor or terminate.

@@ -16,6 +16,8 @@ from queue import Queue
 from typing import Optional
 from dataclasses import asdict
 from urllib.parse import urlparse
+from .monitor import Monitor
+
 
 from ..settings import ZambezeSettings
 from .message.message_factory import MessageFactory
@@ -48,7 +50,6 @@ class Executor(threading.Thread):
         self.to_process_q = Queue()
         self.to_status_q = Queue()
         self.to_new_activity_q = Queue()
-        self.to_monitor_q = Queue()
 
         self._logger.info("[EXECUTOR] Creating executor...")
         self._agent_id = agent_id
@@ -87,150 +88,159 @@ class Executor(threading.Thread):
         os.chdir(default_working_dir)
 
         while True:
-            try:
+            # try:
 
-                self._logger.info("[EXECUTOR] Retrieving a message! ")
-                dag_msg = self.to_process_q.get()
+            self._logger.info("[EXECUTOR] Retrieving a message! ")
+            dag_msg = self.to_process_q.get()
 
-                # Check 1. If MONITOR, then we want to STICK the process.
-                monitor_term = False
+            # Check 1. If MONITOR, then we want to STICK the process.
+            monitor_launched = False
+            terminator_stopped = False
 
-                self._logger.info(f"EXECUTOR!!! {dag_msg}")
-                if dag_msg[0] == "MONITOR":
+            self._logger.info(f"EXECUTOR!!! {dag_msg}")
+            if dag_msg[0] == "MONITOR":
 
-                    self._logger.info(f"[EXECUTOR] ENTERED MONITOR TASK!")
+                self._logger.info(f"[EXECUTOR] ENTERING MONITOR TASK THREAD!")
+                monitor_thread = Monitor(dag_msg, self._logger)
+                self._logger.info(f"bbb1")
+                monitor_thread.start()
+                self._logger.info(f"bbb2")
 
-                    # Now we want to hold (and periodically log) until all subtasks are complete.
-                    dag_dict = dict()
+                self._logger.info(f"Successfully launched MONITOR thread... continuing...")
 
-                    # Add all activities (besides the monitor) to our dict.
-                    for activity_id in dag_msg[1]["all_activity_ids"]:
-                        if activity_id == "MONITOR":
-                            continue
-                        dag_dict[activity_id] = "PROCESSING"
+                monitor_launched = True
 
-                    while True:
-                        # Quick check to see if all values are NOT "PROCESSING"
-                        proc_count = sum(x == 'PROCESSING' for x in dag_dict.values())
+            # elif dag_msg[0] == "TERMINATOR":
+            #     status_msg = {
+            #         'status': 'COMPLETED',
+            #         'activity_id': dag_msg[0],
+            #         'msg': 'TERMINATION CONDITION ACTIVATED.'
+            #     }
+            #     self.to_status_q.put(status_msg)
+            #     terminator_stopped = True
 
-                        if proc_count == 0:
-                            monitor_term = True
-                            break
+            self._logger.info(f"Monitor launched: {monitor_launched} | "
+                              f"Terminator stopped: {terminator_stopped}")
 
-                        status_msg = self.to_monitor_q.get()
-                        if status_msg.activity_id in dag_dict:
-                            status = status_msg["status"]
-                            dag_dict[status_msg['activity_id']] = status
+            # If we were just launching monitor, go to top of loop; start over.
+            if monitor_launched or terminator_stopped:
+                self._logger.debug("CONTINUE CONDITION!")
+                continue
 
-                elif dag_msg[0] == "TERMINATOR":
-                    status_msg = {
-                        'status': 'COMPLETED',
-                        'activity_id': dag_msg[0],
-                        'msg': 'TERMINATION CONDITION ACTIVATED.'
-                    }
-                    self.to_status_q.put(status_msg)
+            self._logger.info("[cccc]")
+            activity_msg = dag_msg[1]['activity']
 
-                # If we were just monitoring, go to top of loop; start over.
-                if monitor_term:
-                    continue
+            self._logger.info("[Executor] Message received:")
+            # if type(activity_msg) is str and activity_msg in ["MONITOR", "TERMINATOR"]:
+            #     self._logger.info(f"Message of type {activity_msg} (with NO payload) received! Continuing...")
+            #     continue
+            # else:
+            self._logger.info(f"[ddd] ACTUAL SHELL MESSAGE RECEIVED")
+            self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
-                activity_msg = dag_msg[1]['activity']
-                # if we need files, check if present (and if not, go get them).
-                self._logger.info("[Executor] Message received:")
+            # NOW WE CREATE A WAIT-LOOP TO DETERMINE WHEN WE CAN PROCESS.
+
+            # if we need files, check if present (and if not, go get them).
+
+            # TODO: BRING THIS BACK TO BE SMART!!
+            # any_upstream_failures = False
+            # marked_predecessors = []
+            # while True:
+            #     control_msg = self.to_monitor_q.get()
+            #     if control_msg["activity_id"] in dag_msg[1]['predecessors']:
+            #         marked_predecessors.append(control_msg["activity_id"])
+            #f
+            #         # Something upstream failed :(
+            #         if control_msg['status'] == "FAILED":
+            #             any_upstream_failures = True
+            #
+            #         # If we have all of the predecessors, break loop!
+            #         if len(dag_msg[1]['predecessors']) == len(marked_predecessors):
+            #             break
+            #
+            # # Now we decide if we give up before we start OR keep going
+            # if any_upstream_failures:
+            #     # If there is a failure, mark this as failed and move on.
+            #     status_msg = {
+            #         'status': 'FAILED',
+            #         'activity_id': dag_msg[0],
+            #         'msg': 'UPSTREAM FAILURE ACKNOWLEDGED.'
+            #     }
+            #     self.to_status_q.put(status_msg)
+            #     continue
+            self._logger.info(f"[aaa1] {activity_msg.data.body.type}")
+            self._logger.info(f"[aaa2] {activity_msg.data}")
+            if activity_msg.data.body.type == "SHELL":
+                self._logger.info("[Executor] SHELL message received:")
                 self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
-                # NOW WE CREATE A WAIT-LOOP TO DETERMINE WHEN WE CAN PROCESS.
-                any_upstream_failures = False
-                marked_predecessors = []
-                while True:
-                    control_msg = self.to_monitor_q.get()
-                    if control_msg["activity_id"] in dag_msg[1]['predecessors']:
-                        marked_predecessors.append(control_msg["activity_id"])
-
-                        # Something upstream failed :(
-                        if control_msg['status'] == "FAILED":
-                            any_upstream_failures = True
-
-                        # If we have all of the predecessors, break loop!
-                        if len(dag_msg[1]['predecessors']) == len(marked_predecessors):
-                            break
-
-                # Now we decide if we give up before we start OR keep going
-                if any_upstream_failures:
-                    # If there is a failure, mark this as failed and move on.
-                    status_msg = {
-                        'status': 'FAILED',
-                        'activity_id': dag_msg[0],
-                        'msg': 'UPSTREAM FAILURE ACKNOWLEDGED.'
-                    }
-                    self.to_status_q.put(status_msg)
-                    continue
-
-                if activity_msg.data.body.type == "SHELL":
-                    self._logger.info("[Executor] Message received:")
-                    self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
-
-                    # Determine if the shell activity has files that
-                    # Need to be moved to be executed
-                    if activity_msg.data.body.files:
-                        if len(activity_msg.data.body.files) > 0:
-                            self.__process_files(
-                                activity_msg.data.body.files,
-                                activity_msg.data.campaign_id,
-                                activity_msg.data.activity_id,
-                            )
-
-                    # Running Checks
-                    # Returned results should be double nested dict with a tuple of
-                    # the form
-                    #
-                    # "plugin": { "action": (bool, message) }
-                    #
-                    # The bool is a true or false which indicates if the action
-                    # for the plugin is a problem, the message is an error message
-                    # or a success statement
-
-                    # TODO -- bring these back.
-                    # self._logger.info("[EXECUTOR] Command to be executed.")
-                    # self._logger.info(json.dumps(data["cmd"], indent=4))
-
-                    # TODO: TYLER -- WAIT until we have the eligible resources.
-
-                    checked_result = self._settings.plugins.check(dag_msg)
-                    self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
-
-                    # TODO: have psij instead run the plugins.
-
-                    #if psij_flag:
-                    #    Run through psi_j
-
-                    # elif.
-                    if checked_result.error_detected() is False:
-                        self._settings.plugins.run(activity_msg)
-                    else:
-                        self._logger.debug(
-                            "Skipping run - error detected when running " "plugin check"
+                # Determine if the shell activity has files that
+                # Need to be moved to be executed
+                if activity_msg.data.body.files:
+                    if len(activity_msg.data.body.files) > 0:
+                        self.__process_files(
+                            activity_msg.data.body.files,
+                            activity_msg.data.campaign_id,
+                            activity_msg.data.activity_id,
                         )
 
-                else:
-                    raise Exception("Only SHELL currently supported")
+                # Running Checks
+                # Returned results should be double nested dict with a tuple of
+                # the form
+                #
+                # "plugin": { "action": (bool, message) }
+                #
+                # The bool is a true or false which indicates if the action
+                # for the plugin is a problem, the message is an error message
+                # or a success statement
 
-                # If we get here, it should be because nothing failed # TODO: confirm (unit-test somehow)
-                status_msg = {
-                    'status': 'COMPLETED',
-                    'activity_id': dag_msg[0],
-                    'msg': 'SUCCESSFULLY COMPLETED TASK.'
-                }
-                self.to_status_q.put(status_msg)
+                # TODO -- bring these back.
+                # self._logger.info("[EXECUTOR] Command to be executed.")
+                # self._logger.info(json.dumps(data["cmd"], indent=4))
 
-                self._logger.info("[EXECUTOR] Waiting for messages")
+                # TODO: TYLER -- WAIT until we have the eligible resources.
 
-            except QueueTimeoutException as e:
-                print(e)
-            except Exception as e:
-                self._logger.error(e)
-                # TODO: exit(1) makes me nervous???
-                exit(1)
+                self._logger.debug(f"EXECUTOR CHECKING RESULT...")
+                self._logger.debug(f"activity_msg.data.body.type...")
+                # checked_result = self._settings.plugins.check(activity_msg.data.body)
+                # self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
+                self._logger.debug("SKIPPING FAULTY CHECK...")
+
+                # TODO: have psij instead run the plugins.
+
+                #if psij_flag:
+                #    Run through psi_j
+
+                # elif.
+
+                self._settings.plugins.run(activity_msg)
+                # if checked_result.error_detected() is False:
+                #     self._settings.plugins.run(activity_msg)
+                # else:
+                #     self._logger.debug(
+                #         "Skipping run - error detected when running " "plugin check"
+                #     )
+
+            else:
+                raise Exception("Only SHELL currently supported")
+
+            # If we get here, it should be because nothing failed # TODO: confirm (unit-test somehow)
+            status_msg = {
+                'status': 'COMPLETED',
+                'activity_id': dag_msg[0],
+                'msg': 'SUCCESSFULLY COMPLETED TASK.'
+            }
+            self.to_status_q.put(status_msg)
+
+            self._logger.info("[EXECUTOR] Waiting for messages")
+
+            # TODO: bring both of these back!
+            # except QueueTimeoutException as e:
+            #     print(e)
+            # except Exception as e:
+            #     self._logger.error(e)
+            #     # TODO: exit(1) makes me nervous???
+            #     exit(1)
 
     def __process_files(
         self, files: list[str], campaign_id: str, activity_id: str

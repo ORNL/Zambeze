@@ -86,7 +86,7 @@ class Agent:
             # TODO: CHANGE THE WORD FROM SORT, PLEASE.
             activ_to_sort = self._executor.to_status_q.get()
             self._msg_handler_thd.send_control_q.put(activ_to_sort)
-            self._logger.debug("Put new activity into message handler control queue!")
+            self._logger.debug("[agent.py] Put new activity into message handler control queue!")
 
     def recv_activity_process_thd(self):
         """Move process-eligible activities to the executor's to_process_q!
