@@ -63,7 +63,10 @@ class Executor(threading.Thread):
             self._logger.info("WHAT IS WRONG???")
             self._logger.info(str(e))
 
+        # Initially we don't have a monitor. This can become a Monitor Thread object. It can revert to None.
+        self.monitor = None
         self._logger.info("[EXECUTOR] Successfully initialized Executor!")
+
 
     def run(self):
         """Override the Thread 'run' method to instead run our
@@ -101,27 +104,36 @@ class Executor(threading.Thread):
             self._logger.info(f"EXECUTOR!!! {dag_msg}")
             if dag_msg[0] == "MONITOR":
 
-                self._logger.info(f"[EXECUTOR] ENTERING MONITOR TASK THREAD!")
+                self._logger.info("[EXECUTOR] ENTERING MONITOR TASK THREAD!")
                 monitor_thread = Monitor(dag_msg, self._logger)
-                self._logger.info(f"bbb1")
+                self._logger.info("bbb1")
                 monitor_thread.start()
-                self._logger.info(f"bbb2")
+                self._logger.info("bbb2")
 
-                self._logger.info(f"Successfully launched MONITOR thread... continuing...")
+                self._logger.info(
+                    "Successfully launched MONITOR thread... continuing..."
+                )
 
+                # Save the monitor thread so we can scan it.
+                self.monitor = monitor_thread
                 monitor_launched = True
 
             elif dag_msg[0] == "TERMINATOR":
+                # TERMINATOR ALWAYS SUCCEEDS.
                 status_msg = {
-                    'status': 'COMPLETED',
-                    'activity_id': dag_msg[0],
-                    'msg': 'TERMINATION CONDITION ACTIVATED.'
+                    "status": "SUCCEEDED",
+                    "activity_id": dag_msg[0],
+                    "msg": "TERMINATION CONDITION ACTIVATED.",
                 }
+
+                self._logger.debug("Putting TERMINATOR success on to_status_q...")
                 self.to_status_q.put(status_msg)
                 terminator_stopped = True
 
-            self._logger.info(f"Monitor launched: {monitor_launched} | "
-                              f"Terminator stopped: {terminator_stopped}")
+            self._logger.info(
+                f"Monitor launched: {monitor_launched} | "
+                f"Terminator stopped: {terminator_stopped}"
+            )
 
             # If we were just launching monitor, go to top of loop; start over.
             if monitor_launched or terminator_stopped:
@@ -129,13 +141,9 @@ class Executor(threading.Thread):
                 continue
 
             self._logger.info("[cccc]")
-            activity_msg = dag_msg[1]['activity']
+            activity_msg = dag_msg[1]["activity"]
 
             self._logger.info("[Executor] Message received:")
-            # if type(activity_msg) is str and activity_msg in ["MONITOR", "TERMINATOR"]:
-            #     self._logger.info(f"Message of type {activity_msg} (with NO payload) received! Continuing...")
-            #     continue
-            # else:
             self._logger.info(f"[ddd] ACTUAL SHELL MESSAGE RECEIVED")
             self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
@@ -143,14 +151,30 @@ class Executor(threading.Thread):
 
             # if we need files, check if present (and if not, go get them).
 
-            # TODO: BRING THIS BACK TO BE SMART!!
+            ###
+
+            # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) *** #
+            # STEP 1. Confirm the monitor is MONITORING.
+            # if "MONITOR" in activity_msg.data.predecessors:
+
+            #    self._logger.info("FFF")
+            #    campaign_id = activity_msg.data.campaign_id
+
+            #    # Jump into a loop until we get "MONITORING" message with our campaign_id
+            #    while True:
+            #        self._logger.info("GGG")
+            #        # Wait until we have a MONITORING message for this campaign.
+
+
+
+            # STEP 2. Check to ensure that no failures received for predecessor (from MONITOR).
             # any_upstream_failures = False
             # marked_predecessors = []
             # while True:
             #     control_msg = self.to_monitor_q.get()
             #     if control_msg["activity_id"] in dag_msg[1]['predecessors']:
             #         marked_predecessors.append(control_msg["activity_id"])
-            #f
+            # f
             #         # Something upstream failed :(
             #         if control_msg['status'] == "FAILED":
             #             any_upstream_failures = True
@@ -169,6 +193,9 @@ class Executor(threading.Thread):
             #     }
             #     self.to_status_q.put(status_msg)
             #     continue
+
+            #####
+
             self._logger.info(f"[aaa1] {activity_msg.data.body.type}")
             self._logger.info(f"[aaa2] {activity_msg.data}")
             if activity_msg.data.body.type == "SHELL":
@@ -179,11 +206,22 @@ class Executor(threading.Thread):
                 # Need to be moved to be executed
                 if activity_msg.data.body.files:
                     if len(activity_msg.data.body.files) > 0:
-                        self.__process_files(
-                            activity_msg.data.body.files,
-                            activity_msg.data.campaign_id,
-                            activity_msg.data.activity_id,
-                        )
+
+                        try:
+                            self.__process_files(
+                                activity_msg.data.body.files,
+                                activity_msg.data.campaign_id,
+                                activity_msg.data.activity_id,
+                            )
+                        except Exception as e:
+                            status_msg = {
+                                "status": "FAILED",
+                                "activity_id": dag_msg[0],
+                                "msg": "UNABLE TO ACQUIRE FILES.",
+                            }
+                            self.to_status_q.put(status_msg)
+                            self._logger.error("[executor.py] Unable to acquire files. Quitting...")
+                            continue
 
                 # Running Checks
                 # Returned results should be double nested dict with a tuple of
@@ -209,7 +247,7 @@ class Executor(threading.Thread):
 
                 # TODO: have psij instead run the plugins.
 
-                #if psij_flag:
+                # if psij_flag:
                 #    Run through psi_j
 
                 # elif.
@@ -227,9 +265,9 @@ class Executor(threading.Thread):
 
             # If we get here, it should be because nothing failed # TODO: confirm (unit-test somehow)
             status_msg = {
-                'status': 'COMPLETED',
-                'activity_id': dag_msg[0],
-                'msg': 'SUCCESSFULLY COMPLETED TASK.'
+                "status": "SUCCEEDED",
+                "activity_id": dag_msg[0],
+                "msg": "SUCCESSFULLY COMPLETED TASK.",
             }
             self.to_status_q.put(status_msg)
 
