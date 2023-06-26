@@ -73,6 +73,10 @@ class Agent:
         )
         _activity_sorter_thd.start()
 
+        # Create and start sender thread...
+        _status_sender_thd = threading.Thread(target=self.send_control_thd, args=())
+        _status_sender_thd.start()
+
     @property
     def executor(self) -> Executor:
         return self._executor
@@ -83,10 +87,21 @@ class Agent:
         """
         self._logger.info("Starting send control thread!")
         while True:
-            # TODO: CHANGE THE WORD FROM SORT, PLEASE.
-            activ_to_sort = self._executor.to_status_q.get()
-            self._msg_handler_thd.send_control_q.put(activ_to_sort)
-            self._logger.debug("[agent.py] Put new activity into message handler control queue!")
+
+            if self._executor.to_status_q.qsize() > 0:
+                self._logger.info("PING 1")
+                status_to_send = self._executor.to_status_q.get()
+                self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
+                self._logger.debug(
+                    "[agent.py] Put new status/control into message handler control queue!"
+                )
+            if self._executor.monitor is not None and self._executor.monitor.to_status_q.qsize() > 0:
+                self._logger.info("[agent.py] Grabbing MONITOR status message...")
+                status_to_send = self._executor.monitor.to_status_q.get()
+                self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
+                self._logger.debug(
+                    "[agent.py] Put new MONITOR STATUS into message handler control queue!"
+                )
 
     def recv_activity_process_thd(self):
         """Move process-eligible activities to the executor's to_process_q!
@@ -107,11 +122,13 @@ class Agent:
         """
         self._logger.info("Starting activity sorter thread!")
         while True:
-            activ_to_sort = self._msg_handler_thd._recv_control_q.get()
+            control_to_sort = self._msg_handler_thd.recv_control_q.get()
             self._logger.info(
-                f"[agent recv activity thd] Received activity: {activ_to_sort}"
+                f"[agent recv activity thd] Received activity: {control_to_sort}"
             )
-            self._executor.to_process_q.put(activ_to_sort)
+
+            # Send control messages to the executor's monitor.
+            self._executor.monitor.to_monitor.q.put(control_to_sort)
             self._logger.debug("Put new activity into executor processing queue!")
 
     def send_activity_thd(self):
