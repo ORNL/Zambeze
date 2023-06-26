@@ -69,7 +69,7 @@ class MessageHandler(threading.Thread):
         # THREAD 3: recv control from RMQ
         control_listener = threading.Thread(target=self.recv_control, args=())
         # THREAD 4: recv control from RMQ
-        control_sender = threading.Thread(target=self.send_control, args=())
+        # control_sender = threading.Thread(target=self.send_control, args=())
         # THREAD 5: send activity to RMQ
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
@@ -77,7 +77,7 @@ class MessageHandler(threading.Thread):
         activity_listener.start()
         control_listener.start()
         activity_sender.start()
-        control_sender.start()
+        # control_sender.start()
 
     def recv_activity_dag_from_campaign(self):
         """
@@ -144,6 +144,8 @@ class MessageHandler(threading.Thread):
 
                 self.msg_handler_send_activity_q.put(node)
                 self._logger.debug("[recv_activities_from_campaign] Sent node!")
+
+                self._logger.debug(f"[eee] {self.msg_handler_send_activity_q}")
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
@@ -268,31 +270,31 @@ class MessageHandler(threading.Thread):
             channel_to_listen="CONTROL", callback_func=callback, should_auto_ack=True
         )
 
-    def send_control(self):
-        """
-        (from agent.py) input control message; send to "CONTROL" queue.
-        """
-
-        self._logger.info(
-            "[Message Handler] Connecting to RabbitMQ SEND CONTROL broker..."
-        )
-        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
-        queue_client.connect()
-
-        while True:
-            self._logger.debug("[send_control] Waiting for messages...")
-            activity_msg = self.msg_handler_send_activity_q.get()
-
-            self._logger.debug("[send_control] Message received! Sending...")
-            try:
-                queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
-            except Exception as e:
-                self._logger.error(
-                    f"[Message Handler] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
-                    f"{type(e).__name__}: {e}"
-                )
-            else:
-                self._logger.info("[send_control] Successfully sent control message!")
+    # def send_control(self):
+    #     """
+    #     (from agent.py) input control message; send to "CONTROL" queue.
+    #     """
+    #
+    #     self._logger.info(
+    #         "[Message Handler] Connecting to RabbitMQ SEND CONTROL broker..."
+    #     )
+    #     queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+    #     queue_client.connect()
+    #
+    #     while True:
+    #         self._logger.debug("[send_control] Waiting for messages...")
+    #         activity_msg = self.msg_handler_send_control_q.get()
+    #
+    #         self._logger.debug("[send_control] Message received! Sending...")
+    #         try:
+    #             queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
+    #         except Exception as e:
+    #             self._logger.error(
+    #                 f"[Message Handler] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
+    #                 f"{type(e).__name__}: {e}"
+    #             )
+    #         else:
+    #             self._logger.info("[send_control] Successfully sent control message!")
 
     def message_to_plugin_validator(self, plugin, cmd):
         """Determine whether plugin can execute based on plugin input schema.

@@ -92,6 +92,7 @@ class Executor(threading.Thread):
 
             self._logger.info("[EXECUTOR] Retrieving a message! ")
             dag_msg = self.to_process_q.get()
+            self._logger.info(f"QUEUE OF SIZE: {self.to_process_q.qsize()}")
 
             # Check 1. If MONITOR, then we want to STICK the process.
             monitor_launched = False
@@ -110,14 +111,14 @@ class Executor(threading.Thread):
 
                 monitor_launched = True
 
-            # elif dag_msg[0] == "TERMINATOR":
-            #     status_msg = {
-            #         'status': 'COMPLETED',
-            #         'activity_id': dag_msg[0],
-            #         'msg': 'TERMINATION CONDITION ACTIVATED.'
-            #     }
-            #     self.to_status_q.put(status_msg)
-            #     terminator_stopped = True
+            elif dag_msg[0] == "TERMINATOR":
+                status_msg = {
+                    'status': 'COMPLETED',
+                    'activity_id': dag_msg[0],
+                    'msg': 'TERMINATION CONDITION ACTIVATED.'
+                }
+                self.to_status_q.put(status_msg)
+                terminator_stopped = True
 
             self._logger.info(f"Monitor launched: {monitor_launched} | "
                               f"Terminator stopped: {terminator_stopped}")
