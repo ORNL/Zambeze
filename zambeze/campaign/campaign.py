@@ -97,7 +97,8 @@ class Campaign:
 
         self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
 
-        # Dump dict into bytestring. NetworkX prefers breaking up into nodes and edges (and pickling)
+        # Dump dict into bytestring. NetworkX prefers breaking up into
+        # nodes and edges (and pickling)
         serial_dag = pickle.dumps(nx.node_link_data(dag))
 
         self._logger.debug("Activity DAG sending via ZMQ...")

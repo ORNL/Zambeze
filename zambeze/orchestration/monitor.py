@@ -39,18 +39,24 @@ class Monitor(threading.Thread):
             if activity_id == "MONITOR":
                 continue
             self.dag_dict[activity_id] = "PROCESSING"
-            self._logger.info("[monitor] Marked all campaign activities for monitoring!")
+            self._logger.info(
+                "[monitor] Marked all campaign activities for monitoring!"
+            )
 
         last_hb_time = time()
         while True:
             # Quick check to see if all values are NOT "PROCESSING"
             proc_count = sum(x == "PROCESSING" for x in self.dag_dict.values())
-            self._logger.debug(f"\n[monitor] Current proc count: {proc_count}"
-                               f"\n[monitor] Status dict: {self.dag_dict}")
+            self._logger.debug(
+                f"\n[monitor] Current proc count: {proc_count}"
+                f"\n[monitor] Status dict: {self.dag_dict}"
+            )
 
             if proc_count == 0:
                 self.completed = True
-                self._logger.info(f"[monitor] Final campaign status dict: {self.dag_dict}")
+                self._logger.info(
+                    f"[monitor] Final campaign status dict: {self.dag_dict}"
+                )
                 # Bit of a wacky (but harmless hack) bc monitor doesn't need to do anything, but
                 # ... needs to wait until it is shut down by executor. Just avoids thrashing.
                 sleep(10)
@@ -61,7 +67,9 @@ class Monitor(threading.Thread):
                 self._logger.info(f"[monitor] Received control message: {status_msg}")
 
                 if status_msg == "KILL":
-                    self._logger.info("[monitor] Healthy KILL signal received. Tearing down...")
+                    self._logger.info(
+                        "[monitor] Healthy KILL signal received. Tearing down..."
+                    )
                     break
 
                 if status_msg["activity_id"] in self.dag_dict:
@@ -73,11 +81,11 @@ class Monitor(threading.Thread):
 
                 # Send heartbeat and sleep.
                 hb_monitor_msg = {
-                        'status': "MONITORING",
-                        'activity_id': "MONITORING",
-                        'campaign_id': self.dag_msg[1]["campaign_id"],
-                        'msg': 'simple heartbeat notification.'
-                    }
+                    "status": "MONITORING",
+                    "activity_id": "MONITORING",
+                    "campaign_id": self.dag_msg[1]["campaign_id"],
+                    "msg": "simple heartbeat notification.",
+                }
 
                 self.to_status_q.put(hb_monitor_msg)
                 self._logger.debug("[monitor] Enqueued monitor hb message! ")

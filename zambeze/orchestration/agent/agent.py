@@ -98,7 +98,10 @@ class Agent:
                 self._logger.debug(
                     "[agent] Put new status/control into message handler control queue!"
                 )
-            if self._executor.monitor is not None and self._executor.monitor.to_status_q.qsize() > 0:
+            if (
+                self._executor.monitor is not None
+                and self._executor.monitor.to_status_q.qsize() > 0
+            ):
                 self._logger.info("[agent] Grabbing MONITOR status message...")
                 status_to_send = self._executor.monitor.to_status_q.get()
                 self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
@@ -113,11 +116,11 @@ class Agent:
         self._logger.info("Starting activity sorter thread!")
         while True:
             activ_to_sort = self._msg_handler_thd.check_activity_q.get()
-            self._logger.info(
-                f"[agent] Received activity: {activ_to_sort}"
-            )
+            self._logger.info(f"[agent] Received activity: {activ_to_sort}")
             self._executor.to_process_q.put(activ_to_sort)
-            self._logger.debug("[agent] Put new activity into executor processing queue!")
+            self._logger.debug(
+                "[agent] Put new activity into executor processing queue!"
+            )
 
     def recv_control_thd(self):
         """Move process-eligible activities to the executor's to_process_q!
@@ -126,9 +129,7 @@ class Agent:
         self._logger.info("[agent] Starting control sorter thread!")
         while True:
             control_to_sort = self._msg_handler_thd.recv_control_q.get()
-            self._logger.info(
-                f"[agent] Received control: {control_to_sort}"
-            )
+            self._logger.info(f"[agent] Received control: {control_to_sort}")
 
             # We want to process these control messages in 2 places...
             # 1. Let the executor's MONITOR see if it needs it.
@@ -136,7 +137,9 @@ class Agent:
             if self._executor.monitor is not None:
                 # Send control messages to the executor's monitor.
                 self._executor.monitor.to_monitor_q.put(control_to_sort)
-                self._logger.debug("[agent] Put new activity into monitor processing queue!")
+                self._logger.debug(
+                    "[agent] Put new activity into monitor processing queue!"
+                )
 
             self._executor.incoming_control_q.put(control_to_sort)
             self._logger.debug("[agent] Put new activity into executor control queue!")
@@ -150,4 +153,6 @@ class Agent:
         while True:
             activ_to_sort = self._executor.to_new_activity_q.get()
             self._msg_handler_thd.msg_handler_send_activity_q.put(activ_to_sort)
-            self._logger.debug("[agent] Put new activity into executor processing queue!")
+            self._logger.debug(
+                "[agent] Put new activity into executor processing queue!"
+            )

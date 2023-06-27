@@ -65,7 +65,8 @@ class Executor(threading.Thread):
         except Exception as e:
             self._logger.error(str(e))
 
-        # Initially we don't have a monitor. This can become a Monitor Thread object. It can revert to None.
+        # Initially we don't have a monitor. This can become a Monitor Thread object.
+        # It can revert to None.
         self.monitor = None
         self._logger.info("[executor] Successfully initialized Executor!")
 
@@ -122,7 +123,9 @@ class Executor(threading.Thread):
                     "msg": "TERMINATION CONDITION ACTIVATED.",
                 }
 
-                self._logger.debug("[executor] Putting TERMINATOR success on to_status_q...")
+                self._logger.debug(
+                    "[executor] Putting TERMINATOR success on to_status_q..."
+                )
                 self.to_status_q.put(status_msg)
                 terminator_stopped = True
 
@@ -144,34 +147,53 @@ class Executor(threading.Thread):
 
             # STEP 1. Confirm the monitor is MONITORING.
             campaign_id = activity_msg.data.campaign_id
-            if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
+            if (
+                "MONITOR" in predecessors
+            ):  # TODO: allow MONITOR *AND OTHER* predecessors.
 
-                self._logger.info(f"[executor] Checking monitor message for campaign ID: {campaign_id}")
+                self._logger.info(
+                    f"[executor] Checking monitor message for campaign ID: "
+                    f"{campaign_id}"
+                )
 
                 # Wait until we receive a monitoring heartbeat.
                 while True:
                     status_msg = self.incoming_control_q.get()
-                    if status_msg["campaign_id"] == campaign_id and status_msg["status"] == "MONITORING":
-                        self._logger.debug("[executor] Eligible MONITOR heartbeat. Continuing!")
+                    if (
+                        status_msg["campaign_id"] == campaign_id
+                        and status_msg["status"] == "MONITORING"
+                    ):
+                        self._logger.debug(
+                            "[executor] Eligible MONITOR heartbeat. Continuing!"
+                        )
                         break
             # Step 2. If not waiting on monitor... make sure all other predecessors are met.
             else:
                 self._logger.debug("[executor] Entering predecessor waiting loop...")
                 pred_track_dict = {key: None for key in predecessors}
                 while True:
-                    self._logger.debug("[executor] Fetching predecessor status message...")
+                    self._logger.debug(
+                        "[executor] Fetching predecessor status message..."
+                    )
                     status_msg = self.incoming_control_q.get()
 
-                    activity_id = status_msg['activity_id']
-                    if campaign_id == status_msg['campaign_id'] and activity_id in pred_track_dict:
-                        pred_track_dict[activity_id] = status_msg['status']
+                    activity_id = status_msg["activity_id"]
+                    if (
+                        campaign_id == status_msg["campaign_id"]
+                        and activity_id in pred_track_dict
+                    ):
+                        pred_track_dict[activity_id] = status_msg["status"]
 
-                    success_count = sum(x == "SUCCEEDED" for x in pred_track_dict.values())
+                    success_count = sum(
+                        x == "SUCCEEDED" for x in pred_track_dict.values()
+                    )
                     fail_count = sum(x == "FAILED" for x in pred_track_dict.values())
 
                     total_completed = success_count + fail_count
 
-                    self._logger.info(f"[executor] PREDECESSOR COMPLETED COUNT: {total_completed}")
+                    self._logger.info(
+                        f"[executor] PREDECESSOR COMPLETED COUNT: {total_completed}"
+                    )
 
                     if total_completed == len(pred_track_dict):
                         break
@@ -198,7 +220,9 @@ class Executor(threading.Thread):
                                 "msg": "UNABLE TO ACQUIRE FILES.",
                             }
                             self.to_status_q.put(status_msg)
-                            self._logger.error("[executor.py] Unable to acquire files. Quitting...")
+                            self._logger.error(
+                                "[executor.py] Unable to acquire files. Quitting..."
+                            )
                             continue
 
                 # Running Checks
@@ -217,8 +241,7 @@ class Executor(threading.Thread):
 
                 # TODO: TYLER -- WAIT until we have the eligible resources.
 
-                self._logger.debug(f"EXECUTOR CHECKING RESULT...")
-                self._logger.debug(f"activity_msg.data.body.type...")
+                self._logger.debug("EXECUTOR CHECKING RESULT...")
                 # checked_result = self._settings.plugins.check(activity_msg.data.body)
                 # self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
                 self._logger.debug("SKIPPING FAULTY CHECK...")
@@ -240,7 +263,8 @@ class Executor(threading.Thread):
             else:
                 raise Exception("Only SHELL currently supported")
 
-            # If we get here, it should be because nothing failed # TODO: confirm (unit-test somehow)
+            # If we get here, it should be because nothing failed
+            # TODO: confirm (unit-test somehow)
             status_msg = {
                 "status": "SUCCEEDED",
                 "activity_id": dag_msg[0],
@@ -301,7 +325,9 @@ class Executor(threading.Thread):
         self._logger.info("[executor] Monitor check initializing...")
 
         while True:
-            self._logger.info(f"[executor] Monitor completed?: {self.monitor.completed}")
+            self._logger.info(
+                f"[executor] Monitor completed?: {self.monitor.completed}"
+            )
 
             if self.monitor.completed:
                 self.monitor.to_monitor_q.put("KILL")

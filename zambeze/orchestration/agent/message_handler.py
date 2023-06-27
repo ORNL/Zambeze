@@ -30,9 +30,7 @@ class MessageHandler(threading.Thread):
 
         self.queue_factory = QueueFactory(logger=self._logger)
 
-        self._logger.info(
-            "[mh] RabbitMQ broker and channel both created successfully!"
-        )
+        self._logger.info("[mh] RabbitMQ broker and channel both created successfully!")
 
         self._activity_dao = ActivityDAO(self._logger)
 
@@ -201,9 +199,7 @@ class MessageHandler(threading.Thread):
         put it back (nack).
         """
 
-        self._logger.info(
-            "[mh] Connecting to RabbitMQ RECV ACTIVITY broker..."
-        )
+        self._logger.info("[mh] Connecting to RabbitMQ RECV ACTIVITY broker...")
 
         # Here we use the queue factory to create queue object and listen on persistent listener.
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
@@ -220,9 +216,7 @@ class MessageHandler(threading.Thread):
         (from agent.py) input activity; send to "ACTIVITIES" queue.
         """
 
-        self._logger.info(
-            "[mh] Connecting to RabbitMQ SEND ACTIVITY broker..."
-        )
+        self._logger.info("[mh] Connecting to RabbitMQ SEND ACTIVITY broker...")
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
@@ -247,9 +241,7 @@ class MessageHandler(threading.Thread):
         Receive messages from the control channel!
         """
 
-        self._logger.info(
-            "[mh] Connecting to RabbitMQ RECV CONTROL broker..."
-        )
+        self._logger.info("[mh] Connecting to RabbitMQ RECV CONTROL broker...")
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
@@ -267,9 +259,7 @@ class MessageHandler(threading.Thread):
         (from agent.py) input control message; send to "CONTROL" queue.
         """
 
-        self._logger.info(
-            "[mh] Connecting to RabbitMQ SEND CONTROL broker..."
-        )
+        self._logger.info("[mh] Connecting to RabbitMQ SEND CONTROL broker...")
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
 
