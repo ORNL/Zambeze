@@ -1,23 +1,26 @@
 import threading
 
-from time import time
+from time import time, sleep
 from queue import Queue
 
 
 class Monitor(threading.Thread):
     def __init__(self, dag_msg, logger):
         threading.Thread.__init__(self)
+
+        self.dag_msg = dag_msg
+        self._logger = logger
+        self.monitor_hb_s = 5  # seconds between heartbeats.
+
+        # Internal queues.
         self.to_monitor_q = Queue()
         self.to_status_q = Queue()
-        self.completed = False
 
         # Now we want to hold (and periodically log) until all subtasks are complete.
         self.dag_dict = dict()
-        self.dag_msg = dag_msg
 
-        self.monitor_hb_s = 5
-
-        self._logger = logger
+        # So executor can check if we need to spin down monitor.
+        self.completed = False
 
     def run(self):
         """Override the Thread 'run' method to instead run our
@@ -35,19 +38,27 @@ class Monitor(threading.Thread):
         while True:
             # Quick check to see if all values are NOT "PROCESSING"
             proc_count = sum(x == "PROCESSING" for x in self.dag_dict.values())
+            self._logger.info(f"Current proc count: {proc_count}")
+            self._logger.info(f"Dag dict: {self.dag_dict}")
 
-            # self._logger.info("[monitor] RRR")
             if proc_count == 0:
                 self.completed = True
-
-            # self._logger.info("[monitor] SSS")
+                # break
+                # Bit of a wacky (but harmless hack) bc monitor doesn't need to do anything, but
+                # ... needs to wait until it is shut down by executor.
+                sleep(10)
 
             if self.to_monitor_q.qsize() > 0:
                 status_msg = self.to_monitor_q.get()
-                self._logger.info("[monitor] TTT")
+
+                if status_msg == "KILL":
+                    self._logger.info("[monitor] Healthy KILL signal received. Tearing down...")
+                    break
+
                 self._logger.info("[monitor] RECEIVED CONTROL MESSAGE!")
-                self._logger.info(f"[monitor] {status_msg}")
-                if status_msg.activity_id in self.dag_dict:
+                self._logger.info(f"[monitor-status] {status_msg}")
+
+                if status_msg["activity_id"] in self.dag_dict:
                     status = status_msg["status"]
                     self.dag_dict[status_msg["activity_id"]] = status
 

@@ -134,7 +134,6 @@ class Agent:
             # We want to process these control messages in 2 places...
             # 1. Let the executor's MONITOR see if it needs it.
             # 2. Let the executor itself see if it needs it.
-            # TODO: THIS ISN'T FIRING!!!
             self._logger.debug(f"[xxx] [agent] {self._executor.monitor}")
             if self._executor.monitor is not None:
                 # Send control messages to the executor's monitor.

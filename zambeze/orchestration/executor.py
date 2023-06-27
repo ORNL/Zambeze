@@ -9,6 +9,7 @@
 import json
 import logging
 import os
+import time
 import pathlib
 import threading
 
@@ -108,9 +109,11 @@ class Executor(threading.Thread):
 
                 self._logger.info("[EXECUTOR] ENTERING MONITOR TASK THREAD!")
                 monitor_thread = Monitor(dag_msg, self._logger)
-                self._logger.info("bbb1")
                 monitor_thread.start()
-                self._logger.info("bbb2")
+
+                self._logger.info("[EXECUTOR] Creating MONITOR reader thread!")
+                monitor_reader = threading.Thread(target=self.monitor_check, args=())
+                monitor_reader.start()
 
                 self._logger.info(
                     "Successfully launched MONITOR thread... continuing..."
@@ -175,47 +178,9 @@ class Executor(threading.Thread):
                         break
             # Step 2. If not waiting on monitor... make sure all other predecessors are met.
             else:
+                # TODO.
                 self._logger.info("TODO: WAIT LOOP FOR OTHER PREDECESSORS. ")
                 pass
-
-            #    self._logger.info("FFF")
-            #    campaign_id = activity_msg.data.campaign_id
-
-            #    # Jump into a loop until we get "MONITORING" message with our campaign_id
-            #    while True:
-            #        self._logger.info("GGG")
-            #        # Wait until we have a MONITORING message for this campaign.
-
-
-
-            # STEP 2. Check to ensure that no failures received for predecessor (from MONITOR).
-            # any_upstream_failures = False
-            # marked_predecessors = []
-            # while True:
-            #     control_msg = self.to_monitor_q.get()
-            #     if control_msg["activity_id"] in dag_msg[1]['predecessors']:
-            #         marked_predecessors.append(control_msg["activity_id"])
-            # f
-            #         # Something upstream failed :(
-            #         if control_msg['status'] == "FAILED":
-            #             any_upstream_failures = True
-            #
-            #         # If we have all of the predecessors, break loop!
-            #         if len(dag_msg[1]['predecessors']) == len(marked_predecessors):
-            #             break
-            #
-            # # Now we decide if we give up before we start OR keep going
-            # if any_upstream_failures:
-            #     # If there is a failure, mark this as failed and move on.
-            #     status_msg = {
-            #         'status': 'FAILED',
-            #         'activity_id': dag_msg[0],
-            #         'msg': 'UPSTREAM FAILURE ACKNOWLEDGED.'
-            #     }
-            #     self.to_status_q.put(status_msg)
-            #     continue
-
-            #####
 
             self._logger.info(f"[aaa1] {activity_msg.data.body.type}")
             self._logger.info(f"[aaa2] {activity_msg.data}")
@@ -347,3 +312,13 @@ class Executor(threading.Thread):
             )
             for msg in activity_messages:
                 self.to_new_activity_q.put(msg)
+
+    def monitor_check(self):
+
+        while True:
+            if self.monitor.completed:
+                self.monitor.to_monitor_q.put("KILL")
+                self.monitor = None
+                break
+            else:
+                time.sleep(2)
