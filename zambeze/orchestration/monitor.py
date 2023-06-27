@@ -43,6 +43,7 @@ class Monitor(threading.Thread):
 
             if proc_count == 0:
                 self.completed = True
+                self._logger.info(f"[monitor] Final campaign statuses: {self.dag_dict}")
                 # break
                 # Bit of a wacky (but harmless hack) bc monitor doesn't need to do anything, but
                 # ... needs to wait until it is shut down by executor.
@@ -51,12 +52,12 @@ class Monitor(threading.Thread):
             if self.to_monitor_q.qsize() > 0:
                 status_msg = self.to_monitor_q.get()
 
+                self._logger.info("[monitor] RECEIVED CONTROL MESSAGE!")
+                self._logger.info(f"[monitor-status] {status_msg}")
+
                 if status_msg == "KILL":
                     self._logger.info("[monitor] Healthy KILL signal received. Tearing down...")
                     break
-
-                self._logger.info("[monitor] RECEIVED CONTROL MESSAGE!")
-                self._logger.info(f"[monitor-status] {status_msg}")
 
                 if status_msg["activity_id"] in self.dag_dict:
                     status = status_msg["status"]

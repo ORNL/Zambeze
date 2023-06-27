@@ -314,11 +314,18 @@ class Executor(threading.Thread):
                 self.to_new_activity_q.put(msg)
 
     def monitor_check(self):
+        # TODO: whenever we want to query status, get info from MONITOR here.
+        self._logger.info("[executor] Monitor check initializing...")
 
         while True:
+            self._logger.info("[executor] IN HURR.")
+            self._logger.info(f"Monitor completed?: {self.monitor.completed}")
+
             if self.monitor.completed:
                 self.monitor.to_monitor_q.put("KILL")
-                self.monitor = None
+                self.monitor = None  # reset to None for now.
+                self._logger.info("[executor] MONITOR check sending kill signal...")
                 break
             else:
+                self._logger.info("MONITOR NOT COMPLETED YET!!!")
                 time.sleep(2)
