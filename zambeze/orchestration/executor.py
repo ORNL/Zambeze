@@ -71,7 +71,6 @@ class Executor(threading.Thread):
         self.monitor = None
         self._logger.info("[EXECUTOR] Successfully initialized Executor!")
 
-
     def run(self):
         """Override the Thread 'run' method to instead run our
         process when Thread.start() is called!"""
@@ -96,28 +95,22 @@ class Executor(threading.Thread):
 
         while True:
 
-            self._logger.info("[EXECUTOR] Retrieving a message! ")
+            self._logger.info("[executor] Retrieving a message! ")
             dag_msg = self.to_process_q.get()
-            self._logger.info(f"QUEUE OF SIZE: {self.to_process_q.qsize()}")
 
             # Check 1. If MONITOR, then we want to STICK the process.
             monitor_launched = False
             terminator_stopped = False
 
-            self._logger.info(f"EXECUTOR!!! {dag_msg}")
             if dag_msg[0] == "MONITOR":
 
-                self._logger.info("[EXECUTOR] ENTERING MONITOR TASK THREAD!")
+                self._logger.info("[executor] ENTERING MONITOR TASK THREAD!")
                 monitor_thread = Monitor(dag_msg, self._logger)
                 monitor_thread.start()
 
-                self._logger.info("[EXECUTOR] Creating MONITOR reader thread!")
+                self._logger.info("[executor] Creating MONITOR reader thread!")
                 monitor_reader = threading.Thread(target=self.monitor_check, args=())
                 monitor_reader.start()
-
-                self._logger.info(
-                    "Successfully launched MONITOR thread... continuing..."
-                )
 
                 # Save the monitor thread so we can scan it.
                 self.monitor = monitor_thread
@@ -131,64 +124,48 @@ class Executor(threading.Thread):
                     "msg": "TERMINATION CONDITION ACTIVATED.",
                 }
 
-                self._logger.debug("Putting TERMINATOR success on to_status_q...")
+                self._logger.debug("[executor] Putting TERMINATOR success on to_status_q...")
                 self.to_status_q.put(status_msg)
                 terminator_stopped = True
 
             self._logger.info(
-                f"Monitor launched: {monitor_launched} | "
+                f"[executor] Monitor launched: {monitor_launched} | "
                 f"Terminator stopped: {terminator_stopped}"
             )
 
             # If we were just launching monitor, go to top of loop; start over.
             if monitor_launched or terminator_stopped:
-                self._logger.debug("CONTINUE CONDITION!")
                 continue
 
-            self._logger.info("[cccc]")
             activity_msg = dag_msg[1]["activity"]
-
             predecessors = dag_msg[1]["predecessors"]
-
-            self._logger.info("[Executor] Message received:")
-            self._logger.info(f"[ddd] ACTUAL SHELL MESSAGE RECEIVED")
-            self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
+            # self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
             # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
-            self._logger.info(f"GET PREDECESSORS from DAG message: {predecessors}")
+            self._logger.info(f"[executor] Activity has predecessors: {predecessors}")
 
             # STEP 1. Confirm the monitor is MONITORING.
             campaign_id = activity_msg.data.campaign_id
             if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
 
-                self._logger.debug("UUU")
-                self._logger.info(f"Checking monitor message for campaign ID: {campaign_id}")
+                self._logger.info(f"[executor] Checking monitor message for campaign ID: {campaign_id}")
 
                 # Wait until we receive a monitoring heartbeat.
                 while True:
-                    self._logger.debug("VVV")
                     status_msg = self.incoming_control_q.get()
-                    self._logger.debug(f"RECEIVED CONTROL MSG IN EXECUTOR: {status_msg}")
-
-                    self._logger.debug(f"V1: {status_msg['campaign_id']}")
-                    self._logger.debug(f"V1: {status_msg['status']}")
-
                     if status_msg["campaign_id"] == campaign_id and status_msg["status"] == "MONITORING":
-                        self._logger.info("[executor] Eligible MONITOR heartbeat. Continuing!")
+                        self._logger.debug("[executor] Eligible MONITOR heartbeat. Continuing!")
                         break
             # Step 2. If not waiting on monitor... make sure all other predecessors are met.
             else:
-                self._logger.info("[executor] Entering predecessor waiting loop...")
+                self._logger.debug("[executor] Entering predecessor waiting loop...")
                 pred_track_dict = {key: None for key in predecessors}
                 while True:
-                    self._logger.info("[executor] Fetching predecessor status message...")
+                    self._logger.debug("[executor] Fetching predecessor status message...")
                     status_msg = self.incoming_control_q.get()
 
-                    self._logger.info("[executor] GETTING ACTIVITY ID")
                     activity_id = status_msg['activity_id']
-                    self._logger.info("[executor] YYY")
                     if campaign_id == status_msg['campaign_id'] and activity_id in pred_track_dict:
-                        self._logger.info("[executor] ZZZ")
                         pred_track_dict[activity_id] = status_msg['status']
 
                     success_count = sum(x == "SUCCEEDED" for x in pred_track_dict.values())
@@ -196,14 +173,13 @@ class Executor(threading.Thread):
 
                     total_completed = success_count + fail_count
 
-                    self._logger.info(f"TOTAL COMPLETED COUNT: {total_completed}")
+                    self._logger.info(f"[executor] PREDECESSOR COMPLETED COUNT: {total_completed}")
 
                     if total_completed == len(pred_track_dict):
                         break
-            self._logger.info(f"[aaa1] {activity_msg.data.body.type}")
-            self._logger.info(f"[aaa2] {activity_msg.data}")
+
             if activity_msg.data.body.type == "SHELL":
-                self._logger.info("[Executor] SHELL message received:")
+                self._logger.info("[executor] SHELL message received:")
                 self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
                 # Determine if the shell activity has files that
@@ -217,7 +193,7 @@ class Executor(threading.Thread):
                                 activity_msg.data.campaign_id,
                                 activity_msg.data.activity_id,
                             )
-                        except Exception as e:
+                        except Exception:
                             status_msg = {
                                 "status": "FAILED",
                                 "activity_id": dag_msg[0],
@@ -254,9 +230,8 @@ class Executor(threading.Thread):
                 # if psij_flag:
                 #    Run through psi_j
 
-                # elif.
-
                 self._settings.plugins.run(activity_msg)
+                # TODO: bring proper validation back (below)
                 # if checked_result.error_detected() is False:
                 #     self._settings.plugins.run(activity_msg)
                 # else:
@@ -276,14 +251,6 @@ class Executor(threading.Thread):
             self.to_status_q.put(status_msg)
 
             self._logger.info("[EXECUTOR] Waiting for messages")
-
-            # TODO: bring both of these back!
-            # except QueueTimeoutException as e:
-            #     print(e)
-            # except Exception as e:
-            #     self._logger.error(e)
-            #     # TODO: exit(1) makes me nervous???
-            #     exit(1)
 
     def __process_files(
         self, files: list[str], campaign_id: str, activity_id: str
