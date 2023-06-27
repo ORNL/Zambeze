@@ -26,7 +26,8 @@ class Monitor(threading.Thread):
         """Override the Thread 'run' method to instead run our
         process when Thread.start() is called!"""
 
-        self._logger.info("[MONITOR] ping from monitor.py thread! ")
+        self._logger.info("[monitor] Thread running... ")
+
         # Add all activities (besides the monitor) to our dict.
         for activity_id in self.dag_msg[1]["all_activity_ids"]:
             if activity_id == "MONITOR":
@@ -38,22 +39,20 @@ class Monitor(threading.Thread):
         while True:
             # Quick check to see if all values are NOT "PROCESSING"
             proc_count = sum(x == "PROCESSING" for x in self.dag_dict.values())
-            self._logger.info(f"Current proc count: {proc_count}")
-            self._logger.info(f"Dag dict: {self.dag_dict}")
+            self._logger.debug(f"Current proc count: {proc_count}\nStatus dict: {self.dag_dict}")
 
             if proc_count == 0:
                 self.completed = True
-                self._logger.info(f"[monitor] Final campaign statuses: {self.dag_dict}")
+                self._logger.info(f"[monitor] Final campaign status dict: {self.dag_dict}")
                 # break
                 # Bit of a wacky (but harmless hack) bc monitor doesn't need to do anything, but
-                # ... needs to wait until it is shut down by executor.
+                # ... needs to wait until it is shut down by executor. Just avoids thrashing.
                 sleep(10)
 
             if self.to_monitor_q.qsize() > 0:
                 status_msg = self.to_monitor_q.get()
 
-                self._logger.info("[monitor] RECEIVED CONTROL MESSAGE!")
-                self._logger.info(f"[monitor-status] {status_msg}")
+                self._logger.info(f"[monitor] Received control message: {status_msg}")
 
                 if status_msg == "KILL":
                     self._logger.info("[monitor] Healthy KILL signal received. Tearing down...")
@@ -66,8 +65,6 @@ class Monitor(threading.Thread):
             # If enough time has passed, hb...
             if time() - last_hb_time > self.monitor_hb_s:
 
-                self._logger.info(f"Foobar: {self.dag_msg}")
-
                 # Send heartbeat and sleep.
                 hb_monitor_msg = {
                         'status': "MONITORING",
@@ -77,7 +74,5 @@ class Monitor(threading.Thread):
                     }
 
                 self.to_status_q.put(hb_monitor_msg)
-                self._logger.info("[monitor] Enqueued monitor hb message! ")
+                self._logger.debug("[monitor] Enqueued monitor hb message! ")
                 last_hb_time = time()
-
-            # TODO: IF EVERYTHING IS DONE, TERMINATE BY SETTING EXECUTOR.MONITOR TO "NONE".
