@@ -301,8 +301,7 @@ class Executor(threading.Thread):
         self._logger.info("[executor] Monitor check initializing...")
 
         while True:
-            self._logger.info("[executor] IN HURR.")
-            self._logger.info(f"Monitor completed?: {self.monitor.completed}")
+            self._logger.info(f"[executor] Monitor completed?: {self.monitor.completed}")
 
             if self.monitor.completed:
                 self.monitor.to_monitor_q.put("KILL")
