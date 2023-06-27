@@ -22,7 +22,6 @@ from .monitor import Monitor
 
 from ..settings import ZambezeSettings
 from .message.message_factory import MessageFactory
-from .queue.queue_exceptions import QueueTimeoutException
 from zambeze.orchestration.message.transfer_hippo import TransferHippo
 
 
@@ -64,12 +63,11 @@ class Executor(threading.Thread):
                 agent_id=self._agent_id, logger=self._logger, settings=self._settings
             )
         except Exception as e:
-            self._logger.info("WHAT IS WRONG???")
-            self._logger.info(str(e))
+            self._logger.error(str(e))
 
         # Initially we don't have a monitor. This can become a Monitor Thread object. It can revert to None.
         self.monitor = None
-        self._logger.info("[EXECUTOR] Successfully initialized Executor!")
+        self._logger.info("[executor] Successfully initialized Executor!")
 
     def run(self):
         """Override the Thread 'run' method to instead run our
@@ -82,14 +80,14 @@ class Executor(threading.Thread):
         Evaluate and process messages if requested activity is supported.
         """
 
-        self._logger.info("[EXECUTOR] In __process! ")
+        self._logger.info("[executor] In __process! ")
 
         # Change to the agent's desired working directory.
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
         ]
         self._logger.info(
-            f"[EXECUTOR] Moving to working directory {default_working_dir}"
+            f"[executor] Moving to working directory {default_working_dir}"
         )
         os.chdir(default_working_dir)
 

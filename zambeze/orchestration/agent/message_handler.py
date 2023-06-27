@@ -31,14 +31,14 @@ class MessageHandler(threading.Thread):
         self.queue_factory = QueueFactory(logger=self._logger)
 
         self._logger.info(
-            "[Message Handler] RabbitMQ broker and channel both created successfully!"
+            "[mh] RabbitMQ broker and channel both created successfully!"
         )
 
         self._activity_dao = ActivityDAO(self._logger)
 
         self._zmq_context = zmq.Context()
         self._zmq_socket = self._zmq_context.socket(zmq.REP)
-        self._logger.info("[Message Handler] Binding to random ZMQ port...")
+        self._logger.info("[mh] Binding to random ZMQ port...")
 
         # Bind to a random available port in the range 60000-65000
         port_message = self._zmq_socket.bind_to_random_port(
@@ -49,7 +49,7 @@ class MessageHandler(threading.Thread):
         self._settings.settings["zmq"]["port"] = port_message
         self._settings.flush()
 
-        self._logger.info(f"Advertised port in agent.yaml file: {port_message}")
+        self._logger.info(f"[mh] Advertised port in agent.yaml file: {port_message}")
 
         # Queues to allow safe inter-thread communication.
         self.msg_handler_send_activity_q = Queue()
@@ -57,7 +57,7 @@ class MessageHandler(threading.Thread):
         self.recv_control_q = Queue()
         self.check_activity_q = Queue()
 
-        self._logger.info("[Message Handler] Message handler successfully initialized!")
+        self._logger.info("[mh] Message handler successfully initialized!")
 
         # THREAD 1: recv activities from campaign
         campaign_listener = threading.Thread(
@@ -120,12 +120,9 @@ class MessageHandler(threading.Thread):
                 try:
                     if type(activity) != str:
                         activity.agent_id = self.agent_id
-                        self._logger.info("FINALLY SOME MEAT@")
-                        self._logger.info(activity)
                         node[1]["activity"] = activity.generate_message()
                 except Exception as e:
                     self._logger.error(e)
-                self._logger.info("[message_handler] ZOOBER")
                 node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
                 node[1]["successors"] = list(activity_dag.successors(node[0]))
 
@@ -144,15 +141,11 @@ class MessageHandler(threading.Thread):
                 self.msg_handler_send_activity_q.put(node)
                 self._logger.debug("[recv_activities_from_campaign] Sent node!")
 
-                self._logger.debug(f"[eee] {self.msg_handler_send_activity_q}")
-
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
     def _callback(self, ch, method, _properties, body):
         self._logger.info("[recv_activity] receiving activity...")
         activity = dill.loads(body)
-
-        self._logger.info(f"[MESSAGE HANDLER] DEBOOG: HERE IS ACTIVITY: {activity}")
 
         # TODO: *add git issue* should be able to require a list of plugins (not just one).
         # Anyone can monitor or terminate.
@@ -160,11 +153,9 @@ class MessageHandler(threading.Thread):
             plugins_are_configured = True
 
         else:
-            self._logger.info("BAZINGA??")
             required_plugin = activity_to_plugin_map[
                 activity[1]["activity"].data.body.type
             ]
-            self._logger.info("BAZOOOOOOOONGA??")
             plugins_are_configured = self.are_plugins_configured(required_plugin)
         should_ack = plugins_are_configured
 
@@ -182,7 +173,7 @@ class MessageHandler(threading.Thread):
         # ROUTING: https://www.rabbitmq.com/tutorials/tutorial-four-python.html
 
         self._logger.debug(
-            f"Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}"
+            f"[mh] Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}"
         )
 
         try:
@@ -198,7 +189,7 @@ class MessageHandler(threading.Thread):
                 time.sleep(1)  # TODO: *add git issue for proper filtering*
         except Exception as e:
             self._logger.error(
-                f"[Message Handler] COULD NOT ACK! CAUGHT: " f"{type(e).__name__}: {e}"
+                f"[mh] COULD NOT ACK! CAUGHT: " f"{type(e).__name__}: {e}"
             )
 
     def recv_activity(self):
@@ -211,7 +202,7 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(
-            "[Message Handler] Connecting to RabbitMQ RECV ACTIVITY broker..."
+            "[mh] Connecting to RabbitMQ RECV ACTIVITY broker..."
         )
 
         # Here we use the queue factory to create queue object and listen on persistent listener.
@@ -230,7 +221,7 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(
-            "[Message Handler] Connecting to RabbitMQ SEND ACTIVITY broker..."
+            "[mh] Connecting to RabbitMQ SEND ACTIVITY broker..."
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
@@ -245,7 +236,7 @@ class MessageHandler(threading.Thread):
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
             except Exception as e:
                 self._logger.error(
-                    f"[Message Handler] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: "
+                    f"[mh] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: "
                     f"{type(e).__name__}: {e}"
                 )
             else:
@@ -257,7 +248,7 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(
-            "[Message Handler] Connecting to RabbitMQ RECV CONTROL broker..."
+            "[mh] Connecting to RabbitMQ RECV CONTROL broker..."
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
@@ -277,7 +268,7 @@ class MessageHandler(threading.Thread):
         """
 
         self._logger.info(
-            "[Message Handler] Connecting to RabbitMQ SEND CONTROL broker..."
+            "[mh] Connecting to RabbitMQ SEND CONTROL broker..."
         )
         queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
         queue_client.connect()
@@ -291,7 +282,7 @@ class MessageHandler(threading.Thread):
                 queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
             except Exception as e:
                 self._logger.error(
-                    f"[Message Handler] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
+                    f"[mh] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
                     f"{type(e).__name__}: {e}"
                 )
             else:
@@ -312,7 +303,7 @@ class MessageHandler(threading.Thread):
         """
 
         checked_result = self._settings.plugins.check(plugin_name=plugin, arguments=cmd)
-        self._logger.debug(f"Checked result: {checked_result}")
+        self._logger.debug(f"[mh] Checked result: {checked_result}")
         # return whether NO errors were detected.
         return not checked_result.error_detected()
 
