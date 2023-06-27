@@ -126,8 +126,8 @@ class MessageHandler(threading.Thread):
                 except Exception as e:
                     self._logger.error(e)
                 self._logger.info("[message_handler] ZOOBER")
-                node[1]["successors"] = list(activity_dag.predecessors(node[0]))
-                node[1]["predecessors"] = list(activity_dag.successors(node[0]))
+                node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
+                node[1]["successors"] = list(activity_dag.successors(node[0]))
 
                 self._logger.info("The activity_node to send...")
                 self._logger.info(node)
@@ -263,9 +263,9 @@ class MessageHandler(threading.Thread):
         queue_client.connect()
 
         def callback(_1, _2, _3, body):
-            activity = pickle.loads(body)
-            self._logger.info(" [x recv_control] Received %r" % activity)
-            self.recv_control_q.put(activity)
+            control_msg = pickle.loads(body)
+            self._logger.info(" [x recv_control] Received %r" % control_msg)
+            self.recv_control_q.put(control_msg)
 
         queue_client.listen_and_do_callback(
             channel_to_listen="CONTROL", callback_func=callback, should_auto_ack=True

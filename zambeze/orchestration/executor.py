@@ -51,6 +51,9 @@ class Executor(threading.Thread):
         self.to_status_q = Queue()
         self.to_new_activity_q = Queue()
 
+        # add incoming control queue for making predecessor decisions.
+        self.incoming_control_q = Queue()
+
         self._logger.info("[EXECUTOR] Creating executor...")
         self._agent_id = agent_id
 
@@ -91,7 +94,6 @@ class Executor(threading.Thread):
         os.chdir(default_working_dir)
 
         while True:
-            # try:
 
             self._logger.info("[EXECUTOR] Retrieving a message! ")
             dag_msg = self.to_process_q.get()
@@ -143,19 +145,38 @@ class Executor(threading.Thread):
             self._logger.info("[cccc]")
             activity_msg = dag_msg[1]["activity"]
 
+            predecessors = dag_msg[1]["predecessors"]
+
             self._logger.info("[Executor] Message received:")
             self._logger.info(f"[ddd] ACTUAL SHELL MESSAGE RECEIVED")
             self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
-            # NOW WE CREATE A WAIT-LOOP TO DETERMINE WHEN WE CAN PROCESS.
+            # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
+            self._logger.info(f"GET PREDECESSORS from DAG message: {predecessors}")
 
-            # if we need files, check if present (and if not, go get them).
-
-            ###
-
-            # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) *** #
             # STEP 1. Confirm the monitor is MONITORING.
-            # if "MONITOR" in activity_msg.data.predecessors:
+            if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
+
+                self._logger.debug("UUU")
+                campaign_id = activity_msg.data.campaign_id
+                self._logger.info(f"Checking monitor message for campaign ID: {campaign_id}")
+
+                # Wait until we receive a monitoring heartbeat.
+                while True:
+                    self._logger.debug("VVV")
+                    status_msg = self.incoming_control_q.get()
+                    self._logger.debug(f"RECEIVED CONTROL MSG IN EXECUTOR: {status_msg}")
+
+                    self._logger.debug(f"V1: {status_msg['campaign_id']}")
+                    self._logger.debug(f"V1: {status_msg['status']}")
+
+                    if status_msg["campaign_id"] == campaign_id and status_msg["status"] == "MONITORING":
+                        self._logger.info("[executor] Eligible MONITOR heartbeat. Continuing!")
+                        break
+            # Step 2. If not waiting on monitor... make sure all other predecessors are met.
+            else:
+                self._logger.info("TODO: WAIT LOOP FOR OTHER PREDECESSORS. ")
+                pass
 
             #    self._logger.info("FFF")
             #    campaign_id = activity_msg.data.campaign_id

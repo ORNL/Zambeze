@@ -73,9 +73,13 @@ class Agent:
         )
         _activity_sorter_thd.start()
 
-        # Create and start sender thread...
+        # Create and start control sender thread...
         _status_sender_thd = threading.Thread(target=self.send_control_thd, args=())
         _status_sender_thd.start()
+
+        # Create and start control receiver thread...
+        _status_receiver_thd = threading.Thread(target=self.recv_control_thd, args=())
+        _status_receiver_thd.start()
 
     @property
     def executor(self) -> Executor:
@@ -120,16 +124,25 @@ class Agent:
         """Move process-eligible activities to the executor's to_process_q!
         OBSERVES message_handler (via to_process_q)
         """
-        self._logger.info("Starting activity sorter thread!")
+        self._logger.info("[www] Starting control sorter thread!")
         while True:
             control_to_sort = self._msg_handler_thd.recv_control_q.get()
             self._logger.info(
-                f"[agent recv activity thd] Received activity: {control_to_sort}"
+                f"[agent] Received control: {control_to_sort}"
             )
 
-            # Send control messages to the executor's monitor.
-            self._executor.monitor.to_monitor.q.put(control_to_sort)
-            self._logger.debug("Put new activity into executor processing queue!")
+            # We want to process these control messages in 2 places...
+            # 1. Let the executor's MONITOR see if it needs it.
+            # 2. Let the executor itself see if it needs it.
+            # TODO: THIS ISN'T FIRING!!!
+            self._logger.debug(f"[xxx] [agent] {self._executor.monitor}")
+            if self._executor.monitor is not None:
+                # Send control messages to the executor's monitor.
+                self._executor.monitor.to_monitor_q.put(control_to_sort)
+                self._logger.debug("[agent] Put new activity into monitor processing queue!")
+
+            self._executor.incoming_control_q.put(control_to_sort)
+            self._logger.debug("[agent] Put new activity into executor control queue!")
 
     def send_activity_thd(self):
         """We created an activity! Now enqueue it in Zambeze's central queue...
