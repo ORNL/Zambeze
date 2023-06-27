@@ -6,6 +6,12 @@ from queue import Queue
 
 class Monitor(threading.Thread):
     def __init__(self, dag_msg, logger):
+        """
+        MONITOR thread (1 campaign == 1 monitor thread) enables an
+        arbitrary agent to keep tabs on a campaign as a whole by 'monitoring'
+        the control queue to see if its activities successfully complete (or not).
+        """
+
         threading.Thread.__init__(self)
 
         self.dag_msg = dag_msg
@@ -39,12 +45,12 @@ class Monitor(threading.Thread):
         while True:
             # Quick check to see if all values are NOT "PROCESSING"
             proc_count = sum(x == "PROCESSING" for x in self.dag_dict.values())
-            self._logger.debug(f"Current proc count: {proc_count}\nStatus dict: {self.dag_dict}")
+            self._logger.debug(f"\n[monitor] Current proc count: {proc_count}"
+                               f"\n[monitor] Status dict: {self.dag_dict}")
 
             if proc_count == 0:
                 self.completed = True
                 self._logger.info(f"[monitor] Final campaign status dict: {self.dag_dict}")
-                # break
                 # Bit of a wacky (but harmless hack) bc monitor doesn't need to do anything, but
                 # ... needs to wait until it is shut down by executor. Just avoids thrashing.
                 sleep(10)
