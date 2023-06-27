@@ -158,10 +158,10 @@ class Executor(threading.Thread):
             self._logger.info(f"GET PREDECESSORS from DAG message: {predecessors}")
 
             # STEP 1. Confirm the monitor is MONITORING.
+            campaign_id = activity_msg.data.campaign_id
             if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
 
                 self._logger.debug("UUU")
-                campaign_id = activity_msg.data.campaign_id
                 self._logger.info(f"Checking monitor message for campaign ID: {campaign_id}")
 
                 # Wait until we receive a monitoring heartbeat.
@@ -178,10 +178,28 @@ class Executor(threading.Thread):
                         break
             # Step 2. If not waiting on monitor... make sure all other predecessors are met.
             else:
-                # TODO.
-                self._logger.info("TODO: WAIT LOOP FOR OTHER PREDECESSORS. ")
-                pass
+                self._logger.info("[executor] Entering predecessor waiting loop...")
+                pred_track_dict = {key: None for key in predecessors}
+                while True:
+                    self._logger.info("[executor] Fetching predecessor status message...")
+                    status_msg = self.incoming_control_q.get()
 
+                    self._logger.info("[executor] GETTING ACTIVITY ID")
+                    activity_id = status_msg['activity_id']
+                    self._logger.info("[executor] YYY")
+                    if campaign_id == status_msg['campaign_id'] and activity_id in pred_track_dict:
+                        self._logger.info("[executor] ZZZ")
+                        pred_track_dict[activity_id] = status_msg['status']
+
+                    success_count = sum(x == "SUCCEEDED" for x in pred_track_dict.values())
+                    fail_count = sum(x == "FAILED" for x in pred_track_dict.values())
+
+                    total_completed = success_count + fail_count
+
+                    self._logger.info(f"TOTAL COMPLETED COUNT: {total_completed}")
+
+                    if total_completed == len(pred_track_dict):
+                        break
             self._logger.info(f"[aaa1] {activity_msg.data.body.type}")
             self._logger.info(f"[aaa2] {activity_msg.data}")
             if activity_msg.data.body.type == "SHELL":
