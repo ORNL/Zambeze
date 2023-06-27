@@ -62,9 +62,9 @@ class Agent:
                 self._agent_id, settings=self._settings, logger=self._logger
             )
         except Exception as e:
-            self._logger.error("[AGENT] ERROR IN CREATING MESSAGE HANDLER")
-            self._logger.error(f"Error of type: {type(e).__name__}: {e}")
-            self._logger.error("[AGENT] TERMINATING AGENT...")
+            self._logger.error("[agent] ERROR IN CREATING MESSAGE HANDLER")
+            self._logger.error(f"[agent] Error of type: {type(e).__name__}: {e}")
+            self._logger.error("[agent] TERMINATING AGENT...")
             exit(1)
 
         # Create and start the sorter threads!
@@ -93,18 +93,17 @@ class Agent:
         while True:
 
             if self._executor.to_status_q.qsize() > 0:
-                self._logger.info("PING 1")
                 status_to_send = self._executor.to_status_q.get()
                 self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
                 self._logger.debug(
-                    "[agent.py] Put new status/control into message handler control queue!"
+                    "[agent] Put new status/control into message handler control queue!"
                 )
             if self._executor.monitor is not None and self._executor.monitor.to_status_q.qsize() > 0:
-                self._logger.info("[agent.py] Grabbing MONITOR status message...")
+                self._logger.info("[agent] Grabbing MONITOR status message...")
                 status_to_send = self._executor.monitor.to_status_q.get()
                 self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
                 self._logger.debug(
-                    "[agent.py] Put new MONITOR STATUS into message handler control queue!"
+                    "[agent] Put new MONITOR STATUS into message handler control queue!"
                 )
 
     def recv_activity_process_thd(self):
@@ -115,16 +114,16 @@ class Agent:
         while True:
             activ_to_sort = self._msg_handler_thd.check_activity_q.get()
             self._logger.info(
-                f"[agent recv activity thd] Received activity: {activ_to_sort}"
+                f"[agent] Received activity: {activ_to_sort}"
             )
             self._executor.to_process_q.put(activ_to_sort)
-            self._logger.debug("Put new activity into executor processing queue!")
+            self._logger.debug("[agent] Put new activity into executor processing queue!")
 
     def recv_control_thd(self):
         """Move process-eligible activities to the executor's to_process_q!
         OBSERVES message_handler (via to_process_q)
         """
-        self._logger.info("[www] Starting control sorter thread!")
+        self._logger.info("[agent] Starting control sorter thread!")
         while True:
             control_to_sort = self._msg_handler_thd.recv_control_q.get()
             self._logger.info(
@@ -134,7 +133,6 @@ class Agent:
             # We want to process these control messages in 2 places...
             # 1. Let the executor's MONITOR see if it needs it.
             # 2. Let the executor itself see if it needs it.
-            self._logger.debug(f"[xxx] [agent] {self._executor.monitor}")
             if self._executor.monitor is not None:
                 # Send control messages to the executor's monitor.
                 self._executor.monitor.to_monitor_q.put(control_to_sort)
@@ -152,4 +150,4 @@ class Agent:
         while True:
             activ_to_sort = self._executor.to_new_activity_q.get()
             self._msg_handler_thd.msg_handler_send_activity_q.put(activ_to_sort)
-            self._logger.debug("Put new activity into executor processing queue!")
+            self._logger.debug("[agent] Put new activity into executor processing queue!")
