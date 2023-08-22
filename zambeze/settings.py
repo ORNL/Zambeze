@@ -40,6 +40,9 @@ class ZambezeSettings:
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+
+        self._logger.info(f"LOGGER FROM SETTINGS.PY: {logger}")
+
         # set default values
         # TODO: get the queue bits out of here (and into queue folder)
         self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}

@@ -52,11 +52,17 @@ def agent_start(logger: logging.Logger) -> None:
         logger.error(f"Failed to create log directory: {logs_base_dir}")
         return
 
-    # Create a random identifier for logs (UUID).
+    # Create a folder for our current agent
+    # -- why? Because we now have multiple logs
+    # -- (as of now: zambeze, shell stdout, shell stderr)
     # Users can list them in order of date to see which one is latest.
-    zambeze_log_path = logs_base_dir.joinpath(
-        f"{datetime.utcnow().strftime('%Y_%m_%d-%H_%M_%S_%f')[:-3]}.log"
-    )
+    fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
+    log_dir_path = os.path.expanduser('~') + f"/.zambeze/logs/" + fmt_str
+    os.makedirs(log_dir_path, exist_ok=True)
+    log_path = log_dir_path + "/zambeze.log"
+
+    print(f"Log path: {log_path}")
+
 
     # Randomly select two ports...
     # Both ports should be available, because we're binding
@@ -85,7 +91,7 @@ def agent_start(logger: logging.Logger) -> None:
     arg_list = [
         "zambeze-agent",
         "--log-path",
-        str(zambeze_log_path.resolve()),
+        str(log_path),
         "--debug",
         "--zmq-heartbeat-port",
         str(hb_port),
@@ -100,7 +106,7 @@ def agent_start(logger: logging.Logger) -> None:
 
     agent_state = {
         "pid": proc.pid,
-        "log_path": str(zambeze_log_path.resolve()),
+        "log_path": log_path,
         "zmq_heartbeat_port": hb_port,
         "zmq_activity_port": data_port,
         "status": "RUNNING",

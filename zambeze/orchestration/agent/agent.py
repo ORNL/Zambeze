@@ -40,9 +40,13 @@ class Agent:
         logger: Optional[logging.Logger] = None,
     ) -> None:
         """Create an object that represents a distributed agent."""
+
+
         self._logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
+        self._logger.info(f"WHAT IS THE LOGGER: {logger}")
+
 
         # Create an ID for our agent.
         self._agent_id = str(uuid4())
