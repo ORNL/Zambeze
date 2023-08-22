@@ -119,17 +119,6 @@ class ZambezeSettings:
 
         self.plugins.configure(config=config)
 
-    #    def get_nats_connection_uri(self) -> str:
-    #        """
-    #        Get the NATS connection URI.
-    #
-    #        :return: NATS connection URI
-    #        :rtype: str
-    #        """
-    #        host = self.settings["nats"]["host"]
-    #        port = self.settings["nats"]["port"]
-    #        return f"nats://{host}:{port}"
-
     def get_zmq_connection_uri(self) -> str:
         """
         Get the ZMQ connection URI.

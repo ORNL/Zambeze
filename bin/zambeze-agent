@@ -32,10 +32,14 @@ def start(
     """
 
     # If no log path is specified use default location and type
+    log_path_tf = False
     if "".__eq__(log_path):
         print("Log path was not specified using default.")
         fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-        log_path = os.path.expanduser('~') + f"/.zambeze/logs/" + fmt_str + ".log"
+        log_dir_path = os.path.expanduser('~') + f"/.zambeze/logs/" + fmt_str
+        os.makedirs(log_dir_path, exist_ok=True)
+        log_path = log_dir_path + "/zambeze.log"
+        log_path_tf = True
 
     print(f"Log path: {log_path}")
     agent_logger = logging.getLogger('agent')
@@ -55,6 +59,7 @@ def start(
     agent_logger.info("*****************************************************")
     agent_logger.info("Creating Zambeze agent subprocess with configuration:")
     agent_logger.info("*****************************************************")
+    agent_logger.info(log_path_tf)
     agent_logger.info(f"Log Path:\t\t{log_path}")
     agent_logger.info(f"Config Path:\t\t{config_path}")
     agent_logger.info(f"Debug Logs:\t\t{debug}")

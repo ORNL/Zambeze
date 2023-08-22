@@ -77,6 +77,9 @@ class Campaign:
         dag = DAG()
         last_activity = None
         for activity in self.activities:
+
+            print(f"[DELETE THIS] Activity: {activity}")
+
             if last_activity is None:
                 last_activity = "MONITOR"
                 # Add one node explicitly

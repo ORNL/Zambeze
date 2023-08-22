@@ -99,6 +99,7 @@ class Executor(threading.Thread):
 
             # Check 1. If MONITOR, then we want to STICK the process.
             monitor_launched = False
+            monitor_launched = False
             terminator_stopped = False
 
             if dag_msg[0] == "MONITOR":

@@ -105,6 +105,7 @@ class MessageHandler(threading.Thread):
             )
 
             # Iterating over nodes in NetworkX DAG
+            num_activities = 0
             for node in activity_dag.nodes(data=True):
 
                 if node[0] == "MONITOR":
@@ -119,6 +120,7 @@ class MessageHandler(threading.Thread):
                     if type(activity) != str:
                         activity.agent_id = self.agent_id
                         node[1]["activity"] = activity.generate_message()
+                        num_activities += 1
                 except Exception as e:
                     self._logger.error(e)
                 node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
@@ -138,6 +140,9 @@ class MessageHandler(threading.Thread):
 
                 self.msg_handler_send_activity_q.put(node)
                 self._logger.debug("[recv_activities_from_campaign] Sent node!")
+
+            self._logger.info(f"[message_handler] Number of activities sent "
+                              f"for campaign: {num_activities}")
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
