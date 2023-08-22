@@ -10,7 +10,6 @@ import logging
 import pathlib
 import threading
 
-from typing import Optional
 from uuid import uuid4
 
 from zambeze.orchestration.agent.message_handler import MessageHandler
@@ -34,19 +33,10 @@ class Agent:
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(
-        self,
-        conf_file: Optional[pathlib.Path] = None,
-        logger: Optional[logging.Logger] = None,
-    ) -> None:
+    def __init__(self, conf_file: pathlib.Path, logger: logging.Logger):
         """Create an object that represents a distributed agent."""
 
-
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
-        self._logger.info(f"WHAT IS THE LOGGER: {logger}")
-
+        self._logger = logger
 
         # Create an ID for our agent.
         self._agent_id = str(uuid4())
@@ -102,10 +92,8 @@ class Agent:
                 self._logger.debug(
                     "[agent] Put new status/control into message handler control queue!"
                 )
-            if (
-                self._executor.monitor is not None
-                and self._executor.monitor.to_status_q.qsize() > 0
-            ):
+            if self._executor.monitor is not None \
+                    and self._executor.monitor.to_status_q.qsize() > 0:
                 self._logger.info("[agent] Grabbing MONITOR status message...")
                 status_to_send = self._executor.monitor.to_status_q.get()
                 self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
