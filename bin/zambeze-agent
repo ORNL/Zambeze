@@ -20,13 +20,12 @@ agent_app = typer.Typer()
 
 @agent_app.command()
 def start(
-    log_path: str = typer.Option(
-        "", help="Path to logs on disk."), debug: bool = typer.Option(
-            False, help="If debug logs are enabled."), zmq_activity_port: int = typer.Option(
-                0, help="Port at which activities are received."), zmq_heartbeat_port: int = typer.Option(
-                    0, help="Port for agent heartbeat communication."), config_path: str = typer.Option(
-                        str(
-                            pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml")), help="Path to config.")):
+    log_path: str = typer.Option("", help="Path to logs on disk."),
+    debug: bool = typer.Option(False, help="If debug logs are enabled."),
+    zmq_activity_port: int = typer.Option(0, help="Port at which activities are received."),
+    zmq_heartbeat_port: int = typer.Option(0, help="Port for agent heartbeat communication."),
+    config_path: str = typer.Option(str(pathlib.Path.home().joinpath(".zambeze").
+                                        joinpath("agent.yaml")), help="Path to config.")):
     """
     Start the agent (set logger and ZMQ ports).
     """
