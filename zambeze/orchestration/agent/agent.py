@@ -11,6 +11,7 @@ import pathlib
 import threading
 
 from uuid import uuid4
+from typing import Optional
 
 from zambeze.orchestration.agent.message_handler import MessageHandler
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
@@ -33,7 +34,7 @@ class Agent:
     :type logger: Optional[logging.Logger]
     """
 
-    def __init__(self, conf_file: pathlib.Path, logger: logging.Logger):
+    def __init__(self, conf_file: Optional[pathlib.Path], logger: logging.Logger):
         """Create an object that represents a distributed agent."""
 
         self._logger = logger

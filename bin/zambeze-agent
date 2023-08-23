@@ -9,9 +9,7 @@
 import logging
 import typer
 import pathlib
-import os
 
-from datetime import datetime
 from zambeze.orchestration.agent.agent import Agent
 
 agent_state = {"conf_file": None}
@@ -31,7 +29,6 @@ def start(
     """
 
     # Log path comes from agents/commands.py
-
     agent_logger = logging.getLogger('agent')
     fh = logging.FileHandler(log_path)
     formatter = logging.Formatter(
