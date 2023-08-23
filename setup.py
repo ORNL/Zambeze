@@ -7,13 +7,15 @@
 # it under the terms of the MIT License.
 
 from setuptools import setup, find_packages
-from version import __version__
 
 with open("requirements.txt") as f:
     requires = f.read().splitlines()
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+exec(open("zambeze/version.py").read())
+
 
 setup(
     name="zambeze",

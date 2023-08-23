@@ -11,7 +11,6 @@ import logging
 import os
 import pathlib
 import subprocess
-import zmq
 
 from datetime import datetime
 from signal import SIGKILL
@@ -61,41 +60,14 @@ def agent_start(logger: logging.Logger) -> None:
     os.makedirs(log_dir_path, exist_ok=True)
     log_path = log_dir_path + "/zambeze.log"
 
+    # Leave this print as it is useful to show this information in the console
     print(f"Log path: {log_path}")
-
-    # Randomly select two ports...
-    # Both ports should be available, because we're binding
-    # (i.e., making the 1st unavailable to choose the 2nd)
-    hb_socket = zmq.Context().socket(zmq.REP)
-    # hb_port = hb_socket.bind_to_random_port(
-    #     "tcp://*", min_port=50000, max_port=60000, max_tries=100
-    # )
-
-    data_socket = zmq.Context().socket(zmq.REP)
-    # data_port = data_socket.bind_to_random_port(
-    #     "tcp://*", min_port=50000, max_port=60000, max_tries=100
-    # )
-
-    # Technically creating a small RACE CONDITION to re-bind in agent.
-    # Will want to explore ways to avoid this.
-    data_socket.close()
-    hb_socket.close()
-
-    # *********** #
-    # TODO: Use ZMQ utilities to auto-find port.
-    data_port = 5555
-    hb_port = 5556
-    # *********** #
 
     arg_list = [
         "zambeze-agent",
         "--log-path",
         str(log_path),
         "--debug",
-        "--zmq-heartbeat-port",
-        str(hb_port),
-        "--zmq-activity-port",
-        str(data_port),
     ]
     logger.info(f"Command: {' '.join(arg_list)}")
 
@@ -106,8 +78,6 @@ def agent_start(logger: logging.Logger) -> None:
     agent_state = {
         "pid": proc.pid,
         "log_path": log_path,
-        "zmq_heartbeat_port": hb_port,
-        "zmq_activity_port": data_port,
         "status": "RUNNING",
     }
 

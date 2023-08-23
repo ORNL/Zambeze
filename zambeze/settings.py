@@ -41,11 +41,8 @@ class ZambezeSettings:
             logging.getLogger(__name__) if logger is None else logger
         )
 
-        self._logger.info(f"LOGGER FROM SETTINGS.PY: {logger}")
-
         # set default values
-        # TODO: get the queue bits out of here (and into queue folder)
-        self.settings = {"nats": {}, "zmq": {}, "plugins": {}, "rmq": {}}
+        self.settings = {"zmq": {}, "plugins": {}, "rmq": {}}
         self.plugins = Plugins(logger=self._logger)
         self.load_settings(conf_file)
 
@@ -64,7 +61,7 @@ class ZambezeSettings:
             zambeze_folder.mkdir(parents=True, exist_ok=True)
 
         default_conf = zambeze_folder.joinpath("agent.yaml")
-        # TODO: this is over-coded.
+
         # pyre-ignore[6]
         if pathlib.Path(self._conf_file) == pathlib.Path(default_conf):
             # pyre-ignore[16]
@@ -82,9 +79,6 @@ class ZambezeSettings:
                 # pyre-ignore[6]
                 with open(self._conf_file, "w") as f:
                     yaml.dump(default_settings, f)
-
-        # if not self.settings:
-        #    self.settings = {"nats": {}, "zmq": {}, "plugins": {}}
 
         self._logger.info(f"Loading settings from config file: {self._conf_file}")
         # pyre-ignore[6]
