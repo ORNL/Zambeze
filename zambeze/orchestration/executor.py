@@ -57,6 +57,8 @@ class Executor(threading.Thread):
         self._logger.info("[EXECUTOR] Creating executor...")
         self._agent_id = agent_id
 
+        self.control_dict = dict()
+
         try:
             self._msg_factory = MessageFactory(logger=self._logger)
             self._transfer_hippo = TransferHippo(
@@ -92,16 +94,16 @@ class Executor(threading.Thread):
         )
         os.chdir(default_working_dir)
 
+        monitor_launched = False
+        terminator_stopped = False
+
         while True:
 
             self._logger.info("[executor] Retrieving a message! ")
+            self._logger.info(f" SIZE OF QUEUE: {self.to_process_q.qsize()}")
             dag_msg = self.to_process_q.get()
 
-            # Check 1. If MONITOR, then we want to STICK the process.
-            monitor_launched = False
-            monitor_launched = False
-            terminator_stopped = False
-
+            # Check 1. If MONITOR, then we want to STICK the process
             if dag_msg[0] == "MONITOR":
 
                 self._logger.info("[executor] ENTERING MONITOR TASK THREAD!")
@@ -137,20 +139,20 @@ class Executor(threading.Thread):
 
             # If we were just launching monitor, go to top of loop; start over.
             if monitor_launched or terminator_stopped:
+                monitor_launched = False
+                terminator_stopped = False
                 continue
 
             activity_msg = dag_msg[1]["activity"]
             predecessors = dag_msg[1]["predecessors"]
-            # self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
             # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
             self._logger.info(f"[executor] Activity has predecessors: {predecessors}")
 
             # STEP 1. Confirm the monitor is MONITORING.
             campaign_id = activity_msg.data.campaign_id
-            if (
-                "MONITOR" in predecessors
-            ):  # TODO: allow MONITOR *AND OTHER* predecessors.
+
+            if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
 
                 self._logger.info(
                     f"[executor] Checking monitor message for campaign ID: "
@@ -172,30 +174,38 @@ class Executor(threading.Thread):
             else:
                 self._logger.debug("[executor] Entering predecessor waiting loop...")
                 pred_track_dict = {key: None for key in predecessors}
+
+                # while loop ascertains that we 'keep trying the status scan' until it is successful (/failed).
                 while True:
-                    self._logger.debug(
-                        "[executor] Fetching predecessor status message..."
-                    )
-                    status_msg = self.incoming_control_q.get()
 
-                    activity_id = status_msg["activity_id"]
-                    if (
-                        campaign_id == status_msg["campaign_id"]
-                        and activity_id in pred_track_dict
-                    ):
-                        pred_track_dict[activity_id] = status_msg["status"]
+                    success_count = 0
+                    failure_count = 0
 
-                    success_count = sum(
-                        x == "SUCCEEDED" for x in pred_track_dict.values()
-                    )
-                    fail_count = sum(x == "FAILED" for x in pred_track_dict.values())
+                    # for loop means we check every possible predecessor for an activity.
+                    for pred_activity_id in pred_track_dict:
+                        self._logger.debug(
+                            "[executor] Fetching predecessor status message..."
+                        )
 
-                    total_completed = success_count + fail_count
+                        # A: See if activity in pred_track_dict. If not... continue...
+                        if pred_activity_id not in self.control_dict:
+                            self._logger.info(f"Predecessor ID: {pred_activity_id} not received. Continuing...")
+                            time.sleep(5)  # TODO: remove.
+                            break
+
+                        # B: Check the status of the activity ID.
+                        pred_activity_status = self.control_dict[pred_activity_id]['status']
+
+                        if pred_activity_status == "SUCCEEDED":
+                            success_count += 1
+                        elif pred_activity_status == "FAILED":
+                            failure_count += 1
+
+                    total_completed = success_count + failure_count
 
                     self._logger.info(
                         f"[executor] PREDECESSOR COMPLETED COUNT: {total_completed}"
-                    )
-
+                        )
                     if total_completed == len(pred_track_dict):
                         break
 

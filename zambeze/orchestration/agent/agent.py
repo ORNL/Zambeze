@@ -20,6 +20,7 @@ from ..executor import Executor
 from ...settings import ZambezeSettings
 
 
+
 class Agent:
     """
     A distributed Agent that uses threads to *OBSERVE* the state of the executor
@@ -123,6 +124,14 @@ class Agent:
         while True:
             control_to_sort = self._msg_handler_thd.recv_control_q.get()
             self._logger.info(f"[agent] Received control: {control_to_sort}")
+
+            # TEMPORARY: update local dict for non-MONITOR / non-TERMINATOR activities #
+            activity_id = control_to_sort["activity_id"]
+            if activity_id not in self.executor.control_dict:
+                self.executor.control_dict[activity_id] = dict()
+
+            self.executor.control_dict[activity_id]["status"] = control_to_sort["status"]
+            # ************************* #
 
             # We want to process these control messages in 2 places...
             # 1. Let the executor's MONITOR see if it needs it.
