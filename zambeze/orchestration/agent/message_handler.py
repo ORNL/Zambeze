@@ -61,6 +61,7 @@ class MessageHandler(threading.Thread):
         campaign_listener = threading.Thread(
             target=self.recv_activity_dag_from_campaign, args=()
         )
+
         # THREAD 2: recv activities from rmq
         activity_listener = threading.Thread(target=self.recv_activity, args=())
         # THREAD 3: recv control from RMQ
@@ -90,7 +91,7 @@ class MessageHandler(threading.Thread):
 
             # Use ZMQ to receive activities from campaign.
             dag_bytestring = self._zmq_socket.recv()
-            self._zmq_socket.send(b"Notification of activity receipt by ZMQ...")
+            self._zmq_socket.send(b"Notification of activity-dag receipt by ZMQ...")
             self._logger.debug(
                 "[recv_activity_dag_from_campaign] Received an activity DAG bytestring!"
             )
@@ -126,11 +127,7 @@ class MessageHandler(threading.Thread):
                 node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
                 node[1]["successors"] = list(activity_dag.successors(node[0]))
 
-                self._logger.info("The activity_node to send...")
-                self._logger.info(node)
-
-                # Put the entire DAG into the activity.
-                # activity_message: AbstractMessage = activity.generate_message()
+                self._logger.info(f"The activity_node to send...:\n{node}")
 
                 activity_model = ActivityModel(
                     agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
@@ -147,7 +144,7 @@ class MessageHandler(threading.Thread):
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
     def _callback(self, ch, method, _properties, body):
-        self._logger.info("[recv_activity] receiving activity...")
+        self._logger.info(f"[recv_activity] receiving activity...{dill.loads(body)}")
         activity = dill.loads(body)
 
         # TODO: *add git issue* should be able to require a list of plugins (not just one).
