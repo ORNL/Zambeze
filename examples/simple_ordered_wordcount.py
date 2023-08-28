@@ -63,11 +63,13 @@ def main():
 
     activity_3 = ShellActivity(
         name="Merge wordcounts",
-        files=[f"{curr_dir}/oz_counts.json", f"{curr_dir}/gatsby_counts.json"],
+        files=[f"{curr_dir}/oz.json", f"{curr_dir}/gatsby.json"],
         command="python3",
         arguments=[
             f"{curr_dir}/merge_counts.py",
-            f"{curr_dir}/wizard_of_oz_book.txt"
+            f"--countfiles",
+            f"{curr_dir}/gatsby.json",
+            f"{curr_dir}/oz.json"
         ],
         logger=logger,
         # Uncomment if running on M1 Mac.
