@@ -105,7 +105,7 @@ class GlobusMessageValidator(PluginMessageValidator):
         >>>           }
         >>>    ]
         >>> }
-        >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
+        >>> assert self.__run_move_from_globus_sanity_check(action_package)
         """
 
         supported_source_path_types = ["globus"]
