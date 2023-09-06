@@ -12,6 +12,7 @@ import os
 import time
 import pathlib
 import threading
+import requests
 
 from queue import Queue
 from typing import Optional
@@ -321,6 +322,15 @@ class Executor(threading.Thread):
                 if "rsync" not in self._settings.settings["plugins"]:
                     raise Exception("Rsync may not be configured locally")
 
+            elif file_url.scheme == "https":
+                transfer_type = "https"
+
+
+
+
+
+
+
             # Create activity messages (if no transfer, will do be empty).
             activity_messages = self._transfer_hippo.pack(
                 activity_id=activity_id,
@@ -348,3 +358,14 @@ class Executor(threading.Thread):
             else:
                 self._logger.info("MONITOR NOT COMPLETED YET!!!")
                 time.sleep(2)
+
+
+def download_https_file(url, save_path):
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
+        with open(save_path, 'wb') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        print(f"File downloaded and saved as {save_path}")
+    else:
+        print(f"Failed to download file. Status code: {response.status_code}")

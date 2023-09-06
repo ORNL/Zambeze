@@ -31,7 +31,7 @@ def main():
     curr_dir = os.path.dirname(__file__)
     activity_1 = ShellActivity(
         name="Simple Ordered Wordcount (Oz)",
-        files=[f"{curr_dir}/wordcount.py"],
+        files=[f"http://127.0.0.1{curr_dir}/wordcount.py"],
         command="python3",
         arguments=[
             f"{curr_dir}/wordcount.py",
