@@ -3,9 +3,9 @@
 # Local imports
 from ..abstract_plugin import Plugin
 from .globus_common import (
-    localEndpointExists,
-    getMappedCollections,
-    getGlobusScopes,
+    local_endpoint_exists,
+    get_mapped_collections,
+    get_globus_scopes,
     SUPPORTED_ACTIONS,
 )
 from .globus_uri_separator import GlobusURISeparator
@@ -451,7 +451,7 @@ class Globus(Plugin):
             globus_sep_uri = self.__globus_uri_separator.separate(
                 item["destination"], self.__default_endpoint
             )
-            if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
+            if not local_endpoint_exists(globus_sep_uri["uuid"], self.__endpoints):
                 error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"move_from_globus_collection' item: {item}"
                 error_msg += "\nuuid:"
@@ -494,7 +494,7 @@ class Globus(Plugin):
             globus_sep_uri = self.__globus_uri_separator.separate(
                 item["source"], self.__default_endpoint
             )
-            if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
+            if not local_endpoint_exists(globus_sep_uri["uuid"], self.__endpoints):
                 error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"'move_from_globus_collection' item: {item} "
                 error_msg += "\nuuid: "
@@ -572,8 +572,8 @@ class Globus(Plugin):
         self.__check_access_to_globus_cloud()
 
         # Permissions to access mapped collections must be granted explicitly
-        mapped_collections = getMappedCollections(config)
-        self.__scopes = getGlobusScopes(mapped_collections)
+        mapped_collections = get_mapped_collections(config)
+        self.__scopes = get_globus_scopes(mapped_collections)
 
         try:
             if self.__flow == "native":

@@ -1,8 +1,8 @@
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from .globus_common import (
-    checkTransferEndpoint,
-    checkAllItemsHaveValidEndpoints,
+    check_transfer_endpoint,
+    check_all_items_have_valid_endpoints,
     SUPPORTED_ACTIONS,
 )
 from .globus_uri_separator import GlobusURISeparator
@@ -53,7 +53,7 @@ class GlobusMessageValidator(PluginMessageValidator):
             synchronous and asynchronous you have specified {action_package['type']}",
                 )
 
-        return checkTransferEndpoint(action_package)
+        return check_transfer_endpoint(action_package)
 
     def __runMoveToGlobusValidationCheck(
         self, action_package: dict
@@ -61,7 +61,7 @@ class GlobusMessageValidator(PluginMessageValidator):
         supported_source_path_types = ["file"]
         supported_destination_path_types = ["globus"]
 
-        valid, msg = checkAllItemsHaveValidEndpoints(
+        valid, msg = check_all_items_have_valid_endpoints(
             action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,
@@ -111,7 +111,7 @@ class GlobusMessageValidator(PluginMessageValidator):
         supported_source_path_types = ["globus"]
         supported_destination_path_types = ["file"]
 
-        valid, msg = checkAllItemsHaveValidEndpoints(
+        valid, msg = check_all_items_have_valid_endpoints(
             action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,

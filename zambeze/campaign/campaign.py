@@ -6,6 +6,7 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+import globus_sdk
 import logging
 import zmq
 import pickle
@@ -14,6 +15,7 @@ import networkx as nx  # TODO: move to dag object.
 
 from .activities.abstract_activity import Activity
 from .activities.dag import DAG
+from globus_sdk.scopes import TransferScopes
 from zambeze.settings import ZambezeSettings
 
 from typing import Optional
@@ -43,6 +45,7 @@ class Campaign:
         self.name: str = name
 
         self.campaign_id = str(uuid.uuid4())
+        self.needs_globus_login = False
 
         self.activities: list[Activity] = activities
         for index in range(0, len(self.activities)):
@@ -56,6 +59,11 @@ class Campaign:
         """
         self._logger.debug(f"Adding activity: {activity.name}")
         activity.campaign_id = self.campaign_id
+
+        for file_uri in activity.files:
+            if file_uri.startswith('globus://'):
+                self.needs_globus_login = True
+
         self.activities.append(activity)
 
     def dispatch(self) -> None:
@@ -76,6 +84,24 @@ class Campaign:
         # Create and pack a sequential DAG (TODO: relax sequential requirement).
         dag = DAG()
         last_activity = None
+
+        token_obj = dict()
+        if self.needs_globus_login:
+            CLIENT_ID = "None"  # ZAMBEZE
+            auth_client = globus_sdk.NativeAppAuthClient(CLIENT_ID)
+
+            # requested_scopes specifies a list of scopes to request
+            # instead of the defaults, only request access to the Transfer API
+            auth_client.oauth2_start_flow(requested_scopes=TransferScopes.all)
+            authorize_url = auth_client.oauth2_get_authorize_url()
+            print(f"Please go to this URL and login:\n\n{authorize_url}\n")
+
+            auth_code = input("Please enter the code here: ").strip()
+            tokens = auth_client.oauth2_exchange_code_for_tokens(auth_code)
+            transfer_tokens = tokens.by_resource_server["transfer.api.globus.org"]
+
+            token_obj['access'] = transfer_tokens['access_token']
+
         for activity in self.activities:
 
             print(f"[DELETE THIS] Activity: {activity}")
@@ -88,7 +114,7 @@ class Campaign:
                 )
 
             dag.add_node(
-                activity.activity_id, activity=activity, campaign_id=self.campaign_id
+                activity.activity_id, activity=activity, campaign_id=self.campaign_id, transfer_tokens=token_obj
             )
 
             # Rest of nodes added implicitly via edge.
