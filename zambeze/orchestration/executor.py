@@ -149,18 +149,13 @@ class Executor(threading.Thread):
             activity_msg = dag_msg[1]["activity"]
             predecessors = dag_msg[1]["predecessors"]
 
-            self._logger.info(f"[FFF5.4] {dag_msg}")
             transfer_tokens = dag_msg[1]['transfer_tokens']
 
             # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
             self._logger.info(f"[executor] Activity has predecessors: {predecessors}")
 
-            self._logger.info(f"[FFF5.5] {activity_msg.data}")
-
             # STEP 1. Confirm the monitor is MONITORING.
             campaign_id = activity_msg.data.campaign_id
-
-            self._logger.info(f"[FFF6] Transfer tokens: {transfer_tokens}")
 
             if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
 
@@ -218,7 +213,7 @@ class Executor(threading.Thread):
                         )
                     if total_completed == len(pred_track_dict):
                         break
-            self._logger.info("[FFF6.9]")
+
             if activity_msg.data.body.type == "SHELL":
                 self._logger.info("[executor] SHELL message received:")
                 self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
@@ -226,8 +221,6 @@ class Executor(threading.Thread):
                 # Determine if the shell activity has files that
                 # Need to be moved to be executed
                 if activity_msg.data.body.files:
-
-                    self._logger.info(f"[FFF7]")
                     if len(activity_msg.data.body.files) > 0:
 
                         try:
@@ -326,8 +319,7 @@ class Executor(threading.Thread):
             self._logger.debug(f"File to parse {file_url}")
 
             # If file scheme local, then do not upgrade to transfer!
-            # if file_url.scheme == "file":
-            #TODO: TYLER---BRING BACK. Just diagnosing minor path issue.
+            # if file_url.startswith("file"):
             # if file_url.startswith("file"):
             #     if not pathlib.Path(file_url).exists():
             #         raise Exception(f"Unable to find file: {file_url}")  # TODO: add back 'file_url.path'
@@ -394,7 +386,6 @@ class Executor(threading.Thread):
             for msg in activity_messages:
                 self.to_new_activity_q.put(msg)
 
-        self._logger.info(f"[GGG-4] I AM HERE.")
         for source_ep in globus_transfer_clients:
             transfer_client = globus_transfer_clients[source_ep]['transfer_client']
             task_data = globus_transfer_clients[source_ep]['task_data']
@@ -405,9 +396,6 @@ class Executor(threading.Thread):
 
             globus_task_ids.append(transfer_task_id)
 
-        self._logger.info("[HHH] WAITING FOR ALL TASKS TO COMPLETE...")
-        # globus_success_count = 0
-        # globus_fail_count = 0
         for task_id in globus_task_ids:
 
             while True:

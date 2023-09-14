@@ -7,42 +7,56 @@
 # it under the terms of the MIT License.
 
 import logging
-import pathlib
+import os
 
 from zambeze import Campaign, ShellActivity
 
-# logging (for debugging purposes)
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-)
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
-# create campaign
-campaign = Campaign("My ImageMagick-Globus Campaign", logger=logger)
+FRONTIER_EP_ID = "ef1a9560-7ca1-11e5-992c-22000b96db58"
 
-OLCF_DTN_GLOBUS_UUID = "ef1a9560-7ca1-11e5-992c-22000b96db58"
 
-# define an activity
-curr_dir = pathlib.Path().resolve()
-activity = ShellActivity(
-    name="Globus-ImageMagick",
-    files=[
-        f"globus://{OLCF_DTN_GLOBUS_UUID}"
-        f"/gpfs/alpine/stf019/proj-shared/zambeze/test-images/{i:02d}.jpg"
-        for i in range(1, 11)
-    ],
-    command="convert",
-    arguments=["-delay", "20", "-loop", "0", "/tmp/*.jpg", "a.gif"],
-    logger=logger,
-    # Uncomment if running on M1 Mac.
-    env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
-)
-campaign.add_activity(activity)
+def main():
+    # logging (for debugging purposes)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
+    )
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
-# run the campaign
-campaign.dispatch()
+    # create campaign
+    campaign = Campaign("My ImageMagick Campaign", logger=logger)
+
+    # define an activity
+    curr_dir = os.path.dirname(__file__)
+    activity = ShellActivity(
+        name="ImageMagick",
+        files=[
+            f"globus://{FRONTIER_EP_ID}@/ccs/home/tskluzac/zambeze/tests/campaigns/imagesequence/{i:02d}.jpg"
+            for i in range(1, 11)
+        ],
+        command="convert",
+        arguments=[
+            "-delay",
+            "20",
+            "-loop",
+            "0",
+            f"*.jpg",
+            "a.gif",
+        ],
+        logger=logger,
+        # Uncomment if running on M1 Mac.
+        env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
+    )
+
+    campaign.add_activity(activity)
+
+    # run the campaign
+    campaign.dispatch()
+
+
+if __name__ == "__main__":
+    main()
