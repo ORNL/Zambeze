@@ -127,7 +127,7 @@ class MessageHandler(threading.Thread):
                 node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
                 node[1]["successors"] = list(activity_dag.successors(node[0]))
 
-                self._logger.info(f"The activity_node to send...:\n{node}")
+                self._logger.info(f"[message_handler] The activity_node to send...:\n{node}")
 
                 activity_model = ActivityModel(
                     agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
@@ -153,9 +153,15 @@ class MessageHandler(threading.Thread):
             plugins_are_configured = True
 
         else:
+            self._logger.info(f"[FFF1] GETTING REQUIRED PLUGIN")
+            self._logger.info(f"[FFF2] {activity[1]['activity'].data}")
+            self._logger.info(f"[FFF3] {activity[1]['activity'].data.body}")
+            self._logger.info(f"[FFF4] {activity[1]['activity'].data.body.type}")
+
             required_plugin = activity_to_plugin_map[
                 activity[1]["activity"].data.body.type
             ]
+            self._logger.info(f"[FFF5] {activity[1]['activity'].data.body.type}")
             plugins_are_configured = self.are_plugins_configured(required_plugin)
         should_ack = plugins_are_configured
 
@@ -172,7 +178,7 @@ class MessageHandler(threading.Thread):
         #
         # ROUTING: https://www.rabbitmq.com/tutorials/tutorial-four-python.html
 
-        self._logger.debug(
+        self._logger.info(
             f"[mh] Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}"
         )
 

@@ -91,22 +91,23 @@ class Globus(Plugin):
         }
         """
 
-        if "authentication_flow" not in config:
-            raise Exception(
-                "'authentication_flow' key value missing from config"
-                " config must have 'authentication_flow' specified"
-            )
-
-        # Check that the authentication flow is supported
-        if "native" == config["authentication_flow"]["type"].lower():
-            self.__flow = "native"
-        elif "client credential" == config["authentication_flow"]["type"].lower():
-            self.__flow = "client credential"
-        else:
-            raise Exception(
-                "Unsupported authentication flow detected "
-                f"{config['authentication_flow']['type']}"
-            )
+        # TODO: TYLER -- BRING THIS BACK!
+        # if "authentication_flow" not in config:
+        #     raise Exception(
+        #         "'authentication_flow' key value missing from config"
+        #         " config must have 'authentication_flow' specified"
+        #     )
+        #
+        # # Check that the authentication flow is supported
+        # if "native" == config["authentication_flow"]["type"].lower():
+        #     self.__flow = "native"
+        # elif "client credential" == config["authentication_flow"]["type"].lower():
+        #     self.__flow = "client credential"
+        # else:
+        #     raise Exception(
+        #         "Unsupported authentication flow detected "
+        #         f"{config['authentication_flow']['type']}"
+        #     )
 
     def __valid_endpoints(self, config: dict):
         """This method can only be run after the authentication flow has been run
@@ -557,44 +558,45 @@ class Globus(Plugin):
         """
         self._valid_config(config)
 
-        print("Config is")
-        print(config)
-        self._logger.debug(json.dumps(config, indent=4))
-        if "authentication_flow" in config:
-            if "client_id" in config["authentication_flow"]:
-                self.__client_id = config["authentication_flow"]["client_id"]
-
-        print("Client id is ")
-        print(self.__client_id)
-
-        # Detect hostname
-        self.__hostname = gethostname()
-        self.__check_access_to_globus_cloud()
-
-        # Permissions to access mapped collections must be granted explicitly
-        mapped_collections = get_mapped_collections(config)
-        self.__scopes = get_globus_scopes(mapped_collections)
-
-        try:
-            if self.__flow == "native":
-                self.__native_auth_flow()
-            elif self.__flow == "client credential":
-                self.__client_credential_auth_flow(config)
-
-            self.__access_to_globus_cloud = True
-        except GlobusError as e:
-            logging.exception(
-                "Error detected while attempting to authenticate and"
-                "communicate with the Globus API"
-            )
-            raise e
-
-        self.__valid_endpoints(config)
-        if "local_endpoints" in config:
-            self.__endpoints = deepcopy(config["local_endpoints"])
-            self.__default_endpoint = deepcopy(config["default_endpoint"])
-
-        self.__valid_actions()
+        # TODO: BRING THIS BACK!
+        # print("Config is")
+        # print(config)
+        # self._logger.debug(json.dumps(config, indent=4))
+        # if "authentication_flow" in config:
+        #     if "client_id" in config["authentication_flow"]:
+        #         self.__client_id = config["authentication_flow"]["client_id"]
+        #
+        # print("Client id is ")
+        # print(self.__client_id)
+        #
+        # # Detect hostname
+        # self.__hostname = gethostname()
+        # self.__check_access_to_globus_cloud()
+        #
+        # # Permissions to access mapped collections must be granted explicitly
+        # mapped_collections = get_mapped_collections(config)
+        # self.__scopes = get_globus_scopes(mapped_collections)
+        #
+        # try:
+        #     if self.__flow == "native":
+        #         self.__native_auth_flow()
+        #     elif self.__flow == "client credential":
+        #         self.__client_credential_auth_flow(config)
+        #
+        #     self.__access_to_globus_cloud = True
+        # except GlobusError as e:
+        #     logging.exception(
+        #         "Error detected while attempting to authenticate and"
+        #         "communicate with the Globus API"
+        #     )
+        #     raise e
+        #
+        # self.__valid_endpoints(config)
+        # if "local_endpoints" in config:
+        #     self.__endpoints = deepcopy(config["local_endpoints"])
+        #     self.__default_endpoint = deepcopy(config["default_endpoint"])
+        #
+        # self.__valid_actions()
 
         self.__configured = True
 

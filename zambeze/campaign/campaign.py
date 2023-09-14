@@ -87,7 +87,7 @@ class Campaign:
 
         token_obj = dict()
         if self.needs_globus_login:
-            CLIENT_ID = "None"  # ZAMBEZE
+            CLIENT_ID = "61338d24-54d5-408f-a10d-66c06b59f6d2"  # ZAMBEZE
             auth_client = globus_sdk.NativeAppAuthClient(CLIENT_ID)
 
             # requested_scopes specifies a list of scopes to request
@@ -100,7 +100,9 @@ class Campaign:
             tokens = auth_client.oauth2_exchange_code_for_tokens(auth_code)
             transfer_tokens = tokens.by_resource_server["transfer.api.globus.org"]
 
-            token_obj['access'] = transfer_tokens['access_token']
+            # TODO: clean this up.
+            token_obj['globus'] = dict()
+            token_obj['globus']['access_token'] = transfer_tokens['access_token']
 
         for activity in self.activities:
 

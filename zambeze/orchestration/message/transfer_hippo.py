@@ -23,7 +23,7 @@ class TransferHippo:
 
         if transfer_type == "globus":
             self._logger.info(
-                f"Starting Globus configuration for file at {file_url.path}"
+                f"Starting Globus configuration for file at {file_url}"
             )
 
             # Check if we have plugin
