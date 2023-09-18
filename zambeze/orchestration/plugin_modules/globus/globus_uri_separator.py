@@ -72,9 +72,7 @@ class GlobusURISeparator(URISeparator):
         # Replace multiple occurances of // with single /
         UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
-        print(f"UUID_and_path is  {UUID_and_path}")
         UUID = UUID_and_path[0:36]
-        print(f"UUID from path is {UUID}")
         file_and_path = UUID_and_path
 
         legal_uuid = default_uuid
