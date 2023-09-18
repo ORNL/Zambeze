@@ -8,7 +8,7 @@
 
 import json
 import logging
-import globus_sdk
+import globus_sdk  # TODO: remove.
 import os
 import re
 import time
@@ -21,6 +21,9 @@ from typing import Optional
 from dataclasses import asdict
 from urllib.parse import urlparse
 from .monitor import Monitor
+
+# TODO: JOSH. What should interface be for accessing a plugin
+from ..orchestration.plugin_modules.globus.globus import Globus
 
 
 from ..settings import ZambezeSettings
@@ -314,23 +317,20 @@ class Executor(threading.Thread):
         globus_task_ids = []
 
         for file_path in files:
-            # file_url = urlparse(file_path)  # TODO!
-            file_url = file_path
+            file_url = urlparse(file_path)
             self._logger.debug(f"File to parse {file_url}")
 
             # If file scheme local, then do not upgrade to transfer!
-            # if file_url.startswith("file"):
-            # if file_url.startswith("file"):
-            #     if not pathlib.Path(file_url).exists():
-            #         raise Exception(f"Unable to find file: {file_url}")  # TODO: add back 'file_url.path'
+            if file_url.scheme == "file":
+                if not pathlib.Path(file_url.path).exists():
+                    raise Exception(f"Unable to find file: {file_url}")  # TODO: add back 'file_url.path'
 
             # If globus, then upgrade to transfer
             # elif file_url.scheme == "globus":
             # TODO: TYLER---change this back to elif.
-            if file_url.startswith("globus"):
+            if file_url.scheme == "globus":
 
-                # self._logger.info(f"GLOBUS FILE PATH RECEIVED: {file_url.path}")
-                transfer_type = "globus"
+                self._logger.info(f"GLOBUS FILE PATH RECEIVED: {file_url.path}")
                 if "globus" not in self._settings.settings["plugins"]:
                     self._logger.info(f"GLOBUS ERROR")
                     raise Exception("Globus may not be configured locally")

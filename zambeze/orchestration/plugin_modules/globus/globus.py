@@ -91,7 +91,7 @@ class Globus(Plugin):
         }
         """
 
-        # TODO: TYLER -- BRING THIS BACK!
+        # TODO: TYLER: everything about authentication flow needs to move into 'auth'.
         # if "authentication_flow" not in config:
         #     raise Exception(
         #         "'authentication_flow' key value missing from config"
@@ -713,7 +713,7 @@ class Globus(Plugin):
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
-                schema_checks = self._message_validator.validateAction(
+                schema_checks = self._message_validator.validate_action(
                     arguments[index], action
                 )
 

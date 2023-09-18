@@ -124,5 +124,5 @@ class PluginsMessageValidator:
         else:
             check_results[plugin_name] = self._plugin_message_validators[
                 plugin_name
-            ].validateMessage([arguments])
+            ].validate_message([arguments])
         return check_results

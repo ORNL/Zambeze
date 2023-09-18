@@ -46,7 +46,7 @@ class RsyncMessageValidator(PluginMessageValidator):
         checks.append({action: (True, "")})
         return checks
 
-    def validateAction(self, arguments: dict, action) -> list:
+    def validate_action(self, arguments: dict, action) -> list:
         """Check the arguments are supported.
 
         :param arguments: arguments needed to run the rsync plugin
@@ -96,7 +96,7 @@ class RsyncMessageValidator(PluginMessageValidator):
     def validateMessage(self, arguments: list[dict]) -> list:
         ...
 
-    def validateMessage(self, arguments):
+    def validate_message(self, arguments):
         """Check the arguments are supported.
 
         :param arguments: arguments needed to run the rsync plugin

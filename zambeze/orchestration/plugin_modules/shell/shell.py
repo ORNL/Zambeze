@@ -174,7 +174,7 @@ class Shell(Plugin):
         for index in range(len(arguments)):
             for action in arguments[index]:
                 self._logger.debug(f"shell action {action} index is {index}")
-                schema_checks = self._message_validator.validateAction(
+                schema_checks = self._message_validator.validate_action(
                     arguments[index], action
                 )
                 self._logger.debug("Schema checks")

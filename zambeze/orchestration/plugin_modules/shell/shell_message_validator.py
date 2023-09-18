@@ -108,7 +108,7 @@ class ShellMessageValidator(PluginMessageValidator):
         checks.append({action: (True, "")})
         return checks
 
-    def validateAction(self, arguments: dict, action) -> list:
+    def validate_action(self, arguments: dict, action) -> list:
         checks = []
         return self._validateAction(action, checks, arguments)
 
@@ -120,7 +120,7 @@ class ShellMessageValidator(PluginMessageValidator):
     def validateMessage(self, arguments: list[dict]) -> list:
         ...
 
-    def validateMessage(self, arguments):
+    def validate_message(self, arguments):
         """Checks to see if the message contains the right fields
 
 

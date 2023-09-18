@@ -177,7 +177,7 @@ class Rsync(Plugin):
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
-                schema_checks = self._message_validator.validateAction(
+                schema_checks = self._message_validator.validate_action(
                     arguments[index], action
                 )
 
