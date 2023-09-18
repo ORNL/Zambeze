@@ -17,6 +17,9 @@ class GlobusURISeparator(URISeparator):
         :param uri: the globus uri globus://XXXXX...XXX/path/file.txt
         :type uri: str
 
+        :param extra_args
+        :type extra_args: dict
+
         :Example:
 
         default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"

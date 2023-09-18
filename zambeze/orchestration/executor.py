@@ -332,12 +332,13 @@ class Executor(threading.Thread):
 
                 self._logger.info(f"GLOBUS FILE PATH RECEIVED: {file_url.path}")
                 if "globus" not in self._settings.settings["plugins"]:
-                    self._logger.info(f"GLOBUS ERROR")
-                    raise Exception("Globus may not be configured locally")
+                    self._logger.exception("GLOBUS ERROR")
+                    raise Exception("[Executor] Globus may not be configured locally")
 
                 self._logger.info(f"[GGG-1]")
 
                 # Just get the 36-character UUID of the source endpoint.
+                # TODO: this should be the globus_uri_separator's job.
                 source_ep = re.search(r"(.{36})@", file_url).group(1)
                 dest_ep = self._settings.settings["plugins"]["globus"]["local_ep"]
 
@@ -366,14 +367,14 @@ class Executor(threading.Thread):
                     dest_filename,  # dest
                 )
 
-            # elif file_url.scheme == "rsync":
-            elif file_url.startswith('rsync'):
-                transfer_type = "rsync"
+            elif file_url.scheme == "rsync":
+                # elif file_url.startswith('rsync'):
+                # transfer_type = "rsync"
                 if "rsync" not in self._settings.settings["plugins"]:
                     raise Exception("Rsync may not be configured locally")
 
-            # elif file_url.scheme == "https":
-            elif file_url.startswith('https'):
+            elif file_url.scheme == "https":
+                # elif file_url.startswith('https'):
                 transfer_type = "https"
 
             # Create activity messages (if no transfer, will do be empty).
@@ -408,7 +409,6 @@ class Executor(threading.Thread):
             time.sleep(0.5)  # Just gentle rate limiting.
 
         self._logger.info(f"[GGG-5] end of transfers.")
-
 
     def monitor_check(self):
         # TODO: whenever we want to query status, get info from MONITOR here.
