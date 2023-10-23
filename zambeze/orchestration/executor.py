@@ -308,11 +308,14 @@ class Executor(threading.Thread):
         :type files: list[str]
         """
 
+        # TYLER: TODO.
+        # Step 1. TransferClass --> generates a plugin-compliant message.
+        # Step 2. Take that message, send it to run command.
+
         self._logger.debug("[FFF8] Processing files...")
 
         # TODO: we raise exceptions and handle them in __process with an agent
         # shutdown?!
-        transfer_type = None
         globus_transfer_clients = dict()  # should be source_ep_id: {'task_data': xxx, 'transfer_client': yyy}
         globus_task_ids = []
 
@@ -328,12 +331,16 @@ class Executor(threading.Thread):
             # If globus, then upgrade to transfer
             # elif file_url.scheme == "globus":
             # TODO: TYLER---change this back to elif.
+            # TODO: JOSH -- we shouldn't need the 'globus'/etc. in here at all. Can all be abstracted away here.
             if file_url.scheme == "globus":
 
                 self._logger.info(f"GLOBUS FILE PATH RECEIVED: {file_url.path}")
                 if "globus" not in self._settings.settings["plugins"]:
                     self._logger.exception("GLOBUS ERROR")
                     raise Exception("[Executor] Globus may not be configured locally")
+
+                # TODO: JOSH STEP 1.
+                # transfer_message = TransferMessage(<send list of files>)
 
                 self._logger.info(f"[GGG-1]")
 
@@ -386,6 +393,9 @@ class Executor(threading.Thread):
             )
             for msg in activity_messages:
                 self.to_new_activity_q.put(msg)
+
+        # TODO: JOSH STEP 2.
+        # ...plugin.run(transfer_message)
 
         for source_ep in globus_transfer_clients:
             transfer_client = globus_transfer_clients[source_ep]['transfer_client']

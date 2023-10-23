@@ -163,7 +163,8 @@ class MessageHandler(threading.Thread):
             ]
             self._logger.info(f"[FFF5] {activity[1]['activity'].data.body.type}")
             plugins_are_configured = self.are_plugins_configured(required_plugin)
-        should_ack = plugins_are_configured
+            actions_are_supported = self.are_actions_supported([])  # TODO
+        should_ack = plugins_are_configured and actions_are_supported
 
         # TODO: *add git issue*  additional functionalities to be added as git issues
         # 1. Pulling down messages based on metadata filters rather than pulling
@@ -305,5 +306,9 @@ class MessageHandler(threading.Thread):
         # return whether NO errors were detected.
         return not checked_result.error_detected()
 
+    # TODO: feature add: -- are_plugins_configured AND necessary_actions_supported.
     def are_plugins_configured(self, plugin_label):
         return self._settings.is_plugin_configured(plugin_label)
+
+    def are_actions_supported(self, action_labels: list[str]):
+        return True  # TODO.

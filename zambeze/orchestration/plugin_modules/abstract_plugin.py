@@ -54,6 +54,7 @@ class Plugin(ABC):
     @property
     @abstractmethod
     def supportedActions(self) -> list[str]:
+        # TODO: JOSH -- can initialize these to show supported 'transfer' action.
         raise NotImplementedError(
             "Method indicating supported actions of the plugin is not " "implemented"
         )
@@ -84,17 +85,17 @@ class Plugin(ABC):
 
         :Example:
 
-        >>> arguments =
-        >>> [
-        >>>     { "action1": { "dothis": ...} },
-        >>>     { "action2": { "dothat": ...} },
-        >>> ]
-        >>> checked_actions = plugin.check(arguments)
-        >>> for action in checked_actions:
-        >>>     print(f"{action}: {checked_actions[action]}")
-        >>> # Should print
-        >>> # action1 True, ""
-        >>> # action2 False, "This was the problem"
+        arguments =
+        [
+            { "action1": { "dothis": ...} },
+            { "action2": { "dothat": ...} },
+        ]
+        checked_actions = plugin.check(arguments)
+        for action in checked_actions:
+            print(f"{action}: {checked_actions[action]}")
+        # Should print
+        # action1 True, ""
+        # action2 False, "This was the problem"
         """
 
     @abstractmethod
