@@ -32,7 +32,7 @@ def main():
     activity = ShellActivity(
         name="ImageMagick",
         files=[
-            f"globus:/{curr_dir}/../tests/campaigns/imagesequence/{i:02d}.jpg"
+            f"file:/{curr_dir}/../tests/campaigns/imagesequence/{i:02d}.jpg"
             for i in range(1, 11)
         ],
         command="convert",

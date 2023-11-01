@@ -107,13 +107,13 @@ class Agent:
         """Move process-eligible activities to the executor's to_process_q!
         OBSERVES message_handler (via to_process_q)
         """
-        self._logger.info("Starting activity sorter thread!")
+        self._logger.info("Starting activity sorter thread! A110")
         while True:
             activ_to_sort = self._msg_handler_thd.check_activity_q.get()
-            self._logger.info(f"[agent] Received activity: {activ_to_sort}")
+            self._logger.info(f"[agent] Received activity (A113): {activ_to_sort}")
             self._executor.to_process_q.put(activ_to_sort)
             self._logger.debug(
-                "[agent] Put new activity into executor processing queue!"
+                "[agent] Put new activity into executor processing queue! (A116)"
             )
 
     def recv_control_thd(self):

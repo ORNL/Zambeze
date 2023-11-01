@@ -144,6 +144,7 @@ class MessageHandler(threading.Thread):
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
     def _callback(self, ch, method, _properties, body):
+        self._logger.info("ZZZ-1")
         self._logger.info(f"[recv_activity] receiving activity...{dill.loads(body)}")
         activity = dill.loads(body)
 
@@ -151,6 +152,8 @@ class MessageHandler(threading.Thread):
         # Anyone can monitor or terminate.
         if activity[0] in ["MONITOR", "TERMINATOR"]:
             plugins_are_configured = True
+            actions_are_supported = True
+            self._logger.info("YYY MONITOR/TERMINATOR CONDITIONS MET")
 
         else:
             self._logger.info(f"[FFF1] GETTING REQUIRED PLUGIN")
@@ -163,7 +166,8 @@ class MessageHandler(threading.Thread):
             ]
             self._logger.info(f"[FFF5] {activity[1]['activity'].data.body.type}")
             plugins_are_configured = self.are_plugins_configured(required_plugin)
-            actions_are_supported = self.are_actions_supported([])  # TODO
+            actions_are_supported = True # self.are_actions_supported(action_labels=["hobo"])  # TODO
+
         should_ack = plugins_are_configured and actions_are_supported
 
         # TODO: *add git issue*  additional functionalities to be added as git issues
@@ -243,6 +247,8 @@ class MessageHandler(threading.Thread):
                     f"{type(e).__name__}: {e}"
                 )
             else:
+                # TODO: differentiate between sending activity and terminator. (should be easy... just hard to
+                # TODO:   parse the logs as-is.
                 self._logger.debug("[send_activity] Successfully sent activity!")
 
     def recv_control(self):
@@ -311,4 +317,5 @@ class MessageHandler(threading.Thread):
         return self._settings.is_plugin_configured(plugin_label)
 
     def are_actions_supported(self, action_labels: list[str]):
+        self._logger(f"Action labels: {action_labels}")
         return True  # TODO.

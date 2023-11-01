@@ -98,7 +98,17 @@ class Executor(threading.Thread):
         self._logger.info(
             f"[executor] Moving to working directory {default_working_dir}"
         )
-        os.chdir(default_working_dir)
+
+        try:
+            # First try to switch into working directory if it exists.
+            os.chdir(default_working_dir)
+        except FileNotFoundError as e1:
+            self._logger.info(f"[executor] Working directory not found... attempting to create!")
+            os.makedirs(default_working_dir)
+            self._logger.info(f"[executor] Working directory successfully created!")
+        except Exception as e2:
+            self._logger.info(f"ECAUGHT: {type(e2).__name__}")
+            self._logger.info(f"ECAUGHT: {e2}")
 
         monitor_launched = False
         terminator_stopped = False
@@ -109,14 +119,16 @@ class Executor(threading.Thread):
             self._logger.info(f" SIZE OF QUEUE: {self.to_process_q.qsize()}")
             dag_msg = self.to_process_q.get()
 
+            self._logger.info(f"[EXECUTOR] AAA - retrieved message! {dag_msg}...")
+
             # Check 1. If MONITOR, then we want to STICK the process
             if dag_msg[0] == "MONITOR":
 
-                self._logger.info("[executor] ENTERING MONITOR TASK THREAD!")
+                self._logger.info("[executor] (E117) ENTERING MONITOR TASK THREAD!")
                 monitor_thread = Monitor(dag_msg, self._logger)
                 monitor_thread.start()
 
-                self._logger.info("[executor] Creating MONITOR reader thread!")
+                self._logger.info("[executor] (E121) Creating MONITOR reader thread!")
                 monitor_reader = threading.Thread(target=self.monitor_check, args=())
                 monitor_reader.start()
 
@@ -375,8 +387,6 @@ class Executor(threading.Thread):
                 )
 
             elif file_url.scheme == "rsync":
-                # elif file_url.startswith('rsync'):
-                # transfer_type = "rsync"
                 if "rsync" not in self._settings.settings["plugins"]:
                     raise Exception("Rsync may not be configured locally")
 
