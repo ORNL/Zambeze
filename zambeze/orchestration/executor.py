@@ -282,7 +282,6 @@ class Executor(threading.Thread):
                 self._logger.debug("SKIPPING FAULTY CHECK...")
 
                 # TODO: have psij instead run the plugins.
-
                 # if psij_flag:
                 #    Run through psi_j
 
@@ -376,7 +375,8 @@ class Executor(threading.Thread):
 
                 # Just get the 36-character UUID of the source endpoint.
                 # TODO: this should be the globus_uri_separator's job.
-                source_ep = re.search(r"(.{36})@", file_url).group(1)
+                # source_ep = re.search(r"(.{36})@", file_url.path).group(1)
+                source_ep = file_url.netloc
                 dest_ep = self._settings.settings["plugins"]["globus"]["local_ep"]
 
                 if source_ep not in globus_transfer_clients:
@@ -394,13 +394,13 @@ class Executor(threading.Thread):
                         transfer_client=globus_transfer_clients[source_ep]['transfer_client']
                     )
 
-                source_filename = file_url[46:]
-                filename = source_filename.split('/')[-1]
+                # Get the filename without any stem.
+                filename = file_url.path.split('/')[-1]
 
                 # Can be 'here' since we're already in working directory.
                 dest_filename = f"{os.path.join(os.getcwd(), filename)}"
                 globus_transfer_clients[source_ep]['task_data'].add_item(
-                    file_url[46:],  # source
+                    file_url.path,  # source
                     dest_filename,  # dest
                 )
 
