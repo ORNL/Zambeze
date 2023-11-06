@@ -6,25 +6,23 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
+# Absolute imports
 import json
 import logging
-import globus_sdk  # TODO: remove.
 import os
-import re
-import time
 import pathlib
-import threading
 import requests
+import threading
+import time
 
+# Relative imports
 from queue import Queue
 from typing import Optional
 from dataclasses import asdict
 from urllib.parse import urlparse
 from .monitor import Monitor
-
-# TODO: JOSH. What should interface be for accessing a plugin
-from ..orchestration.plugin_modules.globus.globus import Globus
-
+from ..orchestration.plugin_modules.globus.globus import Globus  # TODO: THIS SHOULD NOT EVEN BE IN HERE
+import globus_sdk  # TODO: THIS SHOULD NOT EVEN BE IN HERE.
 
 from ..settings import ZambezeSettings
 from .message.message_factory import MessageFactory
@@ -336,10 +334,8 @@ class Executor(threading.Thread):
         for file_path in files:
             file_url = urlparse(file_path)
 
+            # Use this to avoid things like '..' in the file string. For debugging.
             file_path_resolved = pathlib.Path(file_url.path).resolve()
-
-            # TODO: TYLER PROPERLY FIX THIS.
-            # file_path_resolved = "/Users" + file_path_resolved
 
             try:
                 self._logger.debug(f"File to parse {file_url}")
@@ -406,7 +402,7 @@ class Executor(threading.Thread):
 
             elif file_url.scheme == "rsync":
                 if "rsync" not in self._settings.settings["plugins"]:
-                    raise Exception("Rsync may not be configured locally")
+                    raise NotImplementedError("Currently only local files and Globus Transfer are supported!")
 
             elif file_url.scheme == "https":
                 # elif file_url.startswith('https'):

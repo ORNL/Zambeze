@@ -1,5 +1,5 @@
 # Local imports
-from ...identity import valid_uuid
+from zambeze.utils.identity import valid_uuid
 
 # Standard imports
 from os.path import exists
