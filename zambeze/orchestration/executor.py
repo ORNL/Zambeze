@@ -287,6 +287,9 @@ class Executor(threading.Thread):
                 #    Run through psi_j
 
                 self._settings.plugins.run(activity_msg)
+
+                self._logger.info(f"FINISHIA")
+
                 # TODO: bring proper validation back (below)
                 # if checked_result.error_detected() is False:
                 #     self._settings.plugins.run(activity_msg)
@@ -333,12 +336,27 @@ class Executor(threading.Thread):
 
         for file_path in files:
             file_url = urlparse(file_path)
-            self._logger.debug(f"File to parse {file_url}")
+
+            file_path_resolved = pathlib.Path(file_url.path).resolve()
+
+            # TODO: TYLER PROPERLY FIX THIS.
+            # file_path_resolved = "/Users" + file_path_resolved
+
+            try:
+                self._logger.debug(f"File to parse {file_url}")
+                self._logger.info(f"XXscheme: {file_url.scheme}")
+                self._logger.info(f"XXpath: {file_url.path}")
+            except Exception as e:
+                self._logger.error(f"Caught XYQ: {e}")
 
             # If file scheme local, then do not upgrade to transfer!
             if file_url.scheme == "file":
-                if not pathlib.Path(file_url.path).exists():
-                    raise Exception(f"Unable to find file: {file_url}")  # TODO: add back 'file_url.path'
+                self._logger.info(f"XX1: {file_url}")
+                self._logger.info(f"XX2: {file_url.scheme}")
+                self._logger.info(f"XX3: {file_url.path}")
+
+                if not pathlib.Path(file_path_resolved).exists():
+                    raise Exception(f"Unable to find file: {file_path_resolved}")  # TODO: add back 'file_url.path'
 
             # If globus, then upgrade to transfer
             # elif file_url.scheme == "globus":
