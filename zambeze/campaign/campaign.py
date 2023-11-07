@@ -6,17 +6,16 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import globus_sdk
 import logging
 import zmq
 import pickle
 import uuid
-import networkx as nx  # TODO: move to dag object.
+import networkx as nx
 
 from .activities.abstract_activity import Activity
 from .activities.dag import DAG
-from globus_sdk.scopes import TransferScopes
 from zambeze.settings import ZambezeSettings
+from zambeze.auth.globus_auth import GlobusAuthenticator
 
 from typing import Optional
 
@@ -87,22 +86,15 @@ class Campaign:
 
         token_obj = dict()
         if self.needs_globus_login:
-            CLIENT_ID = "61338d24-54d5-408f-a10d-66c06b59f6d2"  # ZAMBEZE
-            auth_client = globus_sdk.NativeAppAuthClient(CLIENT_ID)
+            authenticator = GlobusAuthenticator()
+            access_token = authenticator.check_tokens_and_authenticate()
 
-            # requested_scopes specifies a list of scopes to request
-            # instead of the defaults, only request access to the Transfer API
-            auth_client.oauth2_start_flow(requested_scopes=TransferScopes.all)
-            authorize_url = auth_client.oauth2_get_authorize_url()
-            print(f"Please go to this URL and login:\n\n{authorize_url}\n")
-
-            auth_code = input("Please enter the code here: ").strip()
-            tokens = auth_client.oauth2_exchange_code_for_tokens(auth_code)
-            transfer_tokens = tokens.by_resource_server["transfer.api.globus.org"]
-
-            # TODO: clean this up.
+            # Package up to later be read by TransferHippo.
             token_obj['globus'] = dict()
-            token_obj['globus']['access_token'] = transfer_tokens['access_token']
+            token_obj['globus']['access_token'] = access_token
+
+            # print(f"Access token: {access_token}")
+            # print(f"Access token type: {type(access_token)}")
 
         for activity in self.activities:
 

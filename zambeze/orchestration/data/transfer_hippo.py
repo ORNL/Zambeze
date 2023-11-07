@@ -130,6 +130,8 @@ class TransferHippo:
                 source_ep = file_url_obj.netloc
                 dest_ep = self._settings.settings["plugins"]["globus"]["local_ep"]
 
+                self._logger.info(f"EXTOKENS: {self.tokens}")
+
                 self.globus_transfer_client = globus_sdk.TransferClient(
                     authorizer=globus_sdk.AccessTokenAuthorizer(self.tokens["globus"]["access_token"])
                 )
@@ -183,4 +185,3 @@ class TransferHippo:
             time.sleep(0.5)  # Just gentle rate limiting.
             if blow_up:
                 return True
-
