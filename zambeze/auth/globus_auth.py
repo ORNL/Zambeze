@@ -7,7 +7,7 @@ from globus_sdk.scopes import TransferScopes
 
 class GlobusAuthenticator:
     def __init__(self):
-        self.client_id =  "61338d24-54d5-408f-a10d-66c06b59f6d2"  # os.getenv('GLOBUS_CLIENT_ID')
+        self.client_id = os.getenv('GLOBUS_CLIENT_ID')
         if not self.client_id:
             raise ValueError("GLOBUS_CLIENT_ID is not set in environment variables.")
         self.auth_client = globus_sdk.NativeAppAuthClient(self.client_id)
