@@ -19,14 +19,14 @@ import time
 from queue import Queue
 from typing import Optional
 from dataclasses import asdict
-from urllib.parse import urlparse
+#
 from .monitor import Monitor
-from ..orchestration.plugin_modules.globus.globus import Globus  # TODO: THIS SHOULD NOT EVEN BE IN HERE
+# from ..orchestration.plugin_modules.globus.globus import Globus  # TODO: THIS SHOULD NOT EVEN BE IN HERE
 import globus_sdk  # TODO: THIS SHOULD NOT EVEN BE IN HERE.
 
 from ..settings import ZambezeSettings
 from .message.message_factory import MessageFactory
-from zambeze.orchestration.message.transfer_hippo import TransferHippo
+from zambeze.orchestration.data.transfer_hippo import TransferHippo
 
 
 class Executor(threading.Thread):
@@ -320,129 +320,27 @@ class Executor(threading.Thread):
         :type files: list[str]
         """
 
-        # TYLER: TODO.
-        # Step 1. TransferClass --> generates a plugin-compliant message.
-        # Step 2. Take that message, send it to run command.
+        transfer_hippo = TransferHippo(agent_id=self._agent_id,
+                                       settings=self._settings,
+                                       logger=self._logger,
+                                       tokens=tokens)
 
-        self._logger.debug("[FFF8] Processing files...")
-
-        # TODO: we raise exceptions and handle them in __process with an agent
-        # shutdown?!
-        globus_transfer_clients = dict()  # should be source_ep_id: {'task_data': xxx, 'transfer_client': yyy}
-        globus_task_ids = []
-
-        for file_path in files:
-            file_url = urlparse(file_path)
-
-            # Use this to avoid things like '..' in the file string. For debugging.
-            file_path_resolved = pathlib.Path(file_url.path).resolve()
-
-            try:
-                self._logger.debug(f"File to parse {file_url}")
-                self._logger.info(f"XXscheme: {file_url.scheme}")
-                self._logger.info(f"XXpath: {file_url.path}")
-            except Exception as e:
-                self._logger.error(f"Caught XYQ: {e}")
-
-            # If file scheme local, then do not upgrade to transfer!
-            if file_url.scheme == "file":
-                self._logger.info(f"XX1: {file_url}")
-                self._logger.info(f"XX2: {file_url.scheme}")
-                self._logger.info(f"XX3: {file_url.path}")
-
-                if not pathlib.Path(file_path_resolved).exists():
-                    raise Exception(f"Unable to find file: {file_path_resolved}")  # TODO: add back 'file_url.path'
-
-            # If globus, then upgrade to transfer
-            # elif file_url.scheme == "globus":
-            # TODO: TYLER---change this back to elif.
-            # TODO: JOSH -- we shouldn't need the 'globus'/etc. in here at all. Can all be abstracted away here.
-            if file_url.scheme == "globus":
-
-                self._logger.info(f"GLOBUS FILE PATH RECEIVED: {file_url.path}")
-                if "globus" not in self._settings.settings["plugins"]:
-                    self._logger.exception("GLOBUS ERROR")
-                    raise Exception("[Executor] Globus may not be configured locally")
-
-                # TODO: JOSH STEP 1.
-                # transfer_message = TransferMessage(<send list of files>)
-
-                self._logger.info(f"[GGG-1]")
-
-                # Just get the 36-character UUID of the source endpoint.
-                # TODO: this should be the globus_uri_separator's job.
-                # source_ep = re.search(r"(.{36})@", file_url.path).group(1)
-                source_ep = file_url.netloc
-                dest_ep = self._settings.settings["plugins"]["globus"]["local_ep"]
-
-                if source_ep not in globus_transfer_clients:
-                    # construct an AccessTokenAuthorizer and use it to construct the
-                    # TransferClient
-                    globus_transfer_clients[source_ep] = dict()
-                    globus_transfer_clients[source_ep]['transfer_client'] = globus_sdk.TransferClient(
-                        authorizer=globus_sdk.AccessTokenAuthorizer(tokens["globus"]["access_token"])
-                    )
-
-                    # create a Transfer task consisting of one or more items
-                    globus_transfer_clients[source_ep]['task_data'] = globus_sdk.TransferData(
-                        source_endpoint=source_ep,
-                        destination_endpoint=dest_ep,
-                        transfer_client=globus_transfer_clients[source_ep]['transfer_client']
-                    )
-
-                # Get the filename without any stem.
-                filename = file_url.path.split('/')[-1]
-
-                # Can be 'here' since we're already in working directory.
-                dest_filename = f"{os.path.join(os.getcwd(), filename)}"
-                globus_transfer_clients[source_ep]['task_data'].add_item(
-                    file_url.path,  # source
-                    dest_filename,  # dest
-                )
-
-            elif file_url.scheme == "rsync":
-                if "rsync" not in self._settings.settings["plugins"]:
-                    raise NotImplementedError("Currently only local files and Globus Transfer are supported!")
-
-            elif file_url.scheme == "https":
-                # elif file_url.startswith('https'):
-                transfer_type = "https"
-
-            # Create activity messages (if no transfer, will do be empty).
-            activity_messages = self._transfer_hippo.pack(
-                activity_id=activity_id,
-                campaign_id=campaign_id,
-                file_url=file_url,
-                transfer_type=None,  # TODO: bring this back.
-            )
-            for msg in activity_messages:
-                self.to_new_activity_q.put(msg)
-
-        # TODO: JOSH STEP 2.
-        # ...plugin.run(transfer_message)
-
-        for source_ep in globus_transfer_clients:
-            transfer_client = globus_transfer_clients[source_ep]['transfer_client']
-            task_data = globus_transfer_clients[source_ep]['task_data']
-            task_doc = transfer_client.submit_transfer(task_data)
-
-            transfer_task_id = task_doc["task_id"]
-            self._logger.info(f"submitted transfer, task_id={transfer_task_id}")
-
-            globus_task_ids.append(transfer_task_id)
-
-        for task_id in globus_task_ids:
-
-            while True:
-                # TODO: proper creation of transfer_client
-                status = transfer_client.get_task(task_id)['status']
-                if status != "SUCCEEDED" and status != "FAILED":
-                    time.sleep(2)
-                else:
-                    break
-            time.sleep(0.5)  # Just gentle rate limiting.
-
-        self._logger.info(f"[GGG-5] end of transfers.")
+        # Load all files into the TransferHippo.
+        self._logger.info("[executor] Loading files into TransferHippo.")
+        transfer_hippo.load(files)
+        # Validate that all files are accessible.
+        self._logger.info("[executor] Validating file accessibility.")
+        transfer_hippo.validate()
+        # Ensure that all authentication is achieved.
+        self._logger.info("[executor] Checking user auth.")
+        transfer_hippo.check_auth()
+        # Submit the transfer
+        self._logger.info("[executor] Submit the transfer.")
+        transfer_hippo.start_transfer()
+        # BLOCK: wait for transfer to finish
+        self._logger.info("[executor] Wait for transfer...")
+        transfer_hippo.transfer_wait()
+        self._logger.info("[executor] File transfer finished!")
 
     def monitor_check(self):
         # TODO: whenever we want to query status, get info from MONITOR here.
