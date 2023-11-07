@@ -12,119 +12,104 @@ import pickle
 import uuid
 import networkx as nx
 
+from typing import Optional
 from .activities.abstract_activity import Activity
 from .activities.dag import DAG
 from zambeze.settings import ZambezeSettings
 from zambeze.auth.globus_auth import GlobusAuthenticator
 
-from typing import Optional
-
 
 class Campaign:
-    """A Scientific Campaign.
+    """A Scientific Campaign class to manage and dispatch campaign activities.
 
-    :param name: The campaign name.
-    :type name: str
-    :param activities: List of activities.
-    :type activities: Optional[list[Activity]]
-    :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    Attributes:
+        name (str): The name of the campaign.
+        campaign_id (str): A unique identifier for the campaign.
+        needs_globus_login (bool): A flag indicating if Globus login is needed.
+        activities (list[Activity]): A list of activities associated with the campaign.
+        _logger (logging.Logger): Logger for logging information, warnings, and errors.
     """
 
     def __init__(
         self,
         name: str,
-        activities: list[Activity] = [],
+        activities: Optional[list[Activity]] = None,
         logger: Optional[logging.Logger] = None,
     ) -> None:
-        """Create an object that represents a science campaign."""
-        self._logger: logging.Logger = (
-            logging.getLogger(__name__) if logger is None else logger
-        )
-        self.name: str = name
+        """Initializes a Campaign instance.
 
+        Args:
+            name (str): The campaign name.
+            activities (Optional[list[Activity]]): A list of activities (default is empty list).
+            logger (Optional[logging.Logger]): A logger instance (default is module logger).
+        """
+        self._logger = logging.getLogger(__name__) if logger is None else logger
+        self.name = name
         self.campaign_id = str(uuid.uuid4())
         self.needs_globus_login = False
+        self.activities = activities if activities is not None else []
 
-        self.activities: list[Activity] = activities
-        for index in range(0, len(self.activities)):
-            self.activities[index].campaign_id = self.campaign_id
+        for activity in self.activities:
+            activity.campaign_id = self.campaign_id
 
     def add_activity(self, activity: Activity) -> None:
-        """Add an activity to the campaign.
+        """Adds an activity to the campaign.
 
-        :param activity: An activity object.
-        :type activity: Activity
+        Args:
+            activity (Activity): The activity to add to the campaign.
         """
         self._logger.debug(f"Adding activity: {activity.name}")
         activity.campaign_id = self.campaign_id
 
-        for file_uri in activity.files:
-            if file_uri.startswith('globus://'):
-                self.needs_globus_login = True
+        if any(file_uri.startswith('globus://') for file_uri in activity.files):
+            self.needs_globus_login = True
 
         self.activities.append(activity)
 
     def dispatch(self) -> None:
-        """Dispatch the set of current activities in the campaign."""
+        """Dispatches the set of current activities in the campaign."""
         self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
 
-        # Connecting to ZMQ
-        _zmq_context = zmq.Context()
-        _zmq_socket = _zmq_context.socket(zmq.REQ)
+        # Initialize ZMQ context and socket
+        zmq_context = zmq.Context()
+        zmq_socket = zmq_context.socket(zmq.REQ)
+        settings = ZambezeSettings()
+        zmq_host = settings.settings["zmq"]["host"]
+        zmq_port = settings.settings["zmq"]["port"]
+        zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
 
-        _settings = ZambezeSettings()
-
-        zmq_host = _settings.settings["zmq"]["host"]
-        zmq_port = _settings.settings["zmq"]["port"]
-
-        _zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
-
-        # Create and pack a sequential DAG (TODO: relax sequential requirement).
+        # Create a DAG to organize activities
         dag = DAG()
         last_activity = None
+        token_obj = {}
 
-        token_obj = dict()
         if self.needs_globus_login:
             authenticator = GlobusAuthenticator()
             access_token = authenticator.check_tokens_and_authenticate()
-
-            # Package up to later be read by TransferHippo.
-            token_obj['globus'] = dict()
-            token_obj['globus']['access_token'] = access_token
-
-            # print(f"Access token: {access_token}")
-            # print(f"Access token type: {type(access_token)}")
+            token_obj['globus'] = {'access_token': access_token}
 
         for activity in self.activities:
-
-            print(f"[DELETE THIS] Activity: {activity}")
-
             if last_activity is None:
                 last_activity = "MONITOR"
-                # Add one node explicitly
-                dag.add_node(
-                    "MONITOR", activity="MONITOR", campaign_id=self.campaign_id
-                )
+                dag.add_node("MONITOR", activity="MONITOR", campaign_id=self.campaign_id)
 
             dag.add_node(
-                activity.activity_id, activity=activity, campaign_id=self.campaign_id, transfer_tokens=token_obj
+                activity.activity_id,
+                activity=activity,
+                campaign_id=self.campaign_id,
+                transfer_tokens=token_obj
             )
-
-            # Rest of nodes added implicitly via edge.
             dag.add_edge(last_activity, activity.activity_id)
             last_activity = activity.activity_id
 
+        # Add the terminator node
         dag.add_node("TERMINATOR", activity="TERMINATOR", campaign_id=self.campaign_id)
         dag.add_edge(last_activity, "TERMINATOR")
 
         self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
+        serial_dag = pickle.dumps(nx.node_link_data(dag))  # Serialize the DAG
 
-        # Dump dict into bytestring. NetworkX prefers breaking up into
-        # nodes and edges (and pickling)
-        serial_dag = pickle.dumps(nx.node_link_data(dag))
-
-        self._logger.debug("Activity DAG sending via ZMQ...")
-        _zmq_socket.send(serial_dag)
+        self._logger.debug("Sending activity DAG via ZMQ...")
+        zmq_socket.send(serial_dag)
         self._logger.debug("Activity DAG successfully sent!")
-        self._logger.info(f"REPLY: {_zmq_socket.recv()}")
+        self._logger.info(f"REPLY: {zmq_socket.recv()}")
