@@ -1,92 +1,138 @@
-import threading
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
 
+import threading
 from time import time, sleep
 from queue import Queue
 
 
 class Monitor(threading.Thread):
-    def __init__(self, dag_msg, logger):
-        """
-        MONITOR thread (1 campaign == 1 monitor thread) enables an
-        arbitrary agent to keep tabs on a campaign as a whole by 'monitoring'
-        the control queue to see if its activities successfully complete (or not).
-        """
+    """
+    Monitor thread that enables an agent to track
+    task state across Zambeze.
 
-        threading.Thread.__init__(self)
+    Attributes:
+        dag_msg (dict): A dictionary message holding the task graph.
+        _logger (logging.Logger): Logger object (local log).
+        monitor_hb_s (int): Seconds between heartbeat messages.
+        to_monitor_q (queue.Queue): Queue to receive messages to monitor.
+        to_status_q (queue.Queue): Queue to send status messages.
+        dag_dict (dict): Dictionary to keep track of the tasks status.
+        completed (bool): Flag to indicate if monitoring is completed.
+    """
+
+    def __init__(self, dag_msg, logger):
+        super().__init__()
 
         self.dag_msg = dag_msg
         self._logger = logger
-        self.monitor_hb_s = 5  # seconds between heartbeats.
+        self.monitor_hb_s = 5  # seconds between heartbeats
 
-        # Internal queues.
         self.to_monitor_q = Queue()
         self.to_status_q = Queue()
 
-        # Now we want to hold (and periodically log) until all subtasks are complete.
-        self.dag_dict = dict()
+        self.dag_dict = {activity_id: "PROCESSING"
+                         for activity_id in dag_msg[1]["all_activity_ids"]
+                         if activity_id != "MONITOR"}
 
-        # So executor can check if we need to spin down monitor.
+        self._logger.info("[monitor] Monitoring initialized for activities: "
+                          f"{self.dag_dict.keys()}")
         self.completed = False
+        self.last_logged_proc_count = None
 
     def run(self):
-        """Override the Thread 'run' method to instead run our
-        process when Thread.start() is called!"""
-
-        self._logger.info("[monitor] Thread running... ")
-
-        # Add all activities (besides the monitor) to our dict.
-        for activity_id in self.dag_msg[1]["all_activity_ids"]:
-            if activity_id == "MONITOR":
-                continue
-            self.dag_dict[activity_id] = "PROCESSING"
-            self._logger.info(
-                "[monitor] Marked all campaign activities for monitoring!"
-            )
-
+        """
+        Runs the monitor process when the thread starts. It checks for
+        task completion, processes incoming messages, and sends heartbeat
+        messages at regular intervals.
+        """
         last_hb_time = time()
-        while True:
-            # Quick check to see if all values are NOT "PROCESSING"
-            proc_count = sum(x == "PROCESSING" for x in self.dag_dict.values())
+        last_proc_log_time = time()  # Variable to track the last proc count log time
+        while not self.completed:
+            self._check_activities()
+            self._process_messages()
+
+            # Log the process count only every 10 seconds
+            current_time = time()
+            if current_time - last_proc_log_time >= 10:
+                self._log_proc_count()
+                last_proc_log_time = current_time  # Update the last proc count log time
+
+            last_hb_time = self._send_heartbeat(last_hb_time)
+
+        self._logger.info("[monitor] Monitoring completed.")
+
+    def _log_proc_count(self):
+        """
+        Log the current process count.
+        """
+        proc_count = sum(status == "PROCESSING" for status in self.dag_dict.values())
+        if proc_count != self.last_logged_proc_count:
             self._logger.debug(
-                f"\n[monitor] Current proc count: {proc_count}"
-                f"\n[monitor] Status dict: {self.dag_dict}"
+                f"[monitor] Current proc count: {proc_count} | "
+                f"Status dict: {self.dag_dict}"
             )
+            self.last_logged_proc_count = proc_count
 
-            if proc_count == 0:
+    def _check_activities(self):
+        """
+        Check the status of all activities and update the monitoring status
+        if all activities are completed.
+        """
+        proc_count = sum(status == "PROCESSING" for status in self.dag_dict.values())
+
+        if proc_count == 0:
+            self.completed = True
+            self._logger.info(f"[monitor] Final campaign status dict: {self.dag_dict}")
+            sleep(10)  # Wait for executor to shut down the monitor.
+
+    def _process_messages(self):
+        """
+        Process messages from the to_monitor_q and update the status of activities.
+        """
+        if not self.to_monitor_q.empty():
+            status_msg = self.to_monitor_q.get()
+
+            self._logger.info(f"[monitor] Received control message: {status_msg}")
+
+            if status_msg == "KILL":
+                self._logger.info("[monitor] Healthy KILL signal received. "
+                                  "Tearing down...")
                 self.completed = True
-                self._logger.info(
-                    f"[monitor] Final campaign status dict: {self.dag_dict}"
-                )
-                # Bit of a wacky (but harmless hack) bc monitor doesn't need to do anything, but
-                # ... needs to wait until it is shut down by executor. Just avoids thrashing.
-                sleep(10)
+                return
 
-            if self.to_monitor_q.qsize() > 0:
-                status_msg = self.to_monitor_q.get()
+            activity_id = status_msg["activity_id"]
+            if activity_id in self.dag_dict:
+                self.dag_dict[activity_id] = status_msg["status"]
 
-                self._logger.info(f"[monitor] Received control message: {status_msg}")
+    def _send_heartbeat(self, last_hb_time):
+        """
+        Send a heartbeat message if the time since the last heartbeat exceeds
+        the threshold. Updates and returns the last heartbeat time.
 
-                if status_msg == "KILL":
-                    self._logger.info(
-                        "[monitor] Healthy KILL signal received. Tearing down..."
-                    )
-                    break
+        Args:
+            last_hb_time (float): The last recorded time a heartbeat was sent.
 
-                if status_msg["activity_id"] in self.dag_dict:
-                    status = status_msg["status"]
-                    self.dag_dict[status_msg["activity_id"]] = status
+        Returns:
+            float: The updated last heartbeat time.
+        """
+        current_time = time()
+        if current_time - last_hb_time > self.monitor_hb_s:
+            hb_monitor_msg = {
+                "status": "MONITORING",
+                "activity_id": "MONITOR",
+                "campaign_id": self.dag_msg[1]["campaign_id"],
+                "msg": "simple heartbeat notification.",
+            }
 
-            # If enough time has passed, hb...
-            if time() - last_hb_time > self.monitor_hb_s:
+            self.to_status_q.put(hb_monitor_msg)
+            self._logger.debug("[monitor] Enqueued monitor hb message!")
+            return current_time  # return the updated time
 
-                # Send heartbeat and sleep.
-                hb_monitor_msg = {
-                    "status": "MONITORING",
-                    "activity_id": "MONITORING",
-                    "campaign_id": self.dag_msg[1]["campaign_id"],
-                    "msg": "simple heartbeat notification.",
-                }
+        return last_hb_time  # return the original time if no heartbeat was sent
 
-                self.to_status_q.put(hb_monitor_msg)
-                self._logger.debug("[monitor] Enqueued monitor hb message! ")
-                last_hb_time = time()
