@@ -6,7 +6,6 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-# Absolute imports
 import json
 import logging
 import os
@@ -14,17 +13,13 @@ import requests
 import threading
 import time
 
-# Relative imports
 from queue import Queue
 from typing import Optional
 from dataclasses import asdict
-#
-from .monitor import Monitor
-# from ..orchestration.plugin_modules.globus.globus import Globus  # TODO: THIS SHOULD NOT EVEN BE IN HERE
-import globus_sdk  # TODO: THIS SHOULD NOT EVEN BE IN HERE.
 
-from ..settings import ZambezeSettings
-from .message.message_factory import MessageFactory
+from zambeze.orchestration.monitor import Monitor
+from zambeze.settings import ZambezeSettings
+from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.data.transfer_hippo import TransferHippo
 
 
@@ -254,7 +249,6 @@ class Executor(threading.Thread):
                                 f"[executor.py] Unable to acquire files. Caught {e}"
                             )
                             self._logger.exception("ERROR-123")
-                            #self._logger.error(traceback.print_exc())
                             continue
 
                 # Running Checks
