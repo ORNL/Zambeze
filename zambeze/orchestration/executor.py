@@ -278,8 +278,6 @@ class Executor(threading.Thread):
 
                 self._settings.plugins.run(activity_msg)
 
-                self._logger.info(f"FINISHIA")
-
                 # TODO: bring proper validation back (below)
                 # if checked_result.error_detected() is False:
                 #     self._settings.plugins.run(activity_msg)

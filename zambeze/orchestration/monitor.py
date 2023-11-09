@@ -67,9 +67,10 @@ class Monitor(threading.Thread):
 
         self._logger.info("[monitor] Monitoring completed.")
 
+
     def _log_proc_count(self):
         """
-        Log the current process count.
+        Log the current process count, if it has changed since last log.
         """
         proc_count = sum(status == "PROCESSING" for status in self.dag_dict.values())
         if proc_count != self.last_logged_proc_count:
@@ -84,17 +85,19 @@ class Monitor(threading.Thread):
         Check the status of all activities and update the monitoring status
         if all activities are completed.
         """
+        self._logger.info("IN CHECK ACTIVITIES")
+
         proc_count = sum(status == "PROCESSING" for status in self.dag_dict.values())
 
         if proc_count == 0:
             self.completed = True
             self._logger.info(f"[monitor] Final campaign status dict: {self.dag_dict}")
-            sleep(10)  # Wait for executor to shut down the monitor.
 
     def _process_messages(self):
         """
         Process messages from the to_monitor_q and update the status of activities.
         """
+        self._logger.info("IN PROCESS MESSAGES")
         if not self.to_monitor_q.empty():
             status_msg = self.to_monitor_q.get()
 
