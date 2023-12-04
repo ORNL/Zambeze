@@ -276,6 +276,7 @@ class Executor(threading.Thread):
                 # if psij_flag:
                 #    Run through psi_j
 
+                # TODO: handle failures from the SHELL activity.
                 self._settings.plugins.run(activity_msg)
 
                 # TODO: bring proper validation back (below)
@@ -285,12 +286,39 @@ class Executor(threading.Thread):
                 #     self._logger.debug(
                 #         "Skipping run - error detected when running " "plugin check"
                 #     )
+            elif activity_msg.data.body.type == "TRANSFER":
 
+                # TODO: TYLER -- generalize this logic from __process_files.
+                # TODO: TYLER -- make sure this actually works
+                files = activity_msg.data.body.files
+
+                transfer_hippo = TransferHippo(agent_id=self._agent_id,
+                                               settings=self._settings,
+                                               logger=self._logger,
+                                               tokens=transfer_tokens)
+
+                # Load all files into the TransferHippo.
+                self._logger.info("[executor] Loading files into TransferHippo.")
+                transfer_hippo.load(files)
+                # Validate that all files are accessible.
+                self._logger.info("[executor] Validating file accessibility.")
+                transfer_hippo.validate()
+                # Ensure that all authentication is achieved.
+                self._logger.info("[executor] Checking user auth.")
+                transfer_hippo.check_auth()
+                # Submit the transfer
+                self._logger.info("[executor] Submit the transfer.")
+                transfer_hippo.start_transfer()
+                # BLOCK: wait for transfer to finish
+                self._logger.info("[executor] Wait for transfer...")
+                transfer_hippo.transfer_wait()
+                self._logger.info("[executor] File transfer finished!")
             else:
                 raise Exception("Only SHELL currently supported")
 
             # If we get here, it should be because nothing failed
             # TODO: confirm (unit-test somehow)
+            # TODO: add result here. Move to git issue, perhaps implements flowcept?
             status_msg = {
                 "status": "SUCCEEDED",
                 "activity_id": dag_msg[0],

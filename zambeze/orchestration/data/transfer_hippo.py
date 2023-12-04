@@ -121,6 +121,8 @@ class TransferHippo:
         globus_counter = 0
         task_data = None
 
+        # TODO: Make this generic; Create transfer holder for each type. Then pack the files in each in a loop.
+        #  at the end, start each of the transfers.
         for resolved_file_url, file_data in self.file_objects.items():
             file_url_obj = file_data['file_url']
 
@@ -163,6 +165,8 @@ class TransferHippo:
         Returns:
             bool: True if transfer is completed or False if timed out.
         """
+
+        # TODO: generalize
         wait_start_t = time.time()
         while True:
             for task_id in self.globus_task_ids:
