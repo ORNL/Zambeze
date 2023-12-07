@@ -49,7 +49,7 @@ class QueueRMQ(AbstractQueue):
 
     def connect(self) -> tuple[bool, str]:
         try:
-            self._rmq = pika.BlockingConnection(pika.ConnectionParameters(self._ip))
+            self._rmq = pika.BlockingConnection(pika.ConnectionParameters(host=self._ip, port=self._port))
             self._rmq_channel = self._rmq.channel()
             self._logger.info("[Queue RMQ] Creating RabbitMQ channels...")
 
