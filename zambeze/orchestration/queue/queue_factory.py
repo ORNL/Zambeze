@@ -1,6 +1,6 @@
 import logging
 
-from .queue_nats import QueueNATS
+# from .queue_nats import QueueNATS
 from .queue_rmq import QueueRMQ
 
 # TODO: this enforces queue factory to be of type AbstractQueue. Needs to
@@ -49,9 +49,9 @@ class QueueFactory:
         for client in queue_clients:
           await client.connect()
         """
-        if queue_type == QueueType.NATS:
-            return QueueNATS(args, logger=self._logger)
-        elif queue_type == QueueType.RABBITMQ:
+        #if queue_type == QueueType.NATS:
+        #    return QueueNATS(args, logger=self._logger)
+        if queue_type == QueueType.RABBITMQ:
             return QueueRMQ(args, logger=self._logger)
         else:
             raise Exception(

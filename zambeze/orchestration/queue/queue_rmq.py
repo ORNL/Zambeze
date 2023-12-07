@@ -10,18 +10,21 @@ class QueueRMQ(AbstractQueue):
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
         self._queue_type = QueueType.RABBITMQ
         self._logger = logger
-        self._ip = "127.0.0.1"
-        self._port = "5672"
+        self._ip = queue_config["ip"]
+        self._port = queue_config["port"]
         self._rmq = None
         self._rmq_channel = None
         self._sub = {}
 
         self.callback_queue = None
 
+        """
         if "ip" in queue_config:
             self._ip = queue_config["ip"]
         if "port" in queue_config:
             self._port = queue_config["port"]
+        """
+        self._logger.info(f"Preparing to start queue at address {self._ip}:{self._port}")
 
     def __disconnected(self):
         if self._logger:
