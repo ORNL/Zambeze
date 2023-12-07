@@ -126,7 +126,8 @@ class TransferHippo:
         for resolved_file_url, file_data in self.file_objects.items():
             file_url_obj = file_data['file_url']
 
-            if file_url_obj.scheme == "local":
+            # Catch local files; perform no transfers.
+            if file_url_obj.scheme == "file":
                 continue
 
             if not globus_init:
@@ -167,6 +168,9 @@ class TransferHippo:
         """
 
         # TODO: generalize
+        if len(self.globus_task_ids) == 0:
+            return True
+
         wait_start_t = time.time()
         while True:
             for task_id in self.globus_task_ids:

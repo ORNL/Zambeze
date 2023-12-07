@@ -64,6 +64,7 @@ class Monitor(threading.Thread):
                 last_proc_log_time = current_time  # Update the last proc count log time
 
             last_hb_time = self._send_heartbeat(last_hb_time)
+            sleep(0.1)
 
         self._logger.info("[monitor] Monitoring completed.")
 
@@ -85,7 +86,7 @@ class Monitor(threading.Thread):
         Check the status of all activities and update the monitoring status
         if all activities are completed.
         """
-        self._logger.info("IN CHECK ACTIVITIES")
+        # self._logger.info("IN CHECK ACTIVITIES")
 
         proc_count = sum(status == "PROCESSING" for status in self.dag_dict.values())
 
@@ -97,7 +98,7 @@ class Monitor(threading.Thread):
         """
         Process messages from the to_monitor_q and update the status of activities.
         """
-        self._logger.info("IN PROCESS MESSAGES")
+        # self._logger.info("IN PROCESS MESSAGES")
         if not self.to_monitor_q.empty():
             status_msg = self.to_monitor_q.get()
 
