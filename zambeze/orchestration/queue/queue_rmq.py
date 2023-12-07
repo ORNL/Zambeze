@@ -67,7 +67,9 @@ class QueueRMQ(AbstractQueue):
                     "3. The correct ip address and port have been specified.\n"
                     "4. That an agent.yaml file exists for the zambeze agent.\n"
                 )
-                self._logger.error(f"CAUGHT: {e}")
+                import traceback
+                self._logger.error(f"CAUGHT: {traceback.print_exc}")
+
                 self._rmq = None
                 self._rmq_channel = None
 
