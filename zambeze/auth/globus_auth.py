@@ -70,9 +70,14 @@ class GlobusAuthenticator:
         # Check if the current time is past the token's expiration time
         return time.time() > expires_at
 
-    def check_tokens_and_authenticate(self):
+    def check_tokens_and_authenticate(self, force_login=False):
+
         # Attempt to load the tokens
         tokens = self.load_tokens()
+
+        # TODO: TYLER CLEAN THIS UP.
+        if force_login:
+            self.authenticate()
 
         if tokens:
             # Check if the access token has expired
