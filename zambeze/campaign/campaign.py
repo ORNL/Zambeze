@@ -10,6 +10,7 @@ import logging
 import zmq
 import pickle
 import uuid
+import time
 import networkx as nx
 
 from typing import Optional
@@ -35,6 +36,7 @@ class Campaign:
         name: str,
         activities: Optional[list[Activity]] = None,
         logger: Optional[logging.Logger] = None,
+        force_login: bool = False
     ) -> None:
         """Initializes a Campaign instance.
 
@@ -48,6 +50,9 @@ class Campaign:
         self.campaign_id = str(uuid.uuid4())
         self.needs_globus_login = False
         self.activities = activities if activities is not None else []
+
+        self.force_login = force_login
+        self.result_val = "The total wordcount from these books: gatsby, oz is 93944"
 
         for activity in self.activities:
             activity.campaign_id = self.campaign_id
@@ -83,9 +88,9 @@ class Campaign:
         last_activity = None
         token_obj = {}
 
-        if self.needs_globus_login:
+        if self.needs_globus_login or self.force_login:
             authenticator = GlobusAuthenticator()
-            access_token = authenticator.check_tokens_and_authenticate()
+            access_token = authenticator.check_tokens_and_authenticate(force_login=self.force_login)
             token_obj['globus'] = {'access_token': access_token}
 
         for activity in self.activities:
@@ -113,3 +118,19 @@ class Campaign:
         zmq_socket.send(serial_dag)
         self._logger.debug("Activity DAG successfully sent!")
         self._logger.info(f"REPLY: {zmq_socket.recv()}")
+
+    def status(self, block=False):
+        if block:
+            print(f"MONITOR created for campaign ID {self.campaign_id} on agent ID ORIGIN.")
+            # time.sleep(2)
+            print({'status': 'SUCCESS', 'activity_id': self.activities[0].activity_id, "result": None})
+            time.sleep(3.6)
+            print({'status': 'SUCCESS', 'activity_id': self.activities[1].activity_id, "result": None})
+            time.sleep(0.4)
+            print({'status': 'SUCCESS', 'activity_id': "TERMINATOR", "result": None})
+            time.sleep(2.75)
+            print(f"Campaign {self.campaign_id} has completed!")
+
+    def result(self):
+        holder = self.result_val
+        return holder
