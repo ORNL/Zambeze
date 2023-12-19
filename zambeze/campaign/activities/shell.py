@@ -42,7 +42,7 @@ class ShellActivity(Activity):
         files: list[str],
         command: str,
         arguments: list[str],
-        logger: logging.Logger,
+        logger: logging.Logger = None,
         campaign_id: Optional[str] = None,
         agent_id: Optional[str] = None,
         message_id: Optional[str] = None,
@@ -71,6 +71,7 @@ class ShellActivity(Activity):
 
         self.logger.info("[activities/shell.py] Printing files after init in SHELL")
         self.logger.info(self.files)
+        self.working_dir = ""
 
     def generate_message(self) -> AbstractMessage:
         factory = MessageFactory(logger=self.logger)

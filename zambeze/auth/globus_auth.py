@@ -75,7 +75,6 @@ class GlobusAuthenticator:
         # Attempt to load the tokens
         tokens = self.load_tokens()
 
-        # TODO: TYLER CLEAN THIS UP.
         if force_login:
             self.authenticate()
 
