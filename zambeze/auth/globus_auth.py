@@ -72,6 +72,8 @@ class GlobusAuthenticator:
 
     def check_tokens_and_authenticate(self, force_login=False):
 
+        print("IN GLOBUS LOGIN FLOW! ")
+
         # Attempt to load the tokens
         tokens = self.load_tokens()
 

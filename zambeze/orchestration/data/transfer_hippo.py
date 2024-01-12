@@ -126,8 +126,10 @@ class TransferHippo:
         for resolved_file_url, file_data in self.file_objects.items():
             file_url_obj = file_data['file_url']
 
+            self._logger.info(f"[th-scheme]: {file_url_obj}")
+
             # Catch local files; perform no transfers.
-            if file_url_obj.scheme == "file":
+            if file_url_obj.scheme in ["file", "local"]:  # TODO: should just be 'local'.
                 continue
 
             if not globus_init:

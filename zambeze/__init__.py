@@ -9,7 +9,7 @@
 from .version import __version__  # noqa: F401
 
 from .campaign import Activity, Campaign  # noqa: F401
-from .campaign.activities import ShellActivity  # noqa: F401
+from .campaign.activities import ShellActivity, TransferActivity    # noqa: F401
 
 __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"

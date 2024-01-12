@@ -156,7 +156,10 @@ class Executor(threading.Thread):
             activity_msg = dag_msg[1]["activity"]
             predecessors = dag_msg[1]["predecessors"]
 
+            transfer_params = dag_msg[1]['transfer_params']
             transfer_tokens = dag_msg[1]['transfer_tokens']
+
+            self._logger.info(f"JTRANSFER TOKENS: {transfer_tokens}")
 
             # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
             self._logger.info(f"[executor] Activity has predecessors: {predecessors}")
@@ -225,6 +228,8 @@ class Executor(threading.Thread):
                 self._logger.info("[executor] SHELL message received:")
                 self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
+                #self._logger.info(activity_msg.data.body)
+
                 # Determine if the shell activity has files that
                 # Need to be moved to be executed
                 if activity_msg.data.body.files:
@@ -288,9 +293,19 @@ class Executor(threading.Thread):
                 #     )
             elif activity_msg.data.body.type == "TRANSFER":
 
+                self._logger.info(f"WOWZERS: {activity_msg.data.body.type}")
+
                 # TODO: TYLER -- generalize this logic from __process_files.
-                # TODO: TYLER -- make sure this actually works
-                files = activity_msg.data.body.files
+                # files = activity_msg.data.body.files
+                source_file = activity_msg.data
+                dest_directory = activity_msg.data.body
+                thing_3 = dir(activity_msg.data.body)
+
+                # TODO: TYLER -- TYLER
+                self._logger.info(f"[executor-test] Source file: {source_file}")
+                self._logger.info(f"[executor-test] Destination Directory: {dest_directory}")
+                self._logger.info(f"[executor-test] thing 3: {thing_3}")
+                self._logger.info(f"[executor-test] thing 4: {transfer_params}")
 
                 transfer_hippo = TransferHippo(agent_id=self._agent_id,
                                                settings=self._settings,
@@ -299,7 +314,7 @@ class Executor(threading.Thread):
 
                 # Load all files into the TransferHippo.
                 self._logger.info("[executor] Loading files into TransferHippo.")
-                transfer_hippo.load(files)
+                transfer_hippo.load(source_file)
                 # Validate that all files are accessible.
                 self._logger.info("[executor] Validating file accessibility.")
                 transfer_hippo.validate()
@@ -313,8 +328,8 @@ class Executor(threading.Thread):
                 self._logger.info("[executor] Wait for transfer...")
                 transfer_hippo.transfer_wait()
                 self._logger.info("[executor] File transfer finished!")
-            else:
-                raise Exception("Only SHELL currently supported")
+            #else:
+            #    raise Exception("Only SHELL currently supported")
 
             # If we get here, it should be because nothing failed
             # TODO: confirm (unit-test somehow)
@@ -338,6 +353,8 @@ class Executor(threading.Thread):
         :param files: List of files
         :type files: list[str]
         """
+
+        self._logger.info(f"ex TRANSFER TOKENS??? {tokens}")
 
         transfer_hippo = TransferHippo(agent_id=self._agent_id,
                                        settings=self._settings,

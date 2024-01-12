@@ -11,6 +11,7 @@ import zmq
 import pickle
 import uuid
 import time
+from queue import Queue
 import networkx as nx
 
 from typing import Optional
@@ -66,8 +67,14 @@ class Campaign:
         self._logger.debug(f"Adding activity: {activity.name}")
         activity.campaign_id = self.campaign_id
 
+        # TODO: these conditions can be simplified.
         if any(file_uri.startswith('globus://') for file_uri in activity.files):
+            print("AAA")
             self.needs_globus_login = True
+
+        elif activity.name == "transfer":
+            self.needs_globus_login = True
+            print("BBB")
 
         self.activities.append(activity)
 
@@ -90,7 +97,7 @@ class Campaign:
 
         if self.needs_globus_login or self.force_login:
             authenticator = GlobusAuthenticator()
-            access_token = authenticator.check_tokens_and_authenticate(force_login=self.force_login)
+            access_token = authenticator.check_tokens_and_authenticate(force_login=self.force_login)  # FL=True.
             token_obj['globus'] = {'access_token': access_token}
 
         for activity in self.activities:
@@ -98,12 +105,25 @@ class Campaign:
                 last_activity = "MONITOR"
                 dag.add_node("MONITOR", activity="MONITOR", campaign_id=self.campaign_id)
 
+            transfer_params = {}
+            # TODO: see if this is actually needed here.
+
+            print(f"ACTIVITY NAME: {activity.name}")
+            if activity.name == "TRANSFER":
+                transfer_params = {'source_file': activity.source_file,
+                                   'dest_directory': activity.dest_directory,
+                                   'override_existing': activity.override_existing}
+
             dag.add_node(
                 activity.activity_id,
                 activity=activity,
                 campaign_id=self.campaign_id,
-                transfer_tokens=token_obj
+                transfer_tokens=token_obj,
+                transfer_params=transfer_params
             )
+
+            print(activity)
+
             dag.add_edge(last_activity, activity.activity_id)
             last_activity = activity.activity_id
 
@@ -119,17 +139,31 @@ class Campaign:
         self._logger.debug("Activity DAG successfully sent!")
         self._logger.info(f"REPLY: {zmq_socket.recv()}")
 
-    def status(self, block=False):
+    def status(self, block=True):
+
+        check_queue = Queue()
+
+        # Dump activities into queue.
+        for activity in self.activities:
+            check_queue.put(activity)
+
         if block:
-            print(f"MONITOR created for campaign ID {self.campaign_id} on agent ID ORIGIN.")
-            # time.sleep(2)
-            print({'status': 'SUCCESS', 'activity_id': self.activities[0].activity_id, "result": None})
-            time.sleep(3.6)
-            print({'status': 'SUCCESS', 'activity_id': self.activities[1].activity_id, "result": None})
-            time.sleep(0.4)
-            print({'status': 'SUCCESS', 'activity_id': "TERMINATOR", "result": None})
-            time.sleep(2.75)
-            print(f"Campaign {self.campaign_id} has completed!")
+            while True:
+                print("Ping Flowcept DB instead...")
+                if check_queue.empty():
+                    break
+                else:
+                    # To save our computers while we're building this out.
+                    time.sleep(1)
+
+                activity_to_check = check_queue.get()
+
+                # TODO: CHECK FLOWCEPT FOR TASK STATUS HERE.
+
+
+
+        else:
+            raise NotImplementedError("Only blocking checks currently supported!")
 
     def result(self):
         holder = self.result_val

@@ -8,3 +8,4 @@
 
 from .abstract_activity import Activity  # noqa: F401
 from .shell import ShellActivity  # noqa: F401
+from .transfer import TransferActivity
