@@ -18,7 +18,8 @@ from zambeze import Campaign, ShellActivity, TransferActivity
 
 EP_ID = "1c115272-a3f2-11e9-b594-0e56e8fd6d5a"  # my personal mb-pro.
 
-work_EP_ID = "c9f30df8-4688-11ee-a072-eb83daae1adf"
+work_EP_ID = "c9f30df8-4688-11ee-a072-eb83daae1adf"  # my work mb-pro
+
 
 def main():
     # logging (for debugging purposes)

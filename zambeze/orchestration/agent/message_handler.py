@@ -10,6 +10,8 @@ from queue import Queue
 from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 
+from flowcept import ZambezeInterceptor, FlowceptConsumerAPI
+
 from zambeze.orchestration.queue.queue_factory import QueueFactory
 from zambeze.orchestration.zambeze_types import QueueType
 
@@ -71,6 +73,10 @@ class MessageHandler(threading.Thread):
         # THREAD 5: send activity to RMQ
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
+        fc_interceptor = ZambezeInterceptor()
+        self.fc_consumer = FlowceptConsumerAPI(fc_interceptor)
+        self.fc_consumer.start()
+
         campaign_listener.start()
         activity_listener.start()
         control_listener.start()
@@ -121,6 +127,11 @@ class MessageHandler(threading.Thread):
                     if type(activity) != str:
                         activity.agent_id = self.agent_id
                         node[1]["activity"] = activity.generate_message()
+                        self._logger.info(f"RENAN-A: {node[1]['activity']}")
+                        node[1]["activity_id"] = activity.activity_id
+                        self._logger.info(f"RENAN-b: {activity.activity_id}")
+                        node[1]["activity_status"] = "SUBMITTED"
+                        self._logger.info(f"RENAN-c: adding status")
                         num_activities += 1
                 except Exception as e:
                     self._logger.error(e)
@@ -147,6 +158,10 @@ class MessageHandler(threading.Thread):
         self._logger.info("ZZZ-1")
         self._logger.info(f"[recv_activity] receiving activity...{dill.loads(body)}")
         activity = dill.loads(body)
+
+        self._logger.info(f"[RENAN] ACTIVITY TYPE {type(activity)}")
+        self._logger.info(f"[RENAN] ACTIVITY {activity}")
+        self._logger.info(f"[RENAN] ACTIVITY DIR {dir(activity)}")
 
         # TODO: *add git issue* should be able to require a list of plugins (not just one).
         # Anyone can monitor or terminate.
