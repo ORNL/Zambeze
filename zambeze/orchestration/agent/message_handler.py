@@ -9,9 +9,6 @@ from queue import Queue
 
 from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
-
-from flowcept import ZambezeInterceptor, FlowceptConsumerAPI
-
 from zambeze.orchestration.queue.queue_factory import QueueFactory
 from zambeze.orchestration.zambeze_types import QueueType
 
@@ -73,9 +70,11 @@ class MessageHandler(threading.Thread):
         # THREAD 5: send activity to RMQ
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
-        fc_interceptor = ZambezeInterceptor()
-        self.fc_consumer = FlowceptConsumerAPI(fc_interceptor)
-        self.fc_consumer.start()
+        if "flowcept" in self._settings.settings and self._settings.settings['flowcept']['config']['active']:
+            from flowcept import ZambezeInterceptor, FlowceptConsumerAPI
+            fc_interceptor = ZambezeInterceptor()
+            self.fc_consumer = FlowceptConsumerAPI(fc_interceptor)
+            self.fc_consumer.start()
 
         campaign_listener.start()
         activity_listener.start()
