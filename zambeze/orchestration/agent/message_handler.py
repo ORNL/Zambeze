@@ -124,13 +124,11 @@ class MessageHandler(threading.Thread):
                 # If not monitor or terminator
                 try:
                     if type(activity) != str:
+                        self._logger.info("[mh] Flushing activity message to flowcept")
                         activity.agent_id = self.agent_id
                         node[1]["activity"] = activity.generate_message()
-                        self._logger.info(f"RENAN-A: {node[1]['activity']}")
                         node[1]["activity_id"] = activity.activity_id
-                        self._logger.info(f"RENAN-b: {activity.activity_id}")
                         node[1]["activity_status"] = "SUBMITTED"
-                        self._logger.info(f"RENAN-c: adding status")
                         num_activities += 1
                 except Exception as e:
                     self._logger.error(e)
