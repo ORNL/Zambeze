@@ -71,10 +71,12 @@ class MessageHandler(threading.Thread):
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
         if "flowcept" in self._settings.settings and self._settings.settings['flowcept']['config']['active']:
+            self._logger.info("[mh] Flowcept active. Loading libraries!")
             from flowcept import ZambezeInterceptor, FlowceptConsumerAPI
             fc_interceptor = ZambezeInterceptor()
             self.fc_consumer = FlowceptConsumerAPI(fc_interceptor)
             self.fc_consumer.start()
+            self._logger.info("[mh] Flowcept libraries succesfully loaded.")
 
         campaign_listener.start()
         activity_listener.start()
@@ -150,15 +152,10 @@ class MessageHandler(threading.Thread):
                               f"for campaign: {num_activities}")
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
-    # TODO: *create git cleanup issue*  perhaps create a dict of callback functions by q_type?
     def _callback(self, ch, method, _properties, body):
-        self._logger.info("ZZZ-1")
-        self._logger.info(f"[recv_activity] receiving activity...{dill.loads(body)}")
+        self._logger.debug("[mh-recv-activity] Processing callback function for activity queue recv.")
+        self._logger.info(f"[mn-recv-activity] receiving activity...{dill.loads(body)}")
         activity = dill.loads(body)
-
-        self._logger.info(f"[RENAN] ACTIVITY TYPE {type(activity)}")
-        self._logger.info(f"[RENAN] ACTIVITY {activity}")
-        self._logger.info(f"[RENAN] ACTIVITY DIR {dir(activity)}")
 
         # TODO: *add git issue* should be able to require a list of plugins (not just one).
         # Anyone can monitor or terminate.
@@ -168,17 +165,14 @@ class MessageHandler(threading.Thread):
             self._logger.info("YYY MONITOR/TERMINATOR CONDITIONS MET")
 
         else:
-            self._logger.info(f"[FFF1] GETTING REQUIRED PLUGIN")
-            self._logger.info(f"[FFF2] {activity[1]['activity'].data}")
-            self._logger.info(f"[FFF3] {activity[1]['activity'].data.body}")
-            self._logger.info(f"[FFF4] {activity[1]['activity'].data.body.type}")
+            self._logger.info(f"[mh] Unpacking activity info from queue...")
+            self._logger.info(f"--> Body: {activity[1]['activity'].data.body}")
 
             required_plugin = activity_to_plugin_map[
                 activity[1]["activity"].data.body.type
             ]
-            self._logger.info(f"[FFF5] {activity[1]['activity'].data.body.type}")
             plugins_are_configured = self.are_plugins_configured(required_plugin)
-            actions_are_supported = True # self.are_actions_supported(action_labels=["hobo"])  # TODO
+            actions_are_supported = True  # self.are_actions_supported(action_labels=["hobo"])  # TODO
 
         should_ack = plugins_are_configured and actions_are_supported
 
