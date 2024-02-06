@@ -94,10 +94,12 @@ class Executor(threading.Thread):
         try:
             # First try to switch into working directory if it exists.
             os.chdir(default_working_dir)
-        except FileNotFoundError as e1:
-            self._logger.error(f"[exec] Working directory not found... attempting to create!")
+        except FileNotFoundError:
+            self._logger.error(
+                "[exec] Working directory not found... attempting to create!"
+            )
             os.makedirs(default_working_dir)
-            self._logger.error(f"[exec] Working directory successfully created!")
+            self._logger.error("[exec] Working directory successfully created!")
         except Exception as e2:
             self._logger.error(f"[exec]CAUGHT: {type(e2).__name__}")
             self._logger.error(f"[exec] CAUGHT: {e2}")
@@ -156,8 +158,8 @@ class Executor(threading.Thread):
             activity_msg = dag_msg[1]["activity"]
             predecessors = dag_msg[1]["predecessors"]
 
-            transfer_params = dag_msg[1]['transfer_params']
-            transfer_tokens = dag_msg[1]['transfer_tokens']
+            # transfer_params = dag_msg[1]["transfer_params"]
+            transfer_tokens = dag_msg[1]["transfer_tokens"]
 
             self._logger.info(f"JTRANSFER TOKENS: {transfer_tokens}")
 
@@ -167,7 +169,9 @@ class Executor(threading.Thread):
             # STEP 1. Confirm the monitor is MONITORING.
             campaign_id = activity_msg.data.campaign_id
 
-            if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
+            if (
+                "MONITOR" in predecessors
+            ):  # TODO: allow MONITOR *AND OTHER* predecessors.
 
                 self._logger.info(
                     f"[exec] Checking monitor message for campaign ID: "
@@ -190,7 +194,8 @@ class Executor(threading.Thread):
                 self._logger.debug("[exec] Entering predecessor waiting loop...")
                 pred_track_dict = {key: None for key in predecessors}
 
-                # while loop ascertains that we 'keep trying the status scan' until it is successful (/failed).
+                # while loop ascertains that we 'keep trying the status scan' until it is
+                # successful (/failed).
                 while True:
 
                     success_count = 0
@@ -204,12 +209,16 @@ class Executor(threading.Thread):
 
                         # A: See if activity in pred_track_dict. If not... continue...
                         if pred_activity_id not in self.control_dict:
-                            self._logger.info(f"Predecessor ID: {pred_activity_id} not received. Continuing...")
+                            self._logger.info(
+                                f"Predecessor ID: {pred_activity_id} not received. Continuing..."
+                            )
                             time.sleep(5)  # TODO: remove.
                             break
 
                         # B: Check the status of the activity ID.
-                        pred_activity_status = self.control_dict[pred_activity_id]['status']
+                        pred_activity_status = self.control_dict[pred_activity_id][
+                            "status"
+                        ]
 
                         if pred_activity_status == "SUCCEEDED":
                             success_count += 1
@@ -220,7 +229,7 @@ class Executor(threading.Thread):
 
                     self._logger.info(
                         f"[exec] PREDECESSOR COMPLETED COUNT: {total_completed}"
-                        )
+                    )
                     if total_completed == len(pred_track_dict):
                         break
 
@@ -228,7 +237,7 @@ class Executor(threading.Thread):
                 self._logger.info("[exec] SHELL message received:")
                 self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
-                #self._logger.info(activity_msg.data.body)
+                # self._logger.info(activity_msg.data.body)
 
                 # Determine if the shell activity has files that
                 # Need to be moved to be executed
@@ -240,14 +249,14 @@ class Executor(threading.Thread):
                                 activity_msg.data.body.files,
                                 activity_msg.data.campaign_id,
                                 activity_msg.data.activity_id,
-                                transfer_tokens
+                                transfer_tokens,
                             )
                         except Exception as e:
                             status_msg = {
                                 "status": "FAILED",
                                 "activity_id": dag_msg[0],
                                 "msg": "UNABLE TO ACQUIRE FILES.",
-                                "details": e
+                                "details": e,
                             }
                             self.to_status_q.put(status_msg)
                             self._logger.error(
@@ -287,10 +296,12 @@ class Executor(threading.Thread):
 
                 source_file = activity_msg.data
 
-                transfer_hippo = TransferHippo(agent_id=self._agent_id,
-                                               settings=self._settings,
-                                               logger=self._logger,
-                                               tokens=transfer_tokens)
+                transfer_hippo = TransferHippo(
+                    agent_id=self._agent_id,
+                    settings=self._settings,
+                    logger=self._logger,
+                    tokens=transfer_tokens,
+                )
 
                 # Load all files into the TransferHippo.
                 self._logger.info("[exec] Loading files into TransferHippo.")
@@ -314,7 +325,7 @@ class Executor(threading.Thread):
                 "status": "SUCCEEDED",
                 "activity_id": dag_msg[0],
                 "msg": "SUCCESSFULLY COMPLETED TASK.",
-                "result": None
+                "result": None,
             }
             self.to_status_q.put(status_msg)
 
@@ -333,10 +344,12 @@ class Executor(threading.Thread):
 
         self._logger.info(f"ex TRANSFER TOKENS??? {tokens}")
 
-        transfer_hippo = TransferHippo(agent_id=self._agent_id,
-                                       settings=self._settings,
-                                       logger=self._logger,
-                                       tokens=tokens)
+        transfer_hippo = TransferHippo(
+            agent_id=self._agent_id,
+            settings=self._settings,
+            logger=self._logger,
+            tokens=tokens,
+        )
 
         # Load all files into the TransferHippo.
         self._logger.info("[exec] Loading files into TransferHippo.")
@@ -360,9 +373,7 @@ class Executor(threading.Thread):
         self._logger.info("[exec] Monitor check initializing...")
 
         while True:
-            self._logger.info(
-                f"[exec] Monitor completed?: {self.monitor.completed}"
-            )
+            self._logger.info(f"[exec] Monitor completed?: {self.monitor.completed}")
 
             if self.monitor.completed:
                 self.monitor.to_monitor_q.put("KILL")
@@ -377,7 +388,7 @@ class Executor(threading.Thread):
 def download_https_file(url, save_path):
     response = requests.get(url, stream=True)
     if response.status_code == 200:
-        with open(save_path, 'wb') as file:
+        with open(save_path, "wb") as file:
             for chunk in response.iter_content(chunk_size=8192):
                 file.write(chunk)
         print(f"File downloaded and saved as {save_path}")
