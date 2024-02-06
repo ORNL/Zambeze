@@ -70,9 +70,13 @@ class MessageHandler(threading.Thread):
         # THREAD 5: send activity to RMQ
         activity_sender = threading.Thread(target=self.send_activity_dag, args=())
 
-        if "flowcept" in self._settings.settings and self._settings.settings['flowcept']['config']['active']:
+        if (
+            "flowcept" in self._settings.settings
+            and self._settings.settings["flowcept"]["config"]["active"]
+        ):
             self._logger.info("[mh] Flowcept active. Loading libraries!")
             from flowcept import ZambezeInterceptor, FlowceptConsumerAPI
+
             fc_interceptor = ZambezeInterceptor()
             self.fc_consumer = FlowceptConsumerAPI(fc_interceptor)
             self.fc_consumer.start()
@@ -137,7 +141,9 @@ class MessageHandler(threading.Thread):
                 node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
                 node[1]["successors"] = list(activity_dag.successors(node[0]))
 
-                self._logger.info(f"[message_handler] The activity_node to send...:\n{node}")
+                self._logger.info(
+                    f"[message_handler] The activity_node to send...:\n{node}"
+                )
 
                 activity_model = ActivityModel(
                     agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
@@ -148,12 +154,17 @@ class MessageHandler(threading.Thread):
                 self.msg_handler_send_activity_q.put(node)
                 self._logger.debug("[recv_activities_from_campaign] Sent node!")
 
-            self._logger.info(f"[message_handler] Number of activities sent "
-                              f"for campaign: {num_activities}")
+            self._logger.info(
+                f"[message_handler] Number of activities sent "
+                f"for campaign: {num_activities}"
+            )
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     def _callback(self, ch, method, _properties, body):
-        self._logger.debug("[mh-recv-activity] Processing callback function for activity queue recv.")
+        self._logger.debug(
+            "[mh-recv-activity] Processing callback function "
+            "for activity queue recv."
+        )
         self._logger.info(f"[mn-recv-activity] receiving activity...{dill.loads(body)}")
         activity = dill.loads(body)
 
@@ -161,17 +172,19 @@ class MessageHandler(threading.Thread):
         if activity[0] in ["MONITOR", "TERMINATOR"]:
             plugins_are_configured = True
             actions_are_supported = True
-            self._logger.info("YYY MONITOR/TERMINATOR CONDITIONS MET")
+            self._logger.info(f"[mh] Zambeze activity received of type: {activity[0]}")
 
         else:
-            self._logger.info(f"[mh] Unpacking activity info from queue...")
+            self._logger.info("[mh] Unpacking activity info from queue...")
             self._logger.info(f"--> Body: {activity[1]['activity'].data.body}")
 
             required_plugin = activity_to_plugin_map[
                 activity[1]["activity"].data.body.type
             ]
             plugins_are_configured = self.are_plugins_configured(required_plugin)
-            actions_are_supported = True  # self.are_actions_supported(action_labels=["hobo"])  # TODO
+            actions_are_supported = (
+                True  # self.are_actions_supported(action_labels=[""])
+            )
 
         should_ack = plugins_are_configured and actions_are_supported
 
@@ -308,4 +321,5 @@ class MessageHandler(threading.Thread):
 
     def are_actions_supported(self, action_labels: list[str]):
         self._logger(f"Action labels: {action_labels}")
-        return True  # TODO.
+        """ TODO: Should potentially return false once we do action checking. """
+        return True

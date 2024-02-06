@@ -95,23 +95,23 @@ class Executor(threading.Thread):
             # First try to switch into working directory if it exists.
             os.chdir(default_working_dir)
         except FileNotFoundError as e1:
-            self._logger.info(f"[executor] Working directory not found... attempting to create!")
+            self._logger.error(f"[exec] Working directory not found... attempting to create!")
             os.makedirs(default_working_dir)
-            self._logger.info(f"[executor] Working directory successfully created!")
+            self._logger.error(f"[exec] Working directory successfully created!")
         except Exception as e2:
-            self._logger.info(f"ECAUGHT: {type(e2).__name__}")
-            self._logger.info(f"ECAUGHT: {e2}")
+            self._logger.error(f"[exec]CAUGHT: {type(e2).__name__}")
+            self._logger.error(f"[exec] CAUGHT: {e2}")
 
         monitor_launched = False
         terminator_stopped = False
 
         while True:
 
-            self._logger.info("[executor] Retrieving a message! ")
+            self._logger.info("[exec] Retrieving a message! ")
             self._logger.info(f" SIZE OF QUEUE: {self.to_process_q.qsize()}")
             dag_msg = self.to_process_q.get()
 
-            self._logger.info(f"[EXECUTOR] AAA - retrieved message! {dag_msg}...")
+            self._logger.debug(f"[exec] Retrieved message! {dag_msg}...")
 
             # Check 1. If MONITOR, then we want to STICK the process
             if dag_msg[0] == "MONITOR":
@@ -137,13 +137,13 @@ class Executor(threading.Thread):
                 }
 
                 self._logger.debug(
-                    "[executor] Putting TERMINATOR success on to_status_q..."
+                    "[exec] Putting TERMINATOR success on to_status_q..."
                 )
                 self.to_status_q.put(status_msg)
                 terminator_stopped = True
 
             self._logger.info(
-                f"[executor] Monitor launched: {monitor_launched} | "
+                f"[exec] Monitor launched: {monitor_launched} | "
                 f"Terminator stopped: {terminator_stopped}"
             )
 
@@ -162,7 +162,7 @@ class Executor(threading.Thread):
             self._logger.info(f"JTRANSFER TOKENS: {transfer_tokens}")
 
             # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
-            self._logger.info(f"[executor] Activity has predecessors: {predecessors}")
+            self._logger.info(f"[exec] Activity has predecessors: {predecessors}")
 
             # STEP 1. Confirm the monitor is MONITORING.
             campaign_id = activity_msg.data.campaign_id
@@ -170,7 +170,7 @@ class Executor(threading.Thread):
             if "MONITOR" in predecessors:  # TODO: allow MONITOR *AND OTHER* predecessors.
 
                 self._logger.info(
-                    f"[executor] Checking monitor message for campaign ID: "
+                    f"[exec] Checking monitor message for campaign ID: "
                     f"{campaign_id}"
                 )
 
@@ -182,12 +182,12 @@ class Executor(threading.Thread):
                         and status_msg["status"] == "MONITORING"
                     ):
                         self._logger.debug(
-                            "[executor] Eligible MONITOR heartbeat. Continuing!"
+                            "[exec] Eligible MONITOR heartbeat. Continuing!"
                         )
                         break
             # Step 2. If not waiting on monitor... make sure all other predecessors are met.
             else:
-                self._logger.debug("[executor] Entering predecessor waiting loop...")
+                self._logger.debug("[exec] Entering predecessor waiting loop...")
                 pred_track_dict = {key: None for key in predecessors}
 
                 # while loop ascertains that we 'keep trying the status scan' until it is successful (/failed).
@@ -199,7 +199,7 @@ class Executor(threading.Thread):
                     # for loop means we check every possible predecessor for an activity.
                     for pred_activity_id in pred_track_dict:
                         self._logger.debug(
-                            "[executor] Fetching predecessor status message..."
+                            "[exec] Fetching predecessor status message..."
                         )
 
                         # A: See if activity in pred_track_dict. If not... continue...
@@ -219,13 +219,13 @@ class Executor(threading.Thread):
                     total_completed = success_count + failure_count
 
                     self._logger.info(
-                        f"[executor] PREDECESSOR COMPLETED COUNT: {total_completed}"
+                        f"[exec] PREDECESSOR COMPLETED COUNT: {total_completed}"
                         )
                     if total_completed == len(pred_track_dict):
                         break
 
             if activity_msg.data.body.type == "SHELL":
-                self._logger.info("[executor] SHELL message received:")
+                self._logger.info("[exec] SHELL message received:")
                 self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
 
                 #self._logger.info(activity_msg.data.body)
@@ -251,7 +251,7 @@ class Executor(threading.Thread):
                             }
                             self.to_status_q.put(status_msg)
                             self._logger.error(
-                                f"[executor.py] Unable to acquire files. Caught {e}"
+                                f"[exec] Unable to acquire files. Caught {e}"
                             )
                             self._logger.exception("ERROR-123")
                             continue
@@ -266,25 +266,17 @@ class Executor(threading.Thread):
                 # for the plugin is a problem, the message is an error message
                 # or a success statement
 
-                # TODO -- bring these back.
+                # TODO -- bring these back in next version.
                 # self._logger.info("[EXECUTOR] Command to be executed.")
                 # self._logger.info(json.dumps(data["cmd"], indent=4))
+                self._logger.warning("[exec] SKIPPING FAULTY CHECK...")
 
-                # TODO: TYLER -- WAIT until we have the eligible resources.
-
-                self._logger.debug("EXECUTOR CHECKING RESULT...")
                 # checked_result = self._settings.plugins.check(activity_msg.data.body)
                 # self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
-                self._logger.debug("SKIPPING FAULTY CHECK...")
-
-                # TODO: have psij instead run the plugins.
-                # if psij_flag:
-                #    Run through psi_j
 
                 # TODO: handle failures from the SHELL activity.
                 self._settings.plugins.run(activity_msg)
 
-                # TODO: bring proper validation back (below)
                 # if checked_result.error_detected() is False:
                 #     self._settings.plugins.run(activity_msg)
                 # else:
@@ -293,19 +285,7 @@ class Executor(threading.Thread):
                 #     )
             elif activity_msg.data.body.type == "TRANSFER":
 
-                self._logger.info(f"WOWZERS: {activity_msg.data.body.type}")
-
-                # TODO: TYLER -- generalize this logic from __process_files.
-                # files = activity_msg.data.body.files
                 source_file = activity_msg.data
-                dest_directory = activity_msg.data.body
-                thing_3 = dir(activity_msg.data.body)
-
-                # TODO: TYLER -- TYLER
-                self._logger.info(f"[executor-test] Source file: {source_file}")
-                self._logger.info(f"[executor-test] Destination Directory: {dest_directory}")
-                self._logger.info(f"[executor-test] thing 3: {thing_3}")
-                self._logger.info(f"[executor-test] thing 4: {transfer_params}")
 
                 transfer_hippo = TransferHippo(agent_id=self._agent_id,
                                                settings=self._settings,
@@ -313,35 +293,32 @@ class Executor(threading.Thread):
                                                tokens=transfer_tokens)
 
                 # Load all files into the TransferHippo.
-                self._logger.info("[executor] Loading files into TransferHippo.")
+                self._logger.info("[exec] Loading files into TransferHippo.")
                 transfer_hippo.load(source_file)
                 # Validate that all files are accessible.
-                self._logger.info("[executor] Validating file accessibility.")
+                self._logger.info("[exec] Validating file accessibility.")
                 transfer_hippo.validate()
                 # Ensure that all authentication is achieved.
-                self._logger.info("[executor] Checking user auth.")
+                self._logger.info("[exec] Checking user auth.")
                 transfer_hippo.check_auth()
                 # Submit the transfer
-                self._logger.info("[executor] Submit the transfer.")
+                self._logger.info("[exec] Submit the transfer.")
                 transfer_hippo.start_transfer()
                 # BLOCK: wait for transfer to finish
-                self._logger.info("[executor] Wait for transfer...")
+                self._logger.info("[exec] Wait for transfer...")
                 transfer_hippo.transfer_wait()
-                self._logger.info("[executor] File transfer finished!")
-            #else:
-            #    raise Exception("Only SHELL currently supported")
+                self._logger.info("[exec] File transfer finished!")
 
             # If we get here, it should be because nothing failed
-            # TODO: confirm (unit-test somehow)
-            # TODO: add result here. Move to git issue, perhaps implements flowcept?
             status_msg = {
                 "status": "SUCCEEDED",
                 "activity_id": dag_msg[0],
                 "msg": "SUCCESSFULLY COMPLETED TASK.",
+                "result": None
             }
             self.to_status_q.put(status_msg)
 
-            self._logger.info("[EXECUTOR] Waiting for messages")
+            self._logger.info("[exec] Waiting for messages")
 
     def __process_files(
         self, files: list[str], campaign_id: str, activity_id: str, tokens=None
@@ -362,38 +339,38 @@ class Executor(threading.Thread):
                                        tokens=tokens)
 
         # Load all files into the TransferHippo.
-        self._logger.info("[executor] Loading files into TransferHippo.")
+        self._logger.info("[exec] Loading files into TransferHippo.")
         transfer_hippo.load(files)
         # Validate that all files are accessible.
-        self._logger.info("[executor] Validating file accessibility.")
+        self._logger.info("[exec] Validating file accessibility.")
         transfer_hippo.validate()
         # Ensure that all authentication is achieved.
-        self._logger.info("[executor] Checking user auth.")
+        self._logger.info("[exec] Checking user auth.")
         transfer_hippo.check_auth()
         # Submit the transfer
-        self._logger.info("[executor] Submit the transfer.")
+        self._logger.info("[exec] Submit the transfer.")
         transfer_hippo.start_transfer()
         # BLOCK: wait for transfer to finish
-        self._logger.info("[executor] Wait for transfer...")
+        self._logger.info("[exec] Wait for transfer...")
         transfer_hippo.transfer_wait()
-        self._logger.info("[executor] File transfer finished!")
+        self._logger.info("[exec] File transfer finished!")
 
     def monitor_check(self):
         # TODO: whenever we want to query status, get info from MONITOR here.
-        self._logger.info("[executor] Monitor check initializing...")
+        self._logger.info("[exec] Monitor check initializing...")
 
         while True:
             self._logger.info(
-                f"[executor] Monitor completed?: {self.monitor.completed}"
+                f"[exec] Monitor completed?: {self.monitor.completed}"
             )
 
             if self.monitor.completed:
                 self.monitor.to_monitor_q.put("KILL")
                 self.monitor = None  # reset to None for now.
-                self._logger.info("[executor] MONITOR check sending kill signal...")
+                self._logger.info("[exec] MONITOR check sending kill signal...")
                 break
             else:
-                self._logger.info("MONITOR NOT COMPLETED YET!!!")
+                self._logger.debug("MONITOR NOT COMPLETED YET!")
                 time.sleep(2)
 
 

@@ -36,7 +36,7 @@ class Campaign:
         name: str,
         activities: Optional[list[Activity]] = None,
         logger: Optional[logging.Logger] = None,
-        force_login: bool = False
+        force_login: bool = False,
     ) -> None:
         """Initializes a Campaign instance.
 
@@ -66,7 +66,7 @@ class Campaign:
         self._logger.debug(f"Adding activity: {activity.name}")
         activity.campaign_id = self.campaign_id
 
-        if any(file_uri.startswith('globus://') for file_uri in activity.files):
+        if any(file_uri.startswith("globus://") for file_uri in activity.files):
             self.needs_globus_login = True
 
         elif activity.name == "transfer":
@@ -94,29 +94,32 @@ class Campaign:
         if self.needs_globus_login or self.force_login:
             authenticator = GlobusAuthenticator()
             access_token = authenticator.check_tokens_and_authenticate(
-                force_login=self.force_login)
-            token_obj['globus'] = {'access_token': access_token}
+                force_login=self.force_login
+            )
+            token_obj["globus"] = {"access_token": access_token}
 
         for activity in self.activities:
             if last_activity is None:
                 last_activity = "MONITOR"
-                dag.add_node("MONITOR",
-                             activity="MONITOR",
-                             campaign_id=self.campaign_id)
+                dag.add_node(
+                    "MONITOR", activity="MONITOR", campaign_id=self.campaign_id
+                )
 
             transfer_params = {}
 
             if activity.name == "TRANSFER":
-                transfer_params = {'source_file': activity.source_file,
-                                   'dest_directory': activity.dest_directory,
-                                   'override_existing': activity.override_existing}
+                transfer_params = {
+                    "source_file": activity.source_file,
+                    "dest_directory": activity.dest_directory,
+                    "override_existing": activity.override_existing,
+                }
 
             dag.add_node(
                 activity.activity_id,
                 activity=activity,
                 campaign_id=self.campaign_id,
                 transfer_tokens=token_obj,
-                transfer_params=transfer_params
+                transfer_params=transfer_params,
             )
 
             dag.add_edge(last_activity, activity.activity_id)
