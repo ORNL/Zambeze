@@ -157,7 +157,6 @@ class MessageHandler(threading.Thread):
         self._logger.info(f"[mn-recv-activity] receiving activity...{dill.loads(body)}")
         activity = dill.loads(body)
 
-        # TODO: *add git issue* should be able to require a list of plugins (not just one).
         # Anyone can monitor or terminate.
         if activity[0] in ["MONITOR", "TERMINATOR"]:
             plugins_are_configured = True
@@ -176,19 +175,6 @@ class MessageHandler(threading.Thread):
 
         should_ack = plugins_are_configured and actions_are_supported
 
-        # TODO: *add git issue*  additional functionalities to be added as git issues
-        # 1. Pulling down messages based on metadata filters rather than pulling
-        # down anything.
-        #
-        # 2. Initial 'broadcast' check to see if there is a single agent capable
-        # of running each activity?
-        #
-        # 3. Agent thinks it can run activity. Hits some sort of failure case
-        # (either in execution or configuration) ... wrap this up as a new
-        # Error-flag activity, and let it be handled accordingly.
-        #
-        # ROUTING: https://www.rabbitmq.com/tutorials/tutorial-four-python.html
-
         self._logger.info(
             f"[mh] Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}"
         )
@@ -203,7 +189,7 @@ class MessageHandler(threading.Thread):
                 self._logger.debug("[recv activity] NACKED activity message.")
                 # stuck in NACK loop; sleep helps alleviate what happens when
                 #   a task can't get picked up by anyone (temporary).
-                time.sleep(1)  # TODO: *add git issue for proper filtering*
+                time.sleep(1)
         except Exception as e:
             self._logger.error(
                 f"[mh] COULD NOT ACK! CAUGHT: " f"{type(e).__name__}: {e}"
@@ -253,8 +239,6 @@ class MessageHandler(threading.Thread):
                     f"{type(e).__name__}: {e}"
                 )
             else:
-                # TODO: differentiate between sending activity and terminator. (should be easy... just hard to
-                # TODO:   parse the logs as-is.
                 self._logger.debug("[send_activity] Successfully sent activity!")
 
     def recv_control(self):
