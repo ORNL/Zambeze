@@ -122,7 +122,7 @@ def test_shell_check():
 
     validator = ShellMessageValidator()
     # Checks that the schema is valid
-    schema_checks = validator.validateMessage(shell_template)
+    schema_checks = validator.validate_message(shell_template)
     assert schema_checks[0]["bash"][0]
 
     arguments = asdict(shell_template)

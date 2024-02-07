@@ -14,8 +14,8 @@ with open("requirements.txt") as f:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-# Fetch the version
 exec(open("zambeze/version.py").read())
+
 
 setup(
     name="zambeze",

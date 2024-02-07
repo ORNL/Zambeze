@@ -27,7 +27,7 @@ def test_shell_messageTemplate_and_validate():
 
     print(git_template_commit)
     validator = GitMessageValidator()
-    checks = validator.validateMessage(git_template_commit)
+    checks = validator.validate_message(git_template_commit)
     print(checks)
     assert "commit" in checks[0]
     assert checks[0]["commit"][0]

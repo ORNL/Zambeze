@@ -17,38 +17,41 @@ class GlobusURISeparator(URISeparator):
         :param uri: the globus uri globus://XXXXX...XXX/path/file.txt
         :type uri: str
 
+        :param extra_args
+        :type extra_args: dict
+
         :Example:
 
-        >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
-        >>> globus_uri = globus://XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX/path/file.txt
-        >>> uri_components = globusURISeparator(globus_uri, default_uri)
-        >>> print( uri_components["uuid"] ) # UUID
-        >>> print( uri_components["path"] ) # Path
-        >>> print( uri_components["file_name"] ) # File name
-        >>> print( uri_components["error_message"] ) # Error message
+        default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
+        globus_uri = globus://XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX/path/file.txt
+        uri_components = globusURISeparator(globus_uri, default_uri)
+        print( uri_components["uuid"] ) # UUID
+        print( uri_components["path"] ) # Path
+        print( uri_components["file_name"] ) # File name
+        print( uri_components["error_message"] ) # Error message
 
         The output should be
 
-        >>> XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX
-        >>> /path/
-        >>> file.txt
+        XXXXYYYY-XXXX-XXXX-XXXX-XXXXYYYYXXXX
+        /path/
+        file.txt
 
         :Example: When no endpoint UUID is provided in the URI the default shoul
         be used
 
-        >>> default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
-        >>> globus_uri = globus://path/file.txt
-        >>> uri_components = globusURISeparator(globus_uri, default_uri)
-        >>> print( uri_components["uuid"] ) # UUID
-        >>> print( uri_components["path"] ) # Path
-        >>> print( uri_components["file_name"] ) # File name
-        >>> print( uri_components["error_message"] ) # Error message
+        default_uri = "YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ"
+        globus_uri = globus://path/file.txt
+        uri_components = globusURISeparator(globus_uri, default_uri)
+        print( uri_components["uuid"] ) # UUID
+        print( uri_components["path"] ) # Path
+        print( uri_components["file_name"] ) # File name
+        print( uri_components["error_message"] ) # Error message
 
         The output should be
 
-        >>> YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ
-        >>> /path/
-        >>> file.txt
+        YYYYZZZZ-YYYY-ZZZZ-YYYY-ZZZZYYYYZZZZ
+        /path/
+        file.txt
         """
         default_uuid = extra_args
         uri = uri.lstrip(" ").rstrip(" ")
@@ -68,13 +71,11 @@ class GlobusURISeparator(URISeparator):
             package["error_message"] = error_msg
             return package
 
-        UUID_and_path = uri[len(globus_uri_tag) :]
+        UUID_and_path = uri[len(globus_uri_tag):]
         # Replace multiple occurances of // with single /
         UUID_and_path = re.sub(os.sep + "{2,}", os.sep, UUID_and_path)
 
-        print(f"UUID_and_path is  {UUID_and_path}")
         UUID = UUID_and_path[0:36]
-        print(f"UUID from path is {UUID}")
         file_and_path = UUID_and_path
 
         legal_uuid = default_uuid

@@ -123,6 +123,11 @@ class MessageFactory:
                         "Missing required arguments to initialize"
                         " SHELL activity i.e. args={'shell': 'bash'}"
                     )
+
+            elif activity_type == ActivityType.TRANSFER:
+                if "transfer_software" in args:
+                    activity.body.transfer_software = args["transfer_software"]
+
             return message_type, activity
 
         elif message_type == MessageType.STATUS:

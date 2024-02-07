@@ -1,8 +1,8 @@
 # Local imports
 from ..abstract_plugin_message_validator import PluginMessageValidator
 from .globus_common import (
-    checkTransferEndpoint,
-    checkAllItemsHaveValidEndpoints,
+    check_transfer_endpoint,
+    check_all_items_have_valid_endpoints,
     SUPPORTED_ACTIONS,
 )
 from .globus_uri_separator import GlobusURISeparator
@@ -19,25 +19,25 @@ class GlobusMessageValidator(PluginMessageValidator):
         self.__known_actions = SUPPORTED_ACTIONS.keys()
         self.__globus_uri_separator = GlobusURISeparator()
 
-    def __runTransferValidationCheck(self, action_package: dict) -> tuple[bool, str]:
+    def __run_transfer_validation_check(self, action_package: dict) -> tuple[bool, str]:
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
         :Example:
 
-        >>> {
-        >>>     "type": "synchronous",
-        >>>     "items": [
-        >>>         {
-        >>>             "source": "globus://XXXXXXXX-XX...X-XXXXXXXXXXXX/file1.txt",
-        >>>             "destination": "globus://YYYYYY...-YYYYYYYYYYYY/dest/file1.txt"
-        >>>         },
-        >>>         {
-        >>>             "source": "globus://XXXXXXXX-...XXX-XXXXXXXXXXXX/file2.txt",
-        >>>             "destination": "globus://YYYY...Y-YYYYYYYYYYYY/dest/file2.txt"
-        >>>         }
-        >>>     ]
-        >>> }
+        {
+            "type": "synchronous",
+            "items": [
+                {
+                   "source": "globus://XXXXXXXX-XX...X-XXXXXXXXXXXX/file1.txt",
+                    "destination": "globus://YYYYYY...-YYYYYYYYYYYY/dest/file1.txt"
+                },
+                {
+                    "source": "globus://XXXXXXXX-...XXX-XXXXXXXXXXXX/file2.txt",
+                    "destination": "globus://YYYY...Y-YYYYYYYYYYYY/dest/file2.txt"
+                }
+            ]
+        }
         """
 
         required_keys = ["type", "items"]
@@ -53,15 +53,15 @@ class GlobusMessageValidator(PluginMessageValidator):
             synchronous and asynchronous you have specified {action_package['type']}",
                 )
 
-        return checkTransferEndpoint(action_package)
+        return check_transfer_endpoint(action_package)
 
-    def __runMoveToGlobusValidationCheck(
+    def __run_move_to_globus_validation_check(
         self, action_package: dict
     ) -> tuple[bool, str]:
         supported_source_path_types = ["file"]
         supported_destination_path_types = ["globus"]
 
-        valid, msg = checkAllItemsHaveValidEndpoints(
+        valid, msg = check_all_items_have_valid_endpoints(
             action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,
@@ -82,7 +82,7 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         return (valid, msg)
 
-    def __runMoveFromGlobusValidationCheck(
+    def __run_move_from_globus_validation_check(
         self, action_package: dict
     ) -> tuple[bool, str]:
         """Run a sanity check for the action "move_from_globus_collection"
@@ -91,27 +91,27 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         Example:
 
-        >>> action_package = {
-        >>>    "source_host_name": "",
-        >>>    "destination_collection_UUID": "",
-        >>>    "items": [
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-...X-XXXXXXXXXXXX/file1.txt"
-        >>>               "destination": "file://file1.txt",
-        >>>           },
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-X...XXX-XXXXXXXXXXXX/file2.txt"
-        >>>               "destination": "file://file2.txt",
-        >>>           }
-        >>>    ]
-        >>> }
-        >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
+        action_package = {
+           "source_host_name": "",
+           "destination_collection_UUID": "",
+           "items": [
+                  {
+                      "source": "globus://XXXXXXXX-...X-XXXXXXXXXXXX/file1.txt"
+                      "destination": "file://file1.txt",
+                  },
+                  {
+                      "source": "globus://XXXXXXXX-X...XXX-XXXXXXXXXXXX/file2.txt"
+                      "destination": "file://file2.txt",
+                  }
+           ]
+        }
+        assert self.__run_move_from_globus_sanity_check(action_package)
         """
 
         supported_source_path_types = ["globus"]
         supported_destination_path_types = ["file"]
 
-        valid, msg = checkAllItemsHaveValidEndpoints(
+        valid, msg = check_all_items_have_valid_endpoints(
             action_package["items"],
             supported_source_path_types,
             supported_destination_path_types,
@@ -128,16 +128,16 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         return (valid, msg)
 
-    def __runGetTaskStatusValidationCheck(
+    def __run_get_task_status_validation_check(
         self, action_package: dict
     ) -> tuple[bool, str]:
         """Checks that the get_task_status action is correctly configured
 
         :Example:
 
-        >>> action_package = {
-        >>>     "task_id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-        >>> }
+        action_package = {
+            "task_id": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+        }
         """
         if "task_id" not in action_package:
             return (False, "Missing 'task_id' in get_task_status action")
@@ -150,7 +150,7 @@ class GlobusMessageValidator(PluginMessageValidator):
             )
         return (True, "")
 
-    def _validateAction(self, action: str, checks: list, arguments: dict):
+    def _validate_action(self, action: str, checks: list, arguments: dict):
         # Check if the action is supported
         if action not in self.__known_actions:
             checks.append({action: (False, "action is unknown.")})
@@ -160,21 +160,21 @@ class GlobusMessageValidator(PluginMessageValidator):
             # Any agent with the globus plugin can submit a job to globus if it
             # has access to the globus cloud
             checks.append(
-                {action: self.__runTransferValidationCheck(arguments[action])}
+                {action: self.__run_transfer_validation_check(arguments[action])}
             )
 
         elif action == "move_to_globus_collection":
             checks.append(
-                {action: self.__runMoveToGlobusValidationCheck(arguments[action])}
+                {action: self.__run_move_to_globus_validation_check(arguments[action])}
             )
 
         elif action == "move_from_globus_collection":
             checks.append(
-                {action: self.__runMoveFromGlobusValidationCheck(arguments[action])}
+                {action: self.__run_move_from_globus_validation_check(arguments[action])}
             )
         elif action == "get_task_status":
             checks.append(
-                {action: self.__runGetTaskStatusValidationCheck(arguments[action])}
+                {action: self.__run_get_task_status_validation_check(arguments[action])}
             )
         else:
             checks.append({action: (False, "Unrecognized action keyword")})
@@ -182,7 +182,7 @@ class GlobusMessageValidator(PluginMessageValidator):
         checks.append({action: (True, "")})
         return checks
 
-    def validateAction(self, arguments: dict, action) -> list:
+    def validate_action(self, arguments: dict, action) -> list:
         """Checks the input argument for errors
 
         Cycle through the items in the argument and checks if this instance
@@ -192,31 +192,31 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         Example 1
 
-        >>> arguments = {
-        >>> "transfer":
-        >>>    {
-        >>>        "type": "synchronous",
-        >>>        "items": [
-        >>>              {
-        >>>                  "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-        >>>                  "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
-        >>>              },
-        >>>              {
-        >>>                  "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-        >>>                  "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
-        >>>              }
-        >>>        ]
-        >>>    }
-        >>> }
+        arguments = {
+        "transfer":
+           {
+               "type": "synchronous",
+               "items": [
+                     {
+                         "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
+                         "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
+                     },
+                     {
+                         "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
+                         "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
+                     }
+               ]
+           }
+        }
         """
         checks = []
-        return self._validateAction(action, checks, arguments)
+        return self._validate_action(action, checks, arguments)
 
     @overload
-    def validateMessage(self, arguments: list[dict]) -> list:
+    def validate_message(self, arguments: list[dict]) -> list:
         ...
 
-    def validateMessage(self, arguments) -> list:
+    def validate_message(self, arguments) -> list:
         """Checks the input argument for errors
 
         Cycle through the items in the argument and checks if this instance
@@ -225,61 +225,61 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         Example 1
 
-        >>> arguments = [
-        >>>   { "transfer":
-        >>>       {
-        >>>           "type": "synchronous",
-        >>>           "items": [
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-        >>>                     "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
-        >>>                 },
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-        >>>                     "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
-        >>>                 }
-        >>>           ]
-        >>>       }
-        >>>   }
-        >>> ]
+        arguments = [
+          { "transfer":
+              {
+                  "type": "synchronous",
+                  "items": [
+                        {
+                            "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
+                            "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
+                        },
+                        {
+                            "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
+                            "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
+                        }
+                  ]
+              }
+          }
+        ]
 
         Example 2
 
-        >>> arguments = [
-        >>>   { "move_to_globus_collection": {
-        >>>       "items": [
-        >>>           {
-        >>>               "source": "file://file1.txt",
-        >>>               "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt"
-        >>>           },
-        >>>           {
-        >>>               "source": "file://file2.txt",
-        >>>               "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt"
-        >>>           }
-        >>>       ]
-        >>>   }
-        >>> ]
+        arguments = [
+          { "move_to_globus_collection": {
+              "items": [
+                  {
+                      "source": "file://file1.txt",
+                      "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt"
+                  },
+                  {
+                      "source": "file://file2.txt",
+                      "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt"
+                  }
+              ]
+          }
+        ]
 
         Example 3
 
-        >>> arguments = [
-        >>>   { "move_from_globus_collection": {
-        >>>       "items": [
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt"
-        >>>               "destination": "file://file1.txt",
-        >>>           },
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt"
-        >>>               "destination": "file://file2.txt",
-        >>>           }
-        >>>       ]
-        >>>   }
-        >>> ]
+        arguments = [
+          { "move_from_globus_collection": {
+              "items": [
+                  {
+                      "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt"
+                      "destination": "file://file1.txt",
+                  },
+                  {
+                      "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt"
+                      "destination": "file://file2.txt",
+                  }
+              ]
+          }
+        ]
         """
         checks = []
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
-                checks = self._validateAction(action, checks, arguments[index])
+                checks = self._validate_action(action, checks, arguments[index])
         return checks

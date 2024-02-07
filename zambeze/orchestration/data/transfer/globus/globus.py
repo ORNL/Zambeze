@@ -3,9 +3,9 @@
 # Local imports
 from ..abstract_plugin import Plugin
 from .globus_common import (
-    localEndpointExists,
-    getMappedCollections,
-    getGlobusScopes,
+    local_endpoint_exists,
+    get_mapped_collections,
+    get_globus_scopes,
     SUPPORTED_ACTIONS,
 )
 from .globus_uri_separator import GlobusURISeparator
@@ -65,50 +65,51 @@ class Globus(Plugin):
     # Validation Methods
     # -----------------
 
-    def __validConfig(self, config: dict):
+    def _valid_config(self, config: dict):
         """Purpose of this method is to determine if the coniguration is correct
 
         :Example: Config
 
-        >>> config = {
-        >>>   "local_endpoints": [
-        >>>       {
-        >>>         "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5",
-        >>>         "path": "/scratch/",
-        >>>         "type": "guest"
-        >>>       },
-        >>>       {
-        >>>         "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5",
-        >>>         "path": "/project/",
-        >>>         "type": "mapped"}
-        >>>   ],
-        >>>   "authentication_flow": {
-        >>>       "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021"
-        >>>       "type": "'native' or 'client credential'"
-        >>>       "secret": "blahblah"
-        >>>   },
-        >>>   "default_endpoint": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5"
-        >>> }
+        config = {
+         "local_endpoints": [
+              {
+                "uuid": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5",
+                "path": "/scratch/",
+                "type": "guest"
+              },
+              {
+                "uuid": "JD3D597A-2D2B-1MP8-A53F-0Z89A04C68A5",
+                "path": "/project/",
+                "type": "mapped"}
+          ],
+          "authentication_flow": {
+              "client_id": "9c9fee8f-f686-4e28-a961-647af41fe021"
+              "type": "'native' or 'client credential'"
+              "secret": "blahblah"
+          },
+          "default_endpoint": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5"
+        }
         """
 
-        if "authentication_flow" not in config:
-            raise Exception(
-                "'authentication_flow' key value missing from config"
-                " config must have 'authentication_flow' specified"
-            )
+        # TODO: TYLER: everything about authentication flow needs to move into 'auth'.
+        # if "authentication_flow" not in config:
+        #     raise Exception(
+        #         "'authentication_flow' key value missing from config"
+        #         " config must have 'authentication_flow' specified"
+        #     )
+        #
+        # # Check that the authentication flow is supported
+        # if "native" == config["authentication_flow"]["type"].lower():
+        #     self.__flow = "native"
+        # elif "client credential" == config["authentication_flow"]["type"].lower():
+        #     self.__flow = "client credential"
+        # else:
+        #     raise Exception(
+        #         "Unsupported authentication flow detected "
+        #         f"{config['authentication_flow']['type']}"
+        #     )
 
-        # Check that the authentication flow is supported
-        if "native" == config["authentication_flow"]["type"].lower():
-            self.__flow = "native"
-        elif "client credential" == config["authentication_flow"]["type"].lower():
-            self.__flow = "client credential"
-        else:
-            raise Exception(
-                "Unsupported authentication flow detected "
-                f"{config['authentication_flow']['type']}"
-            )
-
-    def __validEndPoints(self, config: dict):
+    def __valid_endpoints(self, config: dict):
         """This method can only be run after the authentication flow has been run
 
         :param config: This is the configuration information read in from the
@@ -134,7 +135,7 @@ class Globus(Plugin):
                     else:
                         raise
 
-    def __validActions(self):
+    def __valid_actions(self):
         # If we were able to communicate with Globus then the transfer action should be
         # possible
         if self.__access_to_globus_cloud:
@@ -148,7 +149,7 @@ class Globus(Plugin):
 
     # Authentication methods
     # ----------------------
-    def __nativeAuthFlow(self):
+    def __native_auth_flow(self):
         # Using Native auth flow
 
         home_dir = os.path.expanduser("~")
@@ -197,7 +198,7 @@ class Globus(Plugin):
         # work -- for days and days, months and months, even years
         self.__tc = globus_sdk.TransferClient(authorizer=self.__authorizer)
 
-    def __clientCredentialAuthFlow(self, config: dict):
+    def __client_credential_auth_flow(self, config: dict):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
 
         if config["authentication_flow"]["secret"] is None:
@@ -220,29 +221,29 @@ class Globus(Plugin):
 
     # Run methods
     # -----------
-    def __runTransfer(self, transfer: dict):
+    def __run_transfer(self, transfer: dict):
         """transfer dict must have the following format
 
         :Example:
 
-        >>> {
-        >>>     "type": "synchronous",
-        >>>     "items": [
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file1.txt",
-        >>>                     "destination": "globus://YYYY...YYYYYYY/dest/file1.txt"
-        >>>                 },
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXX/file2.txt",
-        >>>                     "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
-        >>>                 }
-        >>>     ]
-        >>> }
+        {
+            "type": "synchronous",
+            "items": [
+                        {
+                            "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file1.txt",
+                            "destination": "globus://YYYY...YYYYYYY/dest/file1.txt"
+                        },
+                        {
+                            "source": "globus://XXXXXXXX-...XXXXXXXXXXX/file2.txt",
+                            "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
+                        }
+            ]
+        }
 
         If the type is asynchrouns a runTransfer will return a callback action
         that can be executed to check the status of the generated task
         """
-        transfer_result: dict
+        transfer_result = dict()
 
         for item in transfer["items"]:
             source_globus_uri = self.__globus_uri_separator.separate(
@@ -287,14 +288,14 @@ class Globus(Plugin):
 
         return transfer_result
 
-    def __runGetTaskStatus(self, action_package: dict):
+    def __run_get_task_status(self, action_package: dict):
         """Method will check the status of a task
 
         :Example:
 
-        >>> action_package = {
-        >>>     "task_id": result["task_id"]
-        >>> }
+        action_package = {
+            "task_id": result["task_id"]
+        }
         """
         result = self.__tc.get_task(action_package["task_id"])
         get_status_result = {
@@ -303,7 +304,7 @@ class Globus(Plugin):
         }
         return get_status_result
 
-    def __getPOSIXpathToEndpoint(self, globus_uuid: str) -> str:
+    def __get_posix_path_to_ep(self, globus_uuid: str) -> str:
         return next(
             (
                 endpoint["path"]
@@ -313,25 +314,25 @@ class Globus(Plugin):
             None,
         )
 
-    def __runMoveToGlobusCollection(self, action_package: dict):
+    def __run_move_to_globus_collection(self, action_package: dict):
         """Method is designed to move a local file to a Globus collection
 
         Example:
 
         "action_package" dict must have the following format
 
-        >>> action_package = {
-        >>>     "items": [
-        >>>           {
-        >>>               "source": "file://file1.txt",
-        >>>               "destination": "globus://YYYYYYYY-...-YYYYYYYYYYYY/file1.txt"
-        >>>           },
-        >>>           {
-        >>>               "source": "file://file2.txt",
-        >>>               "destination": "globus://YYYYYYYY-...YYYYYYYYYYYY/file2.txt"
-        >>>           }
-        >>>     ]
-        >>> }
+        action_package = {
+            "items": [
+                  {
+                      "source": "file://file1.txt",
+                      "destination": "globus://YYYYYYYY-...-YYYYYYYYYYYY/file1.txt"
+                  },
+                  {
+                      "source": "file://file2.txt",
+                      "destination": "globus://YYYYYYYY-...YYYYYYYYYYYY/file2.txt"
+                  }
+            ]
+        }
         """
         for item in action_package["items"]:
             source_sep_file_uri = self.__file_uri_separator.separate(item["source"])
@@ -343,7 +344,7 @@ class Globus(Plugin):
             )
             destination_uuid = destination_sep_globus_uri["uuid"]
             destination_file_name = destination_sep_globus_uri["file_name"]
-            destination_endpoint_path = self.__getPOSIXpathToEndpoint(destination_uuid)
+            destination_endpoint_path = self.__get_posix_path_to_ep(destination_uuid)
 
             # /mnt/globus/collections
             destination_path = destination_endpoint_path
@@ -362,25 +363,25 @@ class Globus(Plugin):
 
             shutil.copyfile(source_path, destination_path)
 
-    def __runMoveFromGlobusCollection(self, action_package: dict):
+    def __run_move_from_globus_collection(self, action_package: dict):
         """Method is designed to move a local file from a Globus collection
 
         Example:
 
         "action_package" dict must have the following format
 
-        >>> action_package = {
-        >>>     "items": [
-        >>>           {
-        >>>               "source": "globus://YYYYYYY...-YYYYYYYYYYYY/file1.txt"
-        >>>               "destination": "file://file1.txt",
-        >>>           },
-        >>>           {
-        >>>               "source": "globus://YYYYYYY...YYYYYYYYYYY/file2.txt"
-        >>>               "destination": "file://file2.txt",
-        >>>           }
-        >>>     ]
-        >>> }
+        action_package = {
+            "items": [
+                  {
+                      "source": "globus://YYYYYYY...-YYYYYYYYYYYY/file1.txt"
+                      "destination": "file://file1.txt",
+                  },
+                  {
+                      "source": "globus://YYYYYYY...YYYYYYYYYYY/file2.txt"
+                      "destination": "file://file2.txt",
+                  }
+            ]
+        }
         """
         for item in action_package["items"]:
             destination_sep_file_uri = self.__file_uri_separator.separate(
@@ -394,7 +395,7 @@ class Globus(Plugin):
             )
             source_uuid = source_sep_globus_uri["uuid"]
             source_file_name = source_sep_globus_uri["file_name"]
-            source_endpoint_path = self.__getPOSIXpathToEndpoint(source_uuid)
+            source_endpoint_path = self.__get_posix_path_to_ep(source_uuid)
 
             # /mnt/globus/collections
             source_path = source_endpoint_path
@@ -416,26 +417,28 @@ class Globus(Plugin):
 
             shutil.copyfile(source_path, destination_path)
 
-    def __runTransferSanityCheck(self, action_package: dict) -> tuple[bool, str]:
+    def __run_transfer_sanity_check(self, action_package: dict) -> tuple[bool, str]:
         """Checks to ensure that the action_package has the right format and
         checks for errors.
 
         :Example:
 
-        >>> {
-        >>>     "type": "synchronous",
-        >>>     "items": [
-        >>>         {
-        >>>             "source": "globus://XXXXXXXX-XX...X-XXXXXXXXXXXX/file1.txt",
-        >>>             "destination": "globus://YYYYYY...-YYYYYYYYYYYY/dest/file1.txt"
-        >>>         },
-        >>>         {
-        >>>             "source": "globus://XXXXXXXX-...XXX-XXXXXXXXXXXX/file2.txt",
-        >>>             "destination": "globus://YYYY...Y-YYYYYYYYYYYY/dest/file2.txt"
-        >>>         }
-        >>>     ]
-        >>> }
+        {
+            "type": "synchronous",
+            "items": [
+                {
+                    "source": "globus://XXXXXXXX-XX...X-XXXXXXXXXXXX/file1.txt",
+                    "destination": "globus://YYYYYY...-YYYYYYYYYYYY/dest/file1.txt"
+                },
+                {
+                    "source": "globus://XXXXXXXX-...XXX-XXXXXXXXXXXX/file2.txt",
+                    "destination": "globus://YYYY...Y-YYYYYYYYYYYY/dest/file2.txt"
+                }
+            ]
+        }
         """
+
+        self._logger.info(f"Checking Globus sanity: {action_package}")
 
         # Any agent with the globus plugin can submit a job to globus if it
         # has access to the globus cloud
@@ -444,62 +447,63 @@ class Globus(Plugin):
 
         return True, ""
 
-    def __runMoveToGlobusSanityCheck(self, action_package: dict) -> tuple[bool, str]:
+    def __run_move_to_globus_sanity_check(self, action_package: dict) -> tuple[bool, str]:
         for item in action_package["items"]:
             globus_sep_uri = self.__globus_uri_separator.separate(
                 item["destination"], self.__default_endpoint
             )
-            if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
+            if not local_endpoint_exists(globus_sep_uri["uuid"], self.__endpoints):
                 error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"move_from_globus_collection' item: {item}"
                 error_msg += "\nuuid:"
                 error_msg += f" {globus_sep_uri['uuid']}\nRecognized endpoints "
                 error_msg += f"are {self.__endpoints}."
-                return (False, error_msg)
+                return False, error_msg
 
             file_sep_uri = self.__file_uri_separator.separate(item["source"])
             file_path = file_sep_uri["path"] + file_sep_uri["file_name"]
             if not exists(file_path):
                 return False, f"Item does not exist {file_path}"
 
-        return (True, "")
+        return True, ""
 
-    def __runMoveFromGlobusSanityCheck(self, action_package: dict) -> tuple[bool, str]:
+    def __run_move_from_globus_sanity_check(self, action_package: dict) -> tuple[bool, str]:
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
 
         Example:
 
-        >>> action_package = {
-        >>>    "source_host_name": "",
-        >>>    "destination_collection_UUID": "",
-        >>>    "items": [
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-...X-XXXXXXXXXXXX/file1.txt"
-        >>>               "destination": "file://file1.txt",
-        >>>           },
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-X...XXX-XXXXXXXXXXXX/file2.txt"
-        >>>               "destination": "file://file2.txt",
-        >>>           }
-        >>>    ]
-        >>> }
-        >>> assert self.__runMoveFromGlobusSanityCheck(action_package)
+        action_package = {
+           "source_host_name": "",
+           "destination_collection_UUID": "",
+           "items": [
+                  {
+                      "source": "globus://XXXXXXXX-...X-XXXXXXXXXXXX/file1.txt"
+                      "destination": "file://file1.txt",
+                  },
+                  {
+                      "source": "globus://XXXXXXXX-X...XXX-XXXXXXXXXXXX/file2.txt"
+                      "destination": "file://file2.txt",
+                  }
+           ]
+        }
+        assert self.__runMoveFromGlobusSanityCheck(action_package)
         """
+
         for item in action_package["items"]:
             globus_sep_uri = self.__globus_uri_separator.separate(
                 item["source"], self.__default_endpoint
             )
-            if not localEndpointExists(globus_sep_uri["uuid"], self.__endpoints):
+            if not local_endpoint_exists(globus_sep_uri["uuid"], self.__endpoints):
                 error_msg = "Invalid source endpoint uuid detected in "
                 error_msg += f"'move_from_globus_collection' item: {item} "
                 error_msg += "\nuuid: "
                 error_msg += f" {globus_sep_uri['uuid']}\nRecognized endpoints "
                 error_msg += f"are {self.__endpoints}."
-                return (False, error_msg)
+                return False, error_msg
 
-            posix_path_to_endpoint = self.__getPOSIXpathToEndpoint(
+            posix_path_to_endpoint = self.__get_posix_path_to_ep(
                 globus_sep_uri["uuid"]
             )
             file_path = posix_path_to_endpoint + globus_sep_uri["path"]
@@ -507,9 +511,9 @@ class Globus(Plugin):
             if not exists(file_path):
                 return False, f"Item does not exist {file_path}"
 
-        return (True, "")
+        return True, ""
 
-    def __checkAccessToGlobusCloud(self):
+    def __check_access_to_globus_cloud(self):
         """Will check if we can reach the internet and caches access to globus
         cloud if cannot reach it.
         """
@@ -552,46 +556,47 @@ class Globus(Plugin):
           "default_endpoint": "4DED5CB6-EF22-4DC6-A53F-0A97A04CD8B5"
         }
         """
-        self.__validConfig(config)
+        self._valid_config(config)
 
-        print("Config is")
-        print(config)
-        self._logger.debug(json.dumps(config, indent=4))
-        if "authentication_flow" in config:
-            if "client_id" in config["authentication_flow"]:
-                self.__client_id = config["authentication_flow"]["client_id"]
-
-        print("Client id is ")
-        print(self.__client_id)
-
-        # Detect hostname
-        self.__hostname = gethostname()
-        self.__checkAccessToGlobusCloud()
-
-        # Permissions to access mapped collections must be granted explicitly
-        mapped_collections = getMappedCollections(config)
-        self.__scopes = getGlobusScopes(mapped_collections)
-
-        try:
-            if self.__flow == "native":
-                self.__nativeAuthFlow()
-            elif self.__flow == "client credential":
-                self.__clientCredentialAuthFlow(config)
-
-            self.__access_to_globus_cloud = True
-        except GlobusError as e:
-            logging.exception(
-                "Error detected while attempting to authenticate and"
-                "communicate with the Globus API"
-            )
-            raise e
-
-        self.__validEndPoints(config)
-        if "local_endpoints" in config:
-            self.__endpoints = deepcopy(config["local_endpoints"])
-            self.__default_endpoint = deepcopy(config["default_endpoint"])
-
-        self.__validActions()
+        # TODO: BRING THIS BACK!
+        # print("Config is")
+        # print(config)
+        # self._logger.debug(json.dumps(config, indent=4))
+        # if "authentication_flow" in config:
+        #     if "client_id" in config["authentication_flow"]:
+        #         self.__client_id = config["authentication_flow"]["client_id"]
+        #
+        # print("Client id is ")
+        # print(self.__client_id)
+        #
+        # # Detect hostname
+        # self.__hostname = gethostname()
+        # self.__check_access_to_globus_cloud()
+        #
+        # # Permissions to access mapped collections must be granted explicitly
+        # mapped_collections = get_mapped_collections(config)
+        # self.__scopes = get_globus_scopes(mapped_collections)
+        #
+        # try:
+        #     if self.__flow == "native":
+        #         self.__native_auth_flow()
+        #     elif self.__flow == "client credential":
+        #         self.__client_credential_auth_flow(config)
+        #
+        #     self.__access_to_globus_cloud = True
+        # except GlobusError as e:
+        #     logging.exception(
+        #         "Error detected while attempting to authenticate and"
+        #         "communicate with the Globus API"
+        #     )
+        #     raise e
+        #
+        # self.__valid_endpoints(config)
+        # if "local_endpoints" in config:
+        #     self.__endpoints = deepcopy(config["local_endpoints"])
+        #     self.__default_endpoint = deepcopy(config["default_endpoint"])
+        #
+        # self.__valid_actions()
 
         self.__configured = True
 
@@ -630,7 +635,7 @@ class Globus(Plugin):
 
     @property
     def info(self) -> dict:
-        information = {}
+        information = dict()
         information["client_id"] = self.__client_id
         information["local_endpoints"] = self.__endpoints
 
@@ -654,64 +659,61 @@ class Globus(Plugin):
         the same argument.
 
         Example 1
-
-        >>> arguments = [
-        >>>   { "transfer":
-        >>>       {
-        >>>           "type": "synchronous",
-        >>>           "items": [
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
-        >>>                     "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
-        >>>                 },
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
-        >>>                     "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
-        >>>                 }
-        >>>           ]
-        >>>       }
-        >>>   }
-        >>> ]
+        arguments = [
+          { "transfer":
+              {
+                  "type": "synchronous",
+                  "items": [
+                        {
+                            "source": "globus://XXXXXXXX...X-XXXXXXXX/file1.txt",
+                            "destination": "globus://YYY...YYYYYYYY/dest/file1.txt"
+                        },
+                        {
+                            "source": "globus://XXXXXXXX-...XXXXXXXXXXXX/file2.txt",
+                            "destination": "globus://YYYY...YYYYYYYY/dest/file2.txt"
+                        }
+                  ]
+              }
+          }
+        ]
 
         Example 2
-
-        >>> arguments = [
-        >>>   { "move_to_globus_collection": {
-        >>>       "items": [
-        >>>           {
-        >>>               "source": "file://file1.txt",
-        >>>               "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt"
-        >>>           },
-        >>>           {
-        >>>               "source": "file://file2.txt",
-        >>>               "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt"
-        >>>           }
-        >>>       ]
-        >>>   }
-        >>> ]
+        arguments = [
+          { "move_to_globus_collection": {
+              "items": [
+                  {
+                      "source": "file://file1.txt",
+                      "destination": "globus://YYYYY...YY-YYYYYYYYYYYY/file1.txt"
+                  },
+                  {
+                      "source": "file://file2.txt",
+                      "destination": "globus://YYYYY...Y-YYYYYYYYYYYY/file2.txt"
+                  }
+              ]
+          }
+        ]
 
         Example 3
-
-        >>> arguments = [
-        >>>   { "move_from_globus_collection": {
-        >>>       "items": [
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt"
-        >>>               "destination": "file://file1.txt",
-        >>>           },
-        >>>           {
-        >>>               "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt"
-        >>>               "destination": "file://file2.txt",
-        >>>           }
-        >>>       ]
-        >>>   }
-        >>> ]
+        arguments = [
+          { "move_from_globus_collection": {
+              "items": [
+                  {
+                      "source": "globus://XXXXXXXX-XX...XXXXXXXXXX/file1.txt"
+                      "destination": "file://file1.txt",
+                  },
+                  {
+                      "source": "globus://XXXXXXXX-XX...XXXXXXXXXXX/file2.txt"
+                      "destination": "file://file2.txt",
+                  }
+              ]
+          }
+        ]
         """
         checks = []
         # Here we are cycling a list of dicts
         for index in range(len(arguments)):
             for action in arguments[index]:
-                schema_checks = self._message_validator.validateAction(
+                schema_checks = self._message_validator.validate_action(
                     arguments[index], action
                 )
 
@@ -730,7 +732,7 @@ class Globus(Plugin):
                     # has access to the globus cloud
                     checks.append(
                         {
-                            action: self.__runTransferSanityCheck(
+                            action: self.__run_transfer_sanity_check(
                                 arguments[index][action]
                             )
                         }
@@ -739,7 +741,7 @@ class Globus(Plugin):
                 elif action == "move_to_globus_collection":
                     checks.append(
                         {
-                            action: self.__runMoveToGlobusSanityCheck(
+                            action: self.__run_move_to_globus_sanity_check(
                                 arguments[index][action]
                             )
                         }
@@ -748,7 +750,7 @@ class Globus(Plugin):
                 elif action == "move_from_globus_collection":
                     checks.append(
                         {
-                            action: self.__runMoveFromGlobusSanityCheck(
+                            action: self.__run_move_from_globus_sanity_check(
                                 arguments[index][action]
                             )
                         }
@@ -768,58 +770,55 @@ class Globus(Plugin):
         :type arguments: list of dicts
 
         Example 1
-
-        >>> arguments = [
-        >>>   { "transfer":
-        >>>       {
-        >>>           "type": "synchronous",
-        >>>           "items": [
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXX...XXXX/file1.txt",
-        >>>                     "destination": "globus://YYYYYYY...YYYY/dest/file1.txt"
-        >>>                 },
-        >>>                 {
-        >>>                     "source": "globus://XXXXXXXX-XXX...XXXX/file2.txt",
-        >>>                     "destination": "globus://YYYYYYY...YYYYY/dest/file2.txt"
-        >>>                 }
-        >>>           ]
-        >>>       }
-        >>>   }
-        >>> ]
+        arguments = [
+          { "transfer":
+              {
+                  "type": "synchronous",
+                  "items": [
+                        {
+                            "source": "globus://XXXXXXXX-XXX...XXXX/file1.txt",
+                            "destination": "globus://YYYYYYY...YYYY/dest/file1.txt"
+                        },
+                        {
+                            "source": "globus://XXXXXXXX-XXX...XXXX/file2.txt",
+                            "destination": "globus://YYYYYYY...YYYYY/dest/file2.txt"
+                        }
+                  ]
+              }
+          }
+        ]
 
         Example 2
-
-        >>> arguments = [
-        >>>   { "move_to_globus_collection": {
-        >>>       "items": [
-        >>>           {
-        >>>               "source": "file://file1.txt",
-        >>>               "destination": "globus://YYYYYYYY...YYYYYYYYYY/file1.txt"
-        >>>           },
-        >>>           {
-        >>>               "source": "file://file2.txt",
-        >>>               "destination": "globus://YYYYYYYY...-YYYYYYYYYYYY/file2.txt"
-        >>>           }
-        >>>       ]
-        >>>   }
-        >>> ]
+        arguments = [
+          { "move_to_globus_collection": {
+              "items": [
+                  {
+                      "source": "file://file1.txt",
+                      "destination": "globus://YYYYYYYY...YYYYYYYYYY/file1.txt"
+                  },
+                  {
+                      "source": "file://file2.txt",
+                      "destination": "globus://YYYYYYYY...-YYYYYYYYYYYY/file2.txt"
+                  }
+              ]
+          }
+        ]
 
         Example 3
-
-        >>> arguments = [
-        >>>   { "move_from_globus_collection": {
-        >>>       "items": [
-        >>>           {
-        >>>               "source": "globus://XXXXX...XXXXXXXXXXX/file1.txt"
-        >>>               "destination": "file://file1.txt",
-        >>>           },
-        >>>           {
-        >>>               "source": "globus://XXXXX...XXX-XXXXXXXXXXXX/file2.txt"
-        >>>               "destination": "file://file2.txt",
-        >>>           }
-        >>>       ]
-        >>>   }
-        >>> ]
+        arguments = [
+          { "move_from_globus_collection": {
+              "items": [
+                  {
+                      "source": "globus://XXXXX...XXXXXXXXXXX/file1.txt"
+                      "destination": "file://file1.txt",
+                  },
+                  {
+                      "source": "globus://XXXXX...XXX-XXXXXXXXXXXX/file2.txt"
+                      "destination": "file://file2.txt",
+                  }
+              ]
+          }
+        ]
         """
         if not self.__configured:
             raise Exception("Cannot run globus plugin, must first be configured.")
@@ -832,12 +831,12 @@ class Globus(Plugin):
                     raise Exception(f"{key} is not supported.")
 
                 if key == "transfer":
-                    return_values[key] = self.__runTransfer(action_obj[key])
+                    return_values[key] = self.__run_transfer(action_obj[key])
                 elif key == "move_to_globus_collection":
-                    self.__runMoveToGlobusCollection(action_obj[key])
+                    self.__run_move_to_globus_collection(action_obj[key])
                 elif key == "move_from_globus_collection":
-                    self.__runMoveFromGlobusCollection(action_obj[key])
+                    self.__run_move_from_globus_collection(action_obj[key])
                 elif key == "get_task_status":
-                    return_values[key] = self.__runGetTaskStatus(action_obj[key])
+                    return_values[key] = self.__run_get_task_status(action_obj[key])
 
         return return_values

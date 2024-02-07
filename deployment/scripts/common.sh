@@ -11,7 +11,7 @@
 # Expected arguments to the function are:
 #
 # expected_foreign_keys - this variable expects a number to indicate how many
-#                         foriegn keys to expect to add as a known host 
+#                         foriegn keys to expect to add as a known host
 ssh_setup() {
 
   echo "[common.sh] Running processes are:"
@@ -53,7 +53,7 @@ ssh_setup() {
 
 		foreign_public_keys=$(ls -A -d /srv/shared/* | grep .pub | grep -v ${my_rsa} )
 
-		# Register as an authorized host
+		# Register as an authorized host  # TODO: TYLER -- need this.
 		if [ -f $HOME/.ssh/authorized_keys ]
 		then
 						echo "[common.sh] Removing authorized keys"

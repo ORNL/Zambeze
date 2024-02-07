@@ -160,6 +160,7 @@ class Shell(Plugin):
 
         :Example:
 
+        # TODO: list what the hell this schema actually is here in doc, because "bash" isn't it...
         arguments = [ {
             "bash": { }
             }]
@@ -172,12 +173,12 @@ class Shell(Plugin):
 
         for index in range(len(arguments)):
             for action in arguments[index]:
-                print(f"shell action {action} index is {index}")
-                schema_checks = self._message_validator.validateAction(
+                self._logger.debug(f"shell action {action} index is {index}")
+                schema_checks = self._message_validator.validate_action(
                     arguments[index], action
                 )
-                print("Schema checks")
-                print(schema_checks)
+                self._logger.debug("Schema checks")
+                self._logger.debug(schema_checks)
                 if len(schema_checks) > 0:
                     if schema_checks[0][action][0] is False:
                         checks.extend(schema_checks)

@@ -270,21 +270,21 @@ class Plugins:
 
         if not isinstance(plugin_name, str):
             raise ValueError(
-                "Unsupported plugin_name type detected in check."
+                "[plugins.py] Unsupported plugin_name type detected in check."
                 "The check function only supports either:\n"
                 "1. An abstract message as a single argument\n"
                 "2. The plugin name as a str and the package as a dict\n"
                 "\n"
-                f"The encountered type is {type(plugin_name)}"
+                f"The encountered type is {type(plugin_name)} with payload {plugin_name}"
             )
         elif not isinstance(arguments, dict):
             raise ValueError(
-                "Unsupported plugin_name type detected in check."
+                "[plugins.py] Unsupported arguments type detected in check."
                 "The check function only supports either:\n"
                 "1. An abstract message as a single argument\n"
                 "2. The plugin name as a str and the package as a dict\n"
                 "\n"
-                f"The encountered type is {type(arguments)}"
+                f"The encountered type is {type(arguments)} with payload {arguments}"
             )
 
         check_results = {}

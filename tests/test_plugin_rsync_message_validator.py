@@ -27,7 +27,7 @@ def test_rsync_messageTemplate_and_validate():
     validator = RsyncMessageValidator()
     print("******************")
     print("Validating")
-    checks = validator.validateMessage(rsync_template)
+    checks = validator.validate_message(rsync_template)
     print(checks)
     assert "transfer" in checks[0]
     assert checks[0]["transfer"][0]

@@ -10,18 +10,21 @@ class QueueRMQ(AbstractQueue):
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
         self._queue_type = QueueType.RABBITMQ
         self._logger = logger
-        self._ip = "127.0.0.1"
-        self._port = "5672"
+        self._ip = queue_config["ip"]
+        self._port = queue_config["port"]
         self._rmq = None
         self._rmq_channel = None
         self._sub = {}
 
         self.callback_queue = None
 
+        """
         if "ip" in queue_config:
             self._ip = queue_config["ip"]
         if "port" in queue_config:
             self._port = queue_config["port"]
+        """
+        self._logger.info(f"Preparing to start queue at address {self._ip}:{self._port}")
 
     def __disconnected(self):
         if self._logger:
@@ -46,7 +49,7 @@ class QueueRMQ(AbstractQueue):
 
     def connect(self) -> tuple[bool, str]:
         try:
-            self._rmq = pika.BlockingConnection(pika.ConnectionParameters(self._ip))
+            self._rmq = pika.BlockingConnection(pika.ConnectionParameters(host=self._ip, port=self._port))
             self._rmq_channel = self._rmq.channel()
             self._logger.info("[Queue RMQ] Creating RabbitMQ channels...")
 
@@ -64,7 +67,9 @@ class QueueRMQ(AbstractQueue):
                     "3. The correct ip address and port have been specified.\n"
                     "4. That an agent.yaml file exists for the zambeze agent.\n"
                 )
-                self._logger.error(f"CAUGHT: {e}")
+                import traceback
+                self._logger.error(f"CAUGHT: {traceback.print_exc}")
+
                 self._rmq = None
                 self._rmq_channel = None
 
@@ -167,9 +172,6 @@ class QueueRMQ(AbstractQueue):
                 "Cannot send message to RabbitMQ, client is "
                 "not connected to a RabbitMQ queue"
             )
-
-        self._logger.info(body.data)
-        self._logger.info(type(body.data))
 
         self._rmq_channel.basic_publish(
             exchange=exchange, routing_key=channel, body=dill.dumps(body)

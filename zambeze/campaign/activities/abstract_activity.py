@@ -46,6 +46,9 @@ class Activity(ABC):
     agent_id: Optional[str]
     message_id: Optional[str]
     activity_id: Optional[str]
+    source_file: Optional[str]
+    dest_directory: Optional[str]
+    override_existing: Optional[bool]
 
     def __init__(
         self,
@@ -58,6 +61,9 @@ class Activity(ABC):
         agent_id: Optional[str] = None,
         message_id: Optional[str] = None,
         activity_id: Optional[str] = None,
+        source_file: Optional[str] = "",
+        dest_directory: Optional[str] = "",
+        override_existing: Optional[bool] = False,
         **kwargs
     ) -> None:
         """Create an object that represents a science campaign activity."""
@@ -70,6 +76,9 @@ class Activity(ABC):
         self.agent_id = agent_id
         self.message_id = message_id
         self.activity_id = activity_id
+        self.source_file = source_file
+        self.dest_directory = dest_directory
+        self.override_existing = override_existing
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
 

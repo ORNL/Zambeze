@@ -29,10 +29,11 @@ def main():
 
     # define an activity
     curr_dir = os.path.dirname(__file__)
+
     activity = ShellActivity(
         name="ImageMagick",
         files=[
-            f"file://{curr_dir}/../tests/campaigns/imagesequence/{i:02d}.jpg"
+            f"local://{curr_dir}/../tests/campaigns/imagesequence/{i:02d}.jpg"
             for i in range(1, 11)
         ],
         command="convert",

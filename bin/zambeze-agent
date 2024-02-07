@@ -9,9 +9,7 @@
 import logging
 import typer
 import pathlib
-import os
 
-from datetime import datetime
 from zambeze.orchestration.agent.agent import Agent
 
 agent_state = {"conf_file": None}
@@ -20,24 +18,17 @@ agent_app = typer.Typer()
 
 @agent_app.command()
 def start(
-    log_path: str = typer.Option(
-        "", help="Path to logs on disk."), debug: bool = typer.Option(
-            False, help="If debug logs are enabled."), zmq_activity_port: int = typer.Option(
-                0, help="Port at which activities are received."), zmq_heartbeat_port: int = typer.Option(
-                    0, help="Port for agent heartbeat communication."), config_path: str = typer.Option(
-                        str(
-                            pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml")), help="Path to config.")):
+    log_path: str = typer.Option("", help="Path to logs on disk."),
+    debug: bool = typer.Option(False, help="If debug logs are enabled."),
+    zmq_activity_port: int = typer.Option(0, help="Port at which activities are received."),
+    zmq_heartbeat_port: int = typer.Option(0, help="Port for agent heartbeat communication."),
+    config_path: str = typer.Option(str(pathlib.Path.home().joinpath(".zambeze").
+                                        joinpath("agent.yaml")), help="Path to config.")):
     """
     Start the agent (set logger and ZMQ ports).
     """
 
-    # If no log path is specified use default location and type
-    if "".__eq__(log_path):
-        print("Log path was not specified using default.")
-        fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-        log_path = os.path.expanduser('~') + f"/.zambeze/logs/" + fmt_str + ".log"
-
-    print(f"Log path: {log_path}")
+    # Log path comes from agents/commands.py
     agent_logger = logging.getLogger('agent')
     fh = logging.FileHandler(log_path)
     formatter = logging.Formatter(

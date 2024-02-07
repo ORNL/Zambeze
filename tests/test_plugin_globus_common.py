@@ -1,8 +1,8 @@
 # Local imports
 from zambeze.orchestration.plugin_modules.globus.globus_common import (
-    checkAllItemsHaveValidEndpoints,
-    getGlobusScopes,
-    getMappedCollections,
+    check_all_items_have_valid_endpoints,
+    get_globus_scopes,
+    get_mapped_collections,
 )
 
 # Standard imports
@@ -30,7 +30,7 @@ def test_getMappedCollections():
         ]
     }
 
-    mapped_coll_UUIDs = getMappedCollections(config)
+    mapped_coll_UUIDs = get_mapped_collections(config)
 
     assert len(mapped_coll_UUIDs) == 1
     assert mapped_coll_UUIDs[0] == "YYYYYYYY-YYYY-YYYY-YYYY-YYYYYYYYYYYY"
@@ -39,12 +39,12 @@ def test_getMappedCollections():
 @pytest.mark.unit
 def test_getGlobusScopes():
     mapped_collections = []
-    scopes = getGlobusScopes(mapped_collections)
+    scopes = get_globus_scopes(mapped_collections)
     assert scopes == "urn:globus:auth:scope:transfer.api.globus.org:all"
 
     # These are invalid entries so they will be ignored
     mapped_collections = ["", "XXXX"]
-    scopes = getGlobusScopes(mapped_collections)
+    scopes = get_globus_scopes(mapped_collections)
     assert scopes == "urn:globus:auth:scope:transfer.api.globus.org:all"
 
     # Though the middle entry is not really a valid UUID it is 36 chars so
@@ -56,7 +56,7 @@ def test_getGlobusScopes():
         "ZZZZZZZZ-ZZZZ-ZZZZ-ZZZZ-ZZZZZZZZZZZZ",
     ]
 
-    scopes = getGlobusScopes(mapped_collections)
+    scopes = get_globus_scopes(mapped_collections)
 
     correct_scopes = "urn:globus:auth:scope:transfer.api.globus.org:all\
 [*https://auth.globus.org/scopes/\
@@ -100,7 +100,7 @@ def test_checkAllItemsHaveValidEndpoints():
     supported_source_path_types = ["file"]
     supported_destination_path_types = ["globus"]
 
-    output = checkAllItemsHaveValidEndpoints(
+    output = check_all_items_have_valid_endpoints(
         items, supported_source_path_types, supported_destination_path_types
     )
     assert output[0]
@@ -114,7 +114,7 @@ def test_checkAllItemsHaveValidEndpoints():
 
     # This should be false because in this case "globus" is not in the
     # supported_source_path_types
-    output = checkAllItemsHaveValidEndpoints(
+    output = check_all_items_have_valid_endpoints(
         items2, supported_source_path_types, supported_destination_path_types
     )
     assert not output[0]
@@ -123,7 +123,7 @@ def test_checkAllItemsHaveValidEndpoints():
 
     # This should be true because in this case "destination" should
     # use the default endpoint uuid
-    output = checkAllItemsHaveValidEndpoints(
+    output = check_all_items_have_valid_endpoints(
         items3, supported_source_path_types, supported_destination_path_types
     )
     assert output[0]
