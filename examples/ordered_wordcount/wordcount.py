@@ -1,4 +1,3 @@
-
 import json
 from argparse import ArgumentParser
 
@@ -6,14 +5,14 @@ from argparse import ArgumentParser
 def wordcount(filename, save_name):
     """Return number of words in file."""
 
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = f.read()
         words = data.split()
 
         num_words = len(words)
 
-    with open(f"{save_name}.json", 'w') as g:
-        json.dump({'num_words': num_words}, g)
+    with open(f"{save_name}.json", "w") as g:
+        json.dump({"num_words": num_words}, g)
 
 
 if __name__ == "__main__":
