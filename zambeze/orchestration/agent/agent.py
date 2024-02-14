@@ -36,8 +36,9 @@ class Agent:
         logger (Optional[logging.Logger]): Logger object for logging messages.
     """
 
-    def __init__(self, conf_file: Optional[pathlib.Path],
-                 logger: Optional[logging.Logger] = None):
+    def __init__(
+        self, conf_file: Optional[pathlib.Path], logger: Optional[logging.Logger] = None
+    ):
         """Initializes the Agent with given configuration file and logger."""
 
         self._logger = logger or logging.getLogger(__name__)
@@ -45,12 +46,11 @@ class Agent:
         self._logger.info("111")
         self._agent_id = str(uuid4())
         self._activity_dao = ActivityDAO(self._logger)
-        self._settings = ZambezeSettings(conf_file=conf_file,
-                                         logger=self._logger)
+        self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
         self._logger.info("222")
-        self._executor = Executor(settings=self._settings,
-                                  agent_id=self._agent_id,
-                                  logger=self._logger)
+        self._executor = Executor(
+            settings=self._settings, agent_id=self._agent_id, logger=self._logger
+        )
         self._logger.info("333")
         self._msg_handler_thd = self._init_message_handler()
 
@@ -65,12 +65,13 @@ class Agent:
     def _init_message_handler(self):
         """Initializes the MessageHandler thread."""
         try:
-            return MessageHandler(self._agent_id,
-                                  settings=self._settings,
-                                  logger=self._logger)
+            return MessageHandler(
+                self._agent_id, settings=self._settings, logger=self._logger
+            )
         except Exception as e:
-            self._logger.error("[agent] ERROR IN CREATING MESSAGE HANDLER: "
-                               "%s: %s", type(e).__name__, e)
+            self._logger.error(
+                f"[agent] ERROR IN CREATING MESSAGE HANDLER: {type(e).__name__}:{e}"
+            )
             self._logger.error("[agent] TERMINATING AGENT...")
             exit(1)
 
@@ -96,8 +97,10 @@ class Agent:
                     )
 
                 # Check the executor's monitor queue, if it exists and has messages.
-                if self._executor.monitor is not None \
-                        and self._executor.monitor.to_status_q.qsize() > 0:
+                if (
+                    self._executor.monitor is not None
+                    and self._executor.monitor.to_status_q.qsize() > 0
+                ):
                     self._logger.info("[agent] Grabbing MONITOR status message...")
                     status_to_send = self._executor.monitor.to_status_q.get()
                     self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
@@ -107,7 +110,9 @@ class Agent:
             except Exception as e:
                 self._logger.error(
                     "[agent] send_control_thd encountered an error: %s: %s",
-                    type(e).__name__, e)
+                    type(e).__name__,
+                    e,
+                )
 
     def recv_activity_process_thd(self):
         """Move process-eligible activities to the executor's to_process_q.
@@ -129,7 +134,9 @@ class Agent:
             except Exception as e:
                 self._logger.error(
                     "[agent] recv_activity_process_thd encountered an error: %s: %s",
-                    type(e).__name__, e)
+                    type(e).__name__,
+                    e,
+                )
 
     def recv_control_thd(self):
         """Move process-eligible control messages to the appropriate queues for processing.
@@ -140,21 +147,27 @@ class Agent:
             try:
                 # Retrieve a control message from the message handler's control queue.
                 control_to_sort = self._msg_handler_thd.recv_control_q.get()
-                self._logger.info(f"[agent] Received control message: {control_to_sort}")
+                self._logger.info(
+                    f"[agent] Received control message: {control_to_sort}"
+                )
 
                 # TEMPORARY: update local dict for non-MONITOR / non-TERMINATOR controls
                 activity_id = control_to_sort["activity_id"]
                 if activity_id not in self._executor.control_dict:
                     self._executor.control_dict[activity_id] = dict()
 
-                self._executor.control_dict[activity_id]["status"] = control_to_sort["status"]
+                self._executor.control_dict[activity_id]["status"] = control_to_sort[
+                    "status"
+                ]
                 # ************************************************
 
                 # The control message needs to be processed in two places:
                 # 1. If there is an executor monitor, it may need the control message.
                 if self._executor.monitor is not None:
                     self._executor.monitor.to_monitor_q.put(control_to_sort)
-                    self._logger.debug("[agent] Put control message into monitor queue.")
+                    self._logger.debug(
+                        "[agent] Put control message into monitor queue."
+                    )
 
                 # 2. The executor itself may need the control message.
                 self._executor.incoming_control_q.put(control_to_sort)
@@ -163,7 +176,9 @@ class Agent:
             except Exception as e:
                 self._logger.error(
                     "[agent] recv_control_thd encountered an error: %s: %s",
-                    type(e).__name__, e)
+                    type(e).__name__,
+                    e,
+                )
 
     def send_activity_thd(self):
         """Periodically checks and forwards new activities from the executor to the message handler."""
@@ -175,7 +190,12 @@ class Agent:
 
                 # Put new activity into message handler's queue for further processing.
                 self._msg_handler_thd.msg_handler_send_activity_q.put(activ_to_sort)
-                self._logger.debug("[agent] Put new activity into message handler's queue.")
+                self._logger.debug(
+                    "[agent] Put new activity into message handler's queue."
+                )
             except Exception as e:
-                self._logger.error("[agent] send_activity_thd encountered an error: %s: %s",
-                                   type(e).__name__, e)
+                self._logger.error(
+                    "[agent] send_activity_thd encountered an error: %s: %s",
+                    type(e).__name__,
+                    e,
+                )

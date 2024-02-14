@@ -36,7 +36,7 @@ def main():
             "--textfile",
             f"{curr_dir}/wizard_of_oz_book.txt",
             "--name",
-            "oz"
+            "oz",
         ],
         logger=logger,
         # Uncomment if running on M1 Mac.
@@ -52,7 +52,7 @@ def main():
             "--textfile",
             f"{curr_dir}/gatsby_book.txt",
             "--name",
-            "gatsby"
+            "gatsby",
         ],
         logger=logger,
         # Uncomment if running on M1 Mac.
@@ -67,7 +67,7 @@ def main():
             f"{curr_dir}/merge_counts.py",
             "--countfiles",
             f"{curr_dir}/gatsby.json",
-            f"{curr_dir}/oz.json"
+            f"{curr_dir}/oz.json",
         ],
         logger=logger,
         # Uncomment if running on M1 Mac.

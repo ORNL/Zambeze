@@ -202,12 +202,10 @@ class Globus(Plugin):
         # https://globus-sdk-python.readthedocs.io/en/stable/examples/client_credentials.html
 
         if config["authentication_flow"]["secret"] is None:
-            raise Exception(
-                "Cannot authenticate with Globus the client secret"
-                " has not been defined and is None.\n"
-                "The provided erronous config is:\n\n"
-                f"{config}"
-            )
+            s = f"""Cannot authenticate with Globus the client secret
+            has not been defined and is None. The provided erronous config is: {config}
+            """
+            raise Exception(s)
 
         confidential_client = globus_sdk.ConfidentialAppAuthClient(
             client_id=self.__client_id,
@@ -447,7 +445,9 @@ class Globus(Plugin):
 
         return True, ""
 
-    def __run_move_to_globus_sanity_check(self, action_package: dict) -> tuple[bool, str]:
+    def __run_move_to_globus_sanity_check(
+        self, action_package: dict
+    ) -> tuple[bool, str]:
         for item in action_package["items"]:
             globus_sep_uri = self.__globus_uri_separator.separate(
                 item["destination"], self.__default_endpoint
@@ -467,7 +467,9 @@ class Globus(Plugin):
 
         return True, ""
 
-    def __run_move_from_globus_sanity_check(self, action_package: dict) -> tuple[bool, str]:
+    def __run_move_from_globus_sanity_check(
+        self, action_package: dict
+    ) -> tuple[bool, str]:
         """Run a sanity check for the action "move_from_globus_collection"
 
         return: Will return true if the sanity check passes false otherwise
@@ -503,9 +505,7 @@ class Globus(Plugin):
                 error_msg += f"are {self.__endpoints}."
                 return False, error_msg
 
-            posix_path_to_endpoint = self.__get_posix_path_to_ep(
-                globus_sep_uri["uuid"]
-            )
+            posix_path_to_endpoint = self.__get_posix_path_to_ep(globus_sep_uri["uuid"])
             file_path = posix_path_to_endpoint + globus_sep_uri["path"]
             file_path += globus_sep_uri["file_name"]
             if not exists(file_path):

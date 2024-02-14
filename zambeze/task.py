@@ -10,8 +10,9 @@ class TaskExcept(Exception):
 
 
 class Task:
-
-    """it simply returns the french version"""
+    """
+    it simply returns the french version
+    """
 
     _payload = {}
 

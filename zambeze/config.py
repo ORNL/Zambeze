@@ -1,6 +1,7 @@
 """
 A file to keep all global constants and settings, particularly environment vars.
 """
+
 import os
 
 # This is the hostname of THIS service.

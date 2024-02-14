@@ -170,7 +170,11 @@ class GlobusMessageValidator(PluginMessageValidator):
 
         elif action == "move_from_globus_collection":
             checks.append(
-                {action: self.__run_move_from_globus_validation_check(arguments[action])}
+                {
+                    action: self.__run_move_from_globus_validation_check(
+                        arguments[action]
+                    )
+                }
             )
         elif action == "get_task_status":
             checks.append(
@@ -214,7 +218,7 @@ class GlobusMessageValidator(PluginMessageValidator):
 
     @overload
     def validate_message(self, arguments: list[dict]) -> list:
-        ...
+        pass
 
     def validate_message(self, arguments) -> list:
         """Checks the input argument for errors

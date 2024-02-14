@@ -53,9 +53,9 @@ class PluginsMessageValidator:
                         plugin_name = attribute_name.lower().replace(
                             "messagevalidator", ""
                         )
-                        self._plugin_message_validators[
-                            plugin_name
-                        ] = potential_plugin_message_validator(logger=self.__logger)
+                        self._plugin_message_validators[plugin_name] = (
+                            potential_plugin_message_validator(logger=self.__logger)
+                        )
 
     def validate(self, plugin_name: str, arguments: dict) -> dict:
         """Check that the arguments passed to the plugin "plugin_name" have

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2022 Oak Ridge National Laboratory.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -108,7 +105,6 @@ class Executor(threading.Thread):
         terminator_stopped = False
 
         while True:
-
             self._logger.info("[exec] Retrieving a message! ")
             self._logger.info(f" SIZE OF QUEUE: {self.to_process_q.qsize()}")
             dag_msg = self.to_process_q.get()
@@ -117,7 +113,6 @@ class Executor(threading.Thread):
 
             # Check 1. If MONITOR, then we want to STICK the process
             if dag_msg[0] == "MONITOR":
-
                 self._logger.info("[executor] (E117) ENTERING MONITOR TASK THREAD!")
                 monitor_thread = Monitor(dag_msg, self._logger)
                 monitor_thread.start()
@@ -145,8 +140,7 @@ class Executor(threading.Thread):
                 terminator_stopped = True
 
             self._logger.info(
-                f"[exec] Monitor launched: {monitor_launched} | "
-                f"Terminator stopped: {terminator_stopped}"
+                f"[exec] Monitor launched: {monitor_launched} | Terminator stopped: {terminator_stopped}"
             )
 
             # If we were just launching monitor, go to top of loop; start over.
@@ -172,10 +166,8 @@ class Executor(threading.Thread):
             if (
                 "MONITOR" in predecessors
             ):  # TODO: allow MONITOR *AND OTHER* predecessors.
-
                 self._logger.info(
-                    f"[exec] Checking monitor message for campaign ID: "
-                    f"{campaign_id}"
+                    f"[exec] Checking monitor message for campaign ID: {campaign_id}"
                 )
 
                 # Wait until we receive a monitoring heartbeat.
@@ -197,7 +189,6 @@ class Executor(threading.Thread):
                 # while loop ascertains that we 'keep trying the status scan' until it is
                 # successful (/failed).
                 while True:
-
                     success_count = 0
                     failure_count = 0
 
@@ -243,7 +234,6 @@ class Executor(threading.Thread):
                 # Need to be moved to be executed
                 if activity_msg.data.body.files:
                     if len(activity_msg.data.body.files) > 0:
-
                         try:
                             self.__process_files(
                                 activity_msg.data.body.files,
@@ -293,7 +283,6 @@ class Executor(threading.Thread):
                 #         "Skipping run - error detected when running " "plugin check"
                 #     )
             elif activity_msg.data.body.type == "TRANSFER":
-
                 source_file = activity_msg.data
 
                 transfer_hippo = TransferHippo(

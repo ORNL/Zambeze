@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2022 Oak Ridge National Laboratory.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -36,12 +33,15 @@ class Monitor(threading.Thread):
         self.to_monitor_q = Queue()
         self.to_status_q = Queue()
 
-        self.dag_dict = {activity_id: "PROCESSING"
-                         for activity_id in dag_msg[1]["all_activity_ids"]
-                         if activity_id != "MONITOR"}
+        self.dag_dict = {
+            activity_id: "PROCESSING"
+            for activity_id in dag_msg[1]["all_activity_ids"]
+            if activity_id != "MONITOR"
+        }
 
-        self._logger.info("[monitor] Monitoring initialized for activities: "
-                          f"{self.dag_dict.keys()}")
+        self._logger.info(
+            f"[monitor] Monitoring initialized for activities: {self.dag_dict.keys()}"
+        )
         self.completed = False
         self.last_logged_proc_count = None
 
@@ -68,7 +68,6 @@ class Monitor(threading.Thread):
 
         self._logger.info("[monitor] Monitoring completed.")
 
-
     def _log_proc_count(self):
         """
         Log the current process count, if it has changed since last log.
@@ -76,8 +75,7 @@ class Monitor(threading.Thread):
         proc_count = sum(status == "PROCESSING" for status in self.dag_dict.values())
         if proc_count != self.last_logged_proc_count:
             self._logger.debug(
-                f"[monitor] Current proc count: {proc_count} | "
-                f"Status dict: {self.dag_dict}"
+                f"[monitor] Current proc count: {proc_count}, Status dict: {self.dag_dict}"
             )
             self.last_logged_proc_count = proc_count
 
@@ -105,8 +103,9 @@ class Monitor(threading.Thread):
             self._logger.info(f"[monitor] Received control message: {status_msg}")
 
             if status_msg == "KILL":
-                self._logger.info("[monitor] Healthy KILL signal received. "
-                                  "Tearing down...")
+                self._logger.info(
+                    "[monitor] Healthy KILL signal received. Tearing down..."
+                )
                 self.completed = True
                 return
 
@@ -139,4 +138,3 @@ class Monitor(threading.Thread):
             return current_time  # return the updated time
 
         return last_hb_time  # return the original time if no heartbeat was sent
-

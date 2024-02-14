@@ -112,14 +112,12 @@ class MessageHandler(threading.Thread):
             activity_dag = networkx.node_link_graph(activity_dag_data)
 
             self._logger.debug(
-                "[recv_activity_dag_from_campaign] Received message from "
-                f"campaign: {activity_dag_data}"
+                f"[recv_activity_dag_from_campaign] Received message from campaign: {activity_dag_data}"
             )
 
             # Iterating over nodes in NetworkX DAG
             num_activities = 0
             for node in activity_dag.nodes(data=True):
-
                 if node[0] == "MONITOR":
                     node[1]["all_activity_ids"] = list(activity_dag.nodes)
 
@@ -155,15 +153,13 @@ class MessageHandler(threading.Thread):
                 self._logger.debug("[recv_activities_from_campaign] Sent node!")
 
             self._logger.info(
-                f"[message_handler] Number of activities sent "
-                f"for campaign: {num_activities}"
+                f"[message_handler] Number of activities sent for campaign: {num_activities}"
             )
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     def _callback(self, ch, method, _properties, body):
         self._logger.debug(
-            "[mh-recv-activity] Processing callback function "
-            "for activity queue recv."
+            "[mh-recv-activity] Processing callback function for activity queue recv."
         )
         self._logger.info(f"[mn-recv-activity] receiving activity...{dill.loads(body)}")
         activity = dill.loads(body)
@@ -204,9 +200,7 @@ class MessageHandler(threading.Thread):
                 #   a task can't get picked up by anyone (temporary).
                 time.sleep(1)
         except Exception as e:
-            self._logger.error(
-                f"[mh] COULD NOT ACK! CAUGHT: " f"{type(e).__name__}: {e}"
-            )
+            self._logger.error(f"[mh] COULD NOT ACK! CAUGHT: {type(e).__name__}: {e}")
 
     def recv_activity(self):
         """
@@ -248,8 +242,7 @@ class MessageHandler(threading.Thread):
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
             except Exception as e:
                 self._logger.error(
-                    f"[mh] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: "
-                    f"{type(e).__name__}: {e}"
+                    f"[mh] UNABLE TO SEND ACTIVITY MESSAGE! CAUGHT: {type(e).__name__}: {e}"
                 )
             else:
                 self._logger.debug("[send_activity] Successfully sent activity!")
@@ -290,8 +283,7 @@ class MessageHandler(threading.Thread):
                 queue_client.send(exchange="", channel="CONTROL", body=activity_msg)
             except Exception as e:
                 self._logger.error(
-                    f"[mh] COULD NOT SEND CONTROL MESSAGE! CAUGHT: "
-                    f"{type(e).__name__}: {e}"
+                    f"[mh] COULD NOT SEND CONTROL MESSAGE! CAUGHT: {type(e).__name__}: {e}"
                 )
             else:
                 self._logger.info("[send_control] Successfully sent control message!")

@@ -194,11 +194,11 @@ class Plugins:
     def check(
         self, msg: AbstractMessage, arguments: Optional[dict] = None
     ) -> PluginChecks:
-        ...
+        pass
 
     @overload
     def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
-        ...
+        pass
 
     def check(self, msg, arguments=None) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
@@ -312,11 +312,11 @@ class Plugins:
 
     @overload
     def run(self, msg: AbstractMessage, arguments: Optional[dict] = None) -> None:
-        ...
+        pass
 
     @overload
     def run(self, msg: str, arguments: dict = {}) -> None:
-        ...
+        pass
 
     def run(self, msg, arguments=None) -> None:
         """Run a specific plugins.
