@@ -181,7 +181,9 @@ class Agent:
                 )
 
     def send_activity_thd(self):
-        """Periodically checks and forwards new activities from the executor to the message handler."""
+        """
+        Periodically checks and forwards new activities from executor to the message handler.
+        """
         self._logger.info("[agent] Starting send activity thread!")
         while True:
             try:

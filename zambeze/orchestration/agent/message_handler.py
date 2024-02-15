@@ -112,7 +112,7 @@ class MessageHandler(threading.Thread):
             activity_dag = networkx.node_link_graph(activity_dag_data)
 
             self._logger.debug(
-                f"[recv_activity_dag_from_campaign] Received message from campaign: {activity_dag_data}"
+                f"[recv_activity_dag_from_campaign] Received campaign message: {activity_dag_data}"
             )
 
             # Iterating over nodes in NetworkX DAG
@@ -127,7 +127,7 @@ class MessageHandler(threading.Thread):
 
                 # If not monitor or terminator
                 try:
-                    if type(activity) != str:
+                    if isinstance(activity, str):
                         self._logger.info("[mh] Flushing activity message to flowcept")
                         activity.agent_id = self.agent_id
                         node[1]["activity"] = activity.generate_message()

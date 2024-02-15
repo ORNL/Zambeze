@@ -65,6 +65,7 @@ class QueueRMQ(AbstractQueue):
         except Exception as e:
             if self._logger:
                 s = f"""Unable to connect to RabbitMQ server at {self._ip}:{self._port}
+                Exception is {e}
                 1. Make sure your firewall ports are open
                 2. That the rabbitmq-service is up and running
                 3. The correct ip address and port have been specified
@@ -80,10 +81,9 @@ class QueueRMQ(AbstractQueue):
 
         if self.connected:
             return True, f"Able to connect to RabbitMQ at {self._ip}:{self._port}"
-        return (
-            False,
-            f"Connection attempt timed out while trying to connect to RabbitMQ at {self._ip}:{self._port}",
-        )
+
+        s = f"Connection timed out while trying to connect to RabbitMQ at {self._ip}:{self._port}"
+        return (False, s)
 
     @property
     def subscribed(self, channel: ChannelType) -> bool:
@@ -99,9 +99,8 @@ class QueueRMQ(AbstractQueue):
 
         listen_on_channel = self._rmq_channel
 
-        self._logger.debug(
-            f"[message_handler] [***] Waiting using persistent listener on RabbitMQ {channel_to_listen} channel."
-        )
+        s = f"[message_handler] Waiting with listener on RabbitMQ channel {channel_to_listen}"
+        self._logger.debug(s)
 
         listen_on_channel.basic_consume(
             queue=channel_to_listen,

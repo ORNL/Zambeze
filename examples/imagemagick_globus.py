@@ -28,12 +28,14 @@ def main():
     campaign = Campaign("My ImageMagick Campaign", logger=logger, force_login=False)
 
     # define an activity
+    dir_path = (
+        f"globus://{EP_ID}/Users/tylerskluzacek/zambeze/tests/campaigns/imagesequence/"
+    )
+    files = [dir_path + f"{i:02d}.jpg" for i in range(1, 11)]
+
     activity = ShellActivity(
         name="ImageMagick",
-        files=[
-            f"globus://{EP_ID}/Users/tylerskluzacek/zambeze/tests/campaigns/imagesequence/{i:02d}.jpg"
-            for i in range(1, 11)
-        ],
+        files=files,
         command="convert",
         arguments=[
             "-delay",
