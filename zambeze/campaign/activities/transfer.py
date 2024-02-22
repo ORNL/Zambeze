@@ -9,9 +9,9 @@ from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 class TransferActivity(Activity):
     def __init__(self, name, source_file, dest_directory, override_existing=False):
-        self.name = (name,)
-        self.source_file = (source_file,)
-        self.dest_directory = (dest_directory,)
+        self.name = name
+        self.source_file = source_file
+        self.dest_directory = dest_directory
         self.override_existing = override_existing
 
         super().__init__(
