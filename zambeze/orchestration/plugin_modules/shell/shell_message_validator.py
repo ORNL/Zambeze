@@ -114,11 +114,11 @@ class ShellMessageValidator(PluginMessageValidator):
 
     @overload
     def validateMessage(self, arguments: Bash) -> list:
-        ...
+        pass
 
     @overload
     def validateMessage(self, arguments: list[dict]) -> list:
-        ...
+        pass
 
     def validate_message(self, arguments):
         """Checks to see if the message contains the right fields

@@ -54,7 +54,7 @@ class MessageStatusValidator(AbstractMessageValidator):
 
     @overload
     def check(self, message: Any) -> tuple[bool, str]:
-        ...
+        pass
 
     def check(self, message) -> tuple[bool, str]:
         """Will ensure that the values of the message have the expected

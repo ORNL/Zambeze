@@ -40,8 +40,7 @@ def agent_start(logger: logging.Logger) -> None:
             old_state = json.load(f)
         if old_state["status"] == "RUNNING":
             logger.info(
-                "[ERROR] Agent already running. "
-                "Please stop agent before running a new one!"
+                "[ERROR] Agent already running. Please stop agent before running a new one!"
             )
 
     # Ensure that we have a folder in which to write logs.
@@ -56,7 +55,7 @@ def agent_start(logger: logging.Logger) -> None:
     # -- (as of now: zambeze, shell stdout, shell stderr)
     # Users can list them in order of date to see which one is latest.
     fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-    log_dir_path = os.path.expanduser('~') + "/.zambeze/logs/" + fmt_str
+    log_dir_path = os.path.expanduser("~") + "/.zambeze/logs/" + fmt_str
     os.makedirs(log_dir_path, exist_ok=True)
     log_path = log_dir_path + "/zambeze.log"
 

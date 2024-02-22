@@ -24,7 +24,9 @@ class QueueRMQ(AbstractQueue):
         if "port" in queue_config:
             self._port = queue_config["port"]
         """
-        self._logger.info(f"Preparing to start queue at address {self._ip}:{self._port}")
+        self._logger.info(
+            f"Preparing to start queue at address {self._ip}:{self._port}"
+        )
 
     def __disconnected(self):
         if self._logger:
@@ -49,7 +51,9 @@ class QueueRMQ(AbstractQueue):
 
     def connect(self) -> tuple[bool, str]:
         try:
-            self._rmq = pika.BlockingConnection(pika.ConnectionParameters(host=self._ip, port=self._port))
+            self._rmq = pika.BlockingConnection(
+                pika.ConnectionParameters(host=self._ip, port=self._port)
+            )
             self._rmq_channel = self._rmq.channel()
             self._logger.info("[Queue RMQ] Creating RabbitMQ channels...")
 
@@ -60,14 +64,16 @@ class QueueRMQ(AbstractQueue):
 
         except Exception as e:
             if self._logger:
-                self._logger.debug(
-                    f"Unable to connect to RabbitMQ server at {self._ip}:{self._port}\n"
-                    "1. Make sure your firewall ports are open.\n"
-                    "2. That the rabbitmq-service is up and running.\n"
-                    "3. The correct ip address and port have been specified.\n"
-                    "4. That an agent.yaml file exists for the zambeze agent.\n"
-                )
+                s = f"""Unable to connect to RabbitMQ server at {self._ip}:{self._port}
+                Exception is {e}
+                1. Make sure your firewall ports are open
+                2. That the rabbitmq-service is up and running
+                3. The correct ip address and port have been specified
+                4. That an agent.yaml file exists for the zambeze agent
+                """
+                self._logger.debug(s)
                 import traceback
+
                 self._logger.error(f"CAUGHT: {traceback.print_exc}")
 
                 self._rmq = None
@@ -75,11 +81,9 @@ class QueueRMQ(AbstractQueue):
 
         if self.connected:
             return True, f"Able to connect to RabbitMQ at {self._ip}:{self._port}"
-        return (
-            False,
-            "Connection attempt timed out while trying to connect to RabbitMQ "
-            f"at {self._ip}:{self._port}",
-        )
+
+        s = f"Connection timed out while trying to connect to RabbitMQ at {self._ip}:{self._port}"
+        return (False, s)
 
     @property
     def subscribed(self, channel: ChannelType) -> bool:
@@ -95,11 +99,8 @@ class QueueRMQ(AbstractQueue):
 
         listen_on_channel = self._rmq_channel
 
-        self._logger.debug(
-            f"[message_handler] "
-            f"[***] Waiting using persistent listener on "
-            f"RabbitMQ {channel_to_listen} channel."
-        )
+        s = f"[message_handler] Waiting with listener on RabbitMQ channel {channel_to_listen}"
+        self._logger.debug(s)
 
         listen_on_channel.basic_consume(
             queue=channel_to_listen,
@@ -169,8 +170,7 @@ class QueueRMQ(AbstractQueue):
         """In 'send activity', body is activity message!"""
         if self._rmq is None:
             raise Exception(
-                "Cannot send message to RabbitMQ, client is "
-                "not connected to a RabbitMQ queue"
+                "Cannot send message to RabbitMQ, client is not connected to a RabbitMQ queue"
             )
 
         self._rmq_channel.basic_publish(

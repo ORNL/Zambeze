@@ -108,15 +108,15 @@ class GitMessageValidator(PluginMessageValidator):
 
     @overload
     def validateMessage(self, arguments: GitCommitTemplate) -> list:
-        ...
+        pass
 
     @overload
     def validateMessage(self, arguments: GitDownloadTemplate) -> list:
-        ...
+        pass
 
     @overload
     def validateMessage(self, arguments: list[dict]) -> list:
-        ...
+        pass
 
     def validateMessage(self, arguments) -> list:
         """Check the arguments are supported.

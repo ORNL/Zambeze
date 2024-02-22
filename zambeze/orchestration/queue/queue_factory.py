@@ -49,11 +49,11 @@ class QueueFactory:
         for client in queue_clients:
           await client.connect()
         """
-        #if queue_type == QueueType.NATS:
+        # if queue_type == QueueType.NATS:
         #    return QueueNATS(args, logger=self._logger)
         if queue_type == QueueType.RABBITMQ:
             return QueueRMQ(args, logger=self._logger)
         else:
             raise Exception(
-                "Unrecognized queue type cannot instantiate: " f"{queue_type.value}"
+                "Unrecognized queue type cannot instantiate: {queue_type.value}"
             )

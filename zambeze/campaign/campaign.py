@@ -138,7 +138,6 @@ class Campaign:
         self._logger.info(f"REPLY: {zmq_socket.recv()}")
 
     def status(self):
-
         check_queue = Queue()
 
         # Dump activities into queue.

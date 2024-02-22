@@ -1,4 +1,3 @@
-"""Standard imports"""
 import http.client as httplib
 import re
 import socket

@@ -56,7 +56,7 @@ class MessageActivityValidator(AbstractMessageValidator):
 
     @overload
     def check(self, message: Any) -> tuple[bool, str]:
-        ...
+        pass
 
     def check(self, message) -> tuple[bool, str]:
         if not isinstance(message, ActivityTemplate):

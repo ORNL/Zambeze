@@ -64,7 +64,7 @@ class Activity(ABC):
         source_file: Optional[str] = "",
         dest_directory: Optional[str] = "",
         override_existing: Optional[bool] = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         """Create an object that represents a science campaign activity."""
         self.logger = logging.getLogger(__name__) if logger is None else logger

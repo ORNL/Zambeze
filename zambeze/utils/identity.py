@@ -1,4 +1,3 @@
-
 # Standard python imports
 import re
 from uuid import UUID
