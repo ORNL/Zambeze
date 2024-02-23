@@ -8,11 +8,16 @@ The source code for Zambeze's Python package is available on `GitHub <https://gi
 You can also reach the Zambeze team via our support email support@zambeze.org.
 
 .. toctree::
-   :caption: API Reference
+   :caption: Getting started
    :maxdepth: 1
-   :hidden:
 
    getting_started
+   contributing
+
+
+.. toctree::
+   :caption: API documentation
+   :maxdepth: 1
+
    user_api_reference
    dev_api_reference
-   contributing
