@@ -1,13 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2022 Oak Ridge National Laboratory.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
 import logging
-
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -15,10 +11,14 @@ from typing import Optional
 class Plugin(ABC):
     """
     Abstract base class for ensuring that all registered plugins have the
-    same interface
+    same interface.
 
-    :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    Parameters
+    ----------
+    name
+        The name.
+    logger
+        The logger where to log information/warning or errors.
     """
 
     def __init__(self, name: str, logger: Optional[logging.Logger] = None) -> None:
@@ -29,12 +29,12 @@ class Plugin(ABC):
 
     @property
     def name(self) -> str:
-        """Returns the name of the plugin.
+        """
+        Name of the plugin, should be lower case.
 
-        The name of the plugin, should be lower case
-
-        :return: Name of the plugin
-        :rtype: string
+        Returns
+        -------
+        Name of the plugin.
         """
         return self._name
 
@@ -67,40 +67,47 @@ class Plugin(ABC):
     @property
     @abstractmethod
     def info(self) -> dict:
-        """This method is to be used after configuration step and will return
+        """
+        This method is to be used after configuration step and will return
         information about the plugin such as configuration settings and
-        defaults."""
+        defaults.
+        """
         raise NotImplementedError("returns information about the plugin.")
 
     @abstractmethod
     def check(self, arguments: list[dict]) -> list[dict]:
-        """Determine if the proposed arguments can be executed by this instance.
+        """
+        Check if the proposed arguments can be executed by this instance.
 
-        :param arguments: The arguments are checked to ensure their types and
-        formats are valid
-        :type arguments: list[dict]
-        :return: Returns the list of actions that are vaid
-        :rtype: list[dict] with the actions valid actions listed with bool set to
-        True and invalid ones False, along with a message.
+        Parameters
+        ----------
+        arguments
+            Arguments are checked to ensure their types and formats
+            are valid.
 
-        :Example:
+        Returns
+        -------
+        List of actions that are valid. Valid actions are True, invalid ones
+        are False, along with a message.
+        """
 
-        arguments =
-        [
-            { "action1": { "dothis": ...} },
-            { "action2": { "dothat": ...} },
-        ]
-        checked_actions = plugin.check(arguments)
-        for action in checked_actions:
-            print(f"{action}: {checked_actions[action]}")
+        # arguments =
+        # [
+        #     { "action1": { "dothis": ...} },
+        #     { "action2": { "dothat": ...} },
+        # ]
+
+        # checked_actions = plugin.check(arguments)
+        # for action in checked_actions:
+        #     print(f"{action}: {checked_actions[action]}")
+
         # Should print
         # action1 True, ""
         # action2 False, "This was the problem"
-        """
 
     @abstractmethod
     def process(self, arguments: list[dict]) -> dict:
-        """Will run the plugin with the provided arguments"""
+        """Will run the plugin with the provided arguments."""
         raise NotImplementedError(
             "process method of derived plugin must be implemented."
         )
