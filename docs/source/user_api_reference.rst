@@ -1,5 +1,5 @@
 User API Reference
-******************
+==================
 
 The user API reference targets users who want to use Zambeze's Python
 package for running their .
