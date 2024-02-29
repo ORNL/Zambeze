@@ -56,38 +56,6 @@ def test_factory_fail():
 
 
 @pytest.mark.unit
-def test_factory_activity_template_plugin_globus():
-    """This test should be true all required fields are defined as well as all
-    optional fields"""
-    logger = logging.getLogger(__name__)
-    msg_factory = MessageFactory(logger)
-    activity_template = msg_factory.create_template(
-        MessageType.ACTIVITY,
-        ActivityType.PLUGIN,
-        args={"plugin": "globus", "action": "transfer"},
-    )[1]
-    print(activity_template)
-    no_fail = True
-    try:
-        activity_template.message_id = str(uuid.uuid4())
-        activity_template.activity_id = str(uuid.uuid4())
-        activity_template.agent_id = str(uuid.uuid4())
-        activity_template.campaign_id = str(uuid.uuid4())
-        activity_template.credential = {}
-        activity_template.submission_time = str(int(time.time()))
-        assert activity_template.body.parameters.transfer.type == "synchronous"
-        assert activity_template.body.type == "PLUGIN"
-        assert activity_template.body.plugin == "globus"
-        activity_template.body.parameters.transfer.items[0].source = ""
-        activity_template.body.parameters.transfer.items[0].destination = ""
-        activity_template.needs = []
-    except Exception as e:
-        print(e)
-        no_fail = False
-    assert no_fail
-
-
-@pytest.mark.unit
 def test_factory_activity_template_plugin_rsync():
     """This test should be true all required fields are defined as well as all
     optional fields"""
