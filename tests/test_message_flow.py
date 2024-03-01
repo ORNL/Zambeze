@@ -161,6 +161,7 @@ def test_message_creation_from_campaign():
             activity = node[1]["activity"]
             assert isinstance(activity, ShellActivity)
             assert activity.command == "convert"
+            assert activity.type == "shell"
             assert len(activity.arguments) == 6
             assert len(activity.files) == 10
 

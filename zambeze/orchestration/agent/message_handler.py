@@ -1,8 +1,7 @@
+
 import pickle
 import threading
 import time
-import dill
-import networkx
 import zmq
 
 from queue import Queue
@@ -128,15 +127,15 @@ class MessageHandler(threading.Thread):
                 try:
                     if type(node['activity']) != str:
                         self._logger.info("[mh] Flushing activity message to flowcept")
-                        activity.agent_id = self.agent_id
+                        node['activity'].origin_agent_id = self.agent_id
+
+                        # TODO: continue...
                         # node[1]["activity"] = activity.generate_message()
                         node[1]["activity_id"] = activity.activity_id
                         node[1]["activity_status"] = "SUBMITTED"
 
                 except Exception as e:
                     self._logger.error(e)
-                node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
-                node[1]["successors"] = list(activity_dag.successors(node[0]))
 
                 self._logger.info(
                     f"[message_handler] The activity_node to send...:\n{node}"
@@ -161,25 +160,24 @@ class MessageHandler(threading.Thread):
         self._logger.debug(
             "[mh-recv-activity] Processing callback function for activity queue recv."
         )
-        self._logger.info(f"[mn-recv-activity] receiving activity...{dill.loads(body)}")
-        activity = dill.loads(body)
+        activity_node = DAG.deserialize_node(body)
+        self._logger.info(f"[mn-recv-activity] receiving activity...{activity_node}")
 
         # Anyone can monitor or terminate.
-        if activity[0] in ["MONITOR", "TERMINATOR"]:
+        if activity_node[0] in ["MONITOR", "TERMINATOR"]:
             plugins_are_configured = True
             actions_are_supported = True
-            self._logger.info(f"[mh] Zambeze activity received of type: {activity[0]}")
+            self._logger.info(f"[mh] Zambeze activity received of ID: {activity_node[0]}")
 
         else:
 
             try:
                 self._logger.info("[mh] Unpacking activity info from queue...")
-                self._logger.info(f"--> Body: {activity[1]['activity'].data.body}")
             except Exception as e:
                 self._logger.error(e)
 
             required_plugin = activity_to_plugin_map[
-                activity[1]["activity"].data.body.type
+                activity_node[1]["activity"].type
             ]
             plugins_are_configured = self.are_plugins_configured(required_plugin)
             actions_are_supported = (
@@ -196,7 +194,7 @@ class MessageHandler(threading.Thread):
             if should_ack:
                 ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] ACKED activity message.")
-                self.check_activity_q.put(activity)
+                self.check_activity_q.put(activity_node)
             else:
                 ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] NACKED activity message.")
@@ -206,7 +204,6 @@ class MessageHandler(threading.Thread):
         except Exception as e:
             self._logger.error(f"[mh] COULD NOT ACK! CAUGHT: {type(e).__name__}: {e}")
 
-        self._logger.info("GGG")
     def recv_activity(self):
         """
         >> Async

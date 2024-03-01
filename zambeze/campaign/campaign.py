@@ -158,5 +158,3 @@ class Campaign:
     def result(self):
         holder = self.result_val
         return holder
-
-
