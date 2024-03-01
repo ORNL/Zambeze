@@ -14,11 +14,8 @@ jobs:
       run: |
         echo "I'm going to sleep hoping the services will be up when I wake up... zzz..."
         sleep 15
-    - name: Generating SSH Keys
-      run: |
-        ssh-keygen -b 2048 -t rsa -q -N "" -f ./id_rsa
     - name: Run Tests
       run: |
-        docker compose -f deployment/compose-rabbit.yml exec zambeze_agent2 python3 -m pytest -m integration -vs
+        docker compose -f deployment/compose-rabbit.yml exec zambeze_agent2 python3 -m pytest -m integration
     - name: Cleanup
       run: docker compose -f deployment/compose-rabbit.yml down
