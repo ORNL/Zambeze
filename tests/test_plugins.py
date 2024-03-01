@@ -28,7 +28,6 @@ def test_registered_plugins():
     plugins = Plugins()
     found_shell = False
     found_rsync = False
-    found_globus = False
     for plugin in plugins.registered:
         if plugin == "shell":
             found_shell = True

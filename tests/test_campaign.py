@@ -1,7 +1,7 @@
 # Local imports
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.campaign.campaign import Campaign
-from zambeze.orchestration.identity import valid_uuid
+from zambeze.utils.identity import valid_uuid
 
 # Standard imports
 import pytest

@@ -73,7 +73,7 @@ class Executor(threading.Thread):
         # Create persisent "__process()"
         self.__process()
 
-    def __process(self):
+    def __process(self):  # noqa: C901
         """
         Evaluate and process messages if requested activity is supported.
         """
@@ -139,9 +139,9 @@ class Executor(threading.Thread):
                 self.to_status_q.put(status_msg)
                 terminator_stopped = True
 
-            self._logger.info(
-                f"[exec] Monitor launched: {monitor_launched} | Terminator stopped: {terminator_stopped}"
-            )
+            s = f"[exec] Monitor launched {monitor_launched}"
+            s2 = f", Terminator stopped: {terminator_stopped}"
+            self._logger.info(s + s2)
 
             # If we were just launching monitor, go to top of loop; start over.
             if monitor_launched or terminator_stopped:

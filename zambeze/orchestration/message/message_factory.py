@@ -27,7 +27,7 @@ class MessageFactory:
         self._plugins_msg_template_generators = PluginsMessageTemplateEngine(logger)
         self._plugins_msg_validators = PluginsMessageValidator(logger)
 
-    def create_template(
+    def create_template(  # noqa: C901
         self,
         message_type: MessageType,
         activity_type: ActivityType = ActivityType.SHELL,

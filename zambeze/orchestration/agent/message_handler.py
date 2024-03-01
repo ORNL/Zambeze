@@ -126,6 +126,7 @@ class MessageHandler(threading.Thread):
                 # If not monitor or terminator
                 try:
                     if type(node['activity']) != str:
+
                         self._logger.info("[mh] Flushing activity message to flowcept")
                         node['activity'].origin_agent_id = self.agent_id
 

@@ -4,8 +4,6 @@
 from ..abstract_plugin import Plugin
 from .globus_common import (
     local_endpoint_exists,
-    get_mapped_collections,
-    get_globus_scopes,
     SUPPORTED_ACTIONS,
 )
 from .globus_uri_separator import GlobusURISeparator
@@ -14,19 +12,16 @@ from .globus_message_validator import GlobusMessageValidator
 from ...network import externalNetworkConnectionDetected
 
 # Third party imports
-from globus_sdk import GlobusError
 from globus_sdk.authorizers import GlobusAuthorizer
 
 import globus_sdk
 
 # Standard imports
-from copy import deepcopy
 import os
 from os.path import basename
 from os.path import exists
 from os.path import isdir
 from os.path import isfile
-from socket import gethostname
 from typing import Optional, Any
 
 import json

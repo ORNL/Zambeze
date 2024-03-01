@@ -45,7 +45,7 @@ class PluginsMessageTemplateEngine:
                             " - Registering plugin template generator:"
                             f" {attribute_name.lower()}"
                         )
-                        print(f"Attribute nameis {attribute_name}")
+                        print(f"Attribute name is {attribute_name}")
                         plugin_name = attribute_name.lower().replace(
                             "messagetemplategenerator", ""
                         )

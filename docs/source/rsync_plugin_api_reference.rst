@@ -1,4 +1,3 @@
-
 Rsync Plugin API
 ================
 

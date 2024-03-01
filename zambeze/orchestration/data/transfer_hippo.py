@@ -81,9 +81,9 @@ class TransferHippo:
             file_url = file_data["file_url"]
 
             if file_url.scheme not in self._supported_schemes:
-                self._logger.error(
-                    f"[th-validate] File at {file_path_resolved} not of supported scheme: {self._supported_schemes}"
-                )
+                err = f"[th-validate] File at {file_path_resolved}"
+                err2 = f" not of supported scheme: {self._supported_schemes}"
+                self._logger.error(err + err2)
                 return False
 
             if (
@@ -132,8 +132,9 @@ class TransferHippo:
         globus_counter = 0
         task_data = None
 
-        # TODO: Make this generic; Create transfer holder for each type. Then pack the files in each in a loop.
-        #  at the end, start each of the transfers.
+        # TODO: Make this generic; Create transfer holder for each type. Then
+        # pack the files in each in a loop. at the end, start each of the
+        # transfers.
         for resolved_file_url, file_data in self.file_objects.items():
             file_url_obj = file_data["file_url"]
 
@@ -172,9 +173,8 @@ class TransferHippo:
             transfer_task_id = self.globus_transfer_client.submit_transfer(task_data)[
                 "task_id"
             ]
-            self._logger.info(
-                f"[th-start] submitted transfer, of {globus_counter} files: task_id={transfer_task_id}"
-            )
+            s = f"[th-start] submitted transfer {globus_counter} files: task_id={transfer_task_id}"
+            self._logger.info(s)
             self.globus_task_ids.append(transfer_task_id)
 
     def transfer_wait(self, timeout=-1):
