@@ -80,12 +80,16 @@ class ShellActivity(Activity):
         )
 
         try:
+            # These go into every activity.
+            template[1].origin_agent_id = self.agent_id
+            template[1].running_agent_ids = self.running_agent_ids
             template[1].activity_id = self.activity_id
             template[1].message_id = self.message_id
-            template[1].agent_id = self.agent_id
             template[1].campaign_id = self.campaign_id
             template[1].credential = {}
             template[1].submission_time = str(int(time.time()))
+
+            # These go into just SHELL activities.
             template[1].body.type = "SHELL"
             template[1].body.shell = "bash"
             template[1].body.files = self.files

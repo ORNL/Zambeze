@@ -51,21 +51,24 @@ class Activity(ABC):
     override_existing: Optional[bool]
 
     def __init__(
-        self,
-        name: str,
-        files: list[str] = [],
-        command: Optional[str] = None,
-        arguments: list[str] = [],
-        logger: Optional[logging.Logger] = None,
-        campaign_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        message_id: Optional[str] = None,
-        activity_id: Optional[str] = None,
-        source_file: Optional[str] = "",
-        dest_directory: Optional[str] = "",
-        override_existing: Optional[bool] = False,
-        **kwargs,
+            self,
+            name: str,
+            files: list[str] = None,
+            command: Optional[str] = None,
+            arguments: list[str] = None,
+            logger: Optional[logging.Logger] = None,
+            campaign_id: Optional[str] = None,
+            origin_agent_id: Optional[str] = None,
+            running_agent_ids: Optional[list[str]] = None,  # Set default to None
+            message_id: Optional[str] = None,
+            activity_id: Optional[str] = None,
+            source_file: Optional[str] = None,
+            dest_directory: Optional[str] = None,
+            override_existing: Optional[bool] = False,
+            **kwargs,
     ) -> None:
+        self.running_agent_ids = running_agent_ids if running_agent_ids is not None else []
+
         """Create an object that represents a science campaign activity."""
         self.logger = logging.getLogger(__name__) if logger is None else logger
         self.name: str = name
@@ -73,7 +76,7 @@ class Activity(ABC):
         self.command = command
         self.arguments = arguments
         self.campaign_id = campaign_id
-        self.agent_id = agent_id
+        self.origin_agent_id = origin_agent_id
         self.message_id = message_id
         self.activity_id = activity_id
         self.source_file = source_file

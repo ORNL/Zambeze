@@ -63,6 +63,7 @@ class MessageHandler(threading.Thread):
 
         # THREAD 2: recv activities from rmq
         activity_listener = threading.Thread(target=self.recv_activity, args=())
+        # TODO: bring back.
         # THREAD 3: recv control from RMQ
         control_listener = threading.Thread(target=self.recv_control, args=())
         # THREAD 4: recv control from RMQ
@@ -83,10 +84,14 @@ class MessageHandler(threading.Thread):
             self._logger.info("[mh] Flowcept libraries succesfully loaded.")
 
         campaign_listener.start()
-        activity_listener.start()
+        # activity_listener.start()
         control_listener.start()
         activity_sender.start()
         control_sender.start()
+
+    def update_dag_activities(self, dag):
+        for dag
+
 
     def recv_activity_dag_from_campaign(self):
         """
@@ -112,6 +117,10 @@ class MessageHandler(threading.Thread):
             activity_dag = networkx.node_link_graph(activity_dag_data)
 
             self._logger.debug(
+                f"[recv_activity_dag_from_campaign] 1234: {activity_dag}"
+            )
+
+            self._logger.debug(
                 f"[recv_activity_dag_from_campaign] Received message from campaign: {activity_dag_data}"
             )
 
@@ -122,7 +131,7 @@ class MessageHandler(threading.Thread):
                     node[1]["all_activity_ids"] = list(activity_dag.nodes)
 
                 # Append agent_id to each node.
-                node[1]["agent_id"] = self.agent_id
+                node[1]["activity"].agent_id = self.agent_id
                 activity = node[1]["activity"]
 
                 # If not monitor or terminator
@@ -133,7 +142,7 @@ class MessageHandler(threading.Thread):
                         node[1]["activity"] = activity.generate_message()
                         node[1]["activity_id"] = activity.activity_id
                         node[1]["activity_status"] = "SUBMITTED"
-                        num_activities += 1
+
                 except Exception as e:
                     self._logger.error(e)
                 node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
@@ -150,6 +159,7 @@ class MessageHandler(threading.Thread):
                 self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
 
                 self.msg_handler_send_activity_q.put(node)
+                num_activities += 1
                 self._logger.debug("[recv_activities_from_campaign] Sent node!")
 
             self._logger.info(
@@ -171,8 +181,12 @@ class MessageHandler(threading.Thread):
             self._logger.info(f"[mh] Zambeze activity received of type: {activity[0]}")
 
         else:
-            self._logger.info("[mh] Unpacking activity info from queue...")
-            self._logger.info(f"--> Body: {activity[1]['activity'].data.body}")
+
+            try:
+                self._logger.info("[mh] Unpacking activity info from queue...")
+                self._logger.info(f"--> Body: {activity[1]['activity'].data.body}")
+            except Exception as e:
+                self._logger.error(e)
 
             required_plugin = activity_to_plugin_map[
                 activity[1]["activity"].data.body.type
@@ -181,7 +195,7 @@ class MessageHandler(threading.Thread):
             actions_are_supported = (
                 True  # self.are_actions_supported(action_labels=[""])
             )
-
+        self._logger.info("FFF")
         should_ack = plugins_are_configured and actions_are_supported
 
         self._logger.info(
@@ -202,6 +216,7 @@ class MessageHandler(threading.Thread):
         except Exception as e:
             self._logger.error(f"[mh] COULD NOT ACK! CAUGHT: {type(e).__name__}: {e}")
 
+        self._logger.info("GGG")
     def recv_activity(self):
         """
         >> Async

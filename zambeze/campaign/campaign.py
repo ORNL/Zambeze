@@ -9,6 +9,7 @@
 import logging
 import zmq
 import pickle
+import dill
 import uuid
 from queue import Queue
 import networkx as nx
@@ -65,6 +66,7 @@ class Campaign:
         """
         self._logger.debug(f"Adding activity: {activity.name}")
         activity.campaign_id = self.campaign_id
+        activity.running_agent_ids = []
 
         if any(file_uri.startswith("globus://") for file_uri in activity.files):
             self.needs_globus_login = True
@@ -74,23 +76,13 @@ class Campaign:
 
         self.activities.append(activity)
 
-    def dispatch(self) -> None:
-        """Dispatches the set of current activities in the campaign."""
-        self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
-
-        # Initialize ZMQ context and socket
-        zmq_context = zmq.Context()
-        zmq_socket = zmq_context.socket(zmq.REQ)
-        settings = ZambezeSettings()
-        zmq_host = settings.settings["zmq"]["host"]
-        zmq_port = settings.settings["zmq"]["port"]
-        zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
+    def _pack_dag_for_dispatch(self):
 
         # Create a DAG to organize activities
-        dag = DAG()
         last_activity = None
         token_obj = {}
 
+        dag = DAG()
         if self.needs_globus_login or self.force_login:
             authenticator = GlobusAuthenticator()
             access_token = authenticator.check_tokens_and_authenticate(
@@ -129,8 +121,35 @@ class Campaign:
         dag.add_node("TERMINATOR", activity="TERMINATOR", campaign_id=self.campaign_id)
         dag.add_edge(last_activity, "TERMINATOR")
 
+        # Now alter the DAG so that successors and predecessors accessible.
+        for node in dag.nodes(data=True):
+            node[1]["predecessors"] = list(dag.predecessors(node[0]))
+            node[1]["successors"] = list(dag.successors(node[0]))
+        return dag
+
+    def _serialize_dag(self, dag):
+        serial_dag = dill.dumps(dag)  # Serialize the DAG
+        return serial_dag
+
+    def dispatch(self) -> None:
+        """Dispatches the set of current activities in the campaign."""
+        self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
+
+        # Initialize ZMQ context and socket
+        zmq_context = zmq.Context()
+        zmq_socket = zmq_context.socket(zmq.REQ)
+        settings = ZambezeSettings()
+        zmq_host = settings.settings["zmq"]["host"]
+        zmq_port = settings.settings["zmq"]["port"]
+        zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
+
+        dag = self._pack_dag_for_dispatch()
+
         self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
-        serial_dag = pickle.dumps(nx.node_link_data(dag))  # Serialize the DAG
+
+        serial_dag = self._serialize_dag(dag)
+
+        # print(activity.generate_message())
 
         self._logger.debug("Sending activity DAG via ZMQ...")
         zmq_socket.send(serial_dag)
