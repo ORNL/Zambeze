@@ -2,8 +2,6 @@
 import pytest
 from zambeze import Campaign, ShellActivity
 from zambeze.campaign.activities.dag import DAG
-import pickle
-import dill
 
 
 @pytest.mark.unit
@@ -84,8 +82,6 @@ def test_message_creation_from_campaign():
             activity_node = node
         elif i == 2:
             terminator_node = node
-
-        print(node)
         i += 1
 
     # Ensure that the 'identifier' of each dag activity is correct.
@@ -113,13 +109,14 @@ def test_message_creation_from_campaign():
     assert activity_node[1]["activity"].origin_agent_id is None
 
     # Ensure we are properly serialized as a bytestring.
-    internal_serialized_dag = campaign._serialize_dag(internal_dag)
+    # internal_serialized_dag = campaign._serialize_dag(internal_dag)
+    internal_serialized_dag = internal_dag.serialize_dag()
     assert isinstance(internal_serialized_dag, bytes)
 
     """ 
     *** PHASE 3: Send via ZMQ to local message handler. *** 
     """
-    deserialized_dag = dill.loads(internal_serialized_dag)
+    deserialized_dag = DAG.deserialize_dag(internal_serialized_dag)
     assert isinstance(deserialized_dag, DAG)
 
     # UPDATE THE ORIGIN AGENT AND CONFIRM...
@@ -132,7 +129,7 @@ def test_message_creation_from_campaign():
 
     serialized_act_nodes = []
     for node in deserialized_dag.nodes(data=True):
-        serialized_node = campaign._serialize_dag(node)
+        serialized_node = deserialized_dag.serialize_node(node[0])
         assert isinstance(serialized_node, bytes)
         serialized_act_nodes.append(serialized_node)
 
@@ -141,7 +138,7 @@ def test_message_creation_from_campaign():
     """
     deserialized_nodes = []
     for s_node in serialized_act_nodes:
-        deserialized_node = dill.loads(s_node)
+        deserialized_node = DAG.deserialize_node(s_node)
         assert isinstance(deserialized_node, tuple)
         assert isinstance(deserialized_node[0], str)
         assert isinstance(deserialized_node[1], dict)

@@ -121,15 +121,9 @@ class Campaign:
         dag.add_node("TERMINATOR", activity="TERMINATOR", campaign_id=self.campaign_id)
         dag.add_edge(last_activity, "TERMINATOR")
 
-        # Now alter the DAG so that successors and predecessors accessible.
-        for node in dag.nodes(data=True):
-            node[1]["predecessors"] = list(dag.predecessors(node[0]))
-            node[1]["successors"] = list(dag.successors(node[0]))
+        # Adds predecessors and successors to nodes.
+        dag.update_node_relationships()
         return dag
-
-    def _serialize_dag(self, dag):
-        serial_dag = dill.dumps(dag)  # Serialize the DAG
-        return serial_dag
 
     def dispatch(self) -> None:
         """Dispatches the set of current activities in the campaign."""
@@ -147,9 +141,7 @@ class Campaign:
 
         self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
 
-        serial_dag = self._serialize_dag(dag)
-
-        # print(activity.generate_message())
+        serial_dag = dag.serialize_dag()
 
         self._logger.debug("Sending activity DAG via ZMQ...")
         zmq_socket.send(serial_dag)
@@ -162,18 +154,6 @@ class Campaign:
         # Dump activities into queue.
         for activity in self.activities:
             check_queue.put(activity)
-
-        # Perform check_queue logic for SDK purposes here.
-        # if block:
-        #     while True:
-        #         print("Ping Flowcept DB instead...")
-        #         if check_queue.empty():
-        #             break
-        #         else:
-        #             # To save our computers while we're building this out.
-        #             time.sleep(1)
-        #
-        #         activity_to_check = check_queue.get()
 
         else:
             raise NotImplementedError("Only blocking checks currently supported!")
