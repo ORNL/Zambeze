@@ -119,6 +119,12 @@ def test_message_creation_from_campaign():
     deserialized_dag = DAG.deserialize_dag(internal_serialized_dag)
     assert isinstance(deserialized_dag, DAG)
 
+    # See if we can access "all_activities"
+    for node in deserialized_dag.nodes(data=True):
+        if node[0] == "MONITOR":
+            node[1]["all_activity_ids"] = deserialized_dag.get_node_ids()
+            assert len(node[1]["all_activity_ids"]) == 3
+
     # UPDATE THE ORIGIN AGENT AND CONFIRM...
     for node in deserialized_dag.nodes(data=True):
         node[1]["origin_agent_id"] = origin_agent_id

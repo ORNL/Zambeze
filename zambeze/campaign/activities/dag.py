@@ -38,3 +38,7 @@ class DAG(nx.DiGraph):
         for node in self.nodes():
             self.nodes[node]["predecessors"] = list(self.predecessors(node))
             self.nodes[node]["successors"] = list(self.successors(node))
+
+    def get_node_ids(self):
+        # Return a list of all node IDs in the DAG
+        return list(self.nodes())

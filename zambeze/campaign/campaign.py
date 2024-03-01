@@ -8,11 +8,8 @@
 
 import logging
 import zmq
-import pickle
-import dill
 import uuid
 from queue import Queue
-import networkx as nx
 
 from typing import Optional
 from .activities.abstract_activity import Activity
@@ -161,3 +158,5 @@ class Campaign:
     def result(self):
         holder = self.result_val
         return holder
+
+

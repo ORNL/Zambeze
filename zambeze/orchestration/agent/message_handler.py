@@ -11,6 +11,7 @@ from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 from zambeze.orchestration.queue.queue_factory import QueueFactory
 from zambeze.orchestration.zambeze_types import QueueType
+from zambeze.campaign.activities.dag import DAG
 
 from .temp_activity_to_plugin_map import activity_to_plugin_map
 
@@ -84,14 +85,10 @@ class MessageHandler(threading.Thread):
             self._logger.info("[mh] Flowcept libraries succesfully loaded.")
 
         campaign_listener.start()
-        # activity_listener.start()
+        activity_listener.start()
         control_listener.start()
         activity_sender.start()
         control_sender.start()
-
-    def update_dag_activities(self, dag):
-        for dag
-
 
     def recv_activity_dag_from_campaign(self):
         """
@@ -113,33 +110,26 @@ class MessageHandler(threading.Thread):
             )
 
             # try:
-            activity_dag_data = pickle.loads(dag_bytestring)
-            activity_dag = networkx.node_link_graph(activity_dag_data)
+            activity_dag = DAG.deserialize_dag(dag_bytestring)
 
             self._logger.debug(
-                f"[recv_activity_dag_from_campaign] 1234: {activity_dag}"
-            )
-
-            self._logger.debug(
-                f"[recv_activity_dag_from_campaign] Received message from campaign: {activity_dag_data}"
+                f"[recv_activity_dag_from_campaign] Received message from campaign: {activity_dag}"
             )
 
             # Iterating over nodes in NetworkX DAG
             num_activities = 0
             for node in activity_dag.nodes(data=True):
                 if node[0] == "MONITOR":
-                    node[1]["all_activity_ids"] = list(activity_dag.nodes)
-
+                    node[1]["all_activity_ids"] = activity_dag.get_node_ids()
                 # Append agent_id to each node.
-                node[1]["activity"].agent_id = self.agent_id
-                activity = node[1]["activity"]
+                node[1]["activity"].origin_agent_id = self.agent_id
 
                 # If not monitor or terminator
                 try:
-                    if type(activity) != str:
+                    if type(node['activity']) != str:
                         self._logger.info("[mh] Flushing activity message to flowcept")
                         activity.agent_id = self.agent_id
-                        node[1]["activity"] = activity.generate_message()
+                        # node[1]["activity"] = activity.generate_message()
                         node[1]["activity_id"] = activity.activity_id
                         node[1]["activity_status"] = "SUBMITTED"
 
