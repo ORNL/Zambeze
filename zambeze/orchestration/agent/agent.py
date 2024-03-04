@@ -43,24 +43,20 @@ class Agent:
 
         self._logger = logger or logging.getLogger(__name__)
 
-        self._logger.info("111")
         self._agent_id = str(uuid4())
         self._activity_dao = ActivityDAO(self._logger)
         self._settings = ZambezeSettings(conf_file=conf_file, logger=self._logger)
-        self._logger.info("222")
         self._executor = Executor(
             settings=self._settings, agent_id=self._agent_id, logger=self._logger
         )
-        self._logger.info("333")
         self._msg_handler_thd = self._init_message_handler()
 
         self._start_thread(self.recv_activity_process_thd, name="ActivitySorterThread")
         self._start_thread(self.send_control_thd, name="ControlSenderThread")
         self._start_thread(self.recv_control_thd, name="ControlReceiverThread")
 
-        self._logger.info("444")
-        self._executor.start()
-        self._logger.info("555")
+        # TODO: no executor starts.
+        # self._executor.start()
 
     def _init_message_handler(self):
         """Initializes the MessageHandler thread."""
