@@ -9,16 +9,15 @@ FROM python:3.10-slim
 RUN apt-get update && apt-get install -y \
     imagemagick \
     rsync \
-    openssh-server \
-    keychain
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/zambeze
+
 ENV HOME /home/zambeze
 ENV PATH="${PATH}:/home/zambeze/.local/bin"
 
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-COPY . . 
-RUN pip install .
+COPY . .
 
-EXPOSE 22
+RUN pip install --upgrade pip \
+    pip install -r requirements.txt \
+    pip install .
