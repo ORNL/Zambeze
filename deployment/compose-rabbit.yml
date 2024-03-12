@@ -6,6 +6,9 @@
 # Run the application stack in detached mode
 # docker compose --file deployment/compose-rabbit.yml up -d
 #
+# Get into the zambeze container by running a bash shell
+# docker exec -it zambeze-agent bash
+#
 # Tear down the application stack
 # docker compose --file deployment/compose-rabbit.yml down
 
@@ -34,4 +37,4 @@ services:
     environment:
       RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
-    command: zambeze agent start
+    command: tail -f /dev/null
