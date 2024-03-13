@@ -160,11 +160,15 @@ def test_message_creation_from_campaign():
             found_activity_node = True
             activity = node[1]["activity"]
             assert isinstance(activity, ShellActivity)
-            assert activity.command == "convert"
-            assert activity.type == "shell"
+            # assert activity.command == "convert"
+            assert activity.type == "SHELL"
+            assert activity.campaign_id is not None
             assert len(activity.arguments) == 6
             assert len(activity.files) == 10
 
+            # Now what happens in plugins.py?
+            assert activity.plugin_args["shell"] == "bash"
+            assert activity.plugin_args["parameters"]["command"] == "convert"
     if not found_activity_node:
         raise ValueError("ACTIVITY NODE NOT FOUND!")
 
@@ -173,13 +177,3 @@ def test_message_creation_from_campaign():
 
     """ PHASE 6: ensure that the result is present. """
     assert isinstance(activity.result, dict)
-
-
-
-
-
-
-
-
-
-

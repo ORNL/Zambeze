@@ -55,8 +55,7 @@ class Agent:
         self._start_thread(self.send_control_thd, name="ControlSenderThread")
         self._start_thread(self.recv_control_thd, name="ControlReceiverThread")
 
-        # TODO: no executor starts.
-        # self._executor.start()
+        self._executor.start()
 
     def _init_message_handler(self):
         """Initializes the MessageHandler thread."""

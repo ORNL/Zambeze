@@ -72,7 +72,15 @@ class ShellActivity(Activity):
         self.logger.info("[activities/shell.py] Printing files after init in SHELL")
         self.logger.info(self.files)
         self.working_dir = ""
-        self.type = "shell"
+        self.type = "SHELL"
+        self.plugin_args = {"shell": "bash",
+                            "parameters":
+                                {
+                                    "command": self.command,
+                                    "args": self.arguments,
+                                    "env_vars": self.env_vars
+                                }
+                            }
 
     def generate_message(self) -> AbstractMessage:
         factory = MessageFactory(logger=self.logger)
