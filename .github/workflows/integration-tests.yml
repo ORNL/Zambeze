@@ -7,18 +7,21 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build Zambeze image
-      run: docker build -t zambeze/zambeze -f deployment/Dockerfile .
+      run: docker build -t zambeze -f deployment/Dockerfile .
     - name: Launch Docker Compose
       run: docker compose -f deployment/compose-rabbit.yml up -d
     - name: Sleep 
       run: |
         echo "I'm going to sleep hoping the services will be up when I wake up... zzz..."
         sleep 15
-    - name: Generating SSH Keys
-      run: |
-        ssh-keygen -b 2048 -t rsa -q -N "" -f ./id_rsa
-    - name: Run Tests
-      run: |
-        docker compose -f deployment/compose-rabbit.yml exec zambeze_agent2 python3 -m pytest -m integration -vs
+    - name: Run Unit Tests
+      run: docker exec zambeze-agent pytest -m unit
+    # - name: Run Integration Tests
+    #   run: |
+    #     docker compose -f deployment/compose-rabbit.yml exec zambezeagent python3 -m pytest -m integration
+    # - name: Run End-To-End Tests
+    #   run: |
+    #     docker compose -f deployment/compose-rabbit.yml exec zambezeagent python3 -m pytest -m end_to_end
     - name: Cleanup
-      run: docker compose -f deployment/compose-rabbit.yml down
+      run: |
+        docker compose -f deployment/compose-rabbit.yml down

@@ -1,57 +1,40 @@
-version: '3.9'
-name: zambeze
-services:
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq:3.11-management
-    ports:
-    - 5672:5672
-    - 15672:15672
-    healthcheck:
-        test: rabbitmq-diagnostics -q ping
-        interval: 15s
-        timeout: 10s
-        retries: 10
+# Compose a RabbitMQ and Zambeze multi-container application stack
+#
+# Run the application stack
+# docker compose --file deployment/compose-rabbit.yml up
+#
+# Run the application stack in detached mode
+# docker compose --file deployment/compose-rabbit.yml up -d
+#
+# Get into the zambeze container by running a bash shell
+# docker exec -it zambeze-agent bash
+#
+# Tear down the application stack
+# docker compose --file deployment/compose-rabbit.yml down
 
-  zambeze_agent1:
-    environment:
-      RABBIT_HOST: rabbitmq
-      RABBIT_PORT: 5672
-      PYTHONWARNINGS: "ignore::DeprecationWarning"
-      ZAMBEZE_CI_TEST_RSYNC_USER: "zambeze"
-      ZAMBEZE_CI_TEST_RSYNC_IP: "zambeze2"
-      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "/home/zambeze/.ssh/id_rsa"
-    container_name: zambeze1
-    hostname: zambeze1
-    image: zambeze/zambeze:latest
-    volumes:
-      - './scripts/zambeze_agent1_start.sh:/bin/zambeze_agent1_start.sh'
-      - './scripts/common.sh:/bin/common.sh'
-      - 'zambeze_agent_shared:/srv/shared:rw'
+name: zambezeapp
+
+services:
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 15s
+      timeout: 10s
+      retries: 3
+
+  zambezeagent:
+    image: zambeze
+    container_name: zambeze-agent
     depends_on:
       rabbitmq:
         condition: service_healthy
-    command: ['/bin/zambeze_agent1_start.sh']
-
-  zambeze_agent2:
     environment:
       RABBIT_HOST: rabbitmq
       RABBIT_PORT: 5672
-      PYTHONWARNINGS: "ignore::DeprecationWarning"
-      ZAMBEZE_CI_TEST_RSYNC_USER: "zambeze"
-      ZAMBEZE_CI_TEST_RSYNC_IP: "zambeze1"
-      ZAMBEZE_CI_TEST_RSYNC_SSH_KEY: "/home/zambeze/.ssh/id_rsa"
-    container_name: zambeze2
-    hostname: zambeze2
-    image: zambeze/zambeze:latest
-    volumes:
-      - './scripts/zambeze_agent2_start.sh:/bin/zambeze_agent2_start.sh'
-      - './scripts/common.sh:/bin/common.sh'
-      - 'zambeze_agent_shared:/srv/shared:rw'
-
-    command: ['/bin/zambeze_agent2_start.sh']
-    depends_on:
-      -  zambeze_agent1 # Needed when launching command on startup
-
-volumes:
-  zambeze_agent_shared:
+    command: tail -f /dev/null

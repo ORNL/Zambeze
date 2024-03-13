@@ -107,7 +107,6 @@ def test_shell_plugin_check():
 
     msg = factory.create(msg_template)
     checked_actions = plugins.check(msg)
-    print(checked_actions)
     assert checked_actions["shell"][0]["bash"][0]
 
 
@@ -158,7 +157,6 @@ def test_rsync_plugin_check():
     # Grab valid paths, usernames and ip addresses
     current_valid_path = os.getcwd()
     current_user = pwd.getpwuid(os.geteuid())[0]
-    print(os.environ)
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
 
@@ -233,10 +231,8 @@ def test_rsync_plugin_run():
 
     python3 -m pytest -m integration
     """
-    print("HELLO!")
     plugins = Plugins()
 
-    print(os.environ)
     neighbor_vm = os.getenv("ZAMBEZE_CI_TEST_RSYNC_IP")
     neighbor_vm_ip = getIP(neighbor_vm)
     path_to_ssh_key = os.getenv("ZAMBEZE_CI_TEST_RSYNC_SSH_KEY")
