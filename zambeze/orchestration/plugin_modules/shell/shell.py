@@ -275,8 +275,5 @@ class Shell(Plugin):
             #       if cmd coming from untrusted source. See:
             # https://stackoverflow.com/questions/21009416/python-subprocess-security)
             # shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
-            # print(shell_cmd)
-            # print(parent_env)
-            # print(merged_env)
             shell_exec = subprocess.Popen(shell_cmd, shell=True, env=merged_env)
             shell_exec.wait()
