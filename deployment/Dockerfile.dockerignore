@@ -1,0 +1,10 @@
+# Exclude these files and directories from the Docker build
+
+.DS_Store
+.git
+.github
+.gitignore
+.pytest_cache
+.readthedocs.yaml
+*.egg-info
+*.pyc
