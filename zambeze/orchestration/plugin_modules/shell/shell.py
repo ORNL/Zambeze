@@ -242,11 +242,12 @@ class Shell(Plugin):
         if not self._configured:
             raise Exception("Cannot run shell plugin, must first be configured.")
 
-        print("Arguments passed to shell process are")
-        print(arguments)
+        self._logger.info("[1111] Arguments passed to shell process are")
+        self._logger.info(f"[2222] {arguments}")
         for data in arguments:
             cmd = data["bash"]["args"]
-            cmd.insert(0, data["bash"]["program"])
+            cmd.insert(0, data["bash"]["command"])
+            self._logger.info(f"[3333] CMD: {cmd}")
 
             # Take an image of the parent environment
             # -- then add the environment variables to it.
@@ -274,8 +275,5 @@ class Shell(Plugin):
             #       if cmd coming from untrusted source. See:
             # https://stackoverflow.com/questions/21009416/python-subprocess-security)
             # shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
-            # print(shell_cmd)
-            # print(parent_env)
-            # print(merged_env)
             shell_exec = subprocess.Popen(shell_cmd, shell=True, env=merged_env)
             shell_exec.wait()

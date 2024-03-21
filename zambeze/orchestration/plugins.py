@@ -8,6 +8,7 @@ from __future__ import annotations
 from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
+from zambeze.campaign.activities.shell import ShellActivity
 
 from copy import deepcopy
 from dataclasses import asdict
@@ -386,12 +387,14 @@ class Plugins:
         >>> plugins.run('rsync', arguments)
         """
         if isinstance(msg, AbstractMessage):
-            if msg.data.body.type == "PLUGIN":
+            if msg.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
-                plugin_name = msg.data.body.plugin.lower()
-            elif msg.data.body.type == "SHELL":
-                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
-                plugin_name = msg.data.body.type.lower()
+                plugin_name = msg.data.type
+        elif isinstance(msg, ShellActivity):
+            if msg.type == "SHELL":
+                arguments = {msg.plugin_args["shell"]: msg.plugin_args["parameters"]}
+                plugin_name = msg.type
+                self.__logger.info("GOODLY")
             else:
                 raise Exception(
                     "plugin check only currently supports PLUGIN and SHELL activities"
@@ -404,4 +407,7 @@ class Plugins:
         if not isinstance(arguments, dict):
             raise ValueError("Unsupported arguments type detected in check.")
 
-        self._plugins[plugin_name].process([arguments])
+        self.__logger.info("GOODLY-2")
+        self.__logger.info(plugin_name)
+        self._plugins[plugin_name.lower()].process([arguments])
+        self.__logger.info("GOODLY-3")

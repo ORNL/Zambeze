@@ -3,7 +3,6 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import json
 import logging
 import os
 import requests
@@ -12,7 +11,6 @@ import time
 
 from queue import Queue
 from typing import Optional
-from dataclasses import asdict
 
 from zambeze.orchestration.monitor import Monitor
 from zambeze.settings import ZambezeSettings
@@ -80,6 +78,8 @@ class Executor(threading.Thread):
 
         self._logger.info("[executor] In __process! ")
 
+        self._logger.info("eins")
+
         # Change to the agent's desired working directory.
         default_working_dir = self._settings.settings["plugins"]["All"][
             "default_working_directory"
@@ -91,6 +91,7 @@ class Executor(threading.Thread):
         try:
             # First try to switch into working directory if it exists.
             os.chdir(default_working_dir)
+            self._logger.info("zwei")
         except FileNotFoundError:
             self._logger.error(
                 "[exec] Working directory not found... attempting to create!"
@@ -109,6 +110,8 @@ class Executor(threading.Thread):
             self._logger.info(f" SIZE OF QUEUE: {self.to_process_q.qsize()}")
             dag_msg = self.to_process_q.get()
 
+            self._logger.info("drei")
+
             self._logger.debug(f"[exec] Retrieved message! {dag_msg}...")
 
             # Check 1. If MONITOR, then we want to STICK the process
@@ -125,7 +128,10 @@ class Executor(threading.Thread):
                 self.monitor = monitor_thread
                 monitor_launched = True
 
+                self._logger.info("vier")
+
             elif dag_msg[0] == "TERMINATOR":
+                self._logger.info("funf")
                 # TERMINATOR ALWAYS SUCCEEDS.
                 status_msg = {
                     "status": "SUCCEEDED",
@@ -138,6 +144,7 @@ class Executor(threading.Thread):
                 )
                 self.to_status_q.put(status_msg)
                 terminator_stopped = True
+                self._logger.info("sechs")
 
             s = f"[exec] Monitor launched {monitor_launched}"
             s2 = f", Terminator stopped: {terminator_stopped}"
@@ -149,8 +156,12 @@ class Executor(threading.Thread):
                 terminator_stopped = False
                 continue
 
+            self._logger.info("sieben")
+
             activity_msg = dag_msg[1]["activity"]
             predecessors = dag_msg[1]["predecessors"]
+
+            self._logger.info("acht")
 
             # transfer_params = dag_msg[1]["transfer_params"]
             transfer_tokens = dag_msg[1]["transfer_tokens"]
@@ -160,8 +171,11 @@ class Executor(threading.Thread):
             # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
             self._logger.info(f"[exec] Activity has predecessors: {predecessors}")
 
+            self._logger.info(f"Foo the bar: {activity_msg}")
             # STEP 1. Confirm the monitor is MONITORING.
-            campaign_id = activity_msg.data.campaign_id
+            campaign_id = activity_msg.campaign_id
+
+            self._logger.info("neun")
 
             if (
                 "MONITOR" in predecessors
@@ -224,21 +238,25 @@ class Executor(threading.Thread):
                     if total_completed == len(pred_track_dict):
                         break
 
-            if activity_msg.data.body.type == "SHELL":
+            if activity_msg.type.upper() == "SHELL":
                 self._logger.info("[exec] SHELL message received:")
-                self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
+                self._logger.info("zehn")
 
                 # self._logger.info(activity_msg.data.body)
 
                 # Determine if the shell activity has files that
                 # Need to be moved to be executed
-                if activity_msg.data.body.files:
-                    if len(activity_msg.data.body.files) > 0:
+                if (
+                    activity_msg.files
+                ):  # TODO: I think this always exists and defaults to empty.
+                    self._logger.info("elf")
+                    if len(activity_msg.files) > 0:
+                        self._logger.info("zwolf")
                         try:
                             self.__process_files(
-                                activity_msg.data.body.files,
-                                activity_msg.data.campaign_id,
-                                activity_msg.data.activity_id,
+                                activity_msg.files,
+                                activity_msg.campaign_id,
+                                activity_msg.activity_id,
                                 transfer_tokens,
                             )
                         except Exception as e:
@@ -273,8 +291,15 @@ class Executor(threading.Thread):
                 # checked_result = self._settings.plugins.check(activity_msg.data.body)
                 # self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
 
+                self._logger.info("dreizehn")
+
                 # TODO: handle failures from the SHELL activity.
-                self._settings.plugins.run(activity_msg)
+                try:
+                    self._settings.plugins.run(activity_msg)
+                except Exception as e:
+                    self._logger.error(f"[vierzehn] caught: {e}")
+
+                self._logger.info("vierzehn.1")
 
                 # if checked_result.error_detected() is False:
                 #     self._settings.plugins.run(activity_msg)

@@ -1,8 +1,6 @@
 import pickle
 import threading
 import time
-import dill
-import networkx
 import zmq
 
 from queue import Queue
@@ -11,6 +9,7 @@ from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 from zambeze.orchestration.queue.queue_factory import QueueFactory
 from zambeze.orchestration.zambeze_types import QueueType
+from zambeze.campaign.activities.dag import DAG
 
 from .temp_activity_to_plugin_map import activity_to_plugin_map
 
@@ -63,6 +62,7 @@ class MessageHandler(threading.Thread):
 
         # THREAD 2: recv activities from rmq
         activity_listener = threading.Thread(target=self.recv_activity, args=())
+        # TODO: bring back.
         # THREAD 3: recv control from RMQ
         control_listener = threading.Thread(target=self.recv_control, args=())
         # THREAD 4: recv control from RMQ
@@ -108,49 +108,46 @@ class MessageHandler(threading.Thread):
             )
 
             # try:
-            activity_dag_data = pickle.loads(dag_bytestring)
-            activity_dag = networkx.node_link_graph(activity_dag_data)
+            activity_dag = DAG.deserialize_dag(dag_bytestring)
 
             self._logger.debug(
-                f"[recv_activity_dag_from_campaign] Received campaign message: {activity_dag_data}"
+                f"[recv_activity_dag_from_campaign] Received message from campaign: {activity_dag}"
             )
 
             # Iterating over nodes in NetworkX DAG
             num_activities = 0
-            for node in activity_dag.nodes(data=True):
-                if node[0] == "MONITOR":
-                    node[1]["all_activity_ids"] = list(activity_dag.nodes)
-
-                # Append agent_id to each node.
-                node[1]["agent_id"] = self.agent_id
-                activity = node[1]["activity"]
+            is_monitor = False
+            is_terminator = False
+            for activity_id, node_data in activity_dag.nodes(data=True):
+                if activity_id == "MONITOR":
+                    node_data["all_activity_ids"] = activity_dag.get_node_ids()
+                    is_monitor = True
+                if activity_id == "TERMINATOR":
+                    is_terminator = True
 
                 # If not monitor or terminator
                 try:
-                    if isinstance(activity, str):
+                    if (not is_monitor) or (not is_terminator):
                         self._logger.info("[mh] Flushing activity message to flowcept")
-                        activity.agent_id = self.agent_id
-                        node[1]["activity"] = activity.generate_message()
-                        node[1]["activity_id"] = activity.activity_id
-                        node[1]["activity_status"] = "SUBMITTED"
-                        num_activities += 1
+                        node_data["activity"].origin_agent_id = self.agent_id
+                        node_data["activity_status"] = "SUBMITTED"
+
                 except Exception as e:
                     self._logger.error(e)
-                node[1]["predecessors"] = list(activity_dag.predecessors(node[0]))
-                node[1]["successors"] = list(activity_dag.successors(node[0]))
 
                 self._logger.info(
-                    f"[message_handler] The activity_node to send...:\n{node}"
+                    f"[message_handler] The activity_node to send...:\n{(activity_id, node_data)}"
                 )
 
                 activity_model = ActivityModel(
                     agent_id=str(self.agent_id), created_at=int(time.time() * 1000)
                 )
                 self._activity_dao.insert(activity_model)
-                self._logger.debug("[recv_activities_from_campaign] Saved in the DB!")
+                self._logger.debug("[recv_activity_dag_from_campaign] Saved in the DB!")
 
-                self.msg_handler_send_activity_q.put(node)
-                self._logger.debug("[recv_activities_from_campaign] Sent node!")
+                self.msg_handler_send_activity_q.put((activity_id, node_data))
+                num_activities += 1
+                self._logger.debug("[recv_activity_dag_from_campaign] Sent node!")
 
             self._logger.info(
                 f"[message_handler] Number of activities sent for campaign: {num_activities}"
@@ -158,46 +155,71 @@ class MessageHandler(threading.Thread):
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     def _callback(self, ch, method, _properties, body):
+        self._logger.debug("uno")
         self._logger.debug(
             "[mh-recv-activity] Processing callback function for activity queue recv."
         )
-        self._logger.info(f"[mn-recv-activity] receiving activity...{dill.loads(body)}")
-        activity = dill.loads(body)
+        activity_node = DAG.deserialize_node(body)
+        self._logger.info(f"[mn-recv-activity] receiving activity...{activity_node}")
+
+        plugins_are_configured = False
+        actions_are_supported = False
 
         # Anyone can monitor or terminate.
-        if activity[0] in ["MONITOR", "TERMINATOR"]:
+        self._logger.debug("dos")
+
+        if activity_node[0] in ["MONITOR", "TERMINATOR"]:
+            self._logger.debug("tres")
             plugins_are_configured = True
             actions_are_supported = True
-            self._logger.info(f"[mh] Zambeze activity received of type: {activity[0]}")
+            self._logger.info(
+                f"[mh] Zambeze activity received of ID: {activity_node[0]}"
+            )
 
         else:
-            self._logger.info("[mh] Unpacking activity info from queue...")
-            self._logger.info(f"--> Body: {activity[1]['activity'].data.body}")
+            self._logger.debug("quatro")
+            try:
+                self._logger.info("[mh] Unpacking activity info from queue...")
+            except Exception as e:
+                self._logger.error(e)
 
-            required_plugin = activity_to_plugin_map[
-                activity[1]["activity"].data.body.type
-            ]
+            self._logger.debug("cinco")
+
+            # TODO: TYLER THIS IS CAUSING PROBLEM
+            # I THINK I NEED TO MAXIMIZE
+            try:
+                required_plugin = activity_to_plugin_map[
+                    activity_node[1]["activity"].type.upper()
+                ]
+            except Exception as e:
+                self._logger.exception(f"Caught-a-lot: {e}")
+            self._logger.debug("ses")
             plugins_are_configured = self.are_plugins_configured(required_plugin)
             actions_are_supported = (
                 True  # self.are_actions_supported(action_labels=[""])
             )
 
+        self._logger.debug("siete")
         should_ack = plugins_are_configured and actions_are_supported
 
         self._logger.info(
             f"[mh] Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}"
         )
 
+        self._logger.debug("ocho")
+
         try:
             if should_ack:
                 ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] ACKED activity message.")
-                self.check_activity_q.put(activity)
+                self.check_activity_q.put(activity_node)
+                self._logger.debug("nueve")
             else:
                 ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] NACKED activity message.")
                 # stuck in NACK loop; sleep helps alleviate what happens when
                 #   a task can't get picked up by anyone (temporary).
+                self._logger.debug("dies")
                 time.sleep(1)
         except Exception as e:
             self._logger.error(f"[mh] COULD NOT ACK! CAUGHT: {type(e).__name__}: {e}")

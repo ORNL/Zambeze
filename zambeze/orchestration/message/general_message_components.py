@@ -7,7 +7,8 @@ The type can be either ACTIVITY or STATUS
 """
 
 REQUIRED_GENERAL_COMPONENTS = {
-    "agent_id": "",
+    "origin_agent_id": "",
+    "running_agent_ids": [],
     "message_id": "",
     "submission_time": "",
     "type": "",
