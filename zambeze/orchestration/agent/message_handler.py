@@ -1,4 +1,3 @@
-
 import pickle
 import threading
 import time
@@ -130,7 +129,7 @@ class MessageHandler(threading.Thread):
                 try:
                     if (not is_monitor) or (not is_terminator):
                         self._logger.info("[mh] Flushing activity message to flowcept")
-                        node_data['activity'].origin_agent_id = self.agent_id
+                        node_data["activity"].origin_agent_id = self.agent_id
                         node_data["activity_status"] = "SUBMITTED"
 
                 except Exception as e:
@@ -173,7 +172,9 @@ class MessageHandler(threading.Thread):
             self._logger.debug("tres")
             plugins_are_configured = True
             actions_are_supported = True
-            self._logger.info(f"[mh] Zambeze activity received of ID: {activity_node[0]}")
+            self._logger.info(
+                f"[mh] Zambeze activity received of ID: {activity_node[0]}"
+            )
 
         else:
             self._logger.debug("quatro")

@@ -246,7 +246,9 @@ class Executor(threading.Thread):
 
                 # Determine if the shell activity has files that
                 # Need to be moved to be executed
-                if activity_msg.files:  # TODO: I think this always exists and defaults to empty.
+                if (
+                    activity_msg.files
+                ):  # TODO: I think this always exists and defaults to empty.
                     self._logger.info("elf")
                     if len(activity_msg.files) > 0:
                         self._logger.info("zwolf")
