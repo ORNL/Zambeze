@@ -1,11 +1,10 @@
-
 import pytest
 from zambeze import Campaign, ShellActivity
 from zambeze.campaign.activities.dag import DAG
 
 
 @pytest.mark.unit
-def test_message_creation_from_campaign():
+def test_message_creation_from_campaign():  # noqa: C901
     """
     Unit test the hypothetical flow of a message from a user's creation through a user
     retrieving a result.
@@ -13,7 +12,7 @@ def test_message_creation_from_campaign():
 
     # Let's pretend these are our agents...
     origin_agent_id = "origin_agent_id_1"
-    running_agents = ["running_agent_1", "running_agent_2"]
+    # running_agents = ["running_agent_1", "running_agent_2"]
 
     # Create a campaign and add
     campaign = Campaign("My ImageMagick Campaign")
@@ -48,7 +47,7 @@ def test_message_creation_from_campaign():
     assert isinstance(activity, ShellActivity)
 
     assert len(activity.activity_id) == 36
-    held_activity_id = activity.activity_id   # hold this out, we'll use later.
+    held_activity_id = activity.activity_id  # hold this out, we'll use later.
     #  assert len(activity.message_id) == 36  # TODO???
 
     # Agent ID must be none because we don't have one until we flush to agent process.
@@ -98,7 +97,9 @@ def test_message_creation_from_campaign():
     assert len(terminator_node[1]["successors"]) == 0
 
     # Make sure that the underlying activity objects are also correct.
-    assert isinstance(monitor_node[1]["activity"], str)  # monitor and terminator are string
+    assert isinstance(
+        monitor_node[1]["activity"], str
+    )  # monitor and terminator are string
     assert isinstance(terminator_node[1]["activity"], str)
     assert isinstance(activity_node[1]["activity"], ShellActivity)
     assert "transfer_tokens" in activity_node[1]
@@ -113,9 +114,10 @@ def test_message_creation_from_campaign():
     internal_serialized_dag = internal_dag.serialize_dag()
     assert isinstance(internal_serialized_dag, bytes)
 
-    """ 
-    *** PHASE 3: Send via ZMQ to local message handler. *** 
     """
+    *** PHASE 3: Send via ZMQ to local message handler. ***
+    """
+
     deserialized_dag = DAG.deserialize_dag(internal_serialized_dag)
     assert isinstance(deserialized_dag, DAG)
 
@@ -151,7 +153,7 @@ def test_message_creation_from_campaign():
         deserialized_nodes.append(deserialized_node)
 
     """
-    *** PHASE 5: ensure all 'SHELL' pieces are present and pack result. 
+    *** PHASE 5: ensure all 'SHELL' pieces are present and pack result.
     """
 
     found_activity_node = False
