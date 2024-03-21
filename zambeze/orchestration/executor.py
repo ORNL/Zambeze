@@ -3,7 +3,6 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import json
 import logging
 import os
 import requests
@@ -12,7 +11,6 @@ import time
 
 from queue import Queue
 from typing import Optional
-from dataclasses import asdict
 
 from zambeze.orchestration.monitor import Monitor
 from zambeze.settings import ZambezeSettings
@@ -242,8 +240,6 @@ class Executor(threading.Thread):
 
             if activity_msg.type.upper() == "SHELL":
                 self._logger.info("[exec] SHELL message received:")
-                #self._logger.info(json.dumps(asdict(activity_msg.data), indent=4))
-
                 self._logger.info("zehn")
 
                 # self._logger.info(activity_msg.data.body)

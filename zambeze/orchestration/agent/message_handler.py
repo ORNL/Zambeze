@@ -168,7 +168,7 @@ class MessageHandler(threading.Thread):
 
         # Anyone can monitor or terminate.
         self._logger.debug("dos")
-        is_monitor_or_terminator = False
+
         if activity_node[0] in ["MONITOR", "TERMINATOR"]:
             self._logger.debug("tres")
             plugins_are_configured = True
