@@ -1,5 +1,5 @@
 # Local imports
-from zambeze.campaign.activities.shell import ShellActivity
+from zambeze import ShellActivity
 from zambeze.orchestration.zambeze_types import MessageType
 from zambeze.utils.identity import valid_uuid
 
@@ -12,7 +12,6 @@ import uuid
 
 @pytest.mark.unit
 def test_shell_activity_generate_message():
-    logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
     activity = ShellActivity(
         name="ImageMagick",
@@ -29,17 +28,16 @@ def test_shell_activity_generate_message():
             f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
             "a.gif",
         ],
-        logger=logger,
-        # Uncomment if running on M1 Mac.
         env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
         campaign_id=str(uuid.uuid4()),
-        agent_id=str(uuid.uuid4()),
+        origin_agent_id=str(uuid.uuid4()),
         message_id=str(uuid.uuid4()),
     )
 
     msg = activity.generate_message()
+
     assert msg.type == MessageType.ACTIVITY
-    assert valid_uuid(msg.data.agent_id)
+    assert valid_uuid(msg.data.origin_agent_id)
     assert valid_uuid(msg.data.campaign_id)
     assert valid_uuid(msg.data.message_id)
     assert valid_uuid(msg.data.activity_id)
@@ -55,7 +53,7 @@ def test_shell_activity_generate_message():
 
 @pytest.mark.unit
 def test_shell_activity_attributes():
-    # Don't specify agent_id and campaign_id
+    # Don't specify origin_agent_id and campaign_id
     logger = logging.getLogger(__name__)
     curr_dir = pathlib.Path().resolve()
     activity = ShellActivity(
@@ -78,7 +76,7 @@ def test_shell_activity_attributes():
         env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
     )
 
-    assert activity.agent_id is None
+    assert activity.origin_agent_id is None
     assert activity.campaign_id is None
     assert activity.message_id is None
     assert valid_uuid(activity.activity_id)
