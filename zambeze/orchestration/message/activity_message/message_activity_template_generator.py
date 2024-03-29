@@ -44,7 +44,9 @@ class ShellParams:
 
 # pyre-ignore[11]
 def create_activity_template(activity_type: ActivityType) -> ActivityTemplate:
-    template = ActivityTemplate(None, None, None, None, None, None, None, None, None, None)
+    template = ActivityTemplate(
+        None, None, None, None, None, None, None, None, None, None
+    )
     template.type = "ACTIVITY"
     if activity_type == ActivityType.SHELL:
         template.body = ShellTemplate(
