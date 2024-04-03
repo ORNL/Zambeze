@@ -93,7 +93,6 @@ class Activity(ABC):
 
         self.submission_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
-
     def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.
 

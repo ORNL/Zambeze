@@ -1,7 +1,5 @@
 # Local imports
 from zambeze.orchestration.plugins import Plugins
-from zambeze.orchestration.message.message_factory import MessageFactory
-from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.campaign.activities.abstract_activity import Activity
 
@@ -10,8 +8,6 @@ import os
 import pytest
 
 import logging
-import random
-import time
 import uuid
 
 logger = logging.getLogger(__name__)
@@ -22,7 +18,6 @@ def test_registered_plugins():
     """Test checks that you can get a list of all the registered plugins"""
     plugins = Plugins()
     found_shell = False
-    found_rsync = False
     for plugin in plugins.registered:
         if plugin == "shell":
             found_shell = True
@@ -48,12 +43,7 @@ def test_shell_plugin_check():
     plugins.configure({"shell": {}})
 
     activity = ShellActivity(
-        name="Simple echo",
-        files=[],
-        command="echo",
-        arguments=[
-            "hello-zambeze"
-        ]
+        name="Simple echo", files=[], command="echo", arguments=["hello-zambeze"]
     )
 
     activity.message_id = str(uuid.uuid4())
@@ -67,9 +57,9 @@ def test_shell_plugin_check():
     check = plugins.check(msg=activity)
 
     # This will become more complicated when there is more to validate.
-    assert len(check['shell']) == 2
+    assert len(check["shell"]) == 2
     # Ensure we pass because all are True.
-    assert all(value for d in check['shell'] for value in d.values())
+    assert all(value for d in check["shell"] for value in d.values())
 
 
 @pytest.mark.unit
@@ -87,12 +77,7 @@ def test_shell_plugin_run():
     # )
 
     activity = ShellActivity(
-        name="Simple echo",
-        files=[],
-        command="touch",
-        arguments=[
-            file_path
-        ]
+        name="Simple echo", files=[], command="touch", arguments=[file_path]
     )
 
     activity.message_id = str(uuid.uuid4())
@@ -109,9 +94,9 @@ def test_shell_plugin_run():
 
     # Second, make sure we can run the plugin.
     # This will become more complicated when there is more to validate.
-    assert len(checked_actions['shell']) == 2
+    assert len(checked_actions["shell"]) == 2
     # Ensure we pass because all are True.
-    assert all(value for d in checked_actions['shell'] for value in d.values())
+    assert all(value for d in checked_actions["shell"] for value in d.values())
 
     # Third, run the plugin.
     plugins.run(activity)

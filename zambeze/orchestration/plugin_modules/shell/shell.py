@@ -13,7 +13,6 @@ from .shell_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 from ...system_utils import isExecutable
 
 # Standard imports
-from shutil import which
 from typing import Optional
 
 import logging

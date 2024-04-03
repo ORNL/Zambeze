@@ -38,12 +38,14 @@ def test_shell_activity_generate_message():
 
     # Keep these.
     assert activity.type == "SHELL"
-    assert activity.origin_agent_id is None  # Not packed until it reaches message_handler
+    assert (
+        activity.origin_agent_id is None
+    )  # Not packed until it reaches message_handler
     assert valid_uuid(activity.campaign_id)
     assert valid_uuid(activity.activity_id)
 
     # Pattern for a valid datetime object down to millisecond.
-    pattern = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$'
+    pattern = r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$"
 
     # Use the assert statement to check if the timestamp_str matches the pattern
     assert re.match(pattern, activity.submission_time)

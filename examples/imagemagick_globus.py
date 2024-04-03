@@ -37,14 +37,7 @@ def main():
         name="ImageMagick",
         files=files,
         command="convert",
-        arguments=[
-            "-delay",
-            "20",
-            "-loop",
-            "0",
-            "*.jpg",
-            "a.gif",
-        ],
+        arguments=["-delay", "20", "-loop", "0", "*.jpg", "a.gif"],
         logger=logger,
         # Uncomment if running on M1 Mac.
         env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
