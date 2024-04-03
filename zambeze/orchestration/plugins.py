@@ -9,6 +9,7 @@ from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
 from zambeze.campaign.activities.shell import ShellActivity
+from zambeze.campaign.activities.abstract_activity import Activity
 
 from copy import deepcopy
 from dataclasses import asdict
@@ -213,7 +214,7 @@ class Plugins:
     def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
         pass
 
-    def check(self, msg, arguments=None) -> PluginChecks:
+    def check(self, msg=None, arguments=None) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         Parameters
@@ -228,66 +229,20 @@ class Plugins:
         PluginChecks
             What is returned are a list of the plugins and their actions along
             with an indication on whether there was a problem with them.
-
-        Example
-        -------
-        Using rsync. For the rsync plugin to be useful, both the local and
-        remote host ssh keys must have been configured. By default the rsync
-        plugin will look for the private key located at ~/.ssh/id_rsa. If the
-        private key is different then it must be specified with
-        the "private_ssh_key" key value pair.
-
-        >>> plugins = Plugins()
-        >>> config = {
-        ...     "rsync": {
-        ...         "private_ssh_key": "path to private ssh key"
-        ...    }
-        ... }
-
-        >>> plugins.configure(config)
-        >>> arguments = {
-        ...     "transfer": {
-        ...         "source": {
-        ...             "ip": local_ip,
-        ...             user": current_user,
-        ...             "path": current_valid_path,
-        ...             },
-        ...         "destination": {
-        ...             "ip": "172.22.1.69",
-        ...             "user": "cades",
-        ...             "path": "/home/cades/josh-testing",
-        ...             },
-        ...     "arguments": ["-a"],
-        ...     }
-        ... }
-
-        >>> checked_args = plugins.check("rsync", arguments)
-        >>> print(checked_args)
-        {
-            "rsync": { "transfer": (True, "") }
-        }
         """
-        if isinstance(msg, AbstractMessage):
-            if msg.data.type == "ACTIVITY":
-                if msg.data.body.type == "PLUGIN":
-                    arguments = asdict(msg.data.body.parameters)
-                    plugin_name = msg.data.body.plugin.lower()
-                elif msg.data.body.type == "SHELL":
-                    arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
-                    plugin_name = "shell"
-                else:
-                    error_msg = "plugin check only currently supports actvities"
-                    error_msg += " PLUGIN and SHELL, but the following "
-                    error_msg += "unsupported activity has been specified: "
-                    error_msg += f"{msg.data.body.type}"
-                    raise Exception(error_msg)
+        if isinstance(msg, Activity):
+            if isinstance(msg, ShellActivity):
+                arguments = msg.arguments
+                plugin_name = "shell"
             else:
-                error_msg = "plugin check only currently supports "
-                error_msg += "ACTIVITY messages, but the following unsupported "
-                error_msg += f"message has been specified: {msg.data.type}"
+                error_msg = "plugin check only currently supports actvities"
+                error_msg += " PLUGIN and SHELL, but the following "
+                error_msg += "unsupported activity has been specified: "
+                error_msg += f"{msg.data.body.type}"
                 raise Exception(error_msg)
+
         else:
-            plugin_name = msg
+            raise TypeError("Message not of type Activity. Exiting!")
 
         if not isinstance(plugin_name, str):
             raise ValueError(
@@ -298,7 +253,7 @@ class Plugins:
                 "\n"
                 f"The encountered type is {type(plugin_name)} with payload {plugin_name}"
             )
-        elif not isinstance(arguments, dict):
+        elif not isinstance(arguments, list):
             raise ValueError(
                 "[plugins.py] Unsupported arguments type detected in check."
                 "The check function only supports either:\n"
@@ -313,10 +268,13 @@ class Plugins:
         print(self._plugins.keys)
 
         if plugin_name not in self._plugins.keys():
+            print("Uno")
             check_results[plugin_name] = [
                 {"configured": (False, f"{plugin_name} is not configured.")}
             ]
+            print("Dos")
             if plugin_name not in self.__module_names:
+                print("Tres 1")
                 known_module_names = " ".join(str(mod) for mod in self.__module_names)
                 check_results[plugin_name].append(
                     {
@@ -328,7 +286,9 @@ class Plugins:
                     }
                 )
         else:
-            check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
+            print("Tres 2")
+            check_results[plugin_name] = self._plugins[plugin_name].check(arguments)
+            print("Quatro")
         return PluginChecks(check_results)
 
     @overload
