@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2022 Oak Ridge National Laboratory.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -74,7 +71,6 @@ class Campaign:
         self.activities.append(activity)
 
     def _pack_dag_for_dispatch(self):
-
         # Create a DAG to organize activities
         last_activity = None
         token_obj = {}

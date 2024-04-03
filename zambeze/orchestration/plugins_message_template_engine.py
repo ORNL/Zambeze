@@ -1,3 +1,7 @@
+"""
+Template engine for plugin messages.
+"""
+
 from .plugin_modules.common_plugin_functions import registerPlugins
 from .plugin_modules.abstract_plugin_template_generator import (
     PluginMessageTemplateGenerator,
@@ -49,10 +53,10 @@ class PluginsMessageTemplateEngine:
                         plugin_name = attribute_name.lower().replace(
                             "messagetemplategenerator", ""
                         )
-                        self._plugin_message_template_generators[
-                            plugin_name
-                        ] = potential_plugin_message_template_generator(
-                            logger=self.__logger
+                        self._plugin_message_template_generators[plugin_name] = (
+                            potential_plugin_message_template_generator(
+                                logger=self.__logger
+                            )
                         )
 
     def generate(self, plugin_name: str, args):

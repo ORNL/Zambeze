@@ -1,3 +1,7 @@
+"""
+Validator for plugin messages.
+"""
+
 from .plugin_modules.common_plugin_functions import registerPlugins
 from .plugin_modules.abstract_plugin_message_validator import PluginMessageValidator
 
@@ -9,14 +13,13 @@ import logging
 
 
 class PluginsMessageValidator:
-    """Validator for all plugins
+    """Validator for all plugins.
 
     This class is responsible for ensuring the following:
 
     1. That all the plugin relevant components of a message have the right
     schema.
     2. Checking that the types are consistent
-
     """
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
@@ -53,9 +56,9 @@ class PluginsMessageValidator:
                         plugin_name = attribute_name.lower().replace(
                             "messagevalidator", ""
                         )
-                        self._plugin_message_validators[
-                            plugin_name
-                        ] = potential_plugin_message_validator(logger=self.__logger)
+                        self._plugin_message_validators[plugin_name] = (
+                            potential_plugin_message_validator(logger=self.__logger)
+                        )
 
     def validate(self, plugin_name: str, arguments: dict) -> dict:
         """Check that the arguments passed to the plugin "plugin_name" have
