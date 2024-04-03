@@ -80,32 +80,44 @@ def test_shell_plugin_run():
     file_name = "shell_file2.txt"
     current_valid_path = os.getcwd()
     file_path = current_valid_path + "/" + file_name
-    original_number = random.randint(0, 100000000000)
 
-    factory = MessageFactory(logger=logger)
-    msg_template = factory.create_template(
-        MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
+    # factory = MessageFactory(logger=logger)
+    # msg_template = factory.create_template(
+    #     MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
+    # )
+
+    activity = ShellActivity(
+        name="Simple echo",
+        files=[],
+        command="touch",
+        arguments=[
+            file_path
+        ]
     )
 
-    msg_template[1].message_id = str(uuid.uuid4())
-    msg_template[1].activity_id = str(uuid.uuid4())
-    msg_template[1].agent_id = str(uuid.uuid4())
-    msg_template[1].campaign_id = str(uuid.uuid4())
-    msg_template[1].credential = {}
-    msg_template[1].submission_time = str(int(time.time()))
-    # This section will get replaced with a single rsync uri in the future
-    msg_template[1].body.parameters.program = "echo"
-    msg_template[1].body.parameters.args = ["$RAN", ">", file_path]
-    msg_template[1].body.parameters.env_vars = {"RAN": str(original_number)}
+    activity.message_id = str(uuid.uuid4())
+    activity.activity_id = str(uuid.uuid4())
+    activity.agent_id = str(uuid.uuid4())
+    activity.campaign_id = str(uuid.uuid4())
 
-    msg = factory.create(msg_template)
-    checked_actions = plugins.check(msg)
-    assert checked_actions["shell"][0]["bash"][0]
-    plugins.run(msg)
+    checked_actions = plugins.check(msg=activity)
 
+    # First, make sure there is no file.
+    os.remove(file_path)
+    assert not os.path.exists(file_path)
+
+    # Second, make sure we can run the plugin.
+    # This will become more complicated when there is more to validate.
+    assert len(checked_actions['shell']) == 2
+    # Ensure we pass because all are True.
+    assert all(value for d in checked_actions['shell'] for value in d.values())
+
+    # Third, run the plugin.
+    plugins.run(activity)
+
+    # Fourth, check that file exists.
     assert os.path.exists(file_path)
-    with open(file_path) as f:
-        # Now we will verify that it is the same file that was sent
-        lines = f.readlines()
-        # Should be a single line
-        assert lines[0].strip() == str(original_number)
+
+    # Fifth, remove it and make sure it stays removed.
+    os.remove(file_path)
+    assert not os.path.exists(file_path)
