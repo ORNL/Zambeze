@@ -64,11 +64,12 @@ def test_shell_plugin_check():
     # 1. Confirm that we have the right types (checks of plugins.py)
     assert isinstance(activity, Activity)
     assert isinstance(activity, ShellActivity)
-    print(type(activity.arguments))
     check = plugins.check(msg=activity)
 
     # This will become more complicated when there is more to validate.
-    assert activity is not None
+    assert len(check['shell']) == 2
+    # Ensure we pass because all are True.
+    assert all(value for d in check['shell'] for value in d.values())
 
 
 @pytest.mark.unit

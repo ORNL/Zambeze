@@ -204,22 +204,12 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    @overload
-    def check(
-        self, msg: AbstractMessage, arguments: Optional[dict] = None
-    ) -> PluginChecks:
-        pass
-
-    @overload
-    def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
-        pass
-
-    def check(self, msg=None, arguments=None) -> PluginChecks:
+    def check(self, msg: Activity, arguments: list = []) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         Parameters
         ----------
-        plugin_name : str
+        msg : Activity
             Name of the plugin to validate against.
         arguments : dict
             The arguments to be validated for plugin "plugin_name".
@@ -232,7 +222,7 @@ class Plugins:
         """
         if isinstance(msg, Activity):
             if isinstance(msg, ShellActivity):
-                arguments = msg.arguments
+                arguments = {"arguments": msg.arguments, "command": msg.command}
                 plugin_name = "shell"
             else:
                 error_msg = "plugin check only currently supports actvities"
@@ -253,7 +243,7 @@ class Plugins:
                 "\n"
                 f"The encountered type is {type(plugin_name)} with payload {plugin_name}"
             )
-        elif not isinstance(arguments, list):
+        elif not isinstance(arguments, dict):
             raise ValueError(
                 "[plugins.py] Unsupported arguments type detected in check."
                 "The check function only supports either:\n"
@@ -264,17 +254,12 @@ class Plugins:
             )
 
         check_results = {}
-        print("Plugin keys are")
-        print(self._plugins.keys)
 
         if plugin_name not in self._plugins.keys():
-            print("Uno")
             check_results[plugin_name] = [
                 {"configured": (False, f"{plugin_name} is not configured.")}
             ]
-            print("Dos")
             if plugin_name not in self.__module_names:
-                print("Tres 1")
                 known_module_names = " ".join(str(mod) for mod in self.__module_names)
                 check_results[plugin_name].append(
                     {
@@ -286,9 +271,7 @@ class Plugins:
                     }
                 )
         else:
-            print("Tres 2")
             check_results[plugin_name] = self._plugins[plugin_name].check(arguments)
-            print("Quatro")
         return PluginChecks(check_results)
 
     @overload
@@ -308,43 +291,6 @@ class Plugins:
             Plugin name.
         arguments : dict
             Plugin arguments.
-
-        Example
-        -------
-        >>> plugins = Plugins()
-
-        >>> config = {
-        ...    "rsync": {
-        ...        "ssh_key": "path to private ssh key"
-        ...    }
-        ...}
-
-        >>> plugins.configure(config)
-
-        >>> arguments = {
-        ...     "transfer": {
-        ...         "source": {
-        ...             "ip":
-        ...             "hostname":
-        ...             "path":
-        ...             },
-        ...         "destination": {
-        ...             "ip":
-        ...             "hostname":
-        ...             "path":
-        ...         }
-        ...     }
-        ... }
-
-        Should return True for each action that was found to be correctly
-        validated.
-
-        >>> checks = plugins.check('rsync', arguments)
-        >>> print(checks)
-
-        Should print { "rsync": { "transfer": True } }
-
-        >>> plugins.run('rsync', arguments)
         """
         if isinstance(msg, AbstractMessage):
             if msg.type == "PLUGIN":

@@ -155,7 +155,7 @@ class Shell(Plugin):
 
         return {"configured": self._configured, "supported_actions": supported_actions}
 
-    def check(self, arguments: list[dict]) -> list[dict]:
+    def check(self, arguments: dict):
         """Checks to see if the provided shell is supported
 
         :Example:
@@ -168,50 +168,22 @@ class Shell(Plugin):
         """
 
         self._logger.debug("[shell.py] In SHELL check function!")
+        print("[shell.py] In SHELL check function!")
 
         checks = []
+        arguments_check = False
+        command_check = False
+        if "arguments" in arguments:
+            if isinstance(arguments["arguments"], list):
+                arguments_check = True
 
-        for index in range(len(arguments)):
-            for action in arguments[index]:
-                self._logger.debug(f"shell action {action} index is {index}")
-                schema_checks = self._message_validator.validate_action(
-                    arguments[index], action
-                )
-                self._logger.debug("Schema checks")
-                self._logger.debug(schema_checks)
-                if len(schema_checks) > 0:
-                    if schema_checks[0][action][0] is False:
-                        checks.extend(schema_checks)
-                        continue
+        if "command" in arguments:
+            if isinstance(arguments["command"], str):
+                command_check = True
 
-                # Check if the action is supported
-                if which(action) is None:
-                    checks.append({action: (False, f"Unrecognized shell: {action}")})
-                    continue
+        checks.append({"arguments": arguments_check})
+        checks.append({"command": command_check})
 
-                if "program" not in arguments[index][action]:
-                    checks.append(
-                        {
-                            action: (
-                                False,
-                                "A program has not been defined to run in the shell,"
-                                + " required 'program' field is missing.",
-                            )
-                        }
-                    )
-                    continue
-
-                if which(arguments[index][action]["program"]) is None:
-                    checks.append(
-                        {
-                            action: (
-                                False,
-                                "Unable to locate program: "
-                                + f"{arguments[action]['program']}",
-                            )
-                        }
-                    )
-                checks.append({action: (True, "")})
         return checks
 
     def process(self, arguments: list[dict]):
