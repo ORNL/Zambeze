@@ -103,7 +103,8 @@ def test_shell_plugin_run():
     checked_actions = plugins.check(msg=activity)
 
     # First, make sure there is no file.
-    os.remove(file_path)
+    if os.path.exists(file_path):
+        os.remove(file_path)
     assert not os.path.exists(file_path)
 
     # Second, make sure we can run the plugin.
