@@ -11,6 +11,7 @@ import logging
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Optional
+from datetime import datetime
 
 from zambeze.orchestration.message.abstract_message import AbstractMessage
 
@@ -65,6 +66,7 @@ class Activity(ABC):
         source_file: Optional[str] = None,
         dest_directory: Optional[str] = None,
         override_existing: Optional[bool] = False,
+        submission_time: Optional[str] = None,
         **kwargs,
     ) -> None:
         self.running_agent_ids = (
@@ -79,6 +81,7 @@ class Activity(ABC):
         self.arguments = arguments
         self.campaign_id = campaign_id
         self.origin_agent_id = origin_agent_id
+        self.submission_time = submission_time
         self.message_id = message_id
         self.activity_id = activity_id
         self.source_file = source_file
@@ -86,6 +89,9 @@ class Activity(ABC):
         self.override_existing = override_existing
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
+
+        self.submission_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
 
     def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.

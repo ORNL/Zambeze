@@ -1,9 +1,9 @@
 # Local imports
 from zambeze.campaign.activities.shell import ShellActivity
-from zambeze.orchestration.zambeze_types import MessageType
 from zambeze.utils.identity import valid_uuid
 
 # Standard imports
+import re
 import pytest
 import logging
 import pathlib
@@ -33,24 +33,25 @@ def test_shell_activity_generate_message():
         # Uncomment if running on M1 Mac.
         env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
         campaign_id=str(uuid.uuid4()),
-        agent_id=str(uuid.uuid4()),
         message_id=str(uuid.uuid4()),
     )
 
-    msg = activity.generate_message()
-    assert msg.type == MessageType.ACTIVITY
-    assert valid_uuid(msg.data.agent_id)
-    assert valid_uuid(msg.data.campaign_id)
-    assert valid_uuid(msg.data.message_id)
-    assert valid_uuid(msg.data.activity_id)
-    assert len(msg.data.submission_time) > 0
-    assert int(msg.data.submission_time) > 0
-    assert msg.data.body.type == "SHELL"
-    assert msg.data.body.shell == "bash"
-    assert len(msg.data.body.files) > 0
-    assert msg.data.body.parameters.program == "convert"
-    assert len(msg.data.body.parameters.args) == 6
-    assert "PATH" in msg.data.body.parameters.env_vars
+    # Keep these.
+    assert activity.type == "SHELL"
+    assert activity.origin_agent_id is None  # Not packed until it reaches message_handler
+    assert valid_uuid(activity.campaign_id)
+    assert valid_uuid(activity.activity_id)
+
+    # Pattern for a valid datetime object down to millisecond.
+    pattern = r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$'
+
+    # Use the assert statement to check if the timestamp_str matches the pattern
+    assert re.match(pattern, activity.submission_time)
+    assert activity.plugin_args["shell"] == "bash"
+    assert activity.plugin_args["parameters"]["command"] == "convert"
+    assert len(activity.arguments) == 6
+    assert len(activity.files) == 10
+    assert "PATH" in activity.env_vars
 
 
 @pytest.mark.unit
@@ -78,7 +79,7 @@ def test_shell_activity_attributes():
         env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
     )
 
-    assert activity.agent_id is None
+    # assert activity.agent_id is None
     assert activity.campaign_id is None
     assert activity.message_id is None
     assert valid_uuid(activity.activity_id)

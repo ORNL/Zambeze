@@ -82,6 +82,8 @@ class ShellActivity(Activity):
             },
         }
 
+
+
     def generate_message(self) -> AbstractMessage:
         factory = MessageFactory(logger=self.logger)
         template = factory.create_template(
