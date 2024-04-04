@@ -44,7 +44,7 @@ class ShellActivity(Activity):
         arguments: list[str],
         logger: logging.Logger = None,
         campaign_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
+        origin_agent_id: Optional[str] = None,
         message_id: Optional[str] = None,
         **kwargs,
     ) -> None:
@@ -56,7 +56,7 @@ class ShellActivity(Activity):
             arguments,
             logger,
             campaign_id,
-            agent_id,
+            origin_agent_id,
             message_id,
             activity_id=str(uuid.uuid4()),
         )
@@ -72,6 +72,15 @@ class ShellActivity(Activity):
         self.logger.info("[activities/shell.py] Printing files after init in SHELL")
         self.logger.info(self.files)
         self.working_dir = ""
+        self.type = "SHELL"
+        self.plugin_args = {
+            "shell": "bash",
+            "parameters": {
+                "command": self.command,
+                "args": self.arguments,
+                "env_vars": self.env_vars,
+            },
+        }
 
     def generate_message(self) -> AbstractMessage:
         factory = MessageFactory(logger=self.logger)
@@ -80,12 +89,17 @@ class ShellActivity(Activity):
         )
 
         try:
+            print("<< try here >>", self.origin_agent_id)
+            # These go into every activity.
+            template[1].origin_agent_id = self.origin_agent_id
+            template[1].running_agent_ids = self.running_agent_ids
             template[1].activity_id = self.activity_id
             template[1].message_id = self.message_id
-            template[1].agent_id = self.agent_id
             template[1].campaign_id = self.campaign_id
             template[1].credential = {}
             template[1].submission_time = str(int(time.time()))
+
+            # These go into just SHELL activities.
             template[1].body.type = "SHELL"
             template[1].body.shell = "bash"
             template[1].body.files = self.files
@@ -93,6 +107,7 @@ class ShellActivity(Activity):
             template[1].body.parameters.args = self.arguments
             template[1].body.parameters.env_vars = self.env_vars
         except Exception as e:
+            print("<< except here >>")
             self.logger.info(f"Error is here: {e}")
 
         return factory.create(template)

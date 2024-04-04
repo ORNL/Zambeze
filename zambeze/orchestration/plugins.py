@@ -8,6 +8,8 @@ from __future__ import annotations
 from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
+from zambeze.campaign.activities.shell import ShellActivity
+from zambeze.campaign.activities.abstract_activity import Activity
 
 from copy import deepcopy
 from dataclasses import asdict
@@ -202,22 +204,12 @@ class Plugins:
                 info[plugin_inst] = self._plugins[plugin_inst].info
         return info
 
-    @overload
-    def check(
-        self, msg: AbstractMessage, arguments: Optional[dict] = None
-    ) -> PluginChecks:
-        pass
-
-    @overload
-    def check(self, msg: str, arguments: dict = {}) -> PluginChecks:
-        pass
-
-    def check(self, msg, arguments=None) -> PluginChecks:
+    def check(self, msg: Activity, arguments: list = []) -> PluginChecks:
         """Check that the arguments passed to the plugin "plugin_name" are valid
 
         Parameters
         ----------
-        plugin_name : str
+        msg : Activity
             Name of the plugin to validate against.
         arguments : dict
             The arguments to be validated for plugin "plugin_name".
@@ -227,66 +219,20 @@ class Plugins:
         PluginChecks
             What is returned are a list of the plugins and their actions along
             with an indication on whether there was a problem with them.
-
-        Example
-        -------
-        Using rsync. For the rsync plugin to be useful, both the local and
-        remote host ssh keys must have been configured. By default the rsync
-        plugin will look for the private key located at ~/.ssh/id_rsa. If the
-        private key is different then it must be specified with
-        the "private_ssh_key" key value pair.
-
-        >>> plugins = Plugins()
-        >>> config = {
-        ...     "rsync": {
-        ...         "private_ssh_key": "path to private ssh key"
-        ...    }
-        ... }
-
-        >>> plugins.configure(config)
-        >>> arguments = {
-        ...     "transfer": {
-        ...         "source": {
-        ...             "ip": local_ip,
-        ...             user": current_user,
-        ...             "path": current_valid_path,
-        ...             },
-        ...         "destination": {
-        ...             "ip": "172.22.1.69",
-        ...             "user": "cades",
-        ...             "path": "/home/cades/josh-testing",
-        ...             },
-        ...     "arguments": ["-a"],
-        ...     }
-        ... }
-
-        >>> checked_args = plugins.check("rsync", arguments)
-        >>> print(checked_args)
-        {
-            "rsync": { "transfer": (True, "") }
-        }
         """
-        if isinstance(msg, AbstractMessage):
-            if msg.data.type == "ACTIVITY":
-                if msg.data.body.type == "PLUGIN":
-                    arguments = asdict(msg.data.body.parameters)
-                    plugin_name = msg.data.body.plugin.lower()
-                elif msg.data.body.type == "SHELL":
-                    arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
-                    plugin_name = "shell"
-                else:
-                    error_msg = "plugin check only currently supports actvities"
-                    error_msg += " PLUGIN and SHELL, but the following "
-                    error_msg += "unsupported activity has been specified: "
-                    error_msg += f"{msg.data.body.type}"
-                    raise Exception(error_msg)
+        if isinstance(msg, Activity):
+            if isinstance(msg, ShellActivity):
+                arguments = {"arguments": msg.arguments, "command": msg.command}
+                plugin_name = "shell"
             else:
-                error_msg = "plugin check only currently supports "
-                error_msg += "ACTIVITY messages, but the following unsupported "
-                error_msg += f"message has been specified: {msg.data.type}"
+                error_msg = "plugin check only currently supports actvities"
+                error_msg += " PLUGIN and SHELL, but the following "
+                error_msg += "unsupported activity has been specified: "
+                error_msg += f"{msg.data.body.type}"
                 raise Exception(error_msg)
+
         else:
-            plugin_name = msg
+            raise TypeError("Message not of type Activity. Exiting!")
 
         if not isinstance(plugin_name, str):
             raise ValueError(
@@ -308,8 +254,6 @@ class Plugins:
             )
 
         check_results = {}
-        print("Plugin keys are")
-        print(self._plugins.keys)
 
         if plugin_name not in self._plugins.keys():
             check_results[plugin_name] = [
@@ -327,7 +271,7 @@ class Plugins:
                     }
                 )
         else:
-            check_results[plugin_name] = self._plugins[plugin_name].check([arguments])
+            check_results[plugin_name] = self._plugins[plugin_name].check(arguments)
         return PluginChecks(check_results)
 
     @overload
@@ -347,51 +291,16 @@ class Plugins:
             Plugin name.
         arguments : dict
             Plugin arguments.
-
-        Example
-        -------
-        >>> plugins = Plugins()
-
-        >>> config = {
-        ...    "rsync": {
-        ...        "ssh_key": "path to private ssh key"
-        ...    }
-        ...}
-
-        >>> plugins.configure(config)
-
-        >>> arguments = {
-        ...     "transfer": {
-        ...         "source": {
-        ...             "ip":
-        ...             "hostname":
-        ...             "path":
-        ...             },
-        ...         "destination": {
-        ...             "ip":
-        ...             "hostname":
-        ...             "path":
-        ...         }
-        ...     }
-        ... }
-
-        Should return True for each action that was found to be correctly
-        validated.
-
-        >>> checks = plugins.check('rsync', arguments)
-        >>> print(checks)
-
-        Should print { "rsync": { "transfer": True } }
-
-        >>> plugins.run('rsync', arguments)
         """
         if isinstance(msg, AbstractMessage):
-            if msg.data.body.type == "PLUGIN":
+            if msg.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
-                plugin_name = msg.data.body.plugin.lower()
-            elif msg.data.body.type == "SHELL":
-                arguments = {msg.data.body.shell: asdict(msg.data.body.parameters)}
-                plugin_name = msg.data.body.type.lower()
+                plugin_name = msg.data.type
+        elif isinstance(msg, ShellActivity):
+            if msg.type == "SHELL":
+                arguments = {msg.plugin_args["shell"]: msg.plugin_args["parameters"]}
+                plugin_name = msg.type
+                self.__logger.info("GOODLY")
             else:
                 raise Exception(
                     "plugin check only currently supports PLUGIN and SHELL activities"
@@ -404,4 +313,7 @@ class Plugins:
         if not isinstance(arguments, dict):
             raise ValueError("Unsupported arguments type detected in check.")
 
-        self._plugins[plugin_name].process([arguments])
+        self.__logger.info("GOODLY-2")
+        self.__logger.info(plugin_name)
+        self._plugins[plugin_name.lower()].process([arguments])
+        self.__logger.info("GOODLY-3")

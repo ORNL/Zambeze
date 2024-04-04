@@ -4,24 +4,31 @@ on: [push, pull_request]
 jobs:
   rsync_example:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Build Zambeze image
-      run: docker build -t zambeze -f deployment/Dockerfile .
-    - name: Launch Docker Compose
-      run: docker compose -f deployment/compose-rabbit.yml up -d
-    - name: Sleep 
-      run: |
-        echo "I'm going to sleep hoping the services will be up when I wake up... zzz..."
-        sleep 15
-    - name: Run Unit Tests
-      run: docker exec zambeze-agent pytest -m unit
-    # - name: Run Integration Tests
-    #   run: |
-    #     docker compose -f deployment/compose-rabbit.yml exec zambezeagent python3 -m pytest -m integration
-    # - name: Run End-To-End Tests
-    #   run: |
-    #     docker compose -f deployment/compose-rabbit.yml exec zambezeagent python3 -m pytest -m end_to_end
-    - name: Cleanup
-      run: |
-        docker compose -f deployment/compose-rabbit.yml down
+      - uses: actions/checkout@v4
+
+      - name: Build Zambeze image
+        run: docker build -t zambeze -f deployment/Dockerfile .
+
+      - name: Launch Docker Compose
+        run: docker compose -f deployment/compose-rabbit.yml up -d
+
+      - name: Sleep
+        run: |
+          echo "I'm going to sleep hoping the services will be up when I wake up... zzz..."
+          sleep 15
+
+      - name: Run Unit Tests
+        run: docker exec zambeze-agent pytest -m unit
+
+      # - name: Run Integration Tests
+      #   run: |
+      #     docker compose -f deployment/compose-rabbit.yml exec zambezeagent python3 -m pytest -m integration
+      # - name: Run End-To-End Tests
+      #   run: |
+      #     docker compose -f deployment/compose-rabbit.yml exec zambezeagent python3 -m pytest -m end_to_end
+
+      - name: Cleanup
+        run: |
+          docker compose -f deployment/compose-rabbit.yml down

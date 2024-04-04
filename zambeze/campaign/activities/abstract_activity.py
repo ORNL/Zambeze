@@ -11,6 +11,7 @@ import logging
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from typing import Optional
+from datetime import datetime
 
 from zambeze.orchestration.message.abstract_message import AbstractMessage
 
@@ -43,7 +44,8 @@ class Activity(ABC):
     arguments: list[str]
     logger: Optional[logging.Logger]
     campaign_id: Optional[str]
-    agent_id: Optional[str]
+    origin_agent_id: Optional[str]
+    running_agent_ids: Optional[list[str]]
     message_id: Optional[str]
     activity_id: Optional[str]
     source_file: Optional[str]
@@ -53,19 +55,25 @@ class Activity(ABC):
     def __init__(
         self,
         name: str,
-        files: list[str] = [],
+        files: list[str] = None,
         command: Optional[str] = None,
-        arguments: list[str] = [],
+        arguments: list[str] = None,
         logger: Optional[logging.Logger] = None,
         campaign_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
+        origin_agent_id: Optional[str] = None,
+        running_agent_ids: Optional[list[str]] = None,  # Set default to None
         message_id: Optional[str] = None,
         activity_id: Optional[str] = None,
-        source_file: Optional[str] = "",
-        dest_directory: Optional[str] = "",
+        source_file: Optional[str] = None,
+        dest_directory: Optional[str] = None,
         override_existing: Optional[bool] = False,
+        submission_time: Optional[str] = None,
         **kwargs,
     ) -> None:
+        self.running_agent_ids = (
+            running_agent_ids if running_agent_ids is not None else []
+        )
+
         """Create an object that represents a science campaign activity."""
         self.logger = logging.getLogger(__name__) if logger is None else logger
         self.name: str = name
@@ -73,7 +81,8 @@ class Activity(ABC):
         self.command = command
         self.arguments = arguments
         self.campaign_id = campaign_id
-        self.agent_id = agent_id
+        self.origin_agent_id = origin_agent_id
+        self.submission_time = submission_time
         self.message_id = message_id
         self.activity_id = activity_id
         self.source_file = source_file
@@ -81,6 +90,8 @@ class Activity(ABC):
         self.override_existing = override_existing
         self.status: ActivityStatus = ActivityStatus.CREATED
         self.__dict__.update(kwargs)
+
+        self.submission_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
     def add_files(self, files: list[str]) -> None:
         """Add a list of files to the dataset.

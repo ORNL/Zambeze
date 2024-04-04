@@ -1,3 +1,7 @@
+"""
+Template engine for plugin messages.
+"""
+
 from .plugin_modules.common_plugin_functions import registerPlugins
 from .plugin_modules.abstract_plugin_template_generator import (
     PluginMessageTemplateGenerator,

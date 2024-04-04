@@ -45,12 +45,12 @@ class MessageActivityValidator(AbstractMessageValidator):
                 ),
             )
 
-        if not valid_uuid(message.agent_id, 4):
+        if not valid_uuid(message.origin_agent_id, 4):
             return (
                 False,
                 (
-                    "Required agent_id attribute for activity message must"
-                    f"be a valid version 4 UUID but is not: {message.agent_id}"
+                    "Required origin_agent_id attribute for activity message must"
+                    f"be a valid version 4 UUID but is not: {message.origin_agent_id}"
                 ),
             )
 
