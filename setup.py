@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2022 Oak Ridge National Laboratory.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,12 +11,10 @@ with open("requirements.txt") as f:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-exec(open("zambeze/version.py").read())
-
 
 setup(
     name="zambeze",
-    version=str(__version__),
+    version="0.2",
     license="MIT",
     author="Oak Ridge National Laboratory",
     author_email="support@zambeze.org",
