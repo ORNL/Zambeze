@@ -5,8 +5,6 @@
 
 from setuptools import setup, find_packages
 
-with open("requirements.txt") as f:
-    requires = f.read().splitlines()
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -18,12 +16,24 @@ setup(
     license="MIT",
     author="Oak Ridge National Laboratory",
     author_email="support@zambeze.org",
-    description="",
+    description="Zambeze is a task orchestration system for scientific workflows",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ORNL/zambeze",
-    install_requires=requires,
     packages=find_packages(),
+    install_requires=[
+        "typer",
+        "pyzmq",
+        "dill",
+        "networkx",
+        "pyyaml",
+        "SQLAlchemy",
+        "globus_sdk",
+        "pika",
+        "requests",
+        "datetime",
+    ],
+    extras_require={"dev": ["pytest", "pytest-asyncio", "setuptools"]},
     include_package_data=True,
     classifiers=[
         "License :: OSI Approved :: MIT License",
@@ -39,6 +49,6 @@ setup(
         "Topic :: Documentation :: Sphinx",
         "Topic :: System :: Distributed Computing",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.10",
     scripts=["bin/zambeze", "bin/zambeze-agent"],
 )
