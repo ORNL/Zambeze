@@ -1,0 +1,35 @@
+# Use this environment file to create a conda environment for developing the
+# code in this repository. See the comments below for some useful conda
+# commands.
+#
+# Create the environment ....... conda env create --file environment.yml
+# Activate the environment ..... conda activate zambeze
+# Deactivate the environment ... conda deactivate
+# Remove the environment ....... conda env remove --name zambeze
+
+name: zambeze
+
+channels:
+  - defaults
+
+dependencies:
+  - python=3.10
+  - ipython
+  - dill
+  - pytest
+  - pytest-asyncio
+  - pyyaml
+  - pyzmq
+  - requests
+  - SQLAlchemy
+  - typer
+  - networkx
+  - pip
+  - pip:
+    - ipdb
+    - datetime
+    - pika
+    - nats-py
+    - globus_sdk
+    - ruff
+    - --editable .
