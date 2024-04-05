@@ -5,14 +5,18 @@ from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
 
 
 def create_local_db() -> None:
-    conn = get_db_engine()
+    eng = get_db_engine()
+
     with open(LOCAL_DB_SCHEMA) as f:
-        conn.execute(text(f.read()))
+        ff = f.read()
+
+    with eng.connect() as conn:
+        conn.execute(text(ff))
 
 
 def get_db_engine():
+    db_uri = f"sqlite:///{LOCAL_DB_FILE}"
     try:
-        db_uri = f"sqlite:///{LOCAL_DB_FILE}"
         engine = create_engine(db_uri)
         return engine
     except Exception:
