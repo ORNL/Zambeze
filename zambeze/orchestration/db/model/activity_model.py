@@ -1,5 +1,5 @@
 from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
-from typing import Tuple
+from typing import Dict
 
 
 class ActivityModel(AbstractEntity):
@@ -23,14 +23,23 @@ class ActivityModel(AbstractEntity):
         self.ended_at = ended_at
         self.params = params
 
-    def get_all_values(self) -> Tuple:
-        return (self.activity_id,) + self.get_values_without_id()
+    def get_all_values(self) -> Dict:
+        vals = {
+            "activity_id": self.activity_id,
+            "agent_id": self.agent_id,
+            "created_at": self.created_at,
+            "started_at": self.started_at,
+            "ended_at": self.ended_at,
+            "params": self.params,
+        }
+        return vals
 
-    def get_values_without_id(self) -> Tuple:
-        return (
-            self.agent_id,
-            self.created_at,
-            self.started_at,
-            self.ended_at,
-            self.params,
-        )
+    def get_values_without_id(self) -> Dict:
+        vals = {
+            "agent_id": self.agent_id,
+            "created_at": self.created_at,
+            "started_at": self.started_at,
+            "ended_at": self.ended_at,
+            "params": self.params,
+        }
+        return vals

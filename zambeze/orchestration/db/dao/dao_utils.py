@@ -1,3 +1,4 @@
+from textwrap import dedent
 from sqlalchemy import text, create_engine
 
 from zambeze.config import LOCAL_DB_SCHEMA, LOCAL_DB_FILE
@@ -23,22 +24,22 @@ def get_db_engine():
         raise Exception(f"Could not create DB engine with uri: {db_uri}")
 
 
-def get_update_stmt(entity: AbstractEntity):
-    stmt = f"UPDATE {entity.ENTITY_NAME} SET \n"
-    for field_name in entity.FIELD_NAMES.split(","):
-        if field_name == entity.ID_FIELD_NAME:
-            continue
-        stmt += f"{field_name} = ?, "
-    stmt = stmt[:-2]
+def get_update_stmt(entity: AbstractEntity) -> str:
+    field_names = entity.FIELD_NAMES.split(", ")
+    x = [f"{name}=:{name}" for name in field_names if name != "activity_id"]
+    names = ", ".join(x)
+
     id_value = entity.__getattribute__(entity.ID_FIELD_NAME)
-    stmt += f" \n WHERE {entity.ID_FIELD_NAME} = {id_value}"
-    return stmt
+
+    stmt = f"""UPDATE {entity.ENTITY_NAME}
+    SET {names}
+    WHERE {entity.ID_FIELD_NAME} = {id_value}"""
+
+    return dedent(stmt)
 
 
 def get_insert_stmt(entity: AbstractEntity) -> str:
-    number_of_fields = len(entity.FIELD_NAMES.split(","))
-    values_replacer = ",".join(["?" for _ in range(number_of_fields)])
-    return (
-        f"INSERT INTO {entity.ENTITY_NAME} "
-        f"({entity.FIELD_NAMES}) VALUES ({values_replacer}); "
-    )
+    field_names = entity.FIELD_NAMES
+    names = ", ".join([":" + name for name in field_names.split(", ")])
+    stmt = f"INSERT INTO {entity.ENTITY_NAME} ({entity.FIELD_NAMES}) VALUES ({names})"
+    return stmt
