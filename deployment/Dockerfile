@@ -19,5 +19,4 @@ ENV PATH="${PATH}:/home/zambeze/.local/bin"
 COPY . .
 
 RUN pip install --upgrade pip \
-    pip install -r requirements.txt \
-    pip install .
+    pip install .[dev]
