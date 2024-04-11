@@ -1,5 +1,6 @@
 from textwrap import dedent
 from sqlalchemy import text, create_engine
+from sqlalchemy.exc import SQLAlchemyError
 
 from zambeze.config import LOCAL_DB_SCHEMA, LOCAL_DB_FILE
 from zambeze.orchestration.db.model.abstract_entity import AbstractEntity
@@ -17,11 +18,14 @@ def create_local_db() -> None:
 
 def get_db_engine():
     db_uri = f"sqlite:///{LOCAL_DB_FILE}"
+
     try:
         engine = create_engine(db_uri)
-        return engine
-    except Exception:
-        raise Exception(f"Could not create DB engine with uri: {db_uri}")
+    except SQLAlchemyError:
+        print(f"Could not create db engine with uri: {db_uri}")
+        raise
+
+    return engine
 
 
 def get_update_stmt(entity: AbstractEntity) -> str:
