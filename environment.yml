@@ -9,15 +9,11 @@
 
 name: zambeze
 
-channels:
-  - defaults
-
 dependencies:
   - python=3.10
   - ipython
   - dill
   - pytest
-  - pytest-asyncio
   - pyyaml
   - pyzmq
   - requests
@@ -27,9 +23,7 @@ dependencies:
   - pip
   - pip:
     - ipdb
-    - datetime
     - pika
-    - nats-py
     - globus_sdk
     - ruff
     - --editable .

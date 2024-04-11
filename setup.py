@@ -31,9 +31,8 @@ setup(
         "globus_sdk",
         "pika",
         "requests",
-        "datetime",
     ],
-    extras_require={"dev": ["pytest", "pytest-asyncio", "setuptools"]},
+    extras_require={"dev": ["pytest", "setuptools"]},
     include_package_data=True,
     classifiers=[
         "License :: OSI Approved :: MIT License",
