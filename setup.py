@@ -47,6 +47,6 @@ setup(
         "Topic :: System :: Distributed Computing",
     ],
     python_requires=">=3.10",
-    # scripts=["bin/zambeze", "bin/zambeze-agent"],
-    entry_points={"console_scripts": ["zambeze = zambeze.cli:main"]}
+    scripts=["bin/zambeze", "bin/zambeze-agent"],
+    # entry_points={"console_scripts": ["zambeze = zambeze.cli:main"]}
 )

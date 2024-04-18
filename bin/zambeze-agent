@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2022 Oak Ridge National Laboratory.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -12,7 +9,6 @@ import pathlib
 
 from zambeze.orchestration.agent.agent import Agent
 
-agent_state = {"conf_file": None}
 agent_app = typer.Typer()
 
 
@@ -20,10 +16,8 @@ agent_app = typer.Typer()
 def start(
     log_path: str = typer.Option("", help="Path to logs on disk."),
     debug: bool = typer.Option(False, help="If debug logs are enabled."),
-    zmq_activity_port: int = typer.Option(0, help="Port at which activities are received."),
-    zmq_heartbeat_port: int = typer.Option(0, help="Port for agent heartbeat communication."),
-    config_path: str = typer.Option(str(pathlib.Path.home().joinpath(".zambeze").
-                                        joinpath("agent.yaml")), help="Path to config.")):
+    config_path: str = typer.Option(str(pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml")), help="Path to config.")
+):
     """
     Start the agent (set logger and ZMQ ports).
     """
@@ -31,9 +25,7 @@ def start(
     # Log path comes from agents/commands.py
     agent_logger = logging.getLogger('agent')
     fh = logging.FileHandler(log_path)
-    formatter = logging.Formatter(
-        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-    )
+    formatter = logging.Formatter("[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s")
     fh.setFormatter(formatter)
 
     if debug:
@@ -43,15 +35,11 @@ def start(
     agent_logger.addHandler(fh)
 
     agent_logger.info("*****************************************************")
-    agent_logger.info("*****************************************************")
     agent_logger.info("Creating Zambeze agent subprocess with configuration:")
     agent_logger.info("*****************************************************")
     agent_logger.info(f"Log Path:\t\t{log_path}")
     agent_logger.info(f"Config Path:\t\t{config_path}")
     agent_logger.info(f"Debug Logs:\t\t{debug}")
-    agent_logger.info(f"ZMQ activity port:\t{zmq_activity_port}")
-    agent_logger.info(f"ZMQ heartbeat port:\t{zmq_heartbeat_port}")
-    agent_logger.info("*****************************************************")
     agent_logger.info("*****************************************************")
 
     # Quick fix to address empty string in CL-args.
