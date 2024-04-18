@@ -31,11 +31,6 @@ def start():
     Start Zambeze agent as its own daemonized subprocess. This will write logs
     to a user's ~/.zambeze directory and automatically select ports for both
     data and heartbeat communications.
-
-    The 'start' command will resemble the following CLI command:
-
-    # zambeze-agent start --log-path /Users/tylerskluzacek/.zambeze/the_log.log --debug --zmq-heartbeat-port 5002 \
-    # --zmq-activity-port 5001
     """
     logger.info("Initializing Zambeze Agent...")
 
@@ -50,7 +45,9 @@ def start():
         with state_path.open("r") as f:
             old_state = json.load(f)
         if old_state["status"] == "RUNNING":
-            logger.info("[ERROR] Agent already running. Please stop agent before running a new one!")
+            logger.info(
+                "[ERROR] Agent already running. Please stop agent before running a new one!"
+            )
 
     # Ensure that we have a folder in which to write logs.
     try:
@@ -127,7 +124,9 @@ def stop():
             pass
 
     except ProcessLookupError:
-        logger.debug("Process ID does not exist: agent already terminated. Cleaning up...")
+        logger.debug(
+            "Process ID does not exist: agent already terminated. Cleaning up..."
+        )
 
     # Reset state to be correct.
     old_state["status"] = "STOPPED"
@@ -151,7 +150,9 @@ def status():
     state_path = zambeze_base_dir.joinpath("agent.state")
 
     if not state_path.is_file():
-        logger.info("Agent does not exist. You can start an agent with 'zambeze agent start'.")
+        logger.info(
+            "Agent does not exist. You can start an agent with 'zambeze agent start'."
+        )
 
     with state_path.open("r") as f:
         old_state = json.load(f)
@@ -161,8 +162,10 @@ def status():
 
 @app.command()
 def config(
-    list: bool = typer.Option(False, "--list", "-l", help="List configuration options."),
-    file: bool = typer.Option(False, "--file", "-f", help="Show config file location.")
+    list: bool = typer.Option(
+        False, "--list", "-l", help="List configuration options."
+    ),
+    file: bool = typer.Option(False, "--file", "-f", help="Show config file location."),
 ):
     settings = ZambezeSettings(conf_file=state["conf_file"], logger=logger)
     if file:
@@ -173,8 +176,10 @@ def config(
 
 @app.callback()
 def main(
-    conf_filepath: str = typer.Option(None, "--conf", "-c", help="Zambeze configuration file."),
-    debug: bool = typer.Option(False, "--debug", help="Enable debug logging.")
+    conf_filepath: str = typer.Option(
+        None, "--conf", "-c", help="Zambeze configuration file."
+    ),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging."),
 ):
     """
     Zambeze command line interface
@@ -184,7 +189,9 @@ def main(
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    formatter = logging.Formatter("[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s")
+    formatter = logging.Formatter(
+        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
+    )
 
     if debug:
         logger.setLevel(logging.DEBUG)

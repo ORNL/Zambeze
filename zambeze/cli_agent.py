@@ -16,16 +16,21 @@ agent_app = typer.Typer()
 def start(
     log_path: str = typer.Option("", help="Path to logs on disk."),
     debug: bool = typer.Option(False, help="If debug logs are enabled."),
-    config_path: str = typer.Option(str(pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml")), help="Path to config.")
+    config_path: str = typer.Option(
+        str(pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml")),
+        help="Path to config.",
+    ),
 ):
     """
     Start the agent (set logger and ZMQ ports).
     """
 
     # Log path comes from agents/commands.py
-    agent_logger = logging.getLogger('agent')
+    agent_logger = logging.getLogger("agent")
     fh = logging.FileHandler(log_path)
-    formatter = logging.Formatter("[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s")
+    formatter = logging.Formatter(
+        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
+    )
     fh.setFormatter(formatter)
 
     if debug:
