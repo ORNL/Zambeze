@@ -1,78 +1,56 @@
-"""
-Command line interface (CLI) for zambeze.
-"""
+# Copyright (c) 2022 Oak Ridge National Laboratory.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the MIT License.
 
-import argparse
 import json
 import logging
-import os
 import pathlib
+import os
 import subprocess
+import typer
 
 from datetime import datetime
-from importlib.metadata import version
 from signal import SIGKILL
-from zambeze.orchestration.agent.agent import Agent
+
+from zambeze.orchestration.agent.agent import ZambezeSettings
+
+# Typer configuration (including 'agent' sub-app).
+app = typer.Typer()
+agent_app = typer.Typer()
+app.add_typer(agent_app, name="agent")
+
+# Logging and state configuration.
+logger = logging.getLogger()
+state = {"conf_file": None}
 
 
-def start(debug=False, zmq_activity_port=None, zmq_heartbeat_port=None):
+@agent_app.command()
+def start():
     """
-    Start the agent (set logger and ZMQ ports).
-    """
-    config_path = str(pathlib.Path.home().joinpath(".zambeze").joinpath("agent.yaml"))
+    Start Zambeze agent as its own daemonized subprocess. This will write logs
+    to a user's ~/.zambeze directory and automatically select ports for both
+    data and heartbeat communications.
 
-    # Create a folder for our current agent
-    # -- why? Because we now have multiple logs
-    # -- (as of now: zambeze, shell stdout, shell stderr)
-    # Users can list them in order of date to see which one is latest.
-    fmt_str = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-    log_dir_path = os.path.expanduser("~") + "/.zambeze/logs/" + fmt_str
-    os.makedirs(log_dir_path, exist_ok=True)
-    log_path = log_dir_path + "/zambeze.log"
+    The 'start' command will resemble the following CLI command:
 
-    # Log path comes from agents/commands.py
-    agent_logger = logging.getLogger('agent')
-    fh = logging.FileHandler(log_path)
-    formatter = logging.Formatter(
-        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-    )
-    fh.setFormatter(formatter)
-
-    if debug:
-        agent_logger.setLevel(logging.DEBUG)
-    else:
-        agent_logger.setLevel(logging.INFO)
-    agent_logger.addHandler(fh)
-
-    agent_logger.info("*****************************************************")
-    agent_logger.info("Creating Zambeze agent subprocess with configuration:")
-    agent_logger.info("*****************************************************")
-    agent_logger.info(f"Log Path:\t\t{log_path}")
-    agent_logger.info(f"Config Path:\t\t{config_path}")
-    agent_logger.info(f"Debug Logs:\t\t{debug}")
-    agent_logger.info(f"ZMQ activity port:\t{zmq_activity_port}")
-    agent_logger.info(f"ZMQ heartbeat port:\t{zmq_heartbeat_port}")
-    agent_logger.info("*****************************************************")
-
-    Agent(conf_file=config_path, logger=agent_logger)
-
-
-def start_agent(logger, state_path, zambeze_base_dir) -> None:
-    """
-    Start the agent via the local zambeze-agent utility and save initial state.
+    # zambeze-agent start --log-path /Users/tylerskluzacek/.zambeze/the_log.log --debug --zmq-heartbeat-port 5002 \
+    # --zmq-activity-port 5001
     """
     logger.info("Initializing Zambeze Agent...")
-    # Create user dir and make sure the base logging path exists.
+
+    # Create user dir and make sure the base logging path exists
+    zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
     logs_base_dir = zambeze_base_dir.joinpath("logs")
 
     # First check to make sure no agents already running!
+    state_path = zambeze_base_dir.joinpath("agent.state")
+
     if state_path.is_file():
         with state_path.open("r") as f:
             old_state = json.load(f)
         if old_state["status"] == "RUNNING":
-            logger.info(
-                "[ERROR] Agent already running. Please stop agent before running a new one!"
-            )
+            logger.info("[ERROR] Agent already running. Please stop agent before running a new one!")
 
     # Ensure that we have a folder in which to write logs.
     try:
@@ -93,7 +71,12 @@ def start_agent(logger, state_path, zambeze_base_dir) -> None:
     # Leave this print as it is useful to show this information in the console
     print(f"Log path: {log_path}")
 
-    arg_list = ["zambeze", "--run-agent"]
+    arg_list = [
+        "zambeze-agent",
+        "--log-path",
+        str(log_path),
+        "--debug",
+    ]
     logger.info(f"Command: {' '.join(arg_list)}")
 
     # Pass stdout/stderr to devnull (in subprocesses) to avoid memory issues.
@@ -113,15 +96,19 @@ def start_agent(logger, state_path, zambeze_base_dir) -> None:
         json.dump(agent_state, f)
 
 
-def stop_agent(logger, state_path) -> None:
+@agent_app.command()
+def stop():
     """
-    Stop the agent by killing its system process and updating the state file.
+    Stop a user's running Zambeze agent.
     """
     logger.info("Received stop signal.")
 
     old_state = {}
 
     # Check to make sure agent is *supposed to be* running.
+    zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
+    state_path = zambeze_base_dir.joinpath("agent.state")
+
     if state_path.is_file():
         with state_path.open("r") as f:
             old_state = json.load(f)
@@ -140,9 +127,7 @@ def stop_agent(logger, state_path) -> None:
             pass
 
     except ProcessLookupError:
-        logger.debug(
-            "Process ID does not exist: agent already terminated. Cleaning up..."
-        )
+        logger.debug("Process ID does not exist: agent already terminated. Cleaning up...")
 
     # Reset state to be correct.
     old_state["status"] = "STOPPED"
@@ -157,15 +142,16 @@ def stop_agent(logger, state_path) -> None:
     logger.info("Agent successfully stopped!\n")
 
 
-def get_status(logger, state_path):
+@agent_app.command()
+def status():
     """
-    Get status of the zambeze agent.
+    Stop a user's running Zambeze agent.
     """
-    print("get status")
+    zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
+    state_path = zambeze_base_dir.joinpath("agent.state")
 
     if not state_path.is_file():
-        msg = "Agent does not exist. Start an agent with `zambeze agent start`."
-        logger.info(msg)
+        logger.info("Agent does not exist. You can start an agent with 'zambeze agent start'.")
 
     with state_path.open("r") as f:
         old_state = json.load(f)
@@ -173,58 +159,40 @@ def get_status(logger, state_path):
     logger.info(f"Agent Status: {old_state['status']}.")
 
 
-def main():
+@app.command()
+def config(
+    list: bool = typer.Option(False, "--list", "-l", help="List configuration options."),
+    file: bool = typer.Option(False, "--file", "-f", help="Show config file location.")
+):
+    settings = ZambezeSettings(conf_file=state["conf_file"], logger=logger)
+    if file:
+        typer.echo(f"Zambeze config file: {settings._conf_file}")
+    if list:
+        typer.echo(json.dumps(settings.settings, indent=2))
+
+
+@app.callback()
+def main(
+    conf_filepath: str = typer.Option(None, "--conf", "-c", help="Zambeze configuration file."),
+    debug: bool = typer.Option(False, "--debug", help="Enable debug logging.")
+):
     """
-    Main entry point for command line interface.
+    Zambeze command line interface
     """
-
-    # Create top-level parser for `zambeze` command
-    parser = argparse.ArgumentParser(description="Zambeze command line interface")
-    parser.add_argument("-r", "--run-agent", action="store_true", help="run an agent")
-    parser.add_argument("-v", "--version", action="version", version=version("zambeze"))
-    subparsers = parser.add_subparsers(title="subcommands", help="valid commands")
-
-    # Create sub-parser for the `zambeze agent` sub-command
-    parser_agent = subparsers.add_parser("agent", help="control the agent")
-    parser_agent.add_argument("command", choices=["start", "stop", "status"])
-    parser_agent.add_argument(
-        "-d", "--debug", action="store_true", help="enable debug logging"
-    )
-
-    # Create sub-parser for the `zambeze config` sub-command
-    parser_config = subparsers.add_parser("config", help="user configuration")
-    parser_config.add_argument("a", help="an argument")
-
-    args = parser.parse_args()
-    print(args)
-
-    # Setup logging
-    logger = logging.getLogger()
+    # logging
     logger.setLevel(logging.INFO)
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
+    formatter = logging.Formatter("[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s")
 
-    fmt = "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-    formatter = logging.Formatter(fmt)
-
-    if args.debug:
+    if debug:
         logger.setLevel(logging.DEBUG)
         ch.setLevel(logging.DEBUG)
 
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    # Get paths for zambeze directory and agent state file
-    zambeze_base_dir = pathlib.Path.home().joinpath(".zambeze")
-    state_path = zambeze_base_dir.joinpath("agent.state")
-
-    # Run functions for agent sub-commands
-    if args.command == "start":
-        start_agent(logger, state_path, zambeze_base_dir)
-    elif args.command == "stop":
-        stop_agent(logger, state_path)
-    elif args.command == "status":
-        get_status(logger, state_path)
-    elif args.run_agent:
-        start()
+    # configuration file
+    if conf_filepath:
+        state["conf_file"] = pathlib.Path(conf_filepath)

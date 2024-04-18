@@ -135,4 +135,6 @@ dmypy.json
 demofile*
 dummy*
 
-db/zambeze.db
+# Ignore database file created by zambeze agent, the file is located within
+# the zambeze package at zambeze/db/zambeze.db
+zambeze.db

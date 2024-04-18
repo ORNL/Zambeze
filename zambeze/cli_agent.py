@@ -47,7 +47,3 @@ def start(
         config_path = None
 
     Agent(conf_file=config_path, logger=agent_logger)
-
-
-if __name__ == "__main__":
-    agent_app()
