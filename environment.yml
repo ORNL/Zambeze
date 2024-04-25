@@ -18,7 +18,6 @@ dependencies:
   - pyzmq
   - requests
   - SQLAlchemy
-  - typer
   - networkx
   - pip
   - pip:

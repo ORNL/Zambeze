@@ -4,12 +4,9 @@
 # it under the terms of the MIT License.
 
 import importlib.metadata
-import logging
 
 from .campaign import Activity, Campaign
 from .campaign.activities import ShellActivity, TransferActivity
-
-logging.getLogger("zambeze").addHandler(logging.StreamHandler())
 
 __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"

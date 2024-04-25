@@ -22,7 +22,6 @@ setup(
     url="https://github.com/ORNL/zambeze",
     packages=find_packages(),
     install_requires=[
-        "typer",
         "pyzmq",
         "dill",
         "networkx",
@@ -49,8 +48,8 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "zambeze = zambeze.cli:app",
-            "zambeze-agent = zambeze.cli_agent:agent_app",
+            "zambeze = zambeze.cli:main",
+            "zambeze-agent = zambeze.cli_agent:main",
         ]
     },
 )
