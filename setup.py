@@ -50,7 +50,7 @@ setup(
     entry_points={
         "console_scripts": [
             "zambeze = zambeze.cli:main",
-            "zambeze-agent = zambeze.cli_agent:agent_app",
+            "zambeze-agent = zambeze.cli_agent:main",
         ]
     },
 )
