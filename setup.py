@@ -49,7 +49,7 @@ setup(
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
-            "zambeze = zambeze.cli:app",
+            "zambeze = zambeze.cli:main",
             "zambeze-agent = zambeze.cli_agent:agent_app",
         ]
     },
