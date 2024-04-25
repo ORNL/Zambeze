@@ -22,7 +22,6 @@ setup(
     url="https://github.com/ORNL/zambeze",
     packages=find_packages(),
     install_requires=[
-        "typer",
         "pyzmq",
         "dill",
         "networkx",
