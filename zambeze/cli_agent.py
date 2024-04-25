@@ -35,9 +35,9 @@ def run_agent(log_path, debug):
     agent_logger.info("*****************************************************")
     agent_logger.info("Creating Zambeze agent subprocess with configuration:")
     agent_logger.info("*****************************************************")
-    agent_logger.info(f"Log Path:\t\t{log_path}")
-    agent_logger.info(f"Config Path:\t\t{config_path}")
-    agent_logger.info(f"Debug Logs:\t\t{debug}")
+    agent_logger.info(f"Log Path:     {log_path}")
+    agent_logger.info(f"Config Path:  {config_path}")
+    agent_logger.info(f"Debug Logs:   {debug}")
     agent_logger.info("*****************************************************")
 
     # Create an agent
