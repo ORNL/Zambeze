@@ -27,7 +27,7 @@ classifiers = [
 license = "MIT"
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "ruff"]
 
 [project.scripts]
 zambeze = "zambeze.cli:main"
