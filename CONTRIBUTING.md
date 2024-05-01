@@ -1,101 +1,45 @@
-# Project Guidelines
+# Contributing
 
-Zambeze project progression is tracked on the GitHubs Zambeze project, all
-tasks should be present in that project.  There are a total of 5 categories:
+Please follow the guidelines discussed on this page to contribute to the zambeze project.
 
-•	TODO – no one has started on this task
-•	In Progress – someone has an open branch
-•	Under Review – the branch is being reviewed
-•	Merged with Devel
-•	Merged with Main
+## Virtual environment
 
-# Maximizing the Team Throughput
+Before contributing to zambeze, clone this repository and create a conda virtual environment using the `environment.yml` file. This environment contains all the dependencies needed to run and develop zambeze. Commands for creating and activating the environment are given in the environment file and also listed below.
 
-Developers should be limited to working on one feature at a time, meaning they
-should only have a single open PR that is either in the, “In progress”,
-"Blocked" or “under review” categories.
-
-## The Andon Cord
-
-In assembly line manufacturing there is the concept of the Andon cord which is
-pulled when a problem is discovered in the assembly line. A worker would then
-pull the cord and the whole assembly line would stop and the resources of the
-factory would all be made available to fixing the problem before everyone else
-moved on their way.  Team priority should be shifted to anyone that is blocked
-on a task. Members should feel comfortable pulling the proverbial Andon Cord.
-
-## Pull Request Guidelines
-
-1.	Branch Development
-	a.	Feature branch
-	b.	Nonfunctional/technical debt branch
-2.	Merging from Devel to Main - release
-
-## Branch Development
-
-The following criteria should be satisfied.
-
-1.	All new branches should be created from devel
-2.	Any time a branch is created a pr should be immediately opened against the development branch.
-3.	User who creates the PR is the primary contact – main responsible PR
-4.	Branches should be merged with the development branch every day that new changes are made, this does not require the branch to have fully solved the solution it was created for but does require all ci automated tests to pass.
-5.	In the face of failing automated tests, priority should be shifted to fixing the tests and merging before more work is done.
-6.	Anyone who supplies a commit to a branch should use the GitHup PR Assignees option to indicate they are also working on the PR.
-7.	Every PR should have at least one label assigned to it.
-8.	All PRs should be part of the Zambeze Project
-9.	All issues associated with the PR should be linked
-10.	For work on a branch that is ongoing for several days, each day before committing a merge from devel back into the branch must be made.
-11.	On successful merge of a branch the branch should be deleted
-
-### Feature Branch Development
-
-Feature branches should follow the naming scheme:
-```
-<GitHub_user_name>-<feature>
-```
-i.e.
-```
-JoshuaSBrown-transfer-activity
+```text
+conda env create --file environment.yml
+conda activate zambeze
 ```
 
-The username prepended to the branch name is to indicate who is responsible for
-moving the branch forward in the development cycle and should serve as the
-point of contact.
+## Pull requests
 
-The following criteria should be satisfied.
-1.	Unit tests should be added for all new features to prevent broken features down the road. If someone breaks a feature it is because there are not enough tests.
-2.	All feature branches should have a milestone associated with them.
+Code contributions should be made via pull requests to the `main` branch in the zambeze repository. Steps to submit a pull request are:
 
-### Technical Debt or Nonfunctional branch
+1. Create a feature branch from the `main` branch
+2. Make your contributions in the feature branch
+3. Adhere to the code style and format discussed below using ruff
+4. Write unit tests for new code and make sure existing tests pass
+5. Write documentation for new code and edit existing documentation where applicable
+5. Create a pull request on GitHub when your changes are ready for review
 
-All non-feature branches should follow the naming scheme.
+All pull requests must pass linter checks, formatter checks, and unit tests before they can be merged with the `main` branch. See the sections below for more information about code style, formatting, testing, and documentation.
+
+## Code style and format
+
+Contributors should adhere to the [PEP 8 Style Guide](https://pep8.org) for Python naming conventions and code layout. Style conventions and code format are checked with the [ruff](https://github.com/astral-sh/ruff) linter and code formatter. Many editors and IDEs support ruff via plugins or extensions. Use the commands shown below to run the linter and formatter checks in the terminal:
+
+```text
+cd zambeze
+ruff check .
+ruff format --check .
 ```
-<GitHub_user_name>-<descriptive name>
-```
-i.e.
-```
-JoshuaSBrown-user-documentation
-```
 
-## Merging from Devel to Main – Release
+These checks are utilized in the GitHub Actions workflow `checks.yml` and must pass for pull requests before merging with the `main` branch.
 
-An attempt to merge from devel into main should be made every week.
-•	Merging from devel to main should be accompanied by a release iteration
-•	Merging from devel to main requires all checks to pass:
-o	Pyre type checking
-o	Formatting
-o	Unit and integration testing
-•	Merging from devel to main requires all developers be added as reviewers
-•	Requires at least one approval before merge can be completed
-Labels
-When a new issue or pull request is created a priority label should be added indicating how important the issue is.
-Priority: Low - syntactic sugar, or addressing small amounts of technical debt or nonessential features
-Priority: Medium - is important to the completion of a milestone but does not require immediate attention
-Priority: High - is essential to the completion of a milestone
-DevOps: CI – branch associated with 
+## Unit tests
 
-# Zambeze Style Guide
+The [pytest](https://github.com/pytest-dev/pytest) framework is used for unit testing the zambeze project. Several markers are listed in the `pyproject.toml` to run certain tests. For example, run all the unit tests with `pytest -m unit`. The GitHub Actions workflow `tests.yml` will run the tests and upload a coverage report.
 
-* Code style guides should follow those of pep8 see link for details https://peps.python.org/pep-0008/
-* Doc strings should follow those of the Sphinx style guide https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html
-* In code comments can be made with '#'
+## Documentation
+
+Documentation for zambeze is generated with the [Sphinx](https://www.sphinx-doc.org/en/master/) tool. All documentation files are located in the `docs` directory. Docstrings in the Python code should use the [Numpy style and format](https://numpydoc.readthedocs.io/en/latest/format.html). The docstrings are automatically rendered by Sphinx when generating the documentation.
