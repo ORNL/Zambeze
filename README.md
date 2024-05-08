@@ -1,89 +1,44 @@
-[![Build][build-badge]][build-link]
-[![PyPI][pypi-badge]][pypi-link]
-[![License: MIT][license-badge]](LICENSE)
-[![Docs][docs-badge]][docs-link]
-[![codecov][codecov-badge]][codecov-link]
-[![Codacy Badge][codacy-badge]][codacy-link]
-[![CodeFactor][codefactor-badge]][codefactor-link]
-[![GitLab Main][gitlab-main-badge]][gitlab-main-link]
-
 # Zambeze
 
-Documentation for Zambeze can be found on
-[ReadTheDocs](https://docs.zambeze.org/en/latest/).
+Zambeze is a distributed task orchestration system to manage science application tasks across large-scale and edge computing systems.
 
-## Get in Touch
-
-The main channel to reach the Zambeze team is via the support email: 
-[support@zambeze.org](mailto:support@zambeze.org).
-
-**Bug Report / Feature Request:** our preferred channel to report a bug or request a feature is via  
-Zambeze's [Github Issues Track](https://github.com/ORNL/zambeze/issues).
+Report a bug using [Github Issues](https://github.com/ORNL/zambeze/issues). Feature requests, questions, and other comments can be made on the [GitHub Discussions](https://github.com/ORNL/Zambeze/discussions) page. The Zambeze developers can be reached via email at [support@zambeze.org](mailto:support@zambeze.org).
 
 ## Installation
 
-Dependency installation should proceed similar to any python package.
-```bash
-pip install -r requirements.txt .
+The zambeze package can be installed in a Python environment with pip using the command shown below.
+
+```text
+pip install zambeze
 ```
 
-### Zambeze CLI
+## Usage
 
-```
-zambeze --help
-```
+After installing zambeze in a Python environment, start up the zambeze agent in a terminal:
 
-## Development Environment
-
-### Code Formatting
-
-Zambeze's code uses [Black](https://github.com/psf/black), a PEP 8 compliant code formatter, and 
-[Flake8](https://github.com/pycqa/flake8), a code style guide enforcement tool. To install the
-these tools you simply need to run the following:
-
-```bash
-pip install flake8 black
+```text
+zambeze start
 ```
 
-Before _every commit_, you should run the following:
+Go to the examples directory in this repository and run the `imagemagick_files.py` example which also requires the [ImageMagick](https://imagemagick.org) tool.
 
-```bash
-black .
-flake8 .
+```text
+cd examples
+python imagemagick_files.py
 ```
 
-If errors are reported by `flake8`, please fix them before commiting the code.
+Stop the agent after running the example.
 
-### Running Tests
-
-There are a few dependencies that need to be installed to run the pytest, if you installed the requirements.txt file then this should be covered as well.
-```bash
-pip install pytest
+```text
+zambeze stop
 ```
 
-From the root directory using pytest we can run:
+Use `zambeze --help` to see the available commands.
 
-```bash
-python3 -m pytest -m unit -sv
-```
+## Documentation
 
-Some tests should only be run from the context of the GitLab runner these can be run with:
-```bash
-python3 -m pytest -m gitlab_runner -sv
-```
+Documentation for the zambeze package is generated with [Sphinx](https://www.sphinx-doc.org/en/master/). View the documentation at https://docs.zambeze.org.
 
-[build-badge]:           https://github.com/ORNL/zambeze/workflows/Build/badge.svg
-[build-link]:            https://github.com/ORNL/zambeze/actions
-[license-badge]:         https://img.shields.io/github/license/ORNL/zambeze
-[codacy-badge]:          https://app.codacy.com/project/badge/Grade/6a820c5946384c3e98889e7f09a4218e
-[codacy-link]:           https://www.codacy.com/gh/ORNL/zambeze/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ORNL/zambeze&amp;utm_campaign=Badge_Grade
-[docs-badge]:            https://readthedocs.org/projects/zambeze/badge/?version=latest
-[docs-link]:             https://zambeze.readthedocs.io/en/latest/
-[pypi-badge]:            https://badge.fury.io/py/zambeze.svg
-[pypi-link]:             https://pypi.org/project/zambeze/
-[codecov-badge]:         https://codecov.io/gh/ORNL/zambeze/branch/main/graph/badge.svg?token=H5VS82WTRZ
-[codecov-link]:          https://codecov.io/gh/ORNL/zambeze
-[codefactor-badge]:      https://www.codefactor.io/repository/github/ornl/zambeze/badge
-[codefactor-link]:       https://www.codefactor.io/repository/github/ornl/zambeze
-[gitlab-main-badge]:     https://code.ornl.gov/8f4/zambeze/badges/main/pipeline.svg
-[gitlab-main-link]:      https://code.ornl.gov/8f4/zambeze/-/commits/main
+## Contributing
+
+If you would like to contribute to zambeze, please see the [CONTRIBUTING.md](CONTRIBUTING.md) document.
