@@ -20,4 +20,3 @@ The source code repository for Zambeze's Python package is available on `GitHub 
    api/campaign
    api/shell
    api/abstract_plugin
-   api/rsync_plugin
