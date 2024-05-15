@@ -134,7 +134,9 @@ class Monitor(threading.Thread):
             }
 
             self.to_status_q.put(hb_monitor_msg)
-            self._logger.debug(f"[monitor] Enqueued monitor hb message! | Queue size: {self.to_status_q.qsize()}")
+            self._logger.debug(
+                f"[monitor] Enqueued monitor hb message! | Queue size: {self.to_status_q.qsize()}"
+            )
             return current_time  # return the updated time
 
         return last_hb_time  # return the original time if no heartbeat was sent
