@@ -9,7 +9,7 @@ import requests
 import threading
 import time
 
-from queue import Queue
+from queue import Queue, Empty
 from typing import Optional
 
 from zambeze.orchestration.monitor import Monitor
@@ -110,8 +110,6 @@ class Executor(threading.Thread):
             self._logger.info(f" SIZE OF QUEUE: {self.to_process_q.qsize()}")
             dag_msg = self.to_process_q.get()
 
-            self._logger.info("drei")
-
             self._logger.debug(f"[exec] Retrieved message! {dag_msg}...")
 
             # Check 1. If MONITOR, then we want to STICK the process
@@ -128,10 +126,7 @@ class Executor(threading.Thread):
                 self.monitor = monitor_thread
                 monitor_launched = True
 
-                self._logger.info("vier")
-
             elif dag_msg[0] == "TERMINATOR":
-                self._logger.info("funf")
                 # TERMINATOR ALWAYS SUCCEEDS.
                 status_msg = {
                     "status": "SUCCEEDED",
@@ -144,7 +139,6 @@ class Executor(threading.Thread):
                 )
                 self.to_status_q.put(status_msg)
                 terminator_stopped = True
-                self._logger.info("sechs")
 
             s = f"[exec] Monitor launched {monitor_launched}"
             s2 = f", Terminator stopped: {terminator_stopped}"
@@ -156,12 +150,8 @@ class Executor(threading.Thread):
                 terminator_stopped = False
                 continue
 
-            self._logger.info("sieben")
-
             activity_msg = dag_msg[1]["activity"]
             predecessors = dag_msg[1]["predecessors"]
-
-            self._logger.info("acht")
 
             # transfer_params = dag_msg[1]["transfer_params"]
             transfer_tokens = dag_msg[1]["transfer_tokens"]
@@ -174,8 +164,6 @@ class Executor(threading.Thread):
             self._logger.info(f"Foo the bar: {activity_msg}")
             # STEP 1. Confirm the monitor is MONITORING.
             campaign_id = activity_msg.campaign_id
-
-            self._logger.info("neun")
 
             if (
                 "MONITOR" in predecessors
@@ -240,7 +228,6 @@ class Executor(threading.Thread):
 
             if activity_msg.type.upper() == "SHELL":
                 self._logger.info("[exec] SHELL message received:")
-                self._logger.info("zehn")
 
                 # self._logger.info(activity_msg.data.body)
 
@@ -291,15 +278,11 @@ class Executor(threading.Thread):
                 # checked_result = self._settings.plugins.check(activity_msg.data.body)
                 # self._logger.debug(f"[EXECUTOR] Checked result: {checked_result}")
 
-                self._logger.info("dreizehn")
-
                 # TODO: handle failures from the SHELL activity.
                 try:
                     self._settings.plugins.run(activity_msg)
                 except Exception as e:
                     self._logger.error(f"[vierzehn] caught: {e}")
-
-                self._logger.info("vierzehn.1")
 
                 # if checked_result.error_detected() is False:
                 #     self._settings.plugins.run(activity_msg)
@@ -389,14 +372,20 @@ class Executor(threading.Thread):
         while True:
             self._logger.info(f"[exec] Monitor completed?: {self.monitor.completed}")
 
-            if self.monitor.completed:
-                self.monitor.to_monitor_q.put("KILL")
-                self.monitor = None  # reset to None for now.
-                self._logger.info("[exec] MONITOR check sending kill signal...")
-                break
-            else:
-                self._logger.debug("MONITOR NOT COMPLETED YET!")
-                time.sleep(2)
+            # Move messages from monitor status queue (e.g., heartbeats/completion) to here.
+            try:
+                # Wait 5 seconds to see if we have any status messages.
+                status_item = self.monitor.to_status_q.get(timeout=5)
+                self.to_status_q.put(status_item)
+            except Empty:
+                if self.monitor.completed:
+                    self.monitor.to_monitor_q.put("KILL")
+                    self.monitor = None  # reset to None for now.
+                    self._logger.info("[exec] MONITOR check sending kill signal...")
+                    break
+                else:
+                    self._logger.debug("MONITOR NOT COMPLETED YET!")
+                    time.sleep(2)
 
 
 def download_https_file(url, save_path):
