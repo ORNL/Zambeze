@@ -119,27 +119,53 @@ class Campaign:
         return dag
 
     def dispatch(self) -> None:
-        """Dispatches the set of current activities in the campaign."""
         self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
-
-        # Initialize ZMQ context and socket
         zmq_context = zmq.Context()
         zmq_socket = zmq_context.socket(zmq.REQ)
+        zmq_socket.setsockopt(zmq.SNDTIMEO, 5000)
+        zmq_socket.setsockopt(zmq.RCVTIMEO, 5000)
+        zmq_socket.setsockopt(zmq.LINGER, 0)  # Do not linger on close
         settings = ZambezeSettings()
-        zmq_host = settings.settings["zmq"]["host"]
-        zmq_port = settings.settings["zmq"]["port"]
-        zmq_socket.connect(f"tcp://{zmq_host}:{zmq_port}")
+        zmq_socket.connect(f"tcp://{settings.settings['zmq']['host']}:{settings.settings['zmq']['port']}")
 
         dag = self._pack_dag_for_dispatch()
-
-        self._logger.debug(f"Shipping activity DAG of {dag.number_of_nodes()} nodes...")
-
         serial_dag = dag.serialize_dag()
-
         self._logger.debug("Sending activity DAG via ZMQ...")
-        zmq_socket.send(serial_dag)
-        self._logger.debug("Activity DAG successfully sent!")
-        self._logger.info(f"REPLY: {zmq_socket.recv()}")
+
+        try:
+            poller = zmq.Poller()
+            poller.register(zmq_socket, zmq.POLLOUT)
+            if poller.poll(5000):
+                zmq_socket.send(serial_dag)
+                self._logger.debug("Sending campaign to Zambeze...")
+
+                poller.register(zmq_socket, zmq.POLLIN)
+                if poller.poll(5000):
+                    # If we receive any message, then we succeeded in REQ/REP. Do not need to parse it.
+                    zmq_socket.recv()
+                    self._logger.info("Campaign successfully dispatched to Zambeze!")
+                else:
+                    self._logger.error("No response received within timeout period. Please try either: "
+                                       "\n1. Check your network settings and dispatch again. "
+                                       "\n2. After installing Zambeze, you may start your agent"
+                                       " with \"zambeze agent start\" and dispatch again."
+                                       )
+            else:
+                self._logger.error("Unable to send: message queue not ready. "
+                                   "Please check your network settings and restart your Zambeze agent.")
+        except zmq.Again:
+            self._logger.error("Operation timed out: Zambeze agent might be unreachable."
+                               " \nAfter installing Zambeze, you may start your agent"
+                               " with \"zambeze agent start\" and dispatch again.")
+        finally:
+            try:
+                self._logger.debug("Cleaning up message queues and closing connections.")
+                zmq_socket.close()
+                zmq_context.term()
+                self._logger.debug("Cleanup completed.")
+
+            except Exception as e:
+                self._logger.error(f"Error during cleanup: {str(e)}")
 
     def status(self):
         check_queue = Queue()
