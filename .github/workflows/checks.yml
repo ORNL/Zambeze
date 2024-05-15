@@ -1,0 +1,24 @@
+name: Ruff checks
+
+on: push
+
+jobs:
+  ruff-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install zambeze and dependencies
+        run: pip install .[dev]
+
+      - name: Run ruff linter checks
+        run: ruff check .
+
+      - name: Run ruff formatter checks
+        run: ruff format --check .

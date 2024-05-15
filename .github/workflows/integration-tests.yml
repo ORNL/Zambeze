@@ -1,8 +1,9 @@
-name: Integration Tests
+name: Integration tests
+
 on: [push, pull_request]
 
 jobs:
-  rsync_example:
+  integration-tests:
     runs-on: ubuntu-latest
 
     steps:
