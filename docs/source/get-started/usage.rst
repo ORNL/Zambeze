@@ -26,3 +26,5 @@ Use the ``--help`` option to see more information about the zambeze command line
 .. code-block:: text
 
    zambeze --help
+
+See the **Examples** section for more demonstrations of using zambeze.

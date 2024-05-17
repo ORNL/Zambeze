@@ -14,6 +14,11 @@ The source code for zambeze is available on `GitHub <https://github.com/ORNL/zam
    get-started/contributing
 
 .. toctree::
+   :caption: Examples
+
+   examples/imagemagick_files
+
+.. toctree::
    :caption: API Documentation
    :maxdepth: 1
 
