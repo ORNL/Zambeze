@@ -21,7 +21,7 @@ Stop the agent after running the example.
    zambeze stop
 
 
-Use the zambeze help command to see all the available commands and options.
+Use the ``--help`` option to see more information about the zambeze command line tool.
 
 .. code-block:: text
 
