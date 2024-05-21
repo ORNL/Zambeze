@@ -84,24 +84,12 @@ class Agent:
         while True:
             try:
                 # Check the executor's queue for control messages to send.
-                if self._executor.to_status_q.qsize() > 0:
-                    status_to_send = self._executor.to_status_q.get()
-                    self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
-                    self._logger.debug(
-                        "[agent] Put new status/control into message handler control queue!"
-                    )
+                status_to_send = self._executor.to_status_q.get()
+                self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
+                self._logger.debug(
+                    "[agent] Put new status/control into message handler control queue!"
+                )
 
-                # Check the executor's monitor queue, if it exists and has messages.
-                if (
-                    self._executor.monitor is not None
-                    and self._executor.monitor.to_status_q.qsize() > 0
-                ):
-                    self._logger.info("[agent] Grabbing MONITOR status message...")
-                    status_to_send = self._executor.monitor.to_status_q.get()
-                    self._msg_handler_thd.msg_handler_send_control_q.put(status_to_send)
-                    self._logger.debug(
-                        "[agent] Put new MONITOR STATUS into message handler control queue!"
-                    )
             except Exception as e:
                 self._logger.error(
                     "[agent] send_control_thd encountered an error: %s: %s",
