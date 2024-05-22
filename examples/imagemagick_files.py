@@ -45,8 +45,6 @@ def main():
             "a.gif",
         ],
         logger=logger,
-        # Uncomment if running on M1 Mac.
-        # env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
     )
 
     campaign.add_activity(activity)
