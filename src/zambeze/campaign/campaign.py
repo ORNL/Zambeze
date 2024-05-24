@@ -6,7 +6,6 @@
 import logging
 import zmq
 import uuid
-from queue import Queue
 
 from typing import Optional
 from .activities.abstract_activity import Activity
