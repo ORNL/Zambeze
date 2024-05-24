@@ -126,7 +126,9 @@ class Campaign:
         zmq_socket.setsockopt(zmq.RCVTIMEO, 5000)
         zmq_socket.setsockopt(zmq.LINGER, 0)  # Do not linger on close
         settings = ZambezeSettings()
-        zmq_socket.connect(f"tcp://{settings.settings['zmq']['host']}:{settings.settings['zmq']['port']}")
+        zmq_socket.connect(
+            f"tcp://{settings.settings['zmq']['host']}:{settings.settings['zmq']['port']}"
+        )
 
         dag = self._pack_dag_for_dispatch()
         serial_dag = dag.serialize_dag()
@@ -145,21 +147,28 @@ class Campaign:
                     zmq_socket.recv()
                     self._logger.info("Campaign successfully dispatched to Zambeze!")
                 else:
-                    self._logger.error("No response received within timeout period. Please try either: "
-                                       "\n1. Check your network settings and dispatch again. "
-                                       "\n2. After installing Zambeze, you may start your agent"
-                                       " with \"zambeze agent start\" and dispatch again."
-                                       )
+                    self._logger.error(
+                        "No response received within timeout period. Please try either: "
+                        "\n1. Check your network settings and dispatch again. "
+                        "\n2. After installing Zambeze, you may start your agent"
+                        ' with "zambeze agent start" and dispatch again.'
+                    )
             else:
-                self._logger.error("Unable to send: message queue not ready. "
-                                   "Please check your network settings and restart your Zambeze agent.")
+                self._logger.error(
+                    "Unable to send: message queue not ready. "
+                    "Please check your network settings and restart your Zambeze agent."
+                )
         except zmq.Again:
-            self._logger.error("Operation timed out: Zambeze agent might be unreachable."
-                               " \nAfter installing Zambeze, you may start your agent"
-                               " with \"zambeze agent start\" and dispatch again.")
+            self._logger.error(
+                "Operation timed out: Zambeze agent might be unreachable."
+                " \nAfter installing Zambeze, you may start your agent"
+                ' with "zambeze agent start" and dispatch again.'
+            )
         finally:
             try:
-                self._logger.debug("Cleaning up message queues and closing connections.")
+                self._logger.debug(
+                    "Cleaning up message queues and closing connections."
+                )
                 zmq_socket.close()
                 zmq_context.term()
                 self._logger.debug("Cleanup completed.")
