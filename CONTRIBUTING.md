@@ -43,3 +43,11 @@ The [pytest](https://github.com/pytest-dev/pytest) framework is used for unit te
 ## Documentation
 
 Documentation for zambeze is generated with the [Sphinx](https://www.sphinx-doc.org/en/master/) tool. All documentation files are located in the `docs` directory. Docstrings in the Python code should use the [Numpy style and format](https://numpydoc.readthedocs.io/en/latest/format.html). The docstrings are automatically rendered by Sphinx when generating the documentation.
+
+The documentation should be built and viewed locally before pushing changes to the documentation files. Use the commands shown below to build and view the documentation. This assumes you have activated the conda environment discussed previously.
+
+```text
+cd docs
+make html
+open build/html/index.html
+```
