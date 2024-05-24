@@ -18,6 +18,8 @@ dependencies:
   - pyzmq
   - requests
   - SQLAlchemy
+  - sphinx
+  - sphinx-rtd-theme
   - networkx
   - pip
   - pip:

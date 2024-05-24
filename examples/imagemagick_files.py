@@ -1,32 +1,33 @@
 """
-Copyright (c) 2022 Oak Ridge National Laboratory.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the MIT License.
+Example of creating a campaign with a shell activity to create an animated
+GIF. The GIF is created from a series of images using the ImageMagick tool.
 """
 
 import logging
-import os
+from pathlib import Path
 from zambeze import Campaign, ShellActivity
 
 
 def main():
-    # logging (for debugging purposes)
+    """
+    Run a shell activity campaign to generate an animated GIF.
+    """
+
+    # Setup and configure logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
+
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
-    )
-    ch.setFormatter(formatter)
+
+    fmt = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ch.setFormatter(fmt)
+
     logger.addHandler(ch)
 
-    # create campaign
+    # Create the campaign
     campaign = Campaign("My ImageMagick Campaign", logger=logger)
-
-    # define an activity
-    curr_dir = os.path.dirname(__file__)
+    curr_dir = Path.cwd()
 
     activity = ShellActivity(
         name="ImageMagick",
@@ -44,13 +45,11 @@ def main():
             "a.gif",
         ],
         logger=logger,
-        # Uncomment if running on M1 Mac.
-        env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
     )
 
     campaign.add_activity(activity)
 
-    # run the campaign
+    # Run the campaign to execute the shell activity
     campaign.dispatch()
 
 
