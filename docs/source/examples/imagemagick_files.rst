@@ -12,7 +12,7 @@ The Python script for this example is shown below.
 
 .. literalinclude:: ../../../examples/imagemagick_files.py
 
-While RabbitMQ is running in a separate terminal, use the commands shown below to run this example in another terminal:
+While RabbitMQ is running in a separate terminal session, use the commands shown here to start the zambeze agent then run the example script. This will create an animated GIF named ``a.gif`` in your home directory.
 
 .. code-block:: bash
 
@@ -24,3 +24,9 @@ While RabbitMQ is running in a separate terminal, use the commands shown below t
 
    # Stop the zambeze agent
    zambeze stop
+
+Below is a demo of running this example in the provided conda environment. Note that RabbitMQ is running on the computer where this demo was recorded.
+
+.. raw:: html
+
+   <script src="https://asciinema.org/a/YLZVt3d7BivkS4cPniURhURW4.js" id="asciicast-YLZVt3d7BivkS4cPniURhURW4" async="true"></script>
