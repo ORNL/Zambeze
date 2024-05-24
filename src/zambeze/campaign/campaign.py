@@ -119,6 +119,26 @@ class Campaign:
         return dag
 
     def dispatch(self) -> None:
+        """
+        Dispatches the serialized Directed Acyclic Graph (DAG) of activities via ZeroMQ to the Zambeze service.
+
+        This method prepares a ZeroMQ context and socket, connects to the specified Zambeze
+        service host and port (from user's settings), and sends the serialized DAG.
+
+        It handles sending and receiving acknowledgments to ensure
+        the DAG is received by the Zambeze service. The method logs all critical steps, errors, and exceptions during the
+        dispatch process.
+
+        Raises:
+            - None
+        Returns:
+            - None
+        Notes:
+            - This method uses ZeroMQ for communication. Ensure that the network settings are correctly configured.
+            - The Zambeze agent must be running and accessible at the specified host and port.
+            - The method will log detailed error messages if it fails to send the DAG or does not receive a response within
+              the expected time frame. It suggests possible actions to resolve such issues.
+        """
         self._logger.info(f"Number of activities to dispatch: {len(self.activities)}")
         zmq_context = zmq.Context()
         zmq_socket = zmq_context.socket(zmq.REQ)
@@ -175,17 +195,3 @@ class Campaign:
 
             except Exception as e:
                 self._logger.error(f"Error during cleanup: {str(e)}")
-
-    def status(self):
-        check_queue = Queue()
-
-        # Dump activities into queue.
-        for activity in self.activities:
-            check_queue.put(activity)
-
-        else:
-            raise NotImplementedError("Only blocking checks currently supported!")
-
-    def result(self):
-        holder = self.result_val
-        return holder
