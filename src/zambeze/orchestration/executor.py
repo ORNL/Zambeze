@@ -226,8 +226,8 @@ class Executor(threading.Thread):
                     if total_completed == len(pred_track_dict):
                         break
 
-            if activity_msg.type.upper() == "SHELL":
-                self._logger.info("[exec] SHELL message received:")
+            if activity_msg.type.upper() in ["SHELL", "PYTHON"]:  # TODO: TYLER!
+                self._logger.info(f"[exec] {activity_msg.type.upper()} message received:")
 
                 # self._logger.info(activity_msg.data.body)
 

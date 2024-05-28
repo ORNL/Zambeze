@@ -9,6 +9,7 @@ from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import register_plugins
 from zambeze.campaign.activities.shell import ShellActivity
+from zambeze.campaign.activities.python import PythonActivity
 from zambeze.campaign.activities.abstract_activity import Activity
 
 from copy import deepcopy
@@ -300,8 +301,9 @@ class Plugins:
             if msg.type == "PLUGIN":
                 arguments = asdict(msg.data.body.parameters)
                 plugin_name = msg.data.type
-        elif isinstance(msg, ShellActivity):
-            if msg.type == "SHELL":
+        # TODO: TYLER!
+        elif isinstance(msg, ShellActivity) or isinstance(msg, PythonActivity):
+            if msg.type in ["SHELL", "PYTHON"]:
                 arguments = {msg.plugin_args["shell"]: msg.plugin_args["parameters"]}
                 plugin_name = msg.type
                 self.__logger.info("GOODLY")
