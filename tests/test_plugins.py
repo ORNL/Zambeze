@@ -18,11 +18,14 @@ def test_registered_plugins():
     """Test checks that you can get a list of all the registered plugins"""
     plugins = Plugins()
     found_shell = False
+    found_python = False
     for plugin in plugins.registered:
         if plugin == "shell":
             found_shell = True
+        if plugin == "python":
+            found_python = True
 
-    assert found_shell
+    assert found_shell and found_python
 
 
 @pytest.mark.unit
@@ -31,10 +34,10 @@ def test_check_configured_plugins():
 
     assert len(plugins.configured) == 0
 
-    configuration = {"shell": {}}
+    configuration = {"python": {}, "shell": {}}
     plugins.configure(configuration)
 
-    assert len(plugins.configured) > 0
+    assert len(plugins.configured) == 2
 
 
 @pytest.mark.unit

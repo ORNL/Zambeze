@@ -17,7 +17,7 @@ from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
-class ShellActivity(Activity):
+class PythonActivity(Activity):
     """A Unix Shell script/command activity.
 
     :param name: Campaign activity name.
@@ -72,7 +72,7 @@ class ShellActivity(Activity):
         self.logger.info("[activities/python.py] Printing files after init in SHELL")
         self.logger.info(self.files)
         self.working_dir = ""
-        self.type = "SHELL"
+        self.type = "PYTHON"
         self.plugin_args = {
             "shell": "bash",
             "parameters": {
@@ -89,7 +89,6 @@ class ShellActivity(Activity):
         )
 
         try:
-            print("<< try here >>", self.origin_agent_id)
             # These go into every activity.
             template[1].origin_agent_id = self.origin_agent_id
             template[1].running_agent_ids = self.running_agent_ids
@@ -100,14 +99,13 @@ class ShellActivity(Activity):
             template[1].submission_time = str(int(time.time()))
 
             # These go into just SHELL activities.
-            template[1].body.type = "SHELL"
+            template[1].body.type = "PYTHON"
             template[1].body.shell = "bash"
             template[1].body.files = self.files
             template[1].body.parameters.program = self.command
             template[1].body.parameters.args = self.arguments
             template[1].body.parameters.env_vars = self.env_vars
         except Exception as e:
-            print("<< except here >>")
-            self.logger.info(f"Error is here: {e}")
+            self.logger.info(f"[Python] Error in Python Activity: {e}")
 
         return factory.create(template)

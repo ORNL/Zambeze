@@ -187,7 +187,9 @@ class MessageHandler(threading.Thread):
 
             # TODO: TYLER THIS IS CAUSING PROBLEM
             # I THINK I NEED TO MAXIMIZE
+            self._logger.info(f"Checking activity of type: {activity_node[1]['activity'].type.upper()}")
             try:
+
                 required_plugin = activity_to_plugin_map[
                     activity_node[1]["activity"].type.upper()
                 ]
@@ -195,9 +197,7 @@ class MessageHandler(threading.Thread):
                 self._logger.exception(f"Caught-a-lot: {e}")
             self._logger.debug("ses")
             plugins_are_configured = self.are_plugins_configured(required_plugin)
-            actions_are_supported = (
-                True  # self.are_actions_supported(action_labels=[""])
-            )
+            actions_are_supported = True
 
         self._logger.debug("siete")
         should_ack = plugins_are_configured and actions_are_supported

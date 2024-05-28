@@ -8,8 +8,8 @@
 
 # Local imports
 from ..abstract_plugin import Plugin
-from .shell_message_validator import ShellMessageValidator
-from .shell_common import PLUGIN_NAME, SUPPORTED_ACTIONS
+from .python_message_validator import PythonMessageValidator
+from .python_common import PLUGIN_NAME, SUPPORTED_ACTIONS
 from ...system_utils import isExecutable
 
 # Standard imports
@@ -105,14 +105,14 @@ def merge_env_variables(current_vars: dict, new_vars: dict) -> dict:
     return {**current_vars, **new_vars}
 
 
-class Shell(Plugin):
+class Python(Plugin):
     """Implementation of a Shell plugin."""
 
     def __init__(self, logger: Optional[logging.Logger] = None) -> None:
         super().__init__(PLUGIN_NAME, logger=logger)
         self._configured = False
         self._supported_actions = SUPPORTED_ACTIONS
-        self._message_validator = ShellMessageValidator(logger)
+        self._message_validator = PythonMessageValidator(logger)
 
     def configure(self, config: dict) -> None:
         """Configure shell."""

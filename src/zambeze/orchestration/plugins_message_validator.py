@@ -2,7 +2,7 @@
 Validator for plugin messages.
 """
 
-from .plugin_modules.common_plugin_functions import registerPlugins
+from .plugin_modules.common_plugin_functions import register_plugins
 from .plugin_modules.abstract_plugin_message_validator import PluginMessageValidator
 
 from importlib import import_module
@@ -27,7 +27,7 @@ class PluginsMessageValidator:
         if self.__logger is None:
             self.__logger = logging.Logger(__name__)
 
-        self.__module_names = registerPlugins()
+        self.__module_names = register_plugins()
         self._plugin_message_validators = {}
 
         # self.__registerPlugins()

@@ -16,6 +16,7 @@ class ActivityType(Enum):
     SHELL = "SHELL"
     PLUGIN = "PLUGIN"
     TRANSFER = "TRANSFER"
+    PYTHON = "PYTHON"
 
 
 class QueueType(Enum):

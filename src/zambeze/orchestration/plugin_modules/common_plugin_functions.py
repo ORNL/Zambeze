@@ -6,7 +6,7 @@ import logging
 import pkgutil
 
 
-def registerPlugins(logger: Optional[logging.Logger] = None) -> list:
+def register_plugins(logger: Optional[logging.Logger] = None) -> list:
     """Will register all the plugins provided in the plugin_modules folder
 
     :return: the names of all the plugins

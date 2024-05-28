@@ -2,7 +2,7 @@
 Template engine for plugin messages.
 """
 
-from .plugin_modules.common_plugin_functions import registerPlugins
+from .plugin_modules.common_plugin_functions import register_plugins
 from .plugin_modules.abstract_plugin_template_generator import (
     PluginMessageTemplateGenerator,
 )
@@ -20,7 +20,7 @@ class PluginsMessageTemplateEngine:
         if self.__logger is None:
             self.__logger = logging.Logger(__name__)
 
-        self.__module_names = registerPlugins()
+        self.__module_names = register_plugins()
         self._plugin_message_template_generators = {}
         self.__registerPluginTemplateGenerators()
 

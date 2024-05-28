@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
-from .plugin_modules.common_plugin_functions import registerPlugins
+from .plugin_modules.common_plugin_functions import register_plugins
 from zambeze.campaign.activities.shell import ShellActivity
 from zambeze.campaign.activities.abstract_activity import Activity
 
@@ -54,7 +54,7 @@ class Plugins:
         self.__logger: logging.Logger = (
             logging.getLogger(__name__) if logger is None else logger
         )
-        self.__module_names = registerPlugins()
+        self.__module_names = register_plugins()
         self._plugins = {}
 
     @property
@@ -114,11 +114,14 @@ class Plugins:
         This will just configure the "shell" plugin.
         """
         for module_name in self.__module_names:
+            print(module_name)
             # Registering plugins
             if module_name in config.keys() and module_name in self.__module_names:
+                print(config.keys())
                 module = import_module(
                     f"zambeze.orchestration.plugin_modules.{module_name}.{module_name}"
                 )
+
                 for attribute_name in dir(module):
                     potential_plugin = getattr(module, attribute_name)
                     if isclass(potential_plugin):
@@ -130,6 +133,7 @@ class Plugins:
                                 logger=self.__logger
                             )
 
+                print(self._plugins)
                 obj = self._plugins.get(module_name)
                 obj.configure(config[module_name])
 
