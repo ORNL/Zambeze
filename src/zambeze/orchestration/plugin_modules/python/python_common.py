@@ -1,2 +1,2 @@
-SUPPORTED_ACTIONS = {"bash": False}
+SUPPORTED_ACTIONS = {}
 PLUGIN_NAME = "python"

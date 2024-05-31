@@ -40,7 +40,9 @@ def main():
             f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
             "a.gif",
         ],
-        logger=logger,
+        py_script_uri=f"{curr_dir}/scripts/python_tests/ml_imports.py",
+        env_activation_cmd="conda activate example_env",
+        logger=logger
     )
 
     campaign.add_activity(activity)

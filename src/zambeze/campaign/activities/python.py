@@ -40,6 +40,8 @@ class PythonActivity(Activity):
         self,
         name: str,
         files: list[str],
+        py_script_uri: str,
+        env_activation_cmd: str,
         command: str,
         arguments: list[str],
         logger: logging.Logger = None,
@@ -73,19 +75,14 @@ class PythonActivity(Activity):
         self.logger.info(self.files)
         self.working_dir = ""
         self.type = "PYTHON"
-        self.plugin_args = {
-            "shell": "bash",
-            "parameters": {
-                "command": self.command,
-                "args": self.arguments,
-                "env_vars": self.env_vars,
-            },
-        }
+
+        self.py_script_uri = py_script_uri
+        self.env_activation_cmd = env_activation_cmd
 
     def generate_message(self) -> AbstractMessage:
         factory = MessageFactory(logger=self.logger)
         template = factory.create_template(
-            MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
+            MessageType.ACTIVITY, ActivityType.PYTHON, {"shell": "bash", "python": "nan"}
         )
 
         try:
@@ -98,13 +95,17 @@ class PythonActivity(Activity):
             template[1].credential = {}
             template[1].submission_time = str(int(time.time()))
 
-            # These go into just SHELL activities.
+            # These go into just PYTHON activities
             template[1].body.type = "PYTHON"
-            template[1].body.shell = "bash"
             template[1].body.files = self.files
-            template[1].body.parameters.program = self.command
+            template[1].body.py_script_uri = self.py_script_uri
+            template[1].body.env_activation_cmd = self.env_activation_cmd
             template[1].body.parameters.args = self.arguments
             template[1].body.parameters.env_vars = self.env_vars
+
+            # These go into just SHELL activities.
+            template[1].body.parameters.program = self.command  # TODO: remove!
+
         except Exception as e:
             self.logger.info(f"[Python] Error in Python Activity: {e}")
 

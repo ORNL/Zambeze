@@ -166,8 +166,8 @@ class Python(Plugin):
 
         """
 
-        self._logger.debug("[python.py] In SHELL check function!")
-        print("[python.py] In SHELL check function!")
+        self._logger.debug("[python.py] In PYTHON check function!")
+        print("[python.py] In PYTHON check function!")
 
         checks = []
         arguments_check = False
@@ -216,6 +216,11 @@ class Python(Plugin):
         self._logger.info("[1111] Arguments passed to shell process are")
         self._logger.info(f"[2222] {arguments}")
         for data in arguments:
+            # Create argument that looks roughly like:
+            # $ <environment_init>; <environment activate>; <script run>
+            # $ module load python_module; conda activate env_name; python3 script.py
+
+            # A: grab the <environment_init> from settings
             cmd = data["bash"]["args"]
             cmd.insert(0, data["bash"]["command"])
             self._logger.info(f"[3333] CMD: {cmd}")
@@ -231,8 +236,6 @@ class Python(Plugin):
                     merged_env = merge_env_variables(
                         parent_env, data["bash"]["env_vars"]
                     )
-            #                for env_tup in data["bash"]["env_vars"]:
-            #                    parent_env[env_tup[0]] = env_tup[1]
             except ValueError as e:
                 self._logger.error(f"Caught ValueError: {e}")
 
@@ -240,11 +243,6 @@ class Python(Plugin):
 
             self._logger.debug(f"Running SHELL command: {shell_cmd}")
 
-            # converting to use actual SHELL so subprocess can inherit parent env
-            #   (dev note 1: needed for Tyler's ORNL M1 Mac)
-            #   (dev note 2: shell=False can lead to shell injection attacks
-            #       if cmd coming from untrusted source. See:
-            # https://stackoverflow.com/questions/21009416/python-subprocess-security)
-            # shell_exec = subprocess.Popen(shell_cmd, shell=True, env=parent_env)
+            # Step 1. Activate the local environment, execute Python script.
             shell_exec = subprocess.Popen(shell_cmd, shell=True, env=merged_env)
             shell_exec.wait()
