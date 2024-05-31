@@ -15,15 +15,7 @@ from zambeze.auth.globus_auth import GlobusAuthenticator
 
 
 class Campaign:
-    """A Scientific Campaign class to manage and dispatch campaign activities.
-
-    Attributes:
-        name (str): The name of the campaign.
-        campaign_id (str): A unique identifier for the campaign.
-        needs_globus_login (bool): A flag indicating if Globus login is needed.
-        activities (list[Activity]): A list of activities associated with the campaign.
-        _logger (logging.Logger): Logger for logging information, warnings, and errors.
-    """
+    """A Scientific Campaign class to manage and dispatch campaign activities."""
 
     def __init__(
         self,
@@ -34,10 +26,16 @@ class Campaign:
     ) -> None:
         """Initializes a Campaign instance.
 
-        Args:
-            name (str): The campaign name.
-            activities (Optional[list[Activity]]): A list of activities (default is empty list).
-            logger (Optional[logging.Logger]): A logger instance (default is module logger).
+        Parameters
+        ----------
+            name : str
+                The name of the campaign.
+            activities : str, optional
+                List of science activities for processing by Zambeze.
+            logger : logging.Logger, optional
+                Logger object to flush stderr and stdout
+            force_login : bool
+                Boolean whether to force a Globus Auth flow.
         """
         self._logger = logging.getLogger(__name__) if logger is None else logger
         self.name = name
@@ -54,8 +52,10 @@ class Campaign:
     def add_activity(self, activity: Activity) -> None:
         """Adds an activity to the campaign.
 
-        Args:
-            activity (Activity): The activity to add to the campaign.
+        Parameters
+        ----------
+            activity : Activity
+                The activity to add to the campaign.
         """
         self._logger.debug(f"Adding activity: {activity.name}")
         activity.campaign_id = self.campaign_id
@@ -70,6 +70,9 @@ class Campaign:
         self.activities.append(activity)
 
     def _pack_dag_for_dispatch(self):
+        """Package the graph in a way that is amenable to send to the
+        Zambeze activity queues.
+        """
         # Create a DAG to organize activities
         last_activity = None
         token_obj = {}
@@ -118,8 +121,7 @@ class Campaign:
         return dag
 
     def dispatch(self) -> None:
-        """
-        Dispatches the serialized Directed Acyclic Graph (DAG) of activities via ZeroMQ to the Zambeze service.
+        """Dispatches the serialized Directed Acyclic Graph (DAG) of activities via ZeroMQ to the Zambeze service.
 
         This method prepares a ZeroMQ context and socket, connects to the specified Zambeze
         service host and port (from user's settings), and sends the serialized DAG.
@@ -128,10 +130,6 @@ class Campaign:
         the DAG is received by the Zambeze service. The method logs all critical steps, errors, and exceptions during the
         dispatch process.
 
-        Raises:
-            - None
-        Returns:
-            - None
         Notes:
             - This method uses ZeroMQ for communication. Ensure that the network settings are correctly configured.
             - The Zambeze agent must be running and accessible at the specified host and port.
