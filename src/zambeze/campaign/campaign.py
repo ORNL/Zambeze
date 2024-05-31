@@ -28,14 +28,14 @@ class Campaign:
 
         Parameters
         ----------
-            name : str
-                The name of the campaign.
-            activities : str, optional
-                List of science activities for processing by Zambeze.
-            logger : logging.Logger, optional
-                Logger object to flush stderr and stdout
-            force_login : bool
-                Boolean whether to force a Globus Auth flow.
+        name : str
+            The name of the campaign.
+        activities : str, optional
+            List of science activities for processing by Zambeze.
+        logger : logging.Logger, optional
+            Logger object to flush stderr and stdout
+        force_login : bool
+            Boolean whether to force a Globus Auth flow.
         """
         self._logger = logging.getLogger(__name__) if logger is None else logger
         self.name = name
@@ -54,8 +54,8 @@ class Campaign:
 
         Parameters
         ----------
-            activity : Activity
-                The activity to add to the campaign.
+        activity : Activity
+            The activity to add to the campaign.
         """
         self._logger.debug(f"Adding activity: {activity.name}")
         activity.campaign_id = self.campaign_id
@@ -130,7 +130,8 @@ class Campaign:
         the DAG is received by the Zambeze service. The method logs all critical steps, errors, and exceptions during the
         dispatch process.
 
-        Notes:
+        Notes
+        -----
             - This method uses ZeroMQ for communication. Ensure that the network settings are correctly configured.
             - The Zambeze agent must be running and accessible at the specified host and port.
             - The method will log detailed error messages if it fails to send the DAG or does not receive a response within
