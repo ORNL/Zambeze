@@ -33,6 +33,8 @@ def main():
     )
     files = [dir_path + f"{i:02d}.jpg" for i in range(1, 11)]
 
+    print(files)
+
     activity = ShellActivity(
         name="ImageMagick",
         files=files,
@@ -43,14 +45,18 @@ def main():
         env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
     )
 
+    print(activity.files)
+
     transfer = TransferActivity(
         name="Transfer end result Tyler's personal (non-work) computer",
-        source_file=f"globus://{work_EP_ID}/Users/tylerskluzacek/Desktop/tmp_zambeze/a.gif",
+        source_target=f"globus://{work_EP_ID}/Users/tylerskluzacek/Desktop/tmp_zambeze/a.gif",
         dest_directory=f"globus://{EP_ID}/Users/tylerskluzacek/z_results",
         override_existing=False,
     )
 
-    campaign.add_activity(activity)
+    print(transfer.activity_type)
+
+    # campaign.add_activity(activity)
     campaign.add_activity(transfer)
 
     # run the campaign

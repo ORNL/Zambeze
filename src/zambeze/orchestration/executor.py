@@ -153,23 +153,26 @@ class Executor(threading.Thread):
             activity_msg = dag_msg[1]["activity"]
             predecessors = dag_msg[1]["predecessors"]
 
-            # transfer_params = dag_msg[1]["transfer_params"]
             transfer_tokens = dag_msg[1]["transfer_tokens"]
-
-            self._logger.info(f"JTRANSFER TOKENS: {transfer_tokens}")
 
             # *** HERE WE DO PREDECESSOR CHECKING (to unlock actual activity task) ***
             self._logger.info(f"[exec] Activity has predecessors: {predecessors}")
 
             self._logger.info(f"Foo the bar: {activity_msg}")
             # STEP 1. Confirm the monitor is MONITORING.
-            campaign_id = activity_msg.campaign_id
+
+            try:
+                campaign_id = activity_msg.campaign_id
+            except AttributeError as e:
+                self._logger.error("[exec] Campaign ID not present in activity! Continuing...")
+                continue
 
             if (
                 "MONITOR" in predecessors
             ):  # TODO: allow MONITOR *AND OTHER* predecessors.
                 self._logger.info(
                     f"[exec] Checking monitor message for campaign ID: {campaign_id}"
+                    # TODO: GOT THIS!
                 )
 
                 # Wait until we receive a monitoring heartbeat.
@@ -226,7 +229,8 @@ class Executor(threading.Thread):
                     if total_completed == len(pred_track_dict):
                         break
 
-            if activity_msg.type.upper() == "SHELL":
+            self._logger.info(f"HOKAY {activity_msg.activity_type}")
+            if activity_msg.activity_type.upper() == "SHELL":
                 self._logger.info("[exec] SHELL message received:")
 
                 # self._logger.info(activity_msg.data.body)
@@ -290,8 +294,13 @@ class Executor(threading.Thread):
                 #     self._logger.debug(
                 #         "Skipping run - error detected when running " "plugin check"
                 #     )
-            elif activity_msg.data.body.type == "TRANSFER":
-                source_file = activity_msg.data
+            elif activity_msg.activity_type == "TRANSFER":
+
+                self._logger.info(f"KTransfer activity received!")
+
+                source_file = activity_msg.source_target
+
+                self._logger.info(f"K2")
 
                 transfer_hippo = TransferHippo(
                     agent_id=self._agent_id,
@@ -300,9 +309,11 @@ class Executor(threading.Thread):
                     tokens=transfer_tokens,
                 )
 
+                self._logger.info(f"K3")
+
                 # Load all files into the TransferHippo.
                 self._logger.info("[exec] Loading files into TransferHippo.")
-                transfer_hippo.load(source_file)
+                transfer_hippo.load([source_file])
                 # Validate that all files are accessible.
                 self._logger.info("[exec] Validating file accessibility.")
                 transfer_hippo.validate()
@@ -334,7 +345,6 @@ class Executor(threading.Thread):
         """
         Process a list of files by generating transfer requests when files are
         not available locally.
-
         :param files: List of files
         :type files: list[str]
         """

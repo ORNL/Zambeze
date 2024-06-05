@@ -14,9 +14,19 @@ from zambeze.campaign.activities.dag import DAG
 from .temp_activity_to_plugin_map import activity_to_plugin_map
 
 
+# TODO: TYLER DELETE
+from zambeze.campaign.activities import Activity, TransferActivity
+
+
 class MessageHandler(threading.Thread):
     def __init__(self, agent_id, settings, logger):
         threading.Thread.__init__(self)
+
+        self.send_activity_counter = 0
+        self.not_transfer_count = 0
+        self.is_transfer_count = 0
+
+
         self.agent_id = agent_id
         self._settings = settings
         self._logger = logger
@@ -132,6 +142,10 @@ class MessageHandler(threading.Thread):
                         node_data["activity"].origin_agent_id = self.agent_id
                         node_data["activity_status"] = "SUBMITTED"
 
+                        if isinstance(node_data["activity"], Activity):
+                            if isinstance(node_data["activity"], TransferActivity):
+                                self._logger.info(f"JUNETEST2: {node_data['activity'].activity_type}")
+
                 except Exception as e:
                     self._logger.error(e)
 
@@ -155,7 +169,6 @@ class MessageHandler(threading.Thread):
 
     # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     def _callback(self, ch, method, _properties, body):
-        self._logger.debug("uno")
         self._logger.debug(
             "[mh-recv-activity] Processing callback function for activity queue recv."
         )
@@ -185,11 +198,15 @@ class MessageHandler(threading.Thread):
 
             self._logger.debug("cinco")
 
-            # TODO: TYLER THIS IS CAUSING PROBLEM
-            # I THINK I NEED TO MAXIMIZE
+            self._logger.info(activity_node[1]["activity"])
+            self._logger.info("HERE GOES")
+            self._logger.info(dir(activity_node[1]["activity"]))
+
+
+
             try:
                 required_plugin = activity_to_plugin_map[
-                    activity_node[1]["activity"].type.upper()
+                    activity_node[1]["activity"].activity_type
                 ]
             except Exception as e:
                 self._logger.exception(f"Caught-a-lot: {e}")
@@ -258,7 +275,21 @@ class MessageHandler(threading.Thread):
             self._logger.info("[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 
+            self.send_activity_counter += 1
+            self._logger.info(f"SEND ACTIVITY COUNTER: {self.send_activity_counter}")
+
             self._logger.info(f"[send_activity] Dispatching message: {activity_msg}...")
+
+            if isinstance(activity_msg[1]["activity"], Activity):
+                if isinstance(activity_msg[1]["activity"], TransferActivity):
+                    self._logger.info(f"JUNETEST3: {activity_msg[1]['activity'].activity_type}")
+                    self.is_transfer_count += 1
+                else:
+                    self.not_transfer_count += 1
+            else:
+                self.not_transfer_count += 1
+            self._logger.info(f"NOT TRANSFER {self.not_transfer_count}")
+            self._logger.info(f"IS TRANSFER {self.not_transfer_count}")
 
             try:
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
@@ -331,6 +362,7 @@ class MessageHandler(threading.Thread):
 
     # TODO: feature add: -- are_plugins_configured AND necessary_actions_supported.
     def are_plugins_configured(self, plugin_label):
+        self._logger.info(f"Checking to see if plugin---{plugin_label}---configured!")
         return self._settings.is_plugin_configured(plugin_label)
 
     def are_actions_supported(self, action_labels: list[str]):
