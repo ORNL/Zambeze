@@ -146,10 +146,15 @@ def logs(mode, num_lines, follow=False):
     follow : bool
         Boolean whether to follow the log file. Available only in the 'tail' mode.
     """
+
+    # Head mode does not support following logs
+    if mode == "head" and follow:
+        logger.info("Cannot follow logs in head mode. Exiting...")
+        return
+
     state_path = pathlib.Path.home() / ".zambeze/agent.state"
     if not state_path.is_file():
-        msg = "Agent does not exist, start an agent with `zambeze start`"
-        logger.info(msg)
+        logger.info("Agent does not exist, start an agent with `zambeze start`")
         return
 
     with state_path.open("r") as f:
@@ -259,10 +264,6 @@ def main():
     elif args.command == "status":
         status()
     elif args.command == "logs":
-        # Head mode does not support following logs
-        if args.mode == "head" and args.follow:
-            print("Cannot follow logs in head mode. Exiting...")
-        else:
-            logs(args.mode, args.numlines, args.follow)
+        logs(args.mode, args.numlines, args.follow)
     else:
         print("Use \33[32mzambeze --help\33[0m for zambeze agent commands")
