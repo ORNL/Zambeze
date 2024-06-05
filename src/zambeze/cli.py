@@ -9,6 +9,7 @@ import logging
 import os
 import pathlib
 import subprocess
+import time
 
 from datetime import datetime
 from importlib.metadata import version
@@ -133,9 +134,17 @@ def status():
     logger.info(f"Agent status is {old_state['status']}")
 
 
-def logs(mode, num_lines):
-    """
-    Logs for the zambeze agent.
+def logs(mode, num_lines, follow=False):
+    """Provides logging information of the agent.
+
+    Parameters
+    ----------
+    mode : str
+        Mode for displaying logs. Can be either 'head' or 'tail'.
+    num_lines : int
+        Number of lines to display.
+    follow : bool
+        Boolean whether to follow the log file. Available only in the 'tail' mode.
     """
     state_path = pathlib.Path.home() / ".zambeze/agent.state"
     if not state_path.is_file():
@@ -155,8 +164,9 @@ def logs(mode, num_lines):
             return
 
         if mode == "tail":
-            # Seek to the end of the file and read the last `num_lines` lines going backwards.
-            # Uses a new line character as a delimiter to count the number of lines seen so far.
+            # Seek to the end of the file and read the last `num_lines` lines going
+            # backwards. Uses a new line character as a delimiter to count the number of lines
+            # seen so far. If follow is set, keep reading the file for new lines
             with open(log_file, "rb") as f:
                 f.seek(0, os.SEEK_END)
                 end = curr = f.tell()
@@ -173,6 +183,17 @@ def logs(mode, num_lines):
 
                 for line in f:
                     print(line.decode().strip())
+
+                if follow:
+                    try:
+                        while True:
+                            line = f.readline()
+                            if not line:
+                                time.sleep(0.1)
+                            else:
+                                print(line.decode().strip())
+                    except KeyboardInterrupt:
+                        print()
         else:
             # Display the first `num_lines` lines of the log file
             with open(log_file, "r") as f:
@@ -208,6 +229,12 @@ def main():
         default=10,
         help="Number of lines to display (default: 10)",
     )
+    logs_parser.add_argument(
+        "-f",
+        "--follow",
+        action="store_true",
+        help="Follow the log file",
+    )
 
     parser.add_argument("-c", "--config", action="store_true", help="blah blah")
     parser.add_argument("-v", "--version", action="version", version=version("zambeze"))
@@ -232,6 +259,10 @@ def main():
     elif args.command == "status":
         status()
     elif args.command == "logs":
-        logs(args.mode, args.numlines)
+        # Head mode does not support following logs
+        if args.mode == "head" and args.follow:
+            print("Cannot follow logs in head mode. Exiting...")
+        else:
+            logs(args.mode, args.numlines, args.follow)
     else:
         print("Use \33[32mzambeze --help\33[0m for zambeze agent commands")
