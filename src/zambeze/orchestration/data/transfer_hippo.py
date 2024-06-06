@@ -70,13 +70,21 @@ class TransferHippo:
 
             self.file_objects[file_path_resolved] = {"file_url": file_url}
 
-    def validate(self):
+    def validate(self, dest_directory=None):
         """
         Validate that all file paths are in the correct format relative to the transfer type.
 
         Returns:
             bool: True if validation is successful, False otherwise.
         """
+        # TODO: TURN ON. Stop trying to do too much.
+        # if dest_directory:
+        #     if not valid_uuid(dest_directory.netloc, 4):
+        #         self._logger.error(
+        #             "[th-validate] Globus (destination) Endpoint ID not in valid UUID4 format."
+        #         )
+        #         return False
+
         for file_path_resolved, file_data in self.file_objects.items():
             file_url = file_data["file_url"]
 
@@ -124,7 +132,7 @@ class TransferHippo:
         # TODO: Implement authentication check logic.
         return True
 
-    def start_transfer(self):
+    def start_transfer(self, dest_directory: str = None):
         """
         Start the transfer process for files loaded into the TransferHippo.
         """
@@ -150,14 +158,24 @@ class TransferHippo:
             if not globus_init:
                 globus_init = True
                 source_ep = file_url_obj.netloc
-                dest_ep = self._settings.settings["plugins"]["globus"]["local_ep"]
+                if not dest_directory:
+                    dest_ep = self._settings.settings["plugins"]["globus"]["local_ep"]
+                else:
+                    dest_obj = urlparse(dest_directory)
+                    dest_ep = dest_obj.netloc
+
+                self._logger.info(f"[th-submit] ")
 
                 self._logger.info(f"EXTOKENS: {self.tokens}")
-                self.globus_transfer_client = globus_sdk.TransferClient(
-                    authorizer=globus_sdk.AccessTokenAuthorizer(
-                        self.tokens["globus"]["access_token"]
+
+                try:
+                    self.globus_transfer_client = globus_sdk.TransferClient(
+                        authorizer=globus_sdk.AccessTokenAuthorizer(
+                            self.tokens["globus"]["access_token"]
+                        )
                     )
-                )
+                except Exception as e:  # too broad
+                    self._logger.error(f"[th-submit] Globus: unable to create transfer client. Caught {e}")
                 task_data = globus_sdk.TransferData(
                     self.globus_transfer_client,
                     source_endpoint=source_ep,
@@ -165,14 +183,21 @@ class TransferHippo:
                 )
 
             filename = os.path.basename(resolved_file_url)
-            dest_filename = os.path.join(os.getcwd(), filename)
+            if dest_directory:
+                dest_filename = os.path.join(dest_directory, filename)
+            else:
+                dest_filename = os.path.join(os.getcwd(), filename)
             task_data.add_item(file_url_obj.path, dest_filename)
             globus_counter += 1
 
         if task_data and globus_counter > 0:
-            transfer_task_id = self.globus_transfer_client.submit_transfer(task_data)[
-                "task_id"
-            ]
+
+            try:
+                transfer_task_id = self.globus_transfer_client.submit_transfer(task_data)[
+                    "task_id"
+                ]
+            except Exception as e:  # TODO: too broad.
+                self._logger.error(f"[th-submit] Unable to submit Globus transfer. Caught {e}")
             s = f"[th-start] submitted transfer {globus_counter} files: task_id={transfer_task_id}"
             self._logger.info(s)
             self.globus_task_ids.append(transfer_task_id)

@@ -233,8 +233,6 @@ class Executor(threading.Thread):
             if activity_msg.activity_type.upper() == "SHELL":
                 self._logger.info("[exec] SHELL message received:")
 
-                # self._logger.info(activity_msg.data.body)
-
                 # Determine if the shell activity has files that
                 # Need to be moved to be executed
                 if (
@@ -316,13 +314,13 @@ class Executor(threading.Thread):
                 transfer_hippo.load([source_file])
                 # Validate that all files are accessible.
                 self._logger.info("[exec] Validating file accessibility.")
-                transfer_hippo.validate()
+                transfer_hippo.validate(dest_directory=activity_msg.dest_directory)
                 # Ensure that all authentication is achieved.
                 self._logger.info("[exec] Checking user auth.")
                 transfer_hippo.check_auth()
                 # Submit the transfer
                 self._logger.info("[exec] Submit the transfer.")
-                transfer_hippo.start_transfer()
+                transfer_hippo.start_transfer(dest_directory=activity_msg.dest_directory)
                 # BLOCK: wait for transfer to finish
                 self._logger.info("[exec] Wait for transfer...")
                 transfer_hippo.transfer_wait()

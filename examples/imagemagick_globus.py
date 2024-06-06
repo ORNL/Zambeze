@@ -49,7 +49,7 @@ def main():
 
     transfer = TransferActivity(
         name="Transfer end result Tyler's personal (non-work) computer",
-        source_target=f"globus://{work_EP_ID}/Users/tylerskluzacek/Desktop/tmp_zambeze/a.gif",
+        source_target=f"globus://{work_EP_ID}/Users/6o1/Desktop/tmp_zambeze/a.gif",
         dest_directory=f"globus://{EP_ID}/Users/tylerskluzacek/z_results",
         override_existing=False,
     )
