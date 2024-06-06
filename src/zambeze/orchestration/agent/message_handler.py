@@ -14,18 +14,9 @@ from zambeze.campaign.activities.dag import DAG
 from .temp_activity_to_plugin_map import activity_to_plugin_map
 
 
-# TODO: TYLER DELETE
-from zambeze.campaign.activities import Activity, TransferActivity
-
-
 class MessageHandler(threading.Thread):
     def __init__(self, agent_id, settings, logger):
         threading.Thread.__init__(self)
-
-        self.send_activity_counter = 0
-        self.not_transfer_count = 0
-        self.is_transfer_count = 0
-
 
         self.agent_id = agent_id
         self._settings = settings
@@ -142,10 +133,6 @@ class MessageHandler(threading.Thread):
                         node_data["activity"].origin_agent_id = self.agent_id
                         node_data["activity_status"] = "SUBMITTED"
 
-                        if isinstance(node_data["activity"], Activity):
-                            if isinstance(node_data["activity"], TransferActivity):
-                                self._logger.info(f"JUNETEST2: {node_data['activity'].activity_type}")
-
                 except Exception as e:
                     self._logger.error(e)
 
@@ -175,12 +162,7 @@ class MessageHandler(threading.Thread):
         activity_node = DAG.deserialize_node(body)
         self._logger.info(f"[mn-recv-activity] receiving activity...{activity_node}")
 
-        plugins_are_configured = False
-        actions_are_supported = False
-
         # Anyone can monitor or terminate.
-        self._logger.debug("dos")
-
         if activity_node[0] in ["MONITOR", "TERMINATOR"]:
             self._logger.debug("tres")
             plugins_are_configured = True
@@ -190,53 +172,39 @@ class MessageHandler(threading.Thread):
             )
 
         else:
-            self._logger.debug("quatro")
             try:
                 self._logger.info("[mh] Unpacking activity info from queue...")
             except Exception as e:
                 self._logger.error(e)
 
-            self._logger.debug("cinco")
-
-            self._logger.info(activity_node[1]["activity"])
-            self._logger.info("HERE GOES")
-            self._logger.info(dir(activity_node[1]["activity"]))
-
-
-
             try:
                 required_plugin = activity_to_plugin_map[
                     activity_node[1]["activity"].activity_type
                 ]
+                plugins_are_configured = self.are_plugins_configured(required_plugin)
+                actions_are_supported = True
+
             except Exception as e:
                 self._logger.exception(f"Caught-a-lot: {e}")
-            self._logger.debug("ses")
-            plugins_are_configured = self.are_plugins_configured(required_plugin)
-            actions_are_supported = (
-                True  # self.are_actions_supported(action_labels=[""])
-            )
+                plugins_are_configured = False
+                actions_are_supported = False
 
-        self._logger.debug("siete")
         should_ack = plugins_are_configured and actions_are_supported
 
         self._logger.info(
             f"[mh] Should ack: {should_ack} | Plugins Configured: {plugins_are_configured}"
         )
 
-        self._logger.debug("ocho")
-
         try:
             if should_ack:
                 ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] ACKED activity message.")
                 self.check_activity_q.put(activity_node)
-                self._logger.debug("nueve")
             else:
                 ch.basic_nack(delivery_tag=method.delivery_tag, multiple=False)
                 self._logger.debug("[recv activity] NACKED activity message.")
                 # stuck in NACK loop; sleep helps alleviate what happens when
                 #   a task can't get picked up by anyone (temporary).
-                self._logger.debug("dies")
                 time.sleep(1)
         except Exception as e:
             self._logger.error(f"[mh] COULD NOT ACK! CAUGHT: {type(e).__name__}: {e}")
@@ -275,22 +243,7 @@ class MessageHandler(threading.Thread):
             self._logger.info("[send_activity] Waiting for messages...")
             activity_msg = self.msg_handler_send_activity_q.get()
 
-            self.send_activity_counter += 1
-            self._logger.info(f"SEND ACTIVITY COUNTER: {self.send_activity_counter}")
-
             self._logger.info(f"[send_activity] Dispatching message: {activity_msg}...")
-
-            if isinstance(activity_msg[1]["activity"], Activity):
-                if isinstance(activity_msg[1]["activity"], TransferActivity):
-                    self._logger.info(f"JUNETEST3: {activity_msg[1]['activity'].activity_type}")
-                    self.is_transfer_count += 1
-                else:
-                    self.not_transfer_count += 1
-            else:
-                self.not_transfer_count += 1
-            self._logger.info(f"NOT TRANSFER {self.not_transfer_count}")
-            self._logger.info(f"IS TRANSFER {self.not_transfer_count}")
-
             try:
                 queue_client.send(exchange="", channel="ACTIVITIES", body=activity_msg)
             except Exception as e:
