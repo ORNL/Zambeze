@@ -1,6 +1,6 @@
 name: Pytest tests
 
-on: push
+on: [push, pull_request]
 
 jobs:
   pytest-tests:
