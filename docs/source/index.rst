@@ -12,6 +12,7 @@ The source code for zambeze is available on `GitHub <https://github.com/ORNL/zam
    get-started/installation
    get-started/usage
    get-started/contributing
+   get-started/logging
 
 .. toctree::
    :caption: Examples
