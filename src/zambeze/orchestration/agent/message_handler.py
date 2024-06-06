@@ -15,6 +15,18 @@ from .temp_activity_to_plugin_map import activity_to_plugin_map
 
 
 class MessageHandler(threading.Thread):
+    """Message Handler is a persistent series of threads that
+    handles all message queue communication in Zambeze.
+
+    Parameters
+    ----------
+    agent_id : str
+        uuid-style string representing the agent on which the handler is running
+    settings: zambeze.src.settings.Settings
+        loaded Zambeze settings object
+    logger: logging.Logger
+        zambeze core file logger.
+    """
     def __init__(self, agent_id, settings, logger):
         threading.Thread.__init__(self)
 
@@ -63,7 +75,6 @@ class MessageHandler(threading.Thread):
 
         # THREAD 2: recv activities from rmq
         activity_listener = threading.Thread(target=self.recv_activity, args=())
-        # TODO: bring back.
         # THREAD 3: recv control from RMQ
         control_listener = threading.Thread(target=self.recv_control, args=())
         # THREAD 4: recv control from RMQ
@@ -90,10 +101,8 @@ class MessageHandler(threading.Thread):
         control_sender.start()
 
     def recv_activity_dag_from_campaign(self):
-        """
-        >> Async
-
-        Receives message from campaign on ZMQ socket, saves in send_activity_q
+        """Receive the activity graph from the campaign and send its activity nodes to
+        the appropriate queues.
         """
 
         while True:
@@ -154,8 +163,22 @@ class MessageHandler(threading.Thread):
                 f"[message_handler] Number of activities sent for campaign: {num_activities}"
             )
 
-    # Custom RabbitMQ callback; made decision to put here so that we can access the messages.
     def _callback(self, ch, method, _properties, body):
+        """RabbitMQ callback method to process messages from the ACTIVITIES message queue.
+        Determines whether to acknowledge (ACK) or not acknowledge (NACK) each message based on
+        whether the required plugins are configured and the actions are supported.
+
+        Parameters
+        ----------
+        ch : pika.channel.Channel
+            The channel instance from RabbitMQ used to send the ACK/NACK decision.
+        method : pika.spec.Basic.Deliver
+            Delivery method containing delivery metadata, such as the delivery tag used in ACK/NACK.
+        _properties : pika.spec.BasicProperties
+            Message properties, not used in this function but required by the callback signature.
+        body : bytes
+            The message body which is expected to be a serialized DAG node that specifies the activity.
+        """
         self._logger.debug(
             "[mh-recv-activity] Processing callback function for activity queue recv."
         )
@@ -164,7 +187,6 @@ class MessageHandler(threading.Thread):
 
         # Anyone can monitor or terminate.
         if activity_node[0] in ["MONITOR", "TERMINATOR"]:
-            self._logger.debug("tres")
             plugins_are_configured = True
             actions_are_supported = True
             self._logger.info(
@@ -185,7 +207,7 @@ class MessageHandler(threading.Thread):
                 actions_are_supported = True
 
             except Exception as e:
-                self._logger.exception(f"Caught-a-lot: {e}")
+                self._logger.exception(f"Caught plugin check error: {e}")
                 plugins_are_configured = False
                 actions_are_supported = False
 
@@ -210,12 +232,7 @@ class MessageHandler(threading.Thread):
             self._logger.error(f"[mh] COULD NOT ACK! CAUGHT: {type(e).__name__}: {e}")
 
     def recv_activity(self):
-        """
-        >> Async
-
-        Get activity from 'ACTIVITIES' queue.
-        If we have the correct plugins, then we keep it (ack). Otherwise, we
-        put it back (nack).
+        """Receive activity via RabbitMQ ACTIVITIES channel. Triggers _callback().
         """
 
         self._logger.info("[mh] Connecting to RabbitMQ RECV ACTIVITY broker...")
@@ -231,8 +248,7 @@ class MessageHandler(threading.Thread):
         )
 
     def send_activity_dag(self):
-        """
-        (from agent.py) input activity; send to "ACTIVITIES" queue.
+        """From RabbitMQ, send activities on RabbitMQ ACTIVITIES channel.
         """
 
         self._logger.info("[mh] Connecting to RabbitMQ SEND ACTIVITY broker...")
@@ -254,8 +270,7 @@ class MessageHandler(threading.Thread):
                 self._logger.debug("[send_activity] Successfully sent activity!")
 
     def recv_control(self):
-        """
-        Receive messages from the control channel!
+        """Receive messages from the RabbitMQ CONTROL channel.
         """
 
         self._logger.info("[mh] Connecting to RabbitMQ RECV CONTROL broker...")
@@ -272,8 +287,7 @@ class MessageHandler(threading.Thread):
         )
 
     def send_control(self):
-        """
-        (from agent.py) input control message; send to "CONTROL" queue.
+        """Continuously send control messages along the RabbitMQ CONTROL channel.
         """
 
         self._logger.info("[mh] Connecting to RabbitMQ SEND CONTROL broker...")
@@ -306,6 +320,19 @@ class MessageHandler(threading.Thread):
         # The bool is a true or false which indicates if the action
         # for the plugin is a problem, the message is an error message
         # or a success statement
+
+        Parameters
+        ----------
+        plugin : str
+            The name of a single plugin to try.
+        cmd : str
+            An argument that could be capably run by a given plugin
+            (e.g., a Transfer plugin could 'auth').
+
+        Returns
+        -------
+        bool
+            Determines whether there were any errors in the plugin-checking process.
         """
 
         checked_result = self._settings.plugins.check(plugin_name=plugin, arguments=cmd)
@@ -315,10 +342,33 @@ class MessageHandler(threading.Thread):
 
     # TODO: feature add: -- are_plugins_configured AND necessary_actions_supported.
     def are_plugins_configured(self, plugin_label):
+        """Check to see if plugins are configured.
+
+        Parameters
+        ----------
+        plugin_label : str
+            Name of plugin
+
+        """
         self._logger.info(f"Checking to see if plugin---{plugin_label}---configured!")
         return self._settings.is_plugin_configured(plugin_label)
 
     def are_actions_supported(self, action_labels: list[str]):
-        self._logger(f"Action labels: {action_labels}")
-        """ TODO: Should potentially return false once we do action checking. """
+        """Determine whether actions are supported.
+
+        Parameters
+        ----------
+        action_labels: list[str]
+            Labels of actions we want to check whether the plugins can process
+
+        Returns
+        -------
+        bool
+            Whether the actions are all supported
+
+        Notes
+        -----
+        - Currently always returns 'TRUE' as actions are not implemented (just plugins).
+        """
+        self._logger.info(f"Action labels: {action_labels}")
         return True
