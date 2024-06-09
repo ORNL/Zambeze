@@ -50,8 +50,12 @@ def start():
     # Create path for log file
     fmt = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
     log_path = pathlib.Path.home() / ".zambeze/logs" / fmt / "zambeze.log"
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    log_path.touch(exist_ok=True)
+    try:
+        log_path.parent.mkdir(exist_ok=True)
+        log_path.touch(exist_ok=True)
+    except OSError:
+        logger.error(f"Failed to create log file at {log_path}")
+        return
     logger.info(f"Log path is {log_path}")
 
     # Pass stdout/stderr to devnull (in subprocesses) to avoid memory issues.
@@ -160,19 +164,14 @@ def logs(mode, num_lines, follow=False):
     with state_path.open("r") as sf:
         state = json.load(sf)
         state_mtime = state_path.stat().st_mtime
-        log_file = pathlib.Path(state.get("log_path"))
 
+        log_file = pathlib.Path(state.get("log_path"))
+        # Not found msg, also used while tracking log file changes
+        log_not_found_msg = "Log file not found for agent, verify the agent's state with `zambeze status`"
         # If the log file for the most recent agent as described by the agent's state
         # does not exist (for eg. in case of manual deletion), we don't have the log file to display
-        def _valid_log_file(log_file):
-            if not log_file.is_file():
-                logger.info(
-                    "Log file not found for agent, verify the agent's state with `zambeze status`"
-                )
-                return False
-            return True
-
-        if not _valid_log_file(log_file):
+        if not log_file.is_file():
+            logger.info(log_not_found_msg)
             return
 
         if mode == "tail":
@@ -211,11 +210,11 @@ def logs(mode, num_lines, follow=False):
                                 mlog_file = pathlib.Path(mstate.get("log_path"))
                                 # The validity check while following is mostly not neeeded because the implicit assumption
                                 # is that the agent itself modified the log path and is valid. But for isolation, we do the check
-                                if not _valid_log_file(mlog_file):
+                                if not mlog_file.is_file():
+                                    logger.info(log_not_found_msg)
                                     break
                                 lf.close()
-                                lf = open(mstate.get("log_path"), "rb")
-                                lf.seek(0, os.SEEK_SET)
+                                lf = open(mlog_file, "rb")
                             state = mstate
                             state_mtime = mstate_mtime
 
