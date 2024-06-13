@@ -20,7 +20,7 @@ class Campaign:
     def __init__(
         self,
         name: str,
-        activities: Optional[list[Activity]] = None,
+        activities: list[Activity],
         logger: Optional[logging.Logger] = None,
         force_login: bool = False,
     ) -> None:
@@ -30,10 +30,10 @@ class Campaign:
         ----------
         name : str
             The name of the campaign.
-        activities : str, optional
+        activities : list
             List of science activities for processing by Zambeze.
         logger : logging.Logger, optional
-            Logger object to flush stderr and stdout
+            Logger object to flush stderr and stdout.
         force_login : bool
             Boolean whether to force a Globus Auth flow.
         """
@@ -41,7 +41,7 @@ class Campaign:
         self.name = name
         self.campaign_id = str(uuid.uuid4())
         self.needs_globus_login = False
-        self.activities = activities if activities is not None else []
+        self.activities = activities
 
         self.force_login = force_login
         self.result_val = "The total wordcount from these books: gatsby, oz is 93944"
