@@ -14,9 +14,6 @@ def test_message_creation_from_campaign():  # noqa: C901
     origin_agent_id = "origin_agent_id_1"
     # running_agents = ["running_agent_1", "running_agent_2"]
 
-    # Create a campaign and add
-    campaign = Campaign("My ImageMagick Campaign")
-
     # define an activity
     curr_dir = "foobar"
     activity = ShellActivity(
@@ -60,7 +57,7 @@ def test_message_creation_from_campaign():  # noqa: C901
     """
     *** PHASE 2: Creating DAG from activity works properly ***
     """
-    campaign.add_activity(activity)
+    campaign = Campaign("My ImageMagick Campaign", activities=[activity])
     internal_dag = campaign._pack_dag_for_dispatch()
     assert isinstance(internal_dag, DAG)
 
