@@ -48,9 +48,9 @@ def start():
         return
 
     # Create path for log file
-    fmt = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-    log_path = pathlib.Path.home() / ".zambeze/logs" / fmt / "zambeze.log"
     try:
+        fmt = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
+        log_path = logs_base_dir / fmt / "zambeze.log"
         log_path.parent.mkdir(exist_ok=True)
         log_path.touch(exist_ok=True)
     except OSError:
@@ -161,26 +161,41 @@ def logs(mode, num_lines, follow=False):
         logger.info("Agent does not exist, start an agent with `zambeze start`")
         return
 
+    def _get_log_file(log_path):
+        log_file = pathlib.Path(log_path) if log_path else None
+        if not log_file or not log_file.is_file():
+            return (
+                None,
+                "Log file not found for agent, verify the agent's state with `zambeze status`",
+            )
+        return log_file, None
+
+    def _valid_follow(state, new_state):
+        # Check if the log path we are supposedly trying to follow is a valid follow. Update the log
+        # handle if so
+        mlog_path = new_state.get("log_path")
+        if mlog_path != state.get("log_path"):
+            mlog_file, err_msg = _get_log_file(mlog_path)
+            if err_msg:
+                return False, err_msg
+            state["log_handle"] = open(mlog_file, "rb")
+            state["log_path"] = mlog_path
+            return True, None
+        return False, None
+
     with state_path.open("r") as sf:
         state = json.load(sf)
-        state_mtime = state_path.stat().st_mtime
+        state["mtime"] = state_path.stat().st_mtime
 
-        log_file = pathlib.Path(state.get("log_path"))
-        # Not found msg, also used while tracking log file changes
-        log_not_found_msg = "Log file not found for agent, verify the agent's state with `zambeze status`"
-        # If the log file for the most recent agent as described by the agent's state
-        # does not exist (for eg. in case of manual deletion), we don't have the log file to display
-        if not log_file.is_file():
-            logger.info(log_not_found_msg)
+        log_file, err_msg = _get_log_file(state.get("log_path"))
+        if err_msg:
+            logger.error(err_msg)
             return
 
         if mode == "tail":
-            # Preserve the handle to explicitly control it when the log path changes and
-            # follow is set
-            lf = open(log_file, "rb")
-            # Seek to the end of the file and read the last `num_lines` lines going
-            # backwards. Uses a new line character as a delimiter to count the number of lines
-            # seen so far. If follow is set, keep reading the file for new lines
+            state["log_handle"] = lf = open(log_file, "rb")
+            # Seek to the end of the file and read the last `num_lines` lines going backwards.
+            # Uses a new line character as a delimiter to count the number of lines seen so far.
             lf.seek(0, os.SEEK_END)
             end = curr = lf.tell()
             seen_lines = 0
@@ -197,26 +212,24 @@ def logs(mode, num_lines, follow=False):
             for line in lf:
                 print(line.decode().strip())
 
+            # If follow is set, keep reading the log file for new lines. Upon agent restarts,
+            # follow the new log file if the log path has changed
             if follow:
                 try:
                     while True:
-                        # If the state file is modified (for eg. upon agent restarts), we check if the log path has changed
-                        # and start following the new log file if so
                         mstate_mtime = state_path.stat().st_mtime
-                        if mstate_mtime > state_mtime:
+                        if mstate_mtime > state["mtime"]:
                             sf.seek(0, os.SEEK_SET)
                             mstate = json.load(sf)
-                            if state.get("log_path") != mstate.get("log_path"):
-                                mlog_file = pathlib.Path(mstate.get("log_path"))
-                                # The validity check while following is mostly not neeeded because the implicit assumption
-                                # is that the agent itself modified the log path and is valid. But for isolation, we do the check
-                                if not mlog_file.is_file():
-                                    logger.info(log_not_found_msg)
-                                    break
+                            state["mtime"] = mstate_mtime
+
+                            path_change, err_msg = _valid_follow(state, mstate)
+                            if err_msg:
+                                logger.error(err_msg)
+                                break
+                            if path_change:
                                 lf.close()
-                                lf = open(mlog_file, "rb")
-                            state = mstate
-                            state_mtime = mstate_mtime
+                                lf = state["log_handle"]
 
                         line = lf.readline()
                         if not line:
