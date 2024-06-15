@@ -178,6 +178,7 @@ def logs(mode, num_lines, follow=False):
             mlog_file, err_msg = _get_log_file(mlog_path)
             if err_msg:
                 return False, err_msg
+            state["log_handle"].close()
             state["log_handle"] = open(mlog_file, "rb")
             state["log_path"] = mlog_path
             return True, None
@@ -228,7 +229,6 @@ def logs(mode, num_lines, follow=False):
                                 logger.error(err_msg)
                                 break
                             if path_change:
-                                lf.close()
                                 lf = state["log_handle"]
 
                         line = lf.readline()
