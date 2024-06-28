@@ -35,7 +35,7 @@ def test_campaign():
 
     assert activity.campaign_id is None
 
-    campaign = Campaign("My test", logger=logger)
+    campaign = Campaign("My test", activities=[activity], logger=logger)
 
     # Check that the campaign id is correctly added to teh activity
     campaign.add_activity(activity)
