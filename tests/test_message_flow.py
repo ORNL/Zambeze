@@ -23,14 +23,7 @@ def test_message_creation_from_campaign():  # noqa: C901
             for i in range(1, 11)
         ],
         command="convert",
-        arguments=[
-            "-delay",
-            "20",
-            "-loop",
-            "0",
-            f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
-            "a.gif",
-        ],
+        arguments=f"-delay 20 -loop 0 {curr_dir}/../tests/campaigns/imagesequence/*.jpg a.gif",
         # Uncomment if running on M1 Mac.
         env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
     )

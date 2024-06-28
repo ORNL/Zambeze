@@ -21,14 +21,7 @@ def test_shell_activity_generate_message():
             for i in range(1, 11)
         ],
         command="convert",
-        arguments=[
-            "-delay",
-            "20",
-            "-loop",
-            "0",
-            f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
-            "a.gif",
-        ],
+        arguments=f"-delay 20 -loop 0 {curr_dir}/../tests/campaigns/imagesequence/*.jpg a.gif",
         logger=logger,
         # Uncomment if running on M1 Mac.
         env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
@@ -68,14 +61,7 @@ def test_shell_activity_attributes():
             for i in range(1, 11)
         ],
         command="convert",
-        arguments=[
-            "-delay",
-            "20",
-            "-loop",
-            "0",
-            f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
-            "a.gif",
-        ],
+        arguments=f"-delay 20 -loop 0 {curr_dir}/../tests/campaigns/imagesequence/*.jpg a.gif",
         logger=logger,
         # Uncomment if running on M1 Mac.
         env_vars={"PATH": "$PATH:/opt/homebrew/bin"},
