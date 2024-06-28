@@ -35,14 +35,7 @@ def main():
             for i in range(1, 11)
         ],
         command="convert",
-        arguments=[
-            "-delay",
-            "20",
-            "-loop",
-            "0",
-            f"{curr_dir}/../tests/campaigns/imagesequence/*.jpg",
-            "a.gif",
-        ],
+        arguments=f"-delay 20 -loop 0 {curr_dir}/../tests/campaigns/imagesequence/*.jpg a.gif",
         logger=logger,
     )
 
