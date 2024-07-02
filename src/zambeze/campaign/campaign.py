@@ -9,6 +9,7 @@ import uuid
 
 from typing import Optional
 from .activities.abstract_activity import Activity
+from .activities import TransferActivity
 from .activities.dag import DAG
 from zambeze.settings import ZambezeSettings
 from zambeze.auth.globus_auth import GlobusAuthenticator
@@ -61,10 +62,11 @@ class Campaign:
         activity.campaign_id = self.campaign_id
         activity.running_agent_ids = []
 
-        if any(file_uri.startswith("globus://") for file_uri in activity.files):
+        # If/elif in this order because TRANSFER does not have .files
+        if activity.name == "TRANSFER":
             self.needs_globus_login = True
 
-        elif activity.name == "transfer":
+        elif any(file_uri.startswith("globus://") for file_uri in activity.files):
             self.needs_globus_login = True
 
         self.activities.append(activity)
@@ -94,12 +96,16 @@ class Campaign:
 
             transfer_params = {}
 
-            if activity.name == "TRANSFER":
-                transfer_params = {
-                    "source_file": activity.source_file,
-                    "dest_directory": activity.dest_directory,
-                    "override_existing": activity.override_existing,
-                }
+            # if activity.activity_type == "TRANSFER":
+            #     transfer_params = {
+            #         "source_file": activity.source_target,
+            #         "dest_directory": activity.dest_directory,
+            #         "override_existing": activity.override_existing,
+            #     }
+
+            if isinstance(activity, Activity):
+                if isinstance(activity, TransferActivity):
+                    print(f"JUNETEST1: {activity.activity_type}")
 
             dag.add_node(
                 activity.activity_id,
@@ -149,6 +155,9 @@ class Campaign:
         )
 
         dag = self._pack_dag_for_dispatch()
+
+
+
         serial_dag = dag.serialize_dag()
         self._logger.debug("Sending activity DAG via ZMQ...")
 

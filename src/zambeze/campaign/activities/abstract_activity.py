@@ -51,6 +51,7 @@ class Activity(ABC):
     source_file: Optional[str]
     dest_directory: Optional[str]
     override_existing: Optional[bool]
+    activity_type: Optional[str]
 
     def __init__(
         self,
@@ -68,6 +69,7 @@ class Activity(ABC):
         dest_directory: Optional[str] = None,
         override_existing: Optional[bool] = False,
         submission_time: Optional[str] = None,
+        activity_type: Optional[str] = None,
         **kwargs,
     ) -> None:
         self.running_agent_ids = (
@@ -89,6 +91,7 @@ class Activity(ABC):
         self.dest_directory = dest_directory
         self.override_existing = override_existing
         self.status: ActivityStatus = ActivityStatus.CREATED
+        self.activity_type = activity_type
         self.__dict__.update(kwargs)
 
         self.submission_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
