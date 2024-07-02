@@ -19,6 +19,32 @@ from signal import SIGKILL
 logger = logging.getLogger(__name__)
 
 
+def _get_log_file(log_path):
+    # Given a log path, returns the corresponding log file if it exists
+    log_file = pathlib.Path(log_path) if log_path else None
+    if not log_file or not log_file.is_file():
+        return (
+            None,
+            "Log file not found for agent, verify the agent's state with `zambeze status`",
+        )
+    return log_file, None
+
+
+def _valid_follow(state, new_state):
+    # Checks if the log path has changed in the agent's new state and updates the log handle if so. Otherwise, it is
+    # an invalid follow
+    mlog_path = new_state.get("log_path")
+    if mlog_path != state.get("log_path"):
+        mlog_file, err_msg = _get_log_file(mlog_path)
+        if err_msg:
+            return False, err_msg
+        state["log_handle"].close()
+        state["log_handle"] = open(mlog_file, "rb")
+        state["log_path"] = mlog_path
+        return True, None
+    return False, None
+
+
 def start():
     """
     Start Zambeze agent as its own daemonized subprocess. This will write logs
@@ -160,29 +186,6 @@ def logs(mode, num_lines, follow=False):
     if not state_path.is_file():
         logger.info("Agent does not exist, start an agent with `zambeze start`")
         return
-
-    def _get_log_file(log_path):
-        log_file = pathlib.Path(log_path) if log_path else None
-        if not log_file or not log_file.is_file():
-            return (
-                None,
-                "Log file not found for agent, verify the agent's state with `zambeze status`",
-            )
-        return log_file, None
-
-    def _valid_follow(state, new_state):
-        # Check if the log path we are supposedly trying to follow is a valid follow. Update the log
-        # handle if so
-        mlog_path = new_state.get("log_path")
-        if mlog_path != state.get("log_path"):
-            mlog_file, err_msg = _get_log_file(mlog_path)
-            if err_msg:
-                return False, err_msg
-            state["log_handle"].close()
-            state["log_handle"] = open(mlog_file, "rb")
-            state["log_path"] = mlog_path
-            return True, None
-        return False, None
 
     with state_path.open("r") as sf:
         state = json.load(sf)
