@@ -13,7 +13,7 @@ def main():
     Run a shell activity campaign to generate an animated GIF.
     """
 
-    # Setup and configure logger
+    # Setup and configure a logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
@@ -25,8 +25,7 @@ def main():
 
     logger.addHandler(ch)
 
-    # Create the campaign
-    campaign = Campaign("My ImageMagick Campaign", logger=logger)
+    # Create a shell activity
     curr_dir = Path.cwd()
 
     activity = ShellActivity(
@@ -47,6 +46,8 @@ def main():
         logger=logger,
     )
 
+    # Create the campaign
+    campaign = Campaign("My ImageMagick Campaign", activities=[activity], logger=logger)
     campaign.add_activity(activity)
 
     # Run the campaign to execute the shell activity
