@@ -18,22 +18,21 @@ from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
 class ShellActivity(Activity):
-    """A Unix Shell script/command activity.
+    """A unix shell script/command activity.
 
-    :param name: Campaign activity name.
-    :type name: str
-
-    :param files: List of file URIs.
-    :type files: Optional[list[str]]
-
-    :param command: Action's command.
-    :type command: Optional[str]
-
-    :param arguments: List of arguments.
-    :type arguments: Optional[list[str]]
-
-    :param logger: The logger where to log information/warning or errors.
-    :type logger: Optional[logging.Logger]
+    Attributes
+    ----------
+    name : str
+        Name of the campaign activity.
+    files : list
+        List of the file URIs.
+    command : str
+        The action command for this activity.
+    arguments : str
+        The arguments for the command as one string. Each argument in the
+        string must be separated by a space.
+    logger : Logger
+        The logger where to log information/warning or errors.
     """
 
     def __init__(
@@ -41,7 +40,7 @@ class ShellActivity(Activity):
         name: str,
         files: list[str],
         command: str,
-        arguments: list[str],
+        arguments: str,
         logger: logging.Logger = None,
         campaign_id: Optional[str] = None,
         origin_agent_id: Optional[str] = None,
@@ -53,7 +52,7 @@ class ShellActivity(Activity):
             name,
             files,
             command,
-            arguments,
+            arguments.split(" "),
             logger,
             campaign_id,
             origin_agent_id,
