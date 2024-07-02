@@ -9,7 +9,7 @@
 import logging
 
 from abc import ABC, abstractmethod
-from enum import Enum, auto
+from enum import Enum
 from typing import Optional
 from datetime import datetime
 
@@ -17,11 +17,11 @@ from zambeze.orchestration.message.abstract_message import AbstractMessage
 
 
 class ActivityStatus(Enum):
-    CREATED = auto()
-    QUEUED = auto()
-    RUNNING = auto()
-    COMPLETED = auto()
-    FAILED = auto()
+    CREATED = 1
+    QUEUED = 2
+    RUNNING = 3
+    COMPLETED = 4
+    FAILED = 5
 
 
 class Activity(ABC):
