@@ -43,7 +43,7 @@ def test_shell_plugin_check():
     plugins.configure({"shell": {}})
 
     activity = ShellActivity(
-        name="Simple echo", files=[], command="echo", arguments=["hello-zambeze"]
+        name="Simple echo", files=[], command="echo", arguments="hello-zambeze"
     )
 
     activity.message_id = str(uuid.uuid4())
@@ -77,7 +77,7 @@ def test_shell_plugin_run():
     # )
 
     activity = ShellActivity(
-        name="Simple echo", files=[], command="touch", arguments=[file_path]
+        name="Simple echo", files=[], command="touch", arguments=file_path
     )
 
     activity.message_id = str(uuid.uuid4())
