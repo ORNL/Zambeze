@@ -20,7 +20,19 @@ logger = logging.getLogger(__name__)
 
 
 def _get_log_file(log_path):
-    # Given a log path, returns the corresponding log file if it exists
+    """Gets a PurePath object for the log path if it exists.
+
+    Parameters
+    ----------
+    log_path : str
+        Path to the log file.
+
+    Returns
+    -------
+    tuple
+        The first element is a pathlib.Path object if the log file exists, the second element
+        is an error message if the log path is invalid.
+    """
     log_file = pathlib.Path(log_path) if log_path else None
     if not log_file or not log_file.is_file():
         return (
@@ -31,8 +43,25 @@ def _get_log_file(log_path):
 
 
 def _valid_follow(state, new_state):
-    # Checks if the log path has changed in the agent's new state and updates the log handle if so. Otherwise, it is
-    # an invalid follow
+    """Checks if the log path has changed in the agent's state and is a valid path.
+
+    The state of the agent updates on events like agent restarts, and the log path may change. If there is
+    a change, we need to verify that the new path is valid so that we can safely follow the new log file.
+    Otherwise, it is an invalid follow.
+
+    Parameters
+    ----------
+    state : dict
+        The current state of the agent.
+    new_state : dict
+        The updated state of the agent.
+
+    Returns
+    -------
+    tuple
+        The first element is a boolean indicating whether the log path has changed and is valid,
+        the second element is an error message if the new state is invalid.
+    """
     mlog_path = new_state.get("log_path")
     if mlog_path != state.get("log_path"):
         mlog_file, err_msg = _get_log_file(mlog_path)
