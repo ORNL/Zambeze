@@ -1,4 +1,5 @@
 import logging
+
 from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
@@ -84,6 +85,11 @@ class QueueRMQ(AbstractQueue):
 
         s = f"Connection timed out while trying to connect to RabbitMQ at {self._ip}:{self._port}"
         return (False, s)
+
+    def reconnect(self):
+        self.close()
+        self.connect()
+        self.__reconnected()
 
     @property
     def subscribed(self, channel: ChannelType) -> bool:
@@ -173,15 +179,32 @@ class QueueRMQ(AbstractQueue):
                 "Cannot send message to RabbitMQ, client is not connected to a RabbitMQ queue"
             )
 
-        self._rmq_channel.basic_publish(
-            exchange=exchange, routing_key=channel, body=dill.dumps(body)
-        )
+        try:
+            self._rmq_channel.basic_publish(
+                exchange=exchange, routing_key=channel, body=dill.dumps(body)
+            )
+        # Do not recover if connection was closed by broker
+        except pika.exceptions.ConnectionClosedByBroker:
+            pass
+        # Do not recover on channel errors
+        except pika.exceptions.AMQPChannelError:
+            pass
+        # Recover on all other connection errors
+        except pika.exceptions.AMQPConnectionError:
+            self.reconnect()
+            self._rmq_channel.basic_publish(
+                exchange=exchange, routing_key=channel, body=dill.dumps(body)
+            )
 
     def close(self):
         if self._sub:
             for subscription in self._sub:
                 if subscription is not None:
                     self._sub[subscription].unsubscribe()
-        self._rmq.drain()
+
+        if self._rmq.is_open:
+            self._rmq.close()
+
         self._rmq = None
+        self._rmq_channel = None
         self._sub = {}
