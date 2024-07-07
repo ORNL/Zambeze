@@ -1,10 +1,10 @@
+import dill
 import logging
+import pika
 
 from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
-import dill
-import pika
 
 
 class QueueRMQ(AbstractQueue):
