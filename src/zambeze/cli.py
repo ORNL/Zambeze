@@ -19,6 +19,61 @@ from signal import SIGKILL
 logger = logging.getLogger(__name__)
 
 
+def _get_log_file(log_path):
+    """Get a PurePath object for the log path if it exists.
+
+    Parameters
+    ----------
+    log_path : str
+        Path to the log file.
+
+    Returns
+    -------
+    tuple
+        The first element is a pathlib.Path object if the log file exists, the second element
+        is an error message if the log path is invalid.
+    """
+    log_file = pathlib.Path(log_path) if log_path else None
+    if not log_file or not log_file.is_file():
+        return (
+            None,
+            "Log file not found for agent, verify the agent's state with `zambeze status`",
+        )
+    return log_file, None
+
+
+def _valid_follow(state, new_state):
+    """Check if the log path has changed in the agent's state and is a valid path.
+
+    The state of the agent updates on events like agent restarts, and the log path may change. If there is
+    a change, we need to verify that the new path is valid so that we can safely follow the new log file.
+    Otherwise, it is an invalid follow.
+
+    Parameters
+    ----------
+    state : dict
+        The current state of the agent.
+    new_state : dict
+        The updated state of the agent.
+
+    Returns
+    -------
+    tuple
+        The first element is a boolean indicating whether the log path has changed and is valid,
+        the second element is an error message if the new state is invalid.
+    """
+    mlog_path = new_state.get("log_path")
+    if mlog_path != state.get("log_path"):
+        mlog_file, err_msg = _get_log_file(mlog_path)
+        if err_msg:
+            return False, err_msg
+        state["log_handle"].close()
+        state["log_handle"] = open(mlog_file, "rb")
+        state["log_path"] = mlog_path
+        return True, None
+    return False, None
+
+
 def start():
     """
     Start Zambeze agent as its own daemonized subprocess. This will write logs
@@ -47,11 +102,15 @@ def start():
         logger.error(f"Failed to create log directory at {logs_base_dir}")
         return
 
-    # Create directory for log files
-    fmt = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
-    log_dir_path = pathlib.Path.home() / ".zambeze/logs" / fmt
-    log_dir_path.mkdir(exist_ok=True)
-    log_path = log_dir_path / "zambeze.log"
+    # Create path for log file
+    try:
+        fmt = datetime.now().strftime("%Y_%m_%d-%H_%M_%S_%f")[:-3]
+        log_path = logs_base_dir / fmt / "zambeze.log"
+        log_path.parent.mkdir(exist_ok=True)
+        log_path.touch(exist_ok=True)
+    except OSError:
+        logger.error(f"Failed to create log file at {log_path}")
+        return
     logger.info(f"Log path is {log_path}")
 
     # Pass stdout/stderr to devnull (in subprocesses) to avoid memory issues.
@@ -135,7 +194,7 @@ def status():
 
 
 def logs(mode, num_lines, follow=False):
-    """Provides logging information of the agent.
+    """Provide logging information of the agent.
 
     Parameters
     ----------
@@ -157,53 +216,67 @@ def logs(mode, num_lines, follow=False):
         logger.info("Agent does not exist, start an agent with `zambeze start`")
         return
 
-    with state_path.open("r") as f:
-        old_state = json.load(f)
-        log_file = pathlib.Path(old_state.get("log_path"))
-        # If the log file for the most recent agent as described by the agent's state
-        # does not exist (for eg. in case of manual deletion), we don't have the log file to display
-        if not log_file.is_file():
-            logger.info(
-                "Log file not found for agent, verify the agent's state with `zambeze status`"
-            )
+    with state_path.open("r") as sf:
+        state = json.load(sf)
+        state["mtime"] = state_path.stat().st_mtime
+
+        log_file, err_msg = _get_log_file(state.get("log_path"))
+        if err_msg:
+            logger.error(err_msg)
             return
 
         if mode == "tail":
-            # Seek to the end of the file and read the last `num_lines` lines going
-            # backwards. Uses a new line character as a delimiter to count the number of lines
-            # seen so far. If follow is set, keep reading the file for new lines
-            with open(log_file, "rb") as f:
-                f.seek(0, os.SEEK_END)
-                end = curr = f.tell()
-                seen_lines = 0
-                while curr >= 0 and seen_lines < num_lines:
-                    f.seek(curr, os.SEEK_SET)
-                    char = f.read(1)
-                    if char == b"\n" and curr != end - 1:
-                        seen_lines += 1
-                    curr -= 1
+            state["log_handle"] = lf = open(log_file, "rb")
+            # Seek to the end of the file and read the last `num_lines` lines going backwards.
+            # Uses a new line character as a delimiter to count the number of lines seen so far.
+            lf.seek(0, os.SEEK_END)
+            end = curr = lf.tell()
+            seen_lines = 0
+            while curr >= 0 and seen_lines < num_lines:
+                lf.seek(curr, os.SEEK_SET)
+                char = lf.read(1)
+                if char == b"\n" and curr != end - 1:
+                    seen_lines += 1
+                curr -= 1
 
-                if curr < 0:
-                    f.seek(0, os.SEEK_SET)
+            if curr < 0:
+                lf.seek(0, os.SEEK_SET)
 
-                for line in f:
-                    print(line.decode().strip())
+            for line in lf:
+                print(line.decode().strip())
 
-                if follow:
-                    try:
-                        while True:
-                            line = f.readline()
-                            if not line:
-                                time.sleep(0.1)
-                            else:
-                                print(line.decode().strip())
-                    except KeyboardInterrupt:
-                        print()
+            # If follow is set, keep reading the log file for new lines. Upon agent restarts,
+            # follow the new log file if the log path has changed
+            if follow:
+                try:
+                    while True:
+                        mstate_mtime = state_path.stat().st_mtime
+                        if mstate_mtime > state["mtime"]:
+                            sf.seek(0, os.SEEK_SET)
+                            mstate = json.load(sf)
+                            state["mtime"] = mstate_mtime
+
+                            path_change, err_msg = _valid_follow(state, mstate)
+                            if err_msg:
+                                logger.error(err_msg)
+                                break
+                            if path_change:
+                                lf = state["log_handle"]
+
+                        line = lf.readline()
+                        if not line:
+                            time.sleep(0.1)
+                        else:
+                            print(line.decode().strip())
+                except KeyboardInterrupt:
+                    print()
+
+            lf.close()
         else:
             # Display the first `num_lines` lines of the log file
-            with open(log_file, "r") as f:
+            with open(log_file, "r") as lf:
                 for _ in range(num_lines):
-                    line = f.readline()
+                    line = lf.readline()
                     if not line:
                         break
                     print(line.strip())
