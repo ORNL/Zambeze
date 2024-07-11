@@ -1,4 +1,3 @@
-from .abstract_activity import Activity
 import uuid
 import time
 
@@ -7,20 +6,15 @@ from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
-class TransferActivity(Activity):
-    def __init__(self, name, source_file, dest_directory, override_existing=False):
+class TransferActivity:
+    def __init__(self, name: str, source_file, dest_directory, override_existing=False):
         self.name = name
         self.source_file = source_file
         self.dest_directory = dest_directory
         self.override_existing = override_existing
 
-        super().__init__(
-            name="TRANSFER",
-            activity_id=str(uuid.uuid4()),
-            source_file=self.source_file,
-            dest_directory=self.dest_directory,
-            override_existing=self.override_existing,
-        )
+        self.name = "TRANSFER"
+        self.activity_id = str(uuid.uuid4())
 
     def generate_message(self) -> AbstractMessage:
         factory = MessageFactory(logger=self.logger)

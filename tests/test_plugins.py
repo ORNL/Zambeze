@@ -1,7 +1,6 @@
 # Local imports
 from zambeze.orchestration.plugins import Plugins
 from zambeze.campaign.activities.shell import ShellActivity
-from zambeze.campaign.activities.abstract_activity import Activity
 
 # Standard imports
 import os
@@ -52,7 +51,6 @@ def test_shell_plugin_check():
     activity.campaign_id = str(uuid.uuid4())
 
     # 1. Confirm that we have the right types (checks of plugins.py)
-    assert isinstance(activity, Activity)
     assert isinstance(activity, ShellActivity)
     check = plugins.check(msg=activity)
 

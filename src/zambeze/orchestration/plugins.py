@@ -9,7 +9,7 @@ from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
 from zambeze.campaign.activities.shell import ShellActivity
-from zambeze.campaign.activities.abstract_activity import Activity
+from zambeze.campaign.activities.activity import Activity
 
 from copy import deepcopy
 from dataclasses import asdict
@@ -220,19 +220,15 @@ class Plugins:
             What is returned are a list of the plugins and their actions along
             with an indication on whether there was a problem with them.
         """
-        if isinstance(msg, Activity):
-            if isinstance(msg, ShellActivity):
-                arguments = {"arguments": msg.arguments, "command": msg.command}
-                plugin_name = "shell"
-            else:
-                error_msg = "plugin check only currently supports actvities"
-                error_msg += " PLUGIN and SHELL, but the following "
-                error_msg += "unsupported activity has been specified: "
-                error_msg += f"{msg.data.body.type}"
-                raise Exception(error_msg)
-
+        if isinstance(msg, ShellActivity):
+            arguments = {"arguments": msg.arguments, "command": msg.command}
+            plugin_name = "shell"
         else:
-            raise TypeError("Message not of type Activity. Exiting!")
+            error_msg = "plugin check only currently supports actvities"
+            error_msg += " PLUGIN and SHELL, but the following "
+            error_msg += "unsupported activity has been specified: "
+            error_msg += f"{msg.data.body.type}"
+            raise Exception(error_msg)
 
         if not isinstance(plugin_name, str):
             raise ValueError(
