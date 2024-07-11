@@ -8,7 +8,7 @@ from __future__ import annotations
 from .message.abstract_message import AbstractMessage
 from .plugin_modules.abstract_plugin import Plugin
 from .plugin_modules.common_plugin_functions import registerPlugins
-from zambeze.campaign.shell import ShellActivity
+from zambeze.campaign.shell_activity import ShellActivity
 from zambeze.campaign.activity import Activity
 
 from copy import deepcopy

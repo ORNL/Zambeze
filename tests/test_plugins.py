@@ -1,6 +1,6 @@
 # Local imports
 from zambeze.orchestration.plugins import Plugins
-from zambeze.campaign.shell import ShellActivity
+from zambeze import ShellActivity
 
 # Standard imports
 import os

@@ -1,6 +1,6 @@
 # Local imports
-from zambeze.campaign.shell import ShellActivity
-from zambeze.campaign.campaign import Campaign
+from zambeze import ShellActivity
+from zambeze import Campaign
 from zambeze.utils.identity import valid_uuid
 
 # Standard imports

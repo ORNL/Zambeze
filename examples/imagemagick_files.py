@@ -41,7 +41,6 @@ def main():
 
     # Create the campaign
     campaign = Campaign("My ImageMagick Campaign", activities=[activity], logger=logger)
-    campaign.add_activity(activity)
 
     # Run the campaign to execute the shell activity
     campaign.dispatch()
