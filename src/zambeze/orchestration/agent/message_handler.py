@@ -9,7 +9,7 @@ from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
 from zambeze.orchestration.queue.queue_factory import QueueFactory
 from zambeze.orchestration.zambeze_types import QueueType
-from zambeze.campaign.activities.dag import DAG
+from zambeze.campaign.dag import DAG
 
 from .temp_activity_to_plugin_map import activity_to_plugin_map
 

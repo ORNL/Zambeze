@@ -5,8 +5,7 @@
 
 import importlib.metadata
 
-from .campaign import Activity, Campaign
-from .campaign.activities import ShellActivity, TransferActivity
+from .campaign import Activity, Campaign, ShellActivity, TransferActivity
 
 __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"

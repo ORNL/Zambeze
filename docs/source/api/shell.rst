@@ -1,7 +1,7 @@
 Shell activity
 ==============
 
-.. automodule:: zambeze.campaign.activities.shell
+.. automodule:: zambeze.campaign.shell
    :members:
    :undoc-members:
    :show-inheritance:

@@ -8,8 +8,8 @@ import zmq
 import uuid
 
 from typing import Optional
-from .activities.activity import Activity
-from .activities.dag import DAG
+from .activity import Activity
+from .dag import DAG
 from zambeze.settings import ZambezeSettings
 from zambeze.auth.globus_auth import GlobusAuthenticator
 
