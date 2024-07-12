@@ -7,7 +7,34 @@ from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
 class TransferActivity:
-    def __init__(self, name: str, source_file, dest_directory, override_existing=False):
+    """A file transfer activity.
+
+    Attributes
+    ----------
+    name : str
+        Name of the transfer activity.
+    source_file : str
+        Source file that will be transferred.
+    dest_directory : str
+        Destination directory for the source file.
+    override_existing : bool
+        Overwrite files and/or directories at destination. Default is False.
+    activity_id : str
+        ID for the transfer activity.
+
+    Methods
+    -------
+    generate_message
+        Generate a message for the transfer activity.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        source_file: str,
+        dest_directory: str,
+        override_existing: bool = False,
+    ):
         self.name = name
         self.source_file = source_file
         self.dest_directory = dest_directory
@@ -17,7 +44,10 @@ class TransferActivity:
         self.activity_id = str(uuid.uuid4())
 
     def generate_message(self) -> AbstractMessage:
+        """Generate a message for the transfer activity."""
+
         factory = MessageFactory(logger=self.logger)
+
         template = factory.create_template(
             MessageType.ACTIVITY, ActivityType.TRANSFER, {"transfer_software": "globus"}
         )

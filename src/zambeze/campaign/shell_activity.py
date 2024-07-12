@@ -14,6 +14,38 @@ from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
 class ShellActivity:
+    """A unix shell script/command activity.
+
+    Attributes
+    ----------
+    name : str
+        Name of the shell activity.
+    files : list[str]
+        List of the file URIs.
+    command : str
+        The action command for the shell activity.
+    arguments : str
+        The arguments for the command as one string. Each argument in the
+        string must be separated by a space.
+    logger : logging.Logger
+        The logger where to log information/warning or errors.
+    env_vars : dict[str, str]
+        Environment variables to add to the shell's context.
+    campaign_id : str
+        ID of the user's campaign.
+    message_id : str
+        ID of the shell activity.
+    origin_agent_id : str
+        ID of the agent where this activity was created.
+    running_agent_ids : list[str]
+        IDs of the agents that executed this activity.
+
+    Methods
+    -------
+    generate_message
+        Generate a message for the shell activity.
+    """
+
     def __init__(
         self,
         name: str,
@@ -55,9 +87,8 @@ class ShellActivity:
         }
 
     def generate_message(self) -> AbstractMessage:
-        """
-        Create a message from a factory template.
-        """
+        """Generate a message for the shell activity."""
+
         factory = MessageFactory(logger=self.logger)
 
         template = factory.create_template(
