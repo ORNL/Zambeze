@@ -156,22 +156,18 @@ class QueueRMQ(AbstractQueue):
     def next_msg(self, channel: ChannelType):
         if not self._sub:
             raise Exception(
-                "Cannot get next message client is not subscribed \
-                    to any RabbitMQ topic"
+                "Cannot get next message client is not subscribed to any RabbitMQ topic"
             )
         if channel not in self._sub:
             raise Exception(
-                f"Cannot get next message client is not subscribed \
-                        to any RabbitMQ topic: {channel.value}"
+                f"Cannot get next message client is not subscribed to any RabbitMQ topic: {channel.value}"
             )
 
         try:
             msg = self._sub[channel].next_msg(timeout=1)
             data = dill.loads(msg.data)
         except Exception as e:
-            error_msg = "next_msg call - checking RabbitMQ"
-            error_msg += f" error: {e}"
-            raise QueueTimeoutException(error_msg)
+            raise QueueTimeoutException(f"[next_msg] Timeout: {e}")
 
         return data
 
