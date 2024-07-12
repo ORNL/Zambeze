@@ -217,3 +217,4 @@ class QueueRMQ(AbstractQueue):
         self._rmq = None
         self._rmq_channel = None
         self._sub = {}
+        self.__disconnected()
