@@ -3,13 +3,15 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the MIT License.
 
-import importlib.metadata
+from importlib.metadata import version
 
-from .campaign import Activity, Campaign
-from .campaign.activities import ShellActivity, TransferActivity
+from .campaign.activity import Activity
+from .campaign.campaign import Campaign
+from .campaign.shell_activity import ShellActivity
+from .campaign.transfer_activity import TransferActivity
 
 __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"
-__version__ = importlib.metadata.version("zambeze")
+__version__ = version("zambeze")
 
 __all__ = ["Activity", "Campaign", "ShellActivity", "TransferActivity"]

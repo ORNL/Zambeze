@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) 2022 Oak Ridge National Laboratory.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -9,30 +7,43 @@ import logging
 import time
 import uuid
 
-from typing import Optional
-from .abstract_activity import Activity
-
+from datetime import datetime
 from zambeze.orchestration.message.abstract_message import AbstractMessage
 from zambeze.orchestration.message.message_factory import MessageFactory
 from zambeze.orchestration.zambeze_types import MessageType, ActivityType
 
 
-class ShellActivity(Activity):
+class ShellActivity:
     """A unix shell script/command activity.
 
     Attributes
     ----------
     name : str
-        Name of the campaign activity.
-    files : list
+        Name of the shell activity.
+    files : list[str]
         List of the file URIs.
     command : str
-        The action command for this activity.
+        The action command for the shell activity.
     arguments : str
         The arguments for the command as one string. Each argument in the
         string must be separated by a space.
-    logger : Logger
+    logger : logging.Logger
         The logger where to log information/warning or errors.
+    env_vars : dict[str, str]
+        Environment variables to add to the shell's context.
+    campaign_id : str
+        ID of the user's campaign.
+    message_id : str
+        ID of the shell activity.
+    origin_agent_id : str
+        ID of the agent where this activity was created.
+    running_agent_ids : list[str]
+        IDs of the agents that executed this activity.
+
+    Methods
+    -------
+    generate_message
+        Generate a message for the shell activity.
     """
 
     def __init__(
@@ -41,37 +52,31 @@ class ShellActivity(Activity):
         files: list[str],
         command: str,
         arguments: str,
-        logger: logging.Logger = None,
-        campaign_id: Optional[str] = None,
-        origin_agent_id: Optional[str] = None,
-        message_id: Optional[str] = None,
-        **kwargs,
-    ) -> None:
-        """Create an object of a unix shell activity."""
-        super().__init__(
-            name,
-            files,
-            command,
-            arguments.split(" "),
-            logger,
-            campaign_id,
-            origin_agent_id,
-            message_id,
-            activity_id=str(uuid.uuid4()),
-        )
-        self.logger: logging.Logger = logger if logger else logging.getLogger(__name__)
-        # Pull out environment variables, IF users submitted them.
-        if "env_vars" in kwargs:
-            if not isinstance(kwargs.get("env_vars"), dict):
-                raise Exception("env_vars provided via kwargs mubst be a dict.")
-            self.env_vars = kwargs.get("env_vars")
-        else:
-            self.env_vars = {}
+        logger: logging.Logger | None = None,
+        env_vars: dict[str, str] | None = None,
+        campaign_id: str | None = None,
+        message_id: str | None = None,
+        origin_agent_id: str | None = None,
+        running_agent_ids: list[str] | None = None,
+    ):
+        self.name = name
+        self.files = files
+        self.command = command
+        self.arguments = arguments.split(" ")
+        self.logger = logger
+        self.env_vars = env_vars
+        self.campaign_id = campaign_id
+        self.message_id = message_id
+        self.origin_agent_id = origin_agent_id
 
-        self.logger.info("[activities/shell.py] Printing files after init in SHELL")
-        self.logger.info(self.files)
-        self.working_dir = ""
+        self.running_agent_ids = (
+            running_agent_ids if running_agent_ids is not None else []
+        )
+
+        self.activity_id = str(uuid.uuid4())
         self.type = "SHELL"
+        self.submission_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
         self.plugin_args = {
             "shell": "bash",
             "parameters": {
@@ -82,7 +87,10 @@ class ShellActivity(Activity):
         }
 
     def generate_message(self) -> AbstractMessage:
+        """Generate a message for the shell activity."""
+
         factory = MessageFactory(logger=self.logger)
+
         template = factory.create_template(
             MessageType.ACTIVITY, ActivityType.SHELL, {"shell": "bash"}
         )

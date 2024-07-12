@@ -1,6 +1,6 @@
 import pytest
 from zambeze import Campaign, ShellActivity
-from zambeze.campaign.activities.dag import DAG
+from zambeze.campaign.dag import DAG
 
 
 @pytest.mark.unit
