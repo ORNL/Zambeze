@@ -15,8 +15,6 @@ from ...system_utils import isExecutable
 from typing import Optional
 
 import logging
-import os
-import subprocess
 
 
 def check_inputs(variable, left_pattern, right_pattern):
@@ -159,8 +157,7 @@ class Globus(Plugin):
         :Example: TODO.
         """
 
-        self._logger.debug("[shell.py] In SHELL check function!")
-        print("[globus.py] In GLOBUS check function!")
+        self._logger.debug("[globus.py] In GLOBUS check function!")
         checks = []
         checks.append({"arguments": True})
         return checks

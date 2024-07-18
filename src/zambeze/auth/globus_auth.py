@@ -10,7 +10,7 @@ class GlobusAuthenticator:
         self.client_id = os.getenv("GLOBUS_CLIENT_ID")
         if not self.client_id:
             raise ValueError("GLOBUS_CLIENT_ID is not set in environment variables.")
-        self.auth_client = globus_sdk.NativeAppAuthClient(self.client_id)
+        self.auth_client = globus_sdk.NativeAppAuthClient(client_id=self.client_id)
         self.auth_client.oauth2_start_flow(
             refresh_tokens=True, requested_scopes=TransferScopes.all
         )
@@ -20,7 +20,12 @@ class GlobusAuthenticator:
             os.makedirs(self.tokens_dir, mode=0o700)
 
     def authenticate(self):
-        authorize_url = self.auth_client.oauth2_get_authorize_url()
+        authorize_url = self.auth_client.oauth2_get_authorize_url(
+            # TODO: make this generalizable.
+            session_required_single_domain=[
+                'sso.ccs.ornl.gov',
+                # 'opensso.ccs.ornl.gov',
+                'clients.auth.globus.org'])
         print(f"Please go to this URL and login:\n\n{authorize_url}\n")
 
         try:
