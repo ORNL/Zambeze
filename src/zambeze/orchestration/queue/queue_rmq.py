@@ -1,9 +1,10 @@
+import dill
 import logging
+import pika
+
 from .abstract_queue import AbstractQueue
 from .queue_exceptions import QueueTimeoutException
 from ..zambeze_types import ChannelType, QueueType
-import dill
-import pika
 
 
 class QueueRMQ(AbstractQueue):
@@ -85,6 +86,11 @@ class QueueRMQ(AbstractQueue):
         s = f"Connection timed out while trying to connect to RabbitMQ at {self._ip}:{self._port}"
         return (False, s)
 
+    def reconnect(self):
+        self.close()
+        self.connect()
+        self.__reconnected()
+
     @property
     def subscribed(self, channel: ChannelType) -> bool:
         if self._sub:
@@ -97,17 +103,30 @@ class QueueRMQ(AbstractQueue):
         """Listen for messages on a persistent websocket connection;
         --> do action in callback function on receipt."""
 
-        listen_on_channel = self._rmq_channel
+        try:
+            listen_on_channel = self._rmq_channel
 
-        s = f"[message_handler] Waiting with listener on RabbitMQ channel {channel_to_listen}"
-        self._logger.debug(s)
+            s = f"[message_handler] Waiting with listener on RabbitMQ channel {channel_to_listen}"
+            self._logger.debug(s)
 
-        listen_on_channel.basic_consume(
-            queue=channel_to_listen,
-            on_message_callback=callback_func,
-            auto_ack=should_auto_ack,
-        )
-        listen_on_channel.start_consuming()
+            listen_on_channel.basic_consume(
+                queue=channel_to_listen,
+                on_message_callback=callback_func,
+                auto_ack=should_auto_ack,
+            )
+            listen_on_channel.start_consuming()
+        # Do not recover if connection was closed by broker
+        except pika.exceptions.ConnectionClosedByBroker:
+            raise
+        # Do not recover on channel errors
+        except pika.exceptions.AMQPChannelError:
+            raise
+        # Recover on all other connection errors
+        except pika.exceptions.AMQPConnectionError:
+            self.reconnect()
+            self.listen_and_do_callback(
+                callback_func, channel_to_listen, should_auto_ack
+            )
 
     @property
     def subscriptions(self) -> list[ChannelType]:
@@ -137,22 +156,18 @@ class QueueRMQ(AbstractQueue):
     def next_msg(self, channel: ChannelType):
         if not self._sub:
             raise Exception(
-                "Cannot get next message client is not subscribed \
-                    to any RabbitMQ topic"
+                "Cannot get next message client is not subscribed to any RabbitMQ topic"
             )
         if channel not in self._sub:
             raise Exception(
-                f"Cannot get next message client is not subscribed \
-                        to any RabbitMQ topic: {channel.value}"
+                f"Cannot get next message client is not subscribed to any RabbitMQ topic: {channel.value}"
             )
 
         try:
             msg = self._sub[channel].next_msg(timeout=1)
             data = dill.loads(msg.data)
         except Exception as e:
-            error_msg = "next_msg call - checking RabbitMQ"
-            error_msg += f" error: {e}"
-            raise QueueTimeoutException(error_msg)
+            raise QueueTimeoutException(f"[next_msg] Timeout: {e}")
 
         return data
 
@@ -173,15 +188,33 @@ class QueueRMQ(AbstractQueue):
                 "Cannot send message to RabbitMQ, client is not connected to a RabbitMQ queue"
             )
 
-        self._rmq_channel.basic_publish(
-            exchange=exchange, routing_key=channel, body=dill.dumps(body)
-        )
+        try:
+            self._rmq_channel.basic_publish(
+                exchange=exchange, routing_key=channel, body=dill.dumps(body)
+            )
+        # Do not recover if connection was closed by broker
+        except pika.exceptions.ConnectionClosedByBroker:
+            raise
+        # Do not recover on channel errors
+        except pika.exceptions.AMQPChannelError:
+            raise
+        # Recover on all other connection errors
+        except pika.exceptions.AMQPConnectionError:
+            self.reconnect()
+            self._rmq_channel.basic_publish(
+                exchange=exchange, routing_key=channel, body=dill.dumps(body)
+            )
 
     def close(self):
         if self._sub:
             for subscription in self._sub:
                 if subscription is not None:
                     self._sub[subscription].unsubscribe()
-        self._rmq.drain()
+
+        if self._rmq.is_open:
+            self._rmq.close()
+
         self._rmq = None
+        self._rmq_channel = None
         self._sub = {}
+        self.__disconnected()
