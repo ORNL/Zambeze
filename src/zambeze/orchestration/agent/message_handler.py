@@ -4,11 +4,9 @@ import time
 import zmq
 
 from queue import Queue
-
 from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
-from zambeze.orchestration.queue.queue_factory import QueueFactory
-from zambeze.orchestration.zambeze_types import QueueType
+from zambeze.orchestration.queue.queue_rmq import QueueRMQ
 from zambeze.campaign.dag import DAG
 
 from .temp_activity_to_plugin_map import activity_to_plugin_map
@@ -25,8 +23,6 @@ class MessageHandler(threading.Thread):
             "ip": self._settings.settings["rmq"]["host"],
             "port": self._settings.settings["rmq"]["port"],
         }
-
-        self.queue_factory = QueueFactory(logger=self._logger)
 
         self._logger.info("[mh] RabbitMQ broker and channel both created successfully!")
 
@@ -232,11 +228,10 @@ class MessageHandler(threading.Thread):
         If we have the correct plugins, then we keep it (ack). Otherwise, we
         put it back (nack).
         """
-
         self._logger.info("[mh] Connecting to RabbitMQ RECV ACTIVITY broker...")
 
         # Here we use the queue factory to create queue object and listen on persistent listener.
-        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+        queue_client = QueueRMQ(self.mq_args, logger=self._logger)
         queue_client.connect()
 
         queue_client.listen_and_do_callback(
@@ -249,9 +244,9 @@ class MessageHandler(threading.Thread):
         """
         (from agent.py) input activity; send to "ACTIVITIES" queue.
         """
-
         self._logger.info("[mh] Connecting to RabbitMQ SEND ACTIVITY broker...")
-        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+
+        queue_client = QueueRMQ(self.mq_args, logger=self._logger)
         queue_client.connect()
 
         while True:
@@ -273,9 +268,9 @@ class MessageHandler(threading.Thread):
         """
         Receive messages from the control channel!
         """
-
         self._logger.info("[mh] Connecting to RabbitMQ RECV CONTROL broker...")
-        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+
+        queue_client = QueueRMQ(self.mq_args, logger=self._logger)
         queue_client.connect()
 
         def callback(_1, _2, _3, body):
@@ -291,9 +286,9 @@ class MessageHandler(threading.Thread):
         """
         (from agent.py) input control message; send to "CONTROL" queue.
         """
-
         self._logger.info("[mh] Connecting to RabbitMQ SEND CONTROL broker...")
-        queue_client = self.queue_factory.create(QueueType.RABBITMQ, self.mq_args)
+
+        queue_client = QueueRMQ(self.mq_args, logger=self._logger)
         queue_client.connect()
 
         while True:
