@@ -6,7 +6,7 @@ import zmq
 from queue import Queue
 from zambeze.orchestration.db.model.activity_model import ActivityModel
 from zambeze.orchestration.db.dao.activity_dao import ActivityDAO
-from zambeze.orchestration.queue.queue_rmq import QueueRMQ
+from zambeze.orchestration.queue_rmq import QueueRMQ
 from zambeze.campaign.dag import DAG
 
 from .temp_activity_to_plugin_map import activity_to_plugin_map

@@ -1,7 +1,7 @@
 import dill
 import logging
 import pika
-from ..zambeze_types import ChannelType, QueueType
+from .zambeze_types import ChannelType, QueueType
 
 
 class QueueTimeoutException(Exception):
