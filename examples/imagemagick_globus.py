@@ -24,10 +24,7 @@ def main():
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-    # create campaign
-    campaign = Campaign("My ImageMagick Campaign", logger=logger, force_login=False)
-
-    # define an activity
+    # define the activities
     dir_path = (
         f"globus://{EP_ID}/Users/tylerskluzacek/zambeze/tests/campaigns/imagesequence/"
     )
@@ -50,10 +47,13 @@ def main():
         override_existing=False,
     )
 
-    campaign.add_activity(activity)
-    campaign.add_activity(transfer)
+    # create campaign and dispatch it
+    campaign = Campaign(
+        "My ImageMagick Transfer Campaign",
+        activities=[activity, transfer],
+        logger=logger,
+    )
 
-    # run the campaign
     campaign.dispatch()
 
 
