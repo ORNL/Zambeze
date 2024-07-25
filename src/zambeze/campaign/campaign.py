@@ -11,7 +11,7 @@ from typing import Optional
 from .activity import Activity
 from .dag import DAG
 from zambeze.settings import ZambezeSettings
-from zambeze.auth.globus_auth import GlobusAuthenticator
+from zambeze.auth import GlobusAuthenticator
 
 
 class Campaign:
