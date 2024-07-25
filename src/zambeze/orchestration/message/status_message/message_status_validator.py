@@ -9,7 +9,7 @@ from .message_status_template_generator import (
     REQUIRED_STATUS_COMPONENTS,
     StatusTemplate,
 )
-from zambeze.utils.identity import valid_uuid
+from zambeze.identity import valid_uuid
 
 
 class MessageStatusValidator(AbstractMessageValidator):
