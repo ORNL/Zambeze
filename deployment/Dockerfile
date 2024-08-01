@@ -18,5 +18,4 @@ ENV PATH="${PATH}:/home/zambeze/.local/bin"
 
 COPY . .
 
-RUN pip install --upgrade pip \
-    pip install .[dev]
+RUN pip install .[dev]

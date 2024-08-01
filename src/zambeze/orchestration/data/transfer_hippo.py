@@ -4,7 +4,7 @@ import time
 import globus_sdk
 
 from urllib.parse import urlparse
-from zambeze.utils.identity import valid_uuid
+from zambeze.identity import valid_uuid
 
 
 class TransferHippoError(Exception):

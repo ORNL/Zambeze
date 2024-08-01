@@ -5,7 +5,6 @@
 
 from importlib.metadata import version
 
-from .campaign.activity import Activity
 from .campaign.campaign import Campaign
 from .campaign.shell_activity import ShellActivity
 from .campaign.transfer_activity import TransferActivity
@@ -14,4 +13,4 @@ __author__ = "https://zambeze.org"
 __credits__ = "Oak Ridge National Laboratory"
 __version__ = version("zambeze")
 
-__all__ = ["Activity", "Campaign", "ShellActivity", "TransferActivity"]
+__all__ = ["Campaign", "ShellActivity", "TransferActivity"]

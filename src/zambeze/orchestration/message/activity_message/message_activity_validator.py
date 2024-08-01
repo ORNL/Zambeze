@@ -10,7 +10,7 @@ from .message_activity_template_generator import (
     REQUIRED_ACTIVITY_COMPONENTS,
     OPTIONAL_ACTIVITY_COMPONENTS,
 )
-from zambeze.utils.identity import valid_uuid
+from zambeze.identity import valid_uuid
 
 
 class MessageActivityValidator(AbstractMessageValidator):

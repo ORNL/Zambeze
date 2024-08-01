@@ -1,6 +1,6 @@
 # Local imports
 from zambeze import ShellActivity
-from zambeze.utils.identity import valid_uuid
+from zambeze.identity import valid_uuid
 
 # Standard imports
 import re

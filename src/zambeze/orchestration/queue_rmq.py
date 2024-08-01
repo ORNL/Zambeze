@@ -1,13 +1,16 @@
 import dill
 import logging
 import pika
-
-from .abstract_queue import AbstractQueue
-from .queue_exceptions import QueueTimeoutException
-from ..zambeze_types import ChannelType, QueueType
+from .zambeze_types import ChannelType, QueueType
 
 
-class QueueRMQ(AbstractQueue):
+class QueueTimeoutException(Exception):
+    """Class is needed to abstract away possible implementation specific errors"""
+
+    pass
+
+
+class QueueRMQ:
     def __init__(self, queue_config: dict, logger: logging.Logger) -> None:
         self._queue_type = QueueType.RABBITMQ
         self._logger = logger
