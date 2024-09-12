@@ -54,7 +54,11 @@ def main():
     )
 
     # Create and dispatch the campaign
-    campaign = Campaign("Word count campaign", activities=[activity_1, activity_2, activity_3], logger=logger)
+    campaign = Campaign(
+        "Word count campaign",
+        activities=[activity_1, activity_2, activity_3],
+        logger=logger,
+    )
     campaign.dispatch()
 
 
