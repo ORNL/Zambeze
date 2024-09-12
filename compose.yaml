@@ -1,0 +1,17 @@
+# Docker Compose file for running a RabbitMQ broker
+# More info about RabbitMQ at https://www.rabbitmq.com
+
+# Commands for using Docker Compose
+# Create and start containers ............... docker compose up
+# Create and start in detached mode ......... docker compuse up -d
+# Stop active services in terminal .......... press Ctrl+C
+# Stop and remove containers and networks ... docker compose down
+
+services:
+
+  rabbitmq:
+    image: "rabbitmq:3.13-management"
+    container_name: "rabbitmq"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
