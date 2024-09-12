@@ -1,84 +1,60 @@
 """
-Copyright (c) 2022 Oak Ridge National Laboratory.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the MIT License.
+Example of counting the number of words in two text files then combine the
+results into a total word count result. This creates the following files in
+the working directory: gatsby.json, oz.json, and wordcount_summary.txt
 """
 
 import logging
-import os
+from pathlib import Path
 from zambeze import Campaign, ShellActivity
 
 
 def main():
-    # logging (for debugging purposes)
+    """Run several shell activities to count words in text files."""
+
+    # Setup and configure a logger
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
+
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
+
     formatter = logging.Formatter(
         "[Zambeze Agent] [%(levelname)s] %(asctime)s - %(message)s"
     )
     ch.setFormatter(formatter)
+
     logger.addHandler(ch)
 
-    # create campaign
-    campaign = Campaign("My Simple Ordered Wordcount Campaign", logger=logger)
+    # Create activities
+    curr_dir = Path.cwd()
 
-    # define an activity
-    curr_dir = os.path.dirname(__file__)
     activity_1 = ShellActivity(
         name="Simple Ordered Wordcount (Oz)",
-        files=[f"http://127.0.0.1{curr_dir}/wordcount.py"],
-        command="python3",
-        arguments=[
-            f"{curr_dir}/wordcount.py",
-            "--textfile",
-            f"{curr_dir}/wizard_of_oz_book.txt",
-            "--name",
-            "oz",
-        ],
+        files=[f"local://{curr_dir}/wordcount.py"],
+        command="python",
+        arguments=f"{curr_dir}/wordcount.py --textfile {curr_dir}/wizard_of_oz_book.txt --name oz",
         logger=logger,
-        # Uncomment if running on M1 Mac.
-        env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
     )
 
     activity_2 = ShellActivity(
         name="Simple Ordered Wordcount (Gatsby)",
-        files=[f"{curr_dir}/wordcount.py"],
-        command="python3",
-        arguments=[
-            f"{curr_dir}/wordcount.py",
-            "--textfile",
-            f"{curr_dir}/gatsby_book.txt",
-            "--name",
-            "gatsby",
-        ],
+        files=[f"local://{curr_dir}/wordcount.py"],
+        command="python",
+        arguments=f"{curr_dir}/wordcount.py --textfile {curr_dir}/gatsby_book.txt --name gatsby",
         logger=logger,
-        # Uncomment if running on M1 Mac.
-        env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
     )
 
     activity_3 = ShellActivity(
         name="Merge wordcounts",
-        files=[f"{curr_dir}/oz.json", f"{curr_dir}/gatsby.json"],
-        command="python3",
-        arguments=[
-            f"{curr_dir}/merge_counts.py",
-            "--countfiles",
-            f"{curr_dir}/gatsby.json",
-            f"{curr_dir}/oz.json",
-        ],
+        files=[],
+        command="python",
+        arguments=f"{curr_dir}/merge_counts.py --countfiles gatsby.json oz.json",
         logger=logger,
-        # Uncomment if running on M1 Mac.
-        env_vars={"PATH": "${PATH}:/opt/homebrew/bin"},
     )
 
-    campaign.add_activity(activity_1)
-    campaign.add_activity(activity_2)
-    campaign.add_activity(activity_3)
-
-    # run the campaign
+    # Create and dispatch the campaign
+    campaign = Campaign("Word count campaign", activities=[activity_1, activity_2, activity_3], logger=logger)
     campaign.dispatch()
 
 

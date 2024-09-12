@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 
 def wordcount(filename, save_name):
     """Return number of words in file."""
+    print(">> wordcount() <<")
 
     with open(filename, "r") as f:
         data = f.read()
